@@ -2,9 +2,9 @@ import time
 import schedule
 from datetime import datetime
 from typing import Dict
-from processor import TaskProcessor
-from notion_api import NotionClientWrapper
-import config
+from bot.processor import TaskProcessor
+from bot.notion_api import NotionClientWrapper
+from bot import config
 
 class EchoPilotBot:
     def __init__(self):

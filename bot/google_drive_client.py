@@ -4,7 +4,7 @@ from datetime import datetime
 from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
 from typing import Dict, List, Optional
-import config
+from bot import config
 
 class GoogleDriveClientWrapper:
     def __init__(self):

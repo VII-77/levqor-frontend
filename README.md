@@ -71,10 +71,15 @@ JOB_LOG_DB_ID=<your-job-log-database-id>
 
 ### Step 5: Start the Bot
 
-The bot is already configured to run automatically. Once you add the secrets, restart the workflow:
-- The bot will poll every 60 seconds
-- It will process any tasks where `Trigger = true`
-- Results will be logged automatically
+The bot is already configured to run automatically via the `EchoPilot Bot` workflow:
+1. Once you add the secrets (Step 3), the bot will start automatically
+2. The bot will poll every 60 seconds for new tasks
+3. It will process any tasks where `Trigger = true`
+4. Results will be logged automatically to your Notion databases
+
+To manually start/stop the bot:
+- Use the Replit workflows panel
+- Or run `python run.py` from the terminal
 
 ## 🎯 How to Use
 
@@ -87,11 +92,16 @@ The bot is already configured to run automatically. Once you add the secrets, re
 ## 📊 Architecture
 
 ```
-main.py              # Main bot with polling loop
-processor.py         # Task processing and AI integration
-notion_api.py        # Notion API wrapper
-google_drive_client.py # Google Drive integration
-config.py            # Configuration and environment variables
+run.py                      # Entry point to start the bot
+bot/
+  ├── __init__.py          # Package initialization
+  ├── main.py              # Main bot with polling loop
+  ├── processor.py         # Task processing and AI integration
+  ├── notion_api.py        # Notion API wrapper
+  ├── google_drive_client.py # Google Drive integration
+  └── config.py            # Configuration and environment variables
+README.md                  # This file
+replit.md                  # Project documentation and architecture
 ```
 
 ## 💰 Cost Information

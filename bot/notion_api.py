@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 from notion_client import Client as NotionClient
 from typing import Dict, List, Optional, Any
-import config
+from bot import config
 
 class NotionClientWrapper:
     def __init__(self):

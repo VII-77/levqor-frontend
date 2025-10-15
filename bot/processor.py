@@ -1,9 +1,9 @@
 import os
 from openai import OpenAI
 from typing import Dict, Optional
-import config
-from notion_api import NotionClientWrapper
-from google_drive_client import GoogleDriveClientWrapper  # type: ignore
+from bot import config
+from bot.notion_api import NotionClientWrapper
+from bot.google_drive_client import GoogleDriveClientWrapper
 
 class TaskProcessor:
     def __init__(self):
@@ -38,8 +38,10 @@ class TaskProcessor:
                 max_tokens=10
             )
             
-            score_text = response.choices[0].message.content.strip()
-            score = int(score_text)
+            score_text = response.choices[0].message.content
+            if not score_text:
+                return 0
+            score = int(score_text.strip())
             return min(max(score, 0), 100)
         except Exception as e:
             print(f"Error calculating QA score: {e}")
@@ -59,7 +61,10 @@ class TaskProcessor:
                 max_tokens=2000
             )
             
-            return response.choices[0].message.content
+            result = response.choices[0].message.content
+            if not result:
+                raise Exception("AI returned empty response")
+            return result
         except Exception as e:
             raise Exception(f"AI processing failed: {str(e)}")
     

@@ -2,8 +2,8 @@ import os
 from openai import OpenAI
 from typing import Dict, Optional
 import config
-from notion_client import NotionClientWrapper
-from google_drive_client import GoogleDriveClientWrapper
+from notion_api import NotionClientWrapper
+from google_drive_client import GoogleDriveClientWrapper  # type: ignore
 
 class TaskProcessor:
     def __init__(self):

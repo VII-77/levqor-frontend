@@ -1,8 +1,9 @@
 import time
 import schedule
 from datetime import datetime
+from typing import Dict
 from processor import TaskProcessor
-from notion_client import NotionClientWrapper
+from notion_api import NotionClientWrapper
 import config
 
 class EchoPilotBot:
@@ -87,6 +88,5 @@ class EchoPilotBot:
             time.sleep(1)
 
 if __name__ == "__main__":
-    from typing import Dict
     bot = EchoPilotBot()
     bot.run()

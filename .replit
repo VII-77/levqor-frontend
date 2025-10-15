@@ -6,3 +6,26 @@ channel = "stable-25_05"
 [agent]
 integrations = ["python_openai_ai_integrations:1.0.0"]
 expertMode = true
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "EchoPilot Bot"
+
+[[workflows.workflow]]
+name = "EchoPilot Bot"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python main.py"
+
+[workflows.workflow.metadata]
+outputType = "console"

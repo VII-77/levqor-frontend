@@ -57,7 +57,7 @@ class GoogleDriveClientWrapper:
         credentials = Credentials(token=access_token)
         return build('drive', 'v3', credentials=credentials)
     
-    def list_files(self, query: str = None, page_size: int = 10) -> List[Dict]:
+    def list_files(self, query: Optional[str] = None, page_size: int = 10) -> List[Dict]:
         service = self.get_client()
         
         params = {'pageSize': page_size, 'fields': 'files(id, name, mimeType, createdTime)'}

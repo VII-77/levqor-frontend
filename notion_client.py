@@ -1,7 +1,7 @@
 import requests
 import os
 from datetime import datetime
-from notion_client import Client
+from notion_client import Client as NotionClient
 from typing import Dict, List, Optional, Any
 import config
 
@@ -52,14 +52,14 @@ class NotionClientWrapper:
         
         return access_token
     
-    def get_client(self) -> Client:
+    def get_client(self) -> Any:
         access_token = self.get_access_token()
-        return Client(auth=access_token)
+        return NotionClient(auth=access_token)
     
     def query_database(self, database_id: str, filter_criteria: Optional[Dict] = None) -> List[Dict]:
         client = self.get_client()
         
-        query_params = {"database_id": database_id}
+        query_params: Dict[str, Any] = {"database_id": database_id}
         if filter_criteria:
             query_params["filter"] = filter_criteria
         

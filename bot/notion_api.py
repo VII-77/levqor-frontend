@@ -83,7 +83,7 @@ class NotionClientWrapper:
         client = self.get_client()
         return client.pages.create(parent={"database_id": database_id}, properties=properties)
     
-    def log_activity(self, task_name: str, status: str, message: str, details: Optional[str] = None):
+    def log_activity(self, task_name: str, status: str, message: str, details: Optional[str] = None, commit: Optional[str] = None):
         properties = {
             "Task": {"title": [{"text": {"content": task_name}}]},
             "Status": {"select": {"name": status}},
@@ -93,6 +93,9 @@ class NotionClientWrapper:
         
         if details:
             properties["Details"] = {"rich_text": [{"text": {"content": details[:2000]}}]}
+        
+        if commit:
+            properties["Commit"] = {"rich_text": [{"text": {"content": commit[:40]}}]}
         
         return self.create_page(config.AUTOMATION_LOG_DB_ID, properties)
     
@@ -107,5 +110,20 @@ class NotionClientWrapper:
         
         if job_data.get('notes'):
             properties["Notes"] = {"rich_text": [{"text": {"content": job_data['notes'][:2000]}}]}
+        
+        if job_data.get('commit'):
+            properties["Commit"] = {"rich_text": [{"text": {"content": job_data['commit'][:40]}}]}
+        
+        if job_data.get('task_type'):
+            properties["Task Type"] = {"select": {"name": job_data['task_type']}}
+        
+        if job_data.get('duration_ms'):
+            properties["Duration (ms)"] = {"number": job_data['duration_ms']}
+        
+        if job_data.get('tokens_in'):
+            properties["Tokens In"] = {"number": job_data['tokens_in']}
+        
+        if job_data.get('tokens_out'):
+            properties["Tokens Out"] = {"number": job_data['tokens_out']}
         
         return self.create_page(config.JOB_LOG_DB_ID, properties)

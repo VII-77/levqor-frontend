@@ -13,12 +13,13 @@ WEB_REPL_RENEWAL = os.getenv('WEB_REPL_RENEWAL')
 POLL_INTERVAL_SECONDS = 60
 QA_TARGET_SCORE = 95
 
-# Database IDs with fallbacks
 AUTOMATION_QUEUE_DB_ID = os.getenv('AUTOMATION_QUEUE_DB_ID', '')
 AUTOMATION_LOG_DB_ID = os.getenv('AUTOMATION_LOG_DB_ID', '')
 JOB_LOG_DB_ID = os.getenv('JOB_LOG_DB_ID', '')
 
-# Check if in demo mode
+ALERT_WEBHOOK_URL = os.getenv('ALERT_WEBHOOK_URL', '')
+ALLOW_DIRTY = os.getenv('ALLOW_DIRTY', 'false').lower() == 'true'
+
 DEMO_MODE = (
     'demo' in AUTOMATION_QUEUE_DB_ID.lower() or 
     'demo' in AUTOMATION_LOG_DB_ID.lower() or 

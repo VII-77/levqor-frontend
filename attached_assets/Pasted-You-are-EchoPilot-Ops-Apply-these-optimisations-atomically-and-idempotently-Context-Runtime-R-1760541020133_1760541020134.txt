@@ -1,0 +1,62 @@
+You are EchoPilot Ops. Apply these optimisations atomically and idempotently.
+
+Context:
+- Runtime: Replit (Git available). Connectors: Notion + Google Drive.
+- Notion DBs:
+  - AUTOMATION_QUEUE_DB_ID
+  - AUTOMATION_LOG_DB_ID
+  - JOB_LOG_DB_ID
+
+Objectives:
+1) Version control binding
+- On startup, read current Git commit hash (fallback "no-git").
+- Include commit in every log row and /health.
+- On deployment, write a Notion Automation Log entry: {Status:"Processing", Message:"Deploy", Details:{commit, branch, timestamp}} then update to "Success".
+- Refuse to run if working tree dirty unless ENV ALLOW_DIRTY="true".
+
+2) Dynamic QA thresholds by task type
+- Add or ensure Queue has Select property "Task Type" and Number "QA Target".
+- If "QA Target" empty, map defaults by type:
+  - Research 95
+  - Drafting 90
+  - Data-transform 92
+  - Transcription 88
+  - Other 95
+- Use this per-item threshold when scoring; fail job if score<threshold and write Failure note.
+
+3) Error-budget dashboard (weekly)
+- Create/ensure Job Log roll-up view "Weekly QA & Failures".
+- Each run append a Notion page to Automation Log with:
+  - week_start, jobs_total, failures_total, failure_rate, top_3_failure_causes, mean_QA, p95_latency_ms, cost_sum.
+- Compute top_3_failure_causes from Failure note templates.
+- Every Monday 09:00 Europe/London, create/update a “Weekly Report (YYYY-WW)” page in Job Log with those metrics.
+
+4) Automated schema enforcement (pre-flight)
+- Validate required properties and types for all three DBs.
+- If drift detected, auto-repair when safe (create missing properties) else raise blocking error with precise diff.
+- Log a single Automation Log entry "Schema Check" with outcome and diff.
+
+5) Alerting policy
+- Maintain an in-memory and Notion-backed counter per task_name: consecutive_failed.
+- If any task_type or global consecutive_failed ≥ 3 within 24h:
+  - Create an Automation Log entry Status:"Warning" with burst summary.
+  - Send webhook POST to ENV ALERT_WEBHOOK_URL with JSON payload {ts, commit, recent_failures, sample_links}.
+  - De-duplicate alerts for the same key for 1h.
+
+Implementation details:
+- Structured log fields for every stage: {job_id, queue_page_id, stage, commit, task_type, qa_target, qa_score, tokens_in, tokens_out, cost_usd, duration_ms}.
+- Health endpoint returns {status, commit, model, rate_limit_headroom, last_alert_ts}.
+- All Notion writes are retried on 429 with jitter; idempotency key = sha256(job_id+stage).
+
+Actions:
+- Inspect current Notion schemas and patch as needed.
+- Create or update saved views mentioned above.
+- Write minimal migration notes to Automation Log: property additions and defaults applied.
+- Confirm by running a synthetic E2E job per task type and posting a short summary row to Job Log.
+
+Outputs required:
+- One Notion Automation Log page titled "Optimisation Pass <timestamp>" with:
+  - commit, changed_properties[], created_views[], alerts_configured:true/false, errors[].
+- Print to stdout a single JSON line "optimisation_summary": {commit, qa_defaults, schema_ok, alert_webhook_ok, weekly_rollup_ok}.
+
+Proceed now. If a step fails, stop, log a blocking error with remediation instructions, and exit non-zero.

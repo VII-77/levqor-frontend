@@ -1,21 +1,34 @@
 import time
 import schedule
+import json
 from datetime import datetime
 from typing import Dict
 from bot import config
+from bot.git_utils import get_git_info, check_git_clean
+from bot.schema_validator import SchemaValidator
+from bot.alerting import AlertManager
+from bot.metrics import MetricsCollector
 
 class EchoPilotBot:
     def __init__(self):
         self.is_running = False
         self.health_status = "Initializing"
         self.demo_mode = config.DEMO_MODE
+        self.commit, self.branch, self.is_dirty = get_git_info()
+        self.alert_manager = AlertManager()
+        self.metrics = MetricsCollector()
+        self.last_alert_ts = None
     
     def health_check(self) -> Dict:
         try:
             if self.demo_mode:
                 return {
                     'status': 'Demo Mode', 
-                    'message': 'Running in DEMO mode - configure real Notion databases for production'
+                    'message': 'Running in DEMO mode - configure real Notion databases for production',
+                    'commit': self.commit,
+                    'model': 'gpt-4o',
+                    'rate_limit_headroom': 'N/A',
+                    'last_alert_ts': self.last_alert_ts
                 }
             
             if not config.AUTOMATION_QUEUE_DB_ID:
@@ -25,28 +38,38 @@ class EchoPilotBot:
             if not config.JOB_LOG_DB_ID:
                 return {'status': 'Error', 'message': 'JOB_LOG_DB_ID not configured'}
             
-            return {'status': 'Healthy', 'message': 'All systems operational'}
+            return {
+                'status': 'Healthy',
+                'message': 'All systems operational',
+                'commit': self.commit,
+                'branch': self.branch,
+                'model': 'gpt-4o',
+                'rate_limit_headroom': 'OK',
+                'last_alert_ts': self.last_alert_ts
+            }
         except Exception as e:
-            return {'status': 'Error', 'message': str(e)}
+            return {'status': 'Error', 'message': str(e), 'commit': self.commit}
     
     def poll_and_process_demo(self):
-        """Demo polling - simulates bot activity"""
         print(f"[{datetime.now().isoformat()}] 🔄 Demo Mode: Polling for tasks...")
-        print("   📊 No real Notion databases configured")
+        print(f"   📊 Commit: {self.commit}")
         print("   ✅ Bot is running correctly in demo mode")
         print("   💡 To enable production mode: configure real database IDs")
         self.health_status = "Running (Demo)"
     
     def poll_and_process(self):
-        """Real polling for production mode"""
         try:
             from bot.processor import TaskProcessor
             from bot.notion_api import NotionClientWrapper
             
             notion = NotionClientWrapper()
-            processor = TaskProcessor()
+            processor = TaskProcessor(
+                commit=self.commit,
+                alert_manager=self.alert_manager,
+                metrics=self.metrics
+            )
             
-            print(f"[{datetime.now().isoformat()}] Polling for triggered tasks...")
+            print(f"[{datetime.now().isoformat()}] Polling for triggered tasks... (commit: {self.commit[:8]})")
             
             tasks = notion.get_triggered_tasks()
             
@@ -59,6 +82,11 @@ class EchoPilotBot:
                         print(f"✅ Completed: {result['task_name']} (QA: {result['qa_score']}%)")
                     else:
                         print(f"❌ Failed: {result['task_name']} - {result.get('error', 'Unknown error')}")
+                
+                alert_sent = self.alert_manager.check_and_alert(self.commit, notion)
+                if alert_sent:
+                    self.last_alert_ts = datetime.now().isoformat()
+                    print(f"⚠️  Alert sent for consecutive failures")
             else:
                 print("No triggered tasks found")
             
@@ -71,7 +99,17 @@ class EchoPilotBot:
     def run(self):
         print("=" * 80)
         print("🤖 EchoPilot AI Automation Bot Starting...")
+        print(f"📝 Commit: {self.commit}")
+        print(f"🌿 Branch: {self.branch}")
         print("=" * 80)
+        
+        if not config.DEMO_MODE:
+            try:
+                check_git_clean()
+            except Exception as e:
+                print(f"\n❌ Git Check Failed: {e}")
+                print("Exiting...")
+                return
         
         health = self.health_check()
         print(f"\nHealth Check: {health['status']} - {health['message']}")

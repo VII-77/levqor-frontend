@@ -33,3 +33,7 @@ args = "python run.py"
 [deployment]
 deploymentTarget = "vm"
 run = ["python", "run.py"]
+
+[[ports]]
+localPort = 5000
+externalPort = 80

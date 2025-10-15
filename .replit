@@ -31,4 +31,5 @@ task = "shell.exec"
 args = "python run.py"
 
 [deployment]
-deploymentTarget = "cloudrun"
+deploymentTarget = "vm"
+run = ["python", "run.py"]

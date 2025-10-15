@@ -142,9 +142,55 @@ Edit `config.py` to adjust:
 - Google Drive access via OAuth
 - Access tokens auto-refresh
 
+## ⚖️ Compliance & Legal (IMPORTANT)
+
+**⚠️ BEFORE PROCESSING PERSONAL DATA:**
+
+This bot requires legal compliance setup before production use with personal or sensitive data. See detailed compliance documentation:
+
+### Quick Start (Critical Actions)
+📋 **[COMPLIANCE_QUICK_START.md](COMPLIANCE_QUICK_START.md)** - Step-by-step compliance checklist
+
+**Week 1 Critical Actions:**
+1. ✅ Execute OpenAI Data Processing Addendum (DPA)
+2. ✅ Execute Notion Data Processing Addendum (DPA)
+3. ✅ Create and publish Privacy Policy
+4. ✅ Create and publish Terms of Service
+5. ✅ Document legal basis for data processing
+6. ✅ Define data retention policy
+
+### Full Audit Report
+📊 **[COMPLIANCE_AUDIT_REPORT.md](COMPLIANCE_AUDIT_REPORT.md)** - Comprehensive security, privacy, and legal audit
+
+**Current Compliance Score:** 55/100
+- ✅ Strong technical security
+- ⚠️ Missing legal documentation
+- ❌ No Data Processing Agreements
+
+**Compliance Status:**
+- **GDPR:** Partially Compliant (Action Required)
+- **CCPA:** Partially Compliant (Action Required)
+- **Security:** Compliant
+- **Data Protection:** Action Required
+
+### What Data Is Processed
+- Task descriptions (user input)
+- AI-generated results (OpenAI GPT-4o)
+- Activity logs and metrics
+- Git commit metadata
+
+### Third-Party Processors
+- **OpenAI** - AI task processing
+- **Notion** - Data storage and logging
+- **Google Drive** - File handling (optional)
+- **Replit** - Infrastructure and secrets
+
+**Important:** If you process EU user data, UK user data, or California resident data, you MUST complete compliance steps before production use.
+
 ## 📚 Next Steps
 
 After setup, consider:
+- **Compliance:** Complete legal documentation (see above)
 - Adding webhook support for real-time triggers
 - Implementing batch processing
 - Adding Slack/email notifications

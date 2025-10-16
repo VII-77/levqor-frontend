@@ -144,6 +144,15 @@ class EchoPilotBot:
             print(f"\n✅ Bot initialized successfully!")
             print(f"📊 Polling interval: {config.POLL_INTERVAL_SECONDS} seconds")
             print(f"🎯 QA Target Score: {config.QA_TARGET_SCORE}%")
+            
+            # Start diagnostic schedulers for live monitoring
+            try:
+                from bot.scheduler_diag import schedule_hourly_heartbeat, schedule_autocheck_6h
+                schedule_hourly_heartbeat()
+                schedule_autocheck_6h()
+            except Exception as e:
+                print(f"⚠️  Diagnostic schedulers not started: {e}")
+            
             print("\n" + "=" * 80 + "\n")
             
             self.is_running = True

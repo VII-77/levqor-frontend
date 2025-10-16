@@ -28,7 +28,8 @@ def check_openai_ping() -> Dict[str, Any]:
             ],
             timeout=20
         )
-        ok = "ping-ok" in response.choices[0].message.content.lower()
+        content = response.choices[0].message.content or ""
+        ok = "ping-ok" in content.lower()
         return {"ok": ok, "status": "success"}
     except Exception as e:
         return {"ok": False, "error": str(e)}
@@ -39,7 +40,7 @@ def check_notion_read(db_id: str, name: str) -> Dict[str, Any]:
     if not db_id:
         return {"ok": False, "reason": f"{name} not configured"}
     try:
-        from bot.notion_api import get_notion_client
+        from bot.notion_api import get_notion_client  # type: ignore
         client = get_notion_client()
         db = client.databases.retrieve(database_id=db_id)
         return {"ok": True, "db_title": db.get("title", [{}])[0].get("plain_text", "Unknown")}
@@ -53,7 +54,7 @@ def get_recent_job_metrics() -> Dict[str, Any]:
     qa_sum = 0.0
     
     try:
-        from bot.notion_api import get_notion_client
+        from bot.notion_api import get_notion_client  # type: ignore
         client = get_notion_client()
         
         # Get last 24 hours of jobs
@@ -120,8 +121,8 @@ def post_status_to_notion(ok: bool, notes: str) -> Dict[str, Any]:
         return {"ok": False, "reason": "NOTION_STATUS_DB_ID not configured"}
     
     try:
-        from bot.notion_api import get_notion_client
-        from bot.git_utils import get_git_commit, get_git_branch
+        from bot.notion_api import get_notion_client  # type: ignore
+        from bot.git_utils import get_git_commit, get_git_branch  # type: ignore
         
         client = get_notion_client()
         metrics = get_recent_job_metrics()
@@ -153,7 +154,7 @@ def synthetic_bot_job() -> Dict[str, Any]:
         return {"ok": False, "reason": "AUTOMATION_QUEUE_DB_ID not configured"}
     
     try:
-        from bot.notion_api import get_notion_client
+        from bot.notion_api import get_notion_client  # type: ignore
         client = get_notion_client()
         
         title = f"[SYNTHETIC TEST] {datetime.utcnow():%Y-%m-%d %H:%M:%SZ}"

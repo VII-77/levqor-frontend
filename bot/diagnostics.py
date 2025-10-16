@@ -124,11 +124,12 @@ def post_status_to_notion(ok: bool, notes: str) -> Dict[str, Any]:
     
     try:
         from bot.notion_api import NotionClientWrapper
-        from bot.git_utils import get_git_commit, get_git_branch  # type: ignore
+        from bot.git_utils import get_git_info
         
         wrapper = NotionClientWrapper()
         client = wrapper.get_client()
         metrics = get_recent_job_metrics()
+        commit, branch, _ = get_git_info()
         
         payload = {
             "parent": {"database_id": NOTION_STATUS_DB_ID},
@@ -139,8 +140,8 @@ def post_status_to_notion(ok: bool, notes: str) -> Dict[str, Any]:
                 "Jobs (24h)": {"number": metrics.get("total_24h", 0)},
                 "Avg QA (24h)": {"number": metrics.get("avg_qa_24h", 0.0)},
                 "Low-QA Count": {"number": metrics.get("low_qa_count", 0)},
-                "Commit": {"rich_text": [{"text": {"content": get_git_commit()[:40]}}]},
-                "Branch": {"rich_text": [{"text": {"content": get_git_branch()[:100]}}]},
+                "Commit": {"rich_text": [{"text": {"content": commit[:40]}}]},
+                "Branch": {"rich_text": [{"text": {"content": branch[:100]}}]},
                 "Notes": {"rich_text": [{"text": {"content": notes[:1900]}}]}
             }
         }

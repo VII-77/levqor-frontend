@@ -1,0 +1,57 @@
+# Git
+.git
+.gitignore
+
+# Python cache
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.pytest_cache
+.mypy_cache
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Replit specific
+.replit
+.config/
+.pythonlibs/
+.cache/
+.upm/
+replit.nix
+
+# Logs
+*.log
+.DS_Store
+
+# Documentation (optional - remove if you want docs in container)
+*.md
+!README.md
+
+# Attached assets (Replit specific)
+attached_assets/
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# UV lock file (not needed in container)
+uv.lock
+pyproject.toml
+
+# Shell scripts (optional)
+*.sh

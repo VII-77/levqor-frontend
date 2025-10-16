@@ -67,6 +67,9 @@ class NotionClientWrapper:
         return response.get('results', [])
     
     def get_triggered_tasks(self) -> List[Dict]:
+        if not config.AUTOMATION_QUEUE_DB_ID:
+            raise ValueError("AUTOMATION_QUEUE_DB_ID is not configured")
+        
         filter_criteria = {
             "property": "Trigger",
             "checkbox": {
@@ -84,6 +87,9 @@ class NotionClientWrapper:
         return client.pages.create(parent={"database_id": database_id}, properties=properties)
     
     def log_activity(self, task_name: str, status: str, message: str, details: Optional[str] = None, commit: Optional[str] = None):
+        if not config.AUTOMATION_LOG_DB_ID:
+            raise ValueError("AUTOMATION_LOG_DB_ID is not configured")
+        
         properties = {
             "Log Entry": {"title": [{"text": {"content": task_name}}]},
             "Status": {"select": {"name": status}},
@@ -100,6 +106,9 @@ class NotionClientWrapper:
         return self.create_page(config.AUTOMATION_LOG_DB_ID, properties)
     
     def log_completed_job(self, job_data: Dict):
+        if not config.JOB_LOG_DB_ID:
+            raise ValueError("JOB_LOG_DB_ID is not configured")
+        
         properties = {
             "Job Name": {"title": [{"text": {"content": job_data.get('job_name', 'Unnamed Job')}}]},
             "QA Score": {"number": job_data.get('qa_score', 0)},

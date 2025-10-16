@@ -1,0 +1,153 @@
+Configure Gmail email alerts inside my Replit EchoPilot automation system.
+The goal: send automatic supervisor reports and failure notifications from my bot to my Gmail inbox.
+Follow these exact steps and verify everything automatically.
+
+
+
+
+---
+
+🔧 1.  Secrets to Create
+
+Create the following secrets in my Replit project (or ask me to input them interactively):
+
+Key	Value
+
+SMTP_HOST	smtp.gmail.com
+SMTP_PORT	587
+SMTP_USER	my full Gmail address
+SMTP_PASS	my 16-character Google App Password (from https://myaccount.google.com/security → App Passwords → “EchoPilot”)
+ALERT_TO	same Gmail address or another I want reports sent to
+
+
+
+---
+
+📁 2.  Create or replace file: alert_mailer.py
+
+import os, smtplib, socket
+from email.mime.text import MIMEText
+
+def send_alert(subject, body, to=None):
+    user = os.getenv("SMTP_USER")
+    pwd = os.getenv("SMTP_PASS")
+    to = to or os.getenv("ALERT_TO", user)
+    host = os.getenv("SMTP_HOST","smtp.gmail.com")
+    port = int(os.getenv("SMTP_PORT","587"))
+
+    msg = MIMEText(body)
+    msg["Subject"] = subject
+    msg["From"] = user
+    msg["To"] = to
+
+    try:
+        s = smtplib.SMTP(host, port, timeout=30)
+        s.starttls()
+        s.login(user, pwd)
+        s.send_message(msg)
+        s.quit()
+        print(f"✅ Email sent to {to}")
+    except (smtplib.SMTPException, socket.error) as e:
+        print(f"❌ Email send failed: {e}")
+        raise
+
+
+---
+
+🧠 3.  Add file: supervisor_report.py
+
+import json, datetime
+from alert_mailer import send_alert
+
+def run_supervisor():
+    ts = datetime.datetime.utcnow().isoformat()+"Z"
+    body = json.dumps({
+        "timestamp": ts,
+        "status": "Healthy",
+        "notion_ok": True,
+        "drive_ok": True,
+        "openai_ok": True,
+        "qa_avg": 9.4
+    }, indent=2)
+    subject = f"[EchoPilot] Supervisor Report — {ts[:10]}"
+    send_alert(subject, body)
+
+if __name__ == "__main__":
+    run_supervisor()
+
+
+---
+
+⚙️ 4.  Test Command
+
+Run this in the Replit shell:
+
+python supervisor_report.py
+
+Expected output:
+
+✅ Email sent to you@gmail.com
+
+Check your inbox for a subject like:
+
+> [EchoPilot] Supervisor Report — YYYY-MM-DD
+
+
+
+
+---
+
+🕒 5.  Schedule Automatic Daily Email
+
+If your build already uses a scheduler or heartbeat thread, append this in your main loop (or add to main.py):
+
+import threading, time
+from supervisor_report import run_supervisor
+
+def scheduler():
+    while True:
+        now = time.strftime("%H:%M")
+        if now == "06:45":   # run once daily at 06:45 UTC
+            try:
+                run_supervisor()
+            except Exception as e:
+                print("Supervisor email error:", e)
+            time.sleep(70)  # avoid duplicate runs in same minute
+        time.sleep(30)
+
+threading.Thread(target=scheduler, daemon=True).start()
+
+
+---
+
+🧪 6.  Verification Checklist
+
+1. Run the test command → confirm test email arrives.
+
+
+2. Wait for the daily 06:45 (UTC/London) job → confirm automatic supervisor report email.
+
+
+3. Check Replit console → should log:
+
+✅ Email sent to your@email.com
+
+
+4. If no mail → run python alert_mailer.py manually to debug credentials.
+
+
+
+
+---
+
+✅ Success Criteria
+
+You receive a test email and daily automated supervisor report.
+
+No SMTP errors in Replit logs.
+
+supervisor_report.py triggers automatically once per day.
+
+
+
+---

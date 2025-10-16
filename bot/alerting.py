@@ -13,6 +13,7 @@ class AlertManager:
         self.last_alert_time = {}
         self.alert_webhook_url = os.getenv('ALERT_WEBHOOK_URL', '')
         self.email_alerts_enabled = bool(os.getenv('ALERT_TO'))
+        self.telegram_alerts_enabled = bool(os.getenv('TELEGRAM_BOT_TOKEN') and os.getenv('TELEGRAM_CHAT_ID'))
     
     def record_failure(self, task_name: str, task_type: str):
         self.consecutive_failures[task_name] += 1
@@ -99,6 +100,27 @@ Action Required: Please investigate the automation queue and logs.
                             print(f"📧 Alert email sent for {key}")
                         except Exception as e:
                             print(f"Failed to send alert email: {e}")
+                    
+                    # Send Telegram alert
+                    if self.telegram_alerts_enabled:
+                        try:
+                            from bot.telegram_bot import send_telegram_alert
+                            
+                            alert_title = "ALERT: Consecutive Failures"
+                            alert_body = f"""Alert Key: {key}
+Consecutive Failures: {count}
+Failures (24h): {failures_24h}
+Timestamp: {now.strftime('%Y-%m-%d %H:%M:%S')}
+Commit: {commit[:8]}
+
+{summary}
+
+⚠️ Action Required: Check automation queue and logs."""
+                            
+                            send_telegram_alert(alert_title, alert_body)
+                            print(f"📱 Alert sent to Telegram for {key}")
+                        except Exception as e:
+                            print(f"Failed to send Telegram alert: {e}")
                     
                     self.last_alert_time[key] = now
                     alert_triggered = True

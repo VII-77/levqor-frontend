@@ -12,6 +12,7 @@ class AlertManager:
         self.failure_timestamps = defaultdict(list)
         self.last_alert_time = {}
         self.alert_webhook_url = os.getenv('ALERT_WEBHOOK_URL', '')
+        self.email_alerts_enabled = bool(os.getenv('ALERT_TO'))
     
     def record_failure(self, task_name: str, task_type: str):
         self.consecutive_failures[task_name] += 1
@@ -48,6 +49,7 @@ class AlertManager:
                         details=f"Commit: {commit}"
                     )
                     
+                    # Send webhook alert
                     if self.alert_webhook_url:
                         try:
                             payload = {
@@ -65,6 +67,38 @@ class AlertManager:
                             )
                         except Exception as e:
                             print(f"Failed to send webhook: {e}")
+                    
+                    # Send email alert
+                    if self.email_alerts_enabled:
+                        try:
+                            from bot.gmail_client import GmailClientWrapper
+                            gmail = GmailClientWrapper()
+                            
+                            subject = f"[EchoPilot] ALERT: Consecutive Failures Detected"
+                            body = f"""EchoPilot Alert: Consecutive Failures
+{'=' * 60}
+
+Alert Key: {key}
+Consecutive Failures: {count}
+Failures in Last 24h: {failures_24h}
+Timestamp: {now.isoformat()}
+Git Commit: {commit}
+
+Summary:
+{summary}
+
+{'=' * 60}
+Action Required: Please investigate the automation queue and logs.
+"""
+                            
+                            gmail.send_email(
+                                to=os.getenv('ALERT_TO', ''),
+                                subject=subject,
+                                body=body
+                            )
+                            print(f"📧 Alert email sent for {key}")
+                        except Exception as e:
+                            print(f"Failed to send alert email: {e}")
                     
                     self.last_alert_time[key] = now
                     alert_triggered = True

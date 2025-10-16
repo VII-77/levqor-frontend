@@ -21,11 +21,13 @@ The application is built with a modular component design:
 - `processor.py`: Handles task processing, dynamic QA, metrics collection, and alerting.
 - `notion_api.py`: Manages interactions with Notion, including enhanced logging.
 - `google_drive_client.py`: Provides Google Drive integration for file handling.
+- `gmail_client.py`: Manages Gmail email sending via Replit Gmail Connector (OAuth-based).
+- `supervisor_report.py`: Generates and sends daily supervisor health reports via email.
 - `config.py`: Centralizes application configuration.
 - `git_utils.py`: Manages Git commit tracking and dirty tree detection.
 - `schema_validator.py`: Automates schema validation and repair for Notion databases.
 - `qa_thresholds.py`: Manages dynamic QA thresholds based on task types.
-- `alerting.py`: Implements the alerting policy with webhook integration.
+- `alerting.py`: Implements the alerting policy with webhook and email integration.
 - `metrics.py`: Collects and rolls up performance metrics.
 - `diagnostics.py` and `scheduler_diag.py`: Implement the live diagnostics and monitoring system.
 
@@ -64,15 +66,28 @@ Automated pre-flight validation is performed on Notion databases, validating pro
 
 ### Alerting System
 
-The system includes an alerting policy that detects consecutive failures (≥3 within 24h) per task type and globally. Upon detection, it creates an Automation Log entry, sends a webhook POST to a configurable URL, and de-duplicates alerts for 1 hour.
+The system includes a comprehensive alerting policy with multiple notification channels:
+- **Failure Detection**: Detects consecutive failures (≥3 within 24h) per task type and globally
+- **Notification Channels**: 
+  - Automation Log entries for audit trail
+  - Webhook POST to configurable URL
+  - Gmail email alerts via Replit Gmail Connector (OAuth, no SMTP credentials needed)
+- **De-duplication**: Alerts are de-duplicated with 1-hour cooldown to prevent spam
 
 ### Metrics & Error-Budget Dashboard
 
 Weekly metric rollups are computed, tracking total jobs, failures, failure rates, top failure causes, mean QA, p95 latency, and total cost. These reports are stored in the Job Log, facilitating performance analysis and trend tracking.
 
-### Live Diagnostics System
+### Live Diagnostics & Monitoring System
 
-An independent diagnostics system posts hourly heartbeats and 6-hour synthetic test results to a dedicated Notion Status Board, ensuring continuous monitoring of the Reserved VM's health.
+The system includes comprehensive monitoring capabilities:
+- **Status Board Diagnostics**: Hourly heartbeats and 6-hour synthetic tests posted to Notion Status Board for 24/7 health monitoring
+- **Daily Supervisor Reports**: Automated email reports sent at 06:45 UTC daily containing:
+  - System health status (Notion, Google Drive, OpenAI connectivity)
+  - Recent QA score averages (last 10 jobs)
+  - Git commit tracking
+  - Service availability checks
+- **Real-time Failure Alerts**: Email notifications sent immediately when consecutive failures (≥3) detected, with 1-hour de-duplication
 
 ## External Dependencies
 
@@ -81,6 +96,7 @@ An independent diagnostics system posts hourly heartbeats and 6-hour synthetic t
 -   **Notion API**: Primary data storage, task queue, and audit trail, integrated via the official `notion-client` Python SDK with OAuth2 through Replit Connectors.
 -   **OpenAI API**: Used for AI task processing and QA evaluation (GPT-4o and GPT-4o-mini), integrated via the official `openai` SDK, with a custom base URL through Replit AI Integrations.
 -   **Google Drive API**: For file handling and storage, integrated using the `googleapiclient` library with OAuth2 via Replit Connectors.
+-   **Gmail API**: For sending automated supervisor reports and failure alerts, integrated via `googleapiclient` with OAuth2 through Replit Gmail Connector (no SMTP credentials required).
 
 ### Python Dependencies
 
@@ -103,9 +119,10 @@ An independent diagnostics system posts hourly heartbeats and 6-hour synthetic t
 -   `JOB_LOG_DB_ID`
 
 **Optional Environment Variables**:
--   `ALERT_WEBHOOK_URL`
--   `ALLOW_DIRTY`
--   `NOTION_STATUS_DB_ID` (for live diagnostics)
+-   `ALERT_WEBHOOK_URL` (for webhook-based alerts)
+-   `ALERT_TO` (email address for supervisor reports and failure alerts)
+-   `ALLOW_DIRTY` (allow execution with uncommitted Git changes)
+-   `NOTION_STATUS_DB_ID` (for live diagnostics posting to Status Board)
 
 **Application Constants**:
 -   `POLL_INTERVAL_SECONDS` (60)

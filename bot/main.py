@@ -153,6 +153,23 @@ class EchoPilotBot:
             except Exception as e:
                 print(f"⚠️  Diagnostic schedulers not started: {e}")
             
+            # Start daily supervisor email report
+            try:
+                from bot.supervisor_report import send_supervisor_email
+                def daily_supervisor():
+                    print(f"[{datetime.now().isoformat()}] 📧 Sending daily supervisor report...")
+                    result = send_supervisor_email()
+                    if result.get('ok'):
+                        print(f"✅ Supervisor report sent to {result.get('to')}")
+                    else:
+                        print(f"❌ Supervisor report failed: {result.get('error')}")
+                
+                # Schedule for 6:45 UTC daily
+                schedule.every().day.at("06:45").do(daily_supervisor)
+                print("📧 Daily supervisor email scheduled for 06:45 UTC")
+            except Exception as e:
+                print(f"⚠️  Supervisor email scheduler not started: {e}")
+            
             print("\n" + "=" * 80 + "\n")
             
             self.is_running = True

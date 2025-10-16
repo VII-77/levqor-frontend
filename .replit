@@ -34,7 +34,7 @@ waitForPort = 5000
 
 [deployment]
 deploymentTarget = "vm"
-run = ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "1", "--threads", "2", "--timeout", "120", "run:app"]
+run = ["gunicorn", "--worker-class", "gthread", "--workers", "1", "--threads", "2", "--timeout", "120", "--bind", "0.0.0.0:5000", "--reuse-port", "run:app"]
 
 [[ports]]
 localPort = 5000

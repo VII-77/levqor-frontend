@@ -1,0 +1,101 @@
+Extend my EchoPilot system so every Gmail alert that’s sent through alert_mailer.py is also pushed to Telegram instantly.
+Do not change the Gmail flow; just add a lightweight mirror.
+
+
+
+
+---
+
+1️⃣ Confirm secrets already exist
+
+Secret	Purpose
+
+TELEGRAM_BOT_TOKEN	From @BotFather
+TELEGRAM_CHAT_ID	From @userinfobot
+SMTP_USER + SMTP_PASS + ALERT_TO	Gmail credentials (already working)
+
+
+No new secrets required.
+
+
+---
+
+2️⃣ Patch alert_mailer.py
+
+Replace (or insert after the existing send_message(msg) line) with this version:
+
+import os, smtplib, socket
+from email.mime.text import MIMEText
+
+# --- optional import for Telegram mirror ---
+try:
+    from telegram_bot import send_tg
+except Exception:
+    def send_tg(msg):  # safe no-op fallback
+        print("⚠️ Telegram mirror disabled")
+
+def send_alert(subject, body, to=None):
+    user = os.getenv("SMTP_USER")
+    pwd = os.getenv("SMTP_PASS")
+    to = to or os.getenv("ALERT_TO", user)
+    host = os.getenv("SMTP_HOST", "smtp.gmail.com")
+    port = int(os.getenv("SMTP_PORT", "587"))
+
+    msg = MIMEText(body)
+    msg["Subject"] = subject
+    msg["From"] = user
+    msg["To"] = to
+
+    try:
+        s = smtplib.SMTP(host, port, timeout=30)
+        s.starttls()
+        s.login(user, pwd)
+        s.send_message(msg)
+        s.quit()
+        print(f"✅ Gmail alert sent to {to}")
+
+        # ---- Telegram mirror ----
+        send_tg(f"📧 {subject}\n{body[:1500]}")
+
+    except (smtplib.SMTPException, socket.error) as e:
+        print(f"❌ Email send failed: {e}")
+        send_tg(f"❌ Email send failed: {e}")
+        raise
+
+This keeps the Gmail email as the source of truth but sends the same summary to Telegram within 1–2 seconds.
+
+
+---
+
+3️⃣ Test it
+
+In Replit shell:
+
+python supervisor_report.py
+
+Expected:
+
+✅ Gmail alert sent to you@gmail.com
+📨 Telegram: 200
+
+Check:
+
+Gmail → new “Supervisor Report” message
+
+Telegram → same summary delivered instantly
+
+
+
+---
+
+✅ Success Criteria
+
+Both Gmail and Telegram show the alert.
+
+No new console errors.
+
+Telegram messages arrive in < 3 seconds.
+
+
+
+---

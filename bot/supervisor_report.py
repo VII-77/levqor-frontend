@@ -156,6 +156,31 @@ Raw JSON Report:
             body=body
         )
         
+        # Mirror to Telegram (lightweight, non-blocking)
+        if result.get('ok'):
+            try:
+                from bot.telegram_bot import send_telegram
+                
+                # Create concise Telegram version (truncate if needed)
+                telegram_body = f"""📧 <b>Supervisor Report — {timestamp}</b>
+
+<b>Status:</b> {report['status']}
+<b>Commit:</b> {report['git_commit'][:8]}
+
+<b>Services:</b>
+• Notion: {report['services']['notion']}
+• Drive: {report['services']['google_drive']}
+• OpenAI: {report['services']['openai']}
+
+<b>QA Average (last 10):</b> {report['metrics']['qa_average_recent_10']}
+
+✅ Full report sent to {recipient}"""
+                
+                send_telegram(telegram_body)
+                print(f"📱 Supervisor report mirrored to Telegram")
+            except Exception as tg_error:
+                print(f"⚠️ Telegram mirror failed (non-critical): {tg_error}")
+        
         return result
         
     except Exception as e:

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from bot.main import EchoPilotBot
-from flask import Flask, jsonify
+from flask import Flask, jsonify, send_from_directory
 import threading
 import os
 from bot import git_utils
@@ -24,6 +24,11 @@ def health_check():
 def health():
     """Alternative health endpoint"""
     return jsonify({"status": "ok"})
+
+@app.route('/favicon.ico')
+def favicon():
+    """Handle favicon requests to eliminate 404 errors"""
+    return '', 204  # No content response
 
 def run_bot():
     """Run the bot in a separate thread"""

@@ -6,13 +6,21 @@ EchoPilot is an intelligent automation bot that polls Notion databases for trigg
 
 **Current Status**: ✅ Bot is LIVE and RUNNING. All optimizations + automatic polish complete. Zero errors, enterprise-grade code quality, ready for production.
 
-**Latest Optimizations**: October 16, 2025 - Automatic code polish: constants extraction, retry logic, enhanced error handling, configuration validation, refactored processor, zero technical debt.
+**Latest Optimizations**: October 16, 2025 - Live Diagnostics System: Hourly heartbeat + 6-hour synthetic tests posting to Notion Status Board for 24/7 monitoring of Reserved VM deployment.
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
+
+### October 16, 2025 - Live Diagnostics & Monitoring System 📊
+- **Hourly Heartbeat**: Posts system status to Notion Status Board every hour
+- **6-Hour AutoCheck**: Runs synthetic end-to-end tests to verify bot health
+- **Real-Time Metrics**: Tracks jobs (24h), avg QA score, low-QA count, commit, branch
+- **Independent Monitoring**: Status Board updates even when viewing workspace/deployment
+- **Purpose**: Reliable way to monitor Reserved VM deployment without checking logs
+- **Files**: `bot/diagnostics.py`, `bot/scheduler_diag.py` integrated into `bot/main.py`
 
 ### October 16, 2025 - Automatic Code Optimization & Polish ✨
 - **Code Quality Excellence**: Created `bot/constants.py` and `bot/utils.py` for maintainability
@@ -68,6 +76,8 @@ Preferred communication style: Simple, everyday language.
 - `alerting.py`: Alert policy with webhook integration and deduplication
 - `metrics.py`: Metrics collection and weekly rollup computation
 - `run_optimizations.py`: Optimization orchestration and deployment logging
+- `diagnostics.py`: **NEW** - System health checks (OpenAI, Notion, metrics)
+- `scheduler_diag.py`: **NEW** - Hourly heartbeat and 6-hour synthetic tests
 
 ### AI Integration
 

@@ -22,12 +22,13 @@ The application is built with a modular component design:
 - `notion_api.py`: Manages interactions with Notion, including enhanced logging.
 - `google_drive_client.py`: Provides Google Drive integration for file handling.
 - `gmail_client.py`: Manages Gmail email sending via Replit Gmail Connector (OAuth-based).
+- `telegram_bot.py`: Handles Telegram messaging and command polling for instant notifications and remote control.
 - `supervisor_report.py`: Generates and sends daily supervisor health reports via email.
 - `config.py`: Centralizes application configuration.
 - `git_utils.py`: Manages Git commit tracking and dirty tree detection.
 - `schema_validator.py`: Automates schema validation and repair for Notion databases.
 - `qa_thresholds.py`: Manages dynamic QA thresholds based on task types.
-- `alerting.py`: Implements the alerting policy with webhook and email integration.
+- `alerting.py`: Implements the alerting policy with webhook, email, and Telegram integration.
 - `metrics.py`: Collects and rolls up performance metrics.
 - `diagnostics.py` and `scheduler_diag.py`: Implement the live diagnostics and monitoring system.
 
@@ -72,6 +73,7 @@ The system includes a comprehensive alerting policy with multiple notification c
   - Automation Log entries for audit trail
   - Webhook POST to configurable URL
   - Gmail email alerts via Replit Gmail Connector (OAuth, no SMTP credentials needed)
+  - Telegram instant messaging alerts with bot commands
 - **De-duplication**: Alerts are de-duplicated with 1-hour cooldown to prevent spam
 
 ### Metrics & Error-Budget Dashboard
@@ -87,7 +89,12 @@ The system includes comprehensive monitoring capabilities:
   - Recent QA score averages (last 10 jobs)
   - Git commit tracking
   - Service availability checks
-- **Real-time Failure Alerts**: Email notifications sent immediately when consecutive failures (≥3) detected, with 1-hour de-duplication
+- **Real-time Failure Alerts**: Email and Telegram notifications sent immediately when consecutive failures (≥3) detected, with 1-hour de-duplication
+- **Telegram Bot Commands**: Interactive monitoring via Telegram chat:
+  - `/status` - Check bot status (polling interval, QA target, commit, branch)
+  - `/health` - System health check (services, message, commit)
+  - `/report` - Trigger on-demand supervisor report via email
+  - `/help` - Show available commands
 
 ## External Dependencies
 
@@ -97,6 +104,7 @@ The system includes comprehensive monitoring capabilities:
 -   **OpenAI API**: Used for AI task processing and QA evaluation (GPT-4o and GPT-4o-mini), integrated via the official `openai` SDK, with a custom base URL through Replit AI Integrations.
 -   **Google Drive API**: For file handling and storage, integrated using the `googleapiclient` library with OAuth2 via Replit Connectors.
 -   **Gmail API**: For sending automated supervisor reports and failure alerts, integrated via `googleapiclient` with OAuth2 through Replit Gmail Connector (no SMTP credentials required).
+-   **Telegram Bot API**: For instant push notifications and interactive chat commands, integrated via direct HTTP API calls with bot token authentication.
 
 ### Python Dependencies
 
@@ -121,6 +129,8 @@ The system includes comprehensive monitoring capabilities:
 **Optional Environment Variables**:
 -   `ALERT_WEBHOOK_URL` (for webhook-based alerts)
 -   `ALERT_TO` (email address for supervisor reports and failure alerts)
+-   `TELEGRAM_BOT_TOKEN` (Telegram bot token from @BotFather for instant messaging alerts)
+-   `TELEGRAM_CHAT_ID` (Telegram chat ID for receiving messages and commands)
 -   `ALLOW_DIRTY` (allow execution with uncommitted Git changes)
 -   `NOTION_STATUS_DB_ID` (for live diagnostics posting to Status Board)
 

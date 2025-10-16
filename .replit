@@ -22,13 +22,14 @@ args = "EchoPilot Bot"
 [[workflows.workflow]]
 name = "EchoPilot Bot"
 author = "agent"
+mode = "parallel"
 
 [workflows.workflow.metadata]
 outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "gunicorn --bind 0.0.0.0:5000 --workers 1 --threads 2 --timeout 120 run:app"
+args = "gunicorn --worker-class gthread --workers 1 --threads 2 --timeout 120 --bind 0.0.0.0:5000 run:app"
 waitForPort = 5000
 
 [deployment]

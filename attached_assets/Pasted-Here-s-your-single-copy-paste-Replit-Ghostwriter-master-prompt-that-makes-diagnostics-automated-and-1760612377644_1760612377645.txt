@@ -1,0 +1,308 @@
+Here’s your single, copy-paste Replit Ghostwriter master prompt that makes diagnostics automated and live for both builds (web + bot). It installs hourly/daily health checks, optional synthetic jobs, a JSON status endpoint (if web exists), and a Notion Status Board heartbeat.
+
+
+---
+
+🧠 REPLIT AI MASTER PROMPT — “EchoPilot Live Diagnostics (Web & Bot) — v2”
+
+> Upgrade my EchoPilot project (whether it’s a web/Flask build, a bot-only poller, or both) with:
+
+Hourly Heartbeat → posts status to a Notion Status Board + logs.
+
+Daily Supervisor → full report (OpenAI/Drive/Notion checks) + email/Telegram alerts.
+
+AutoCheck every 6h → synthetic end-to-end test (web upload if available, or optional Notion queue insert).
+
+/report-json endpoint (only if a Flask app exists) for live snapshot.
+
+
+Do not remove existing functionality. If a file already exists, patch minimally. If both main.py (web) and bot.py (poller) exist, enable diagnostics from both.
+
+
+
+
+---
+
+1) Create file: diagnostics.py
+
+import os, json, time, requests, subprocess
+from datetime import datetime
+# Optional Google/Notion imports are inside try blocks.
+
+APP_BASE = os.getenv("APP_BASE_URL","").rstrip("/")
+TEST_AUDIO_URL = os.getenv("TEST_AUDIO_URL","")  # public small mp3/m4a
+NOTION_STATUS_DB_ID = os.getenv("NOTION_STATUS_DB_ID","")
+NOTION_API_KEY = os.getenv("NOTION_API_KEY","")
+NOTION_QUEUE_DB_ID = os.getenv("NOTION_QUEUE_DB_ID","")  # optional: queue DB for bot synthetic job
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY","")
+
+def _ok(v): return bool(v)
+
+def check_http_health():
+    if not APP_BASE:
+        return {"ok": False, "reason":"APP_BASE_URL not set"}
+    try:
+        r = requests.get(f"{APP_BASE}/health", timeout=15)
+        return {"ok": r.status_code==200, "status": r.status_code, "body": r.text[:800]}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+def check_openai_ping():
+    if not OPENAI_API_KEY: return {"ok": False, "reason":"OPENAI_API_KEY missing"}
+    try:
+        r = requests.post("https://api.openai.com/v1/chat/completions",
+            headers={"Authorization":f"Bearer {OPENAI_API_KEY}","Content-Type":"application/json"},
+            json={"model":"gpt-4o-mini","messages":[
+                {"role":"system","content":"Reply exactly: ping-ok"},
+                {"role":"user","content":"ping"}]}, timeout=20)
+        return {"ok": r.status_code==200 and "ping-ok" in r.text, "status": r.status_code}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+def check_notion_read(db_env="NOTION_DB_ID"):
+    if not NOTION_API_KEY: return {"ok": False, "reason":"NOTION_API_KEY missing"}
+    db = os.getenv(db_env,"")
+    if not db: return {"ok": False, "reason":f"{db_env} missing"}
+    try:
+        h={"Authorization":f"Bearer {NOTION_API_KEY}","Notion-Version":"2022-06-28"}
+        r=requests.get(f"https://api.notion.com/v1/databases/{db}", headers=h, timeout=20)
+        return {"ok": r.status_code==200, "status": r.status_code}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+def check_drive_list():
+    sa = os.getenv("GDRIVE_SA_JSON",""); inf = os.getenv("GDRIVE_INPUT_FOLDER_ID","")
+    if not sa or not inf: return {"ok": False, "reason":"GDRIVE_SA_JSON/GDRIVE_INPUT_FOLDER_ID missing"}
+    try:
+        import json as pj
+        from google.oauth2 import service_account
+        from googleapiclient.discovery import build
+        creds = service_account.Credentials.from_service_account_info(
+            pj.loads(sa), scopes=["https://www.googleapis.com/auth/drive"])
+        svc = build("drive","v3", credentials=creds, cache_discovery=False)
+        resp = svc.files().list(q=f"'{inf}' in parents and trashed=false",
+                                pageSize=3, fields="files(id,name)").execute()
+        return {"ok": True, "files": resp.get("files", [])}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+def synthetic_web_job():
+    """If web upload form exists, post TEST_AUDIO_URL as a file to '/'."""
+    if not (APP_BASE and TEST_AUDIO_URL): 
+        return {"ok": False, "reason":"APP_BASE_URL/TEST_AUDIO_URL missing"}
+    try:
+        b = requests.get(TEST_AUDIO_URL, timeout=30).content
+        files = {"audio": ("diag.mp3", b, "audio/mpeg")}
+        r = requests.post(APP_BASE + "/", files=files, timeout=180)
+        ok = ("Done:" in r.text and "QA=" in r.text)
+        return {"ok": ok, "body": r.text[:400]}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+def synthetic_bot_job():
+    """Optional: create a Processing row in Notion queue DB for bot-only builds."""
+    if not (NOTION_API_KEY and NOTION_QUEUE_DB_ID and TEST_AUDIO_URL):
+        return {"ok": False, "reason":"NOTION_API_KEY/NOTION_QUEUE_DB_ID/TEST_AUDIO_URL missing"}
+    try:
+        h={"Authorization":f"Bearer {NOTION_API_KEY}","Notion-Version":"2022-06-28","Content-Type":"application/json"}
+        title = f"Diag Bot Job {datetime.utcnow():%Y-%m-%d %H:%M:%SZ}"
+        payload = {
+          "parent":{"database_id": NOTION_QUEUE_DB_ID},
+          "properties":{
+            "Job Name": {"title":[{"text":{"content":title}}]},
+            "Task Type": {"select":{"name":"Processing"}},
+            "Trigger": {"checkbox": True},
+            "Status": {"select":{"name":"New"}},
+            "Payload Link": {"url": TEST_AUDIO_URL},
+            "Language Hint": {"select":{"name":"auto"}}
+          }
+        }
+        r = requests.post("https://api.notion.com/v1/pages", headers=h, json=payload, timeout=20)
+        return {"ok": r.status_code in (200, 201), "status": r.status_code}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+def snapshot():
+    snap = {
+      "ts": datetime.utcnow().isoformat()+"Z",
+      "openai_ping": check_openai_ping(),
+      "notion_joblog_read": check_notion_read("NOTION_DB_ID"),
+      "drive_list": check_drive_list(),
+    }
+    # if web present, include http health
+    if APP_BASE:
+        snap["http_health"] = check_http_health()
+    return snap
+
+def post_status_to_notion(ok: bool, notes: str):
+    if not (NOTION_API_KEY and NOTION_STATUS_DB_ID):
+        return {"ok": False, "reason":"NOTION_STATUS_DB_ID/NOTION_API_KEY missing"}
+    # derive basic KPIs from metrics.csv if present
+    total=done=low=0; qa_sum=0.0
+    try:
+        with open("metrics.csv","r",encoding="utf-8") as f:
+            rows=f.readlines()[1:][-300:]
+        for ln in rows:
+            parts=ln.strip().split(",",4)
+            if len(parts)<5: continue
+            _,_,qa,_,note = parts
+            try: q=float(qa); qa_sum+=q
+            except: q=0.0
+            total+=1
+            if "status=Done" in note: done+=1
+            if q<9.3: low+=1
+    except FileNotFoundError:
+        pass
+    avg=(qa_sum/total) if total else 0.0
+
+    h={"Authorization":f"Bearer {NOTION_API_KEY}","Notion-Version":"2022-06-28","Content-Type":"application/json"}
+    def _title(t): return {"title":[{"text":{"content":t[:200]}}]}
+    def _date(iso): return {"date":{"start":iso}}
+    def _chk(b):   return {"checkbox": bool(b)}
+    def _num(x):   return {"number": float(x) if x is not None else None}
+    def _rt(t):    return {"rich_text":[{"text":{"content":str(t)[:1900]}}]}
+    payload={
+      "parent":{"database_id": NOTION_STATUS_DB_ID},
+      "properties":{
+        "Name": _title("Heartbeat"),
+        "When": _date(datetime.utcnow().isoformat()+"Z"),
+        "OK": _chk(ok),
+        "Jobs (24h)": _num(total),
+        "Avg QA (24h)": _num(avg),
+        "Low-QA Count": _num(low),
+        "Notes": _rt(notes)
+      }
+    }
+    r=requests.post("https://api.notion.com/v1/pages", headers=h, json=payload, timeout=20)
+    return {"ok": r.status_code in (200,201), "status": r.status_code}
+
+def run_autocheck():
+    """Run synthetic e2e: try web upload else bot queue insert."""
+    if APP_BASE:
+        return {"mode":"web", **synthetic_web_job()}
+    elif NOTION_QUEUE_DB_ID:
+        return {"mode":"bot", **synthetic_bot_job()}
+    else:
+        return {"ok": False, "reason":"No APP_BASE_URL or NOTION_QUEUE_DB_ID configured for synthetic run"}
+
+
+---
+
+2) Create file: scheduler_diag.py
+
+import threading, time, json
+from diagnostics import snapshot, post_status_to_notion, run_autocheck
+
+def schedule_hourly_heartbeat():
+    def loop():
+        while True:
+            try:
+                snap = snapshot()
+                ok = all(v.get("ok", True) for k,v in snap.items())
+                post_status_to_notion(ok, json.dumps(snap)[:1800])
+            except Exception as e:
+                post_status_to_notion(False, f"heartbeat error: {e}")
+            time.sleep(3600)  # hourly
+    threading.Thread(target=loop, daemon=True).start()
+
+def schedule_autocheck_6h():
+    def loop():
+        while True:
+            try:
+                res = run_autocheck()
+                note = json.dumps(res)[:1800]
+                post_status_to_notion(res.get("ok",False), note)
+            except Exception as e:
+                post_status_to_notion(False, f"autocheck error: {e}")
+            time.sleep(6*3600)
+    threading.Thread(target=loop, daemon=True).start()
+
+
+---
+
+3) Patch web app (if present) to expose /report-json
+
+> If a Flask app exists (commonly in main.py), add this route once. If not found, skip.
+
+
+
+# add near other routes
+from diagnostics import snapshot
+from flask import jsonify
+
+@app.route("/report-json")
+def report_json():
+    try:
+        return jsonify(snapshot()), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+---
+
+4) Wire schedulers into startup
+
+> In whichever file runs your process (e.g., main.py for web or bot.py for poller), import and call the schedulers after your app/bot starts.
+
+
+
+# add near top
+from scheduler_diag import schedule_hourly_heartbeat, schedule_autocheck_6h
+
+# after your app/bot is initialized (and any other schedulers)
+schedule_hourly_heartbeat()
+schedule_autocheck_6h()
+
+(If you have both main.py and bot.py, put these in both so either process posts status.)
+
+
+---
+
+5) Ensure packages
+
+Add (if missing): requests, google-auth, google-api-python-client, flask (only if you have a web app).
+
+
+---
+
+6) Secrets to set (Replit → Secrets)
+
+OPENAI_API_KEY
+
+NOTION_API_KEY
+
+NOTION_DB_ID (your Job Log)
+
+GDRIVE_SA_JSON (full service account JSON)
+
+GDRIVE_INPUT_FOLDER_ID
+
+GDRIVE_OUTPUT_FOLDER_ID
+
+APP_BASE_URL (only if you have a web app, e.g., https://yourapp.replit.app)
+
+TEST_AUDIO_URL (a small public mp3, e.g., https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3)
+
+NOTION_STATUS_DB_ID (create a Notion DB “EchoPilot Status Board” with props: Name[Title], When[Date], OK[Checkbox], Jobs (24h)[Number], Avg QA (24h)[Number], Low-QA Count[Number], Notes[Rich text])
+
+(optional) NOTION_QUEUE_DB_ID (your Automation Queue System DB id — enables bot synthetic test when no web)
+
+
+
+---
+
+7) Quick verification (now)
+
+Console: no import errors on restart.
+
+If web: open /report-json → see JSON snapshot.
+
+In Notion EchoPilot Status Board: within an hour you’ll see hourly Heartbeat rows; within 6 hours, an AutoCheck row.
+
+To run immediately in console:
+
+python -c "from diagnostics import snapshot,post_status_to_notion,run_autocheck; import json; s=snapshot(); print(json.dumps(s,indent=2)); print(post_status_to_notion(True,'manual')); print(run_autocheck())"
+
+
+
+-

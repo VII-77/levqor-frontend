@@ -24,20 +24,21 @@ name = "EchoPilot Bot"
 author = "agent"
 
 [workflows.workflow.metadata]
-outputType = "console"
+outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python run.py"
+args = "gunicorn --bind 0.0.0.0:5000 --workers 1 --threads 2 --timeout 120 run:app"
+waitForPort = 5000
 
 [deployment]
 deploymentTarget = "vm"
-run = ["python", "run.py"]
+run = ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "1", "--threads", "2", "--timeout", "120", "run:app"]
 
 [[ports]]
 localPort = 5000
 externalPort = 80
 
 [[ports]]
-localPort = 44739
+localPort = 37837
 externalPort = 3000

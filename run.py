@@ -30,11 +30,11 @@ def run_bot():
     bot = EchoPilotBot()
     bot.run()
 
+# Start bot in background thread (runs with both Gunicorn and Flask dev server)
+bot_thread = threading.Thread(target=run_bot, daemon=True)
+bot_thread.start()
+
 if __name__ == "__main__":
-    # Start bot in background thread
-    bot_thread = threading.Thread(target=run_bot, daemon=True)
-    bot_thread.start()
-    
-    # Start Flask server on port 5000 (required for deployment)
+    # Start Flask development server (only used for local testing)
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)

@@ -170,6 +170,34 @@ class EchoPilotBot:
             except Exception as e:
                 print(f"⚠️  Supervisor email scheduler not started: {e}")
             
+            # Start Telegram bot command listener
+            try:
+                from bot.telegram_bot import start_telegram_listener, send_telegram
+                from bot.supervisor_report import send_supervisor_email
+                
+                def get_status():
+                    return f"✅ EchoPilot Running\n📊 Polling: Every 60s\n🎯 QA Target: {config.QA_TARGET_SCORE}%\n📝 Commit: {self.commit[:8]}\n🌿 Branch: {self.branch}"
+                
+                def get_health():
+                    health = self.health_check()
+                    return f"Status: {health['status']}\n{health['message']}\nCommit: {health.get('commit', 'unknown')[:8]}"
+                
+                def trigger_report():
+                    return send_supervisor_email()
+                
+                thread = start_telegram_listener(
+                    get_status_fn=get_status,
+                    get_health_fn=get_health,
+                    trigger_report_fn=trigger_report
+                )
+                
+                if thread:
+                    print("🤖 Telegram bot listener started")
+                    # Send startup notification
+                    send_telegram("🚀 <b>EchoPilot Bot Started</b>\n\nBot is live and monitoring!\nUse /help for commands.")
+            except Exception as e:
+                print(f"⚠️  Telegram bot not started: {e}")
+            
             print("\n" + "=" * 80 + "\n")
             
             self.is_running = True

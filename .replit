@@ -4,7 +4,7 @@ modules = ["python-3.11", "postgresql-16"]
 channel = "stable-25_05"
 
 [agent]
-integrations = ["python_openai_ai_integrations:1.0.0"]
+integrations = ["python_openai_ai_integrations:1.0.0", "google-mail:1.0.0"]
 expertMode = true
 
 [workflows]

@@ -31,7 +31,7 @@ class GmailClientWrapper:
         x_replit_token = self.get_x_replit_token()
         
         response = requests.get(
-            f'https://{hostname}/api/v2/connection?include_secrets=true&connector_names=google-drive',
+            f'https://{hostname}/api/v2/connection?include_secrets=true&connector_names=google-mail',
             headers={
                 'Accept': 'application/json',
                 'X_REPLIT_TOKEN': x_replit_token
@@ -42,7 +42,7 @@ class GmailClientWrapper:
         items = data.get('items', [])
         
         if not items:
-            raise Exception('Google Drive not connected (needed for Gmail)')
+            raise Exception('Gmail not connected')
         
         self.connection_settings = items[0]
         access_token = (
@@ -62,10 +62,23 @@ class GmailClientWrapper:
         return build('gmail', 'v1', credentials=credentials)
     
     def get_user_email(self) -> str:
-        """Get the authenticated user's email address"""
-        service = self.get_gmail_client()
-        profile = service.users().getProfile(userId='me').execute()
-        return profile.get('emailAddress', 'unknown@gmail.com')
+        """Get the authenticated user's email address from environment or connection settings"""
+        # Try to get from environment variable first
+        email = os.getenv('SMTP_USER') or os.getenv('ALERT_TO')
+        if email:
+            return email
+        
+        # Try to get from connection settings
+        try:
+            if self.connection_settings:
+                email = self.connection_settings.get('settings', {}).get('email')
+                if email:
+                    return email
+        except:
+            pass
+        
+        # Default fallback - user will need to set ALERT_TO env var
+        raise Exception('Email address not found. Please set ALERT_TO environment variable.')
     
     def send_email(self, to: str, subject: str, body: str, from_email: str | None = None) -> dict:
         """

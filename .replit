@@ -39,3 +39,7 @@ run = ["gunicorn", "--worker-class", "gthread", "--workers", "1", "--threads", "
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 40847
+externalPort = 3000

@@ -1,0 +1,153 @@
+> Extend my EchoPilot Replit automation with Telegram alerts and simple chat commands.
+The goal: receive instant push notifications and issue remote commands like /status, /health, and /report.
+Keep Gmail alerts untouched and active.
+
+
+
+
+---
+
+1️⃣  Secrets to Add in Replit
+
+Name	Value
+
+TELEGRAM_BOT_TOKEN	Your bot token from @BotFather
+TELEGRAM_CHAT_ID	Your personal chat ID (send any message to @userinfobot and copy the number)
+
+
+
+---
+
+2️⃣  Create file: telegram_bot.py
+
+import os, requests, time, json
+from threading import Thread
+from alert_mailer import send_alert
+
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+API_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
+
+def send_tg(msg):
+    if not BOT_TOKEN or not CHAT_ID:
+        print("⚠️ Telegram not configured")
+        return
+    try:
+        r = requests.post(f"{API_URL}/sendMessage",
+            json={"chat_id": CHAT_ID, "text": msg[:3900]}, timeout=15)
+        print("📨 Telegram:", r.status_code)
+    except Exception as e:
+        print("❌ Telegram send error:", e)
+
+def poll_commands(get_status_fn=None, get_health_fn=None):
+    if not BOT_TOKEN: 
+        print("⚠️ Telegram bot disabled")
+        return
+    offset = 0
+    print("🤖 Telegram bot listening...")
+    while True:
+        try:
+            r = requests.get(f"{API_URL}/getUpdates", params={"timeout":30,"offset":offset+1}, timeout=40)
+            data = r.json()
+            for u in data.get("result", []):
+                offset = u["update_id"]
+                msg = u.get("message", {}).get("text", "")
+                if not msg: continue
+                cmd = msg.strip().lower()
+                if cmd in ("/start","/help"):
+                    send_tg("EchoPilot Bot Ready.\nCommands:\n/status\n/health\n/report")
+                elif cmd == "/status" and get_status_fn:
+                    send_tg(get_status_fn())
+                elif cmd == "/health" and get_health_fn:
+                    send_tg(get_health_fn())
+                elif cmd == "/report":
+                    send_tg("Supervisor report will be emailed shortly.")
+                    send_alert("Manual report trigger", "Telegram user requested /report.")
+                else:
+                    send_tg("Unknown command. Use /status or /health.")
+        except Exception as e:
+            print("Poll error:", e)
+        time.sleep(3)
+
+
+---
+
+3️⃣  Integrate with Main App (main.py)
+
+At the bottom of your main script (after scheduler start), add:
+
+from telegram_bot import poll_commands, send_tg
+from supervisor_report import run_supervisor
+
+def get_status():
+    return "✅ System running\nPolling Notion every 60s\nLast report OK."
+
+def get_health():
+    import requests, os
+    base = os.getenv("APP_BASE_URL","https://echopilotai.replit.app").rstrip("/")
+    try:
+        r = requests.get(f"{base}/health", timeout=10)
+        return f"Health: {r.status_code} {r.text[:150]}"
+    except Exception as e:
+        return f"Health check failed: {e}"
+
+# Launch Telegram listener (background)
+import threading
+threading.Thread(target=poll_commands, kwargs={
+    "get_status_fn": get_status,
+    "get_health_fn": get_health
+}, daemon=True).start()
+
+# Optional startup message
+send_tg("🚀 EchoPilot bot is live and monitoring.")
+
+
+---
+
+4️⃣  Test Commands
+
+1. In Telegram, DM your bot:
+
+/start → should reply “EchoPilot Bot Ready…”
+
+/status → should reply with system status
+
+/health → should echo your /health JSON
+
+/report → should send you an email through Gmail alert system
+
+
+
+2. In Replit console, you’ll see:
+
+🤖 Telegram bot listening...
+📨 Telegram: 200
+
+
+
+
+---
+
+5️⃣  Optional Auto-Alerts
+
+Add this in alert_mailer.py right after each successful Gmail send:
+
+from telegram_bot import send_tg
+send_tg(f"{subject}\n{body[:1000]}")
+
+That mirrors every Gmail alert to Telegram instantly.
+
+
+---
+
+✅ Success Criteria
+
+/start, /status, /health, /report all work.
+
+Telegram messages appear instantly (<3 s).
+
+Gmail alerts still send daily reports.
+
+
+
+---

@@ -40,8 +40,9 @@ def check_notion_read(db_id: str, name: str) -> Dict[str, Any]:
     if not db_id:
         return {"ok": False, "reason": f"{name} not configured"}
     try:
-        from bot.notion_api import get_notion_client  # type: ignore
-        client = get_notion_client()
+        from bot.notion_api import NotionClientWrapper
+        wrapper = NotionClientWrapper()
+        client = wrapper.get_client()
         db = client.databases.retrieve(database_id=db_id)
         return {"ok": True, "db_title": db.get("title", [{}])[0].get("plain_text", "Unknown")}
     except Exception as e:
@@ -54,11 +55,12 @@ def get_recent_job_metrics() -> Dict[str, Any]:
     qa_sum = 0.0
     
     try:
-        from bot.notion_api import get_notion_client  # type: ignore
-        client = get_notion_client()
+        from bot.notion_api import NotionClientWrapper
+        from datetime import timedelta
+        wrapper = NotionClientWrapper()
+        client = wrapper.get_client()
         
         # Get last 24 hours of jobs
-        from datetime import datetime, timedelta
         yesterday = (datetime.utcnow() - timedelta(hours=24)).isoformat()
         
         results = client.databases.query(
@@ -121,10 +123,11 @@ def post_status_to_notion(ok: bool, notes: str) -> Dict[str, Any]:
         return {"ok": False, "reason": "NOTION_STATUS_DB_ID not configured"}
     
     try:
-        from bot.notion_api import get_notion_client  # type: ignore
+        from bot.notion_api import NotionClientWrapper
         from bot.git_utils import get_git_commit, get_git_branch  # type: ignore
         
-        client = get_notion_client()
+        wrapper = NotionClientWrapper()
+        client = wrapper.get_client()
         metrics = get_recent_job_metrics()
         
         payload = {
@@ -154,8 +157,9 @@ def synthetic_bot_job() -> Dict[str, Any]:
         return {"ok": False, "reason": "AUTOMATION_QUEUE_DB_ID not configured"}
     
     try:
-        from bot.notion_api import get_notion_client  # type: ignore
-        client = get_notion_client()
+        from bot.notion_api import NotionClientWrapper
+        wrapper = NotionClientWrapper()
+        client = wrapper.get_client()
         
         title = f"[SYNTHETIC TEST] {datetime.utcnow():%Y-%m-%d %H:%M:%SZ}"
         description = "Automated diagnostic test job - please process and verify system health"

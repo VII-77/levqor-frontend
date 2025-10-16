@@ -85,7 +85,7 @@ class NotionClientWrapper:
     
     def log_activity(self, task_name: str, status: str, message: str, details: Optional[str] = None, commit: Optional[str] = None):
         properties = {
-            "Task": {"title": [{"text": {"content": task_name}}]},
+            "Log Entry": {"title": [{"text": {"content": task_name}}]},
             "Status": {"select": {"name": status}},
             "Message": {"rich_text": [{"text": {"content": message}}]},
             "Timestamp": {"date": {"start": datetime.now().isoformat()}}

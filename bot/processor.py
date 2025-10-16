@@ -147,18 +147,21 @@ class TaskProcessor:
                     commit=self.commit
                 )
                 
-                self.notion.log_completed_job({
-                    'job_name': task_name,
-                    'qa_score': qa_score,
-                    'cost': cost,
-                    'status': 'Failed',
-                    'notes': failure_note,
-                    'commit': self.commit,
-                    'task_type': task_type,
-                    'duration_ms': duration_ms,
-                    'tokens_in': tokens_in,
-                    'tokens_out': tokens_out
-                })
+                try:
+                    self.notion.log_completed_job({
+                        'job_name': task_name,
+                        'qa_score': qa_score,
+                        'cost': cost,
+                        'status': 'Failed',
+                        'notes': failure_note,
+                        'commit': self.commit,
+                        'task_type': task_type,
+                        'duration_ms': duration_ms,
+                        'tokens_in': tokens_in,
+                        'tokens_out': tokens_out
+                    })
+                except Exception as e:
+                    print(f"Warning: Could not log to Job Log database: {e}")
                 
                 job_metrics = {
                     'timestamp': datetime.now(),
@@ -184,7 +187,8 @@ class TaskProcessor:
                     page_id=task_id,
                     properties={
                         "Status": {"select": {"name": "Completed"}},
-                        "Trigger": {"checkbox": False}
+                        "Trigger": {"checkbox": False},
+                        "Result Summary": {"rich_text": [{"text": {"content": result[:2000]}}]}
                     }
                 )
                 
@@ -196,18 +200,21 @@ class TaskProcessor:
                     commit=self.commit
                 )
                 
-                self.notion.log_completed_job({
-                    'job_name': task_name,
-                    'qa_score': qa_score,
-                    'cost': cost,
-                    'status': 'Completed',
-                    'notes': f"Result: {result[:500]}...",
-                    'commit': self.commit,
-                    'task_type': task_type,
-                    'duration_ms': duration_ms,
-                    'tokens_in': tokens_in,
-                    'tokens_out': tokens_out
-                })
+                try:
+                    self.notion.log_completed_job({
+                        'job_name': task_name,
+                        'qa_score': qa_score,
+                        'cost': cost,
+                        'status': 'Completed',
+                        'notes': f"Result: {result[:500]}...",
+                        'commit': self.commit,
+                        'task_type': task_type,
+                        'duration_ms': duration_ms,
+                        'tokens_in': tokens_in,
+                        'tokens_out': tokens_out
+                    })
+                except Exception as e:
+                    print(f"Warning: Could not log to Job Log database: {e}")
                 
                 job_metrics = {
                     'timestamp': datetime.now(),

@@ -11,3 +11,4 @@ schedule==1.2.2
 cryptography
 stripe
 reportlab
+reportlab

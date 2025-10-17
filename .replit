@@ -2,7 +2,7 @@ modules = ["python-3.11", "postgresql-16", "nodejs-20", "python3"]
 
 [nix]
 channel = "stable-25_05"
-packages = ["cargo", "libiconv", "libxcrypt", "openssl", "pkg-config", "rustc"]
+packages = ["cargo", "freetype", "glibcLocales", "libiconv", "libxcrypt", "openssl", "pkg-config", "rustc"]
 
 [agent]
 integrations = ["python_openai_ai_integrations:1.0.0", "google-mail:1.0.0"]
@@ -56,10 +56,6 @@ externalPort = 3001
 [[ports]]
 localPort = 40847
 externalPort = 3000
-
-[[ports]]
-localPort = 43895
-externalPort = 5000
 
 [[ports]]
 localPort = 46241

@@ -1,0 +1,185 @@
+> Extend EchoPilot from internal automation to a monetized client system.
+Add client database, pricing logic, cost → margin calculation, and automatic PDF invoice + delivery email.
+Keep everything faceless and mobile-friendly.
+Output: fully automated client billing and ROI tracking inside Notion.
+
+
+
+
+---
+
+1️⃣ Create file client_manager.py
+
+# client_manager.py
+import os, datetime, json, requests, io
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+from alert_mailer import send_alert
+
+NOTION_API_KEY=os.getenv("NOTION_API_KEY","")
+CLIENT_DB=os.getenv("NOTION_CLIENT_DB_ID","")
+H={"Authorization":f"Bearer {NOTION_API_KEY}","Notion-Version":"2022-06-28","Content-Type":"application/json"}
+
+def notion_create_client(name,email,rate_usd_per_min=5.0):
+    """Create a client in Notion Clients DB."""
+    body={"parent":{"database_id":CLIENT_DB},
+          "properties":{
+            "Client Name":{"title":[{"text":{"content":name}}]},
+            "Email":{"email":email},
+            "Rate USD/min":{"number":rate_usd_per_min},
+            "Active":{"checkbox":True}
+          }}
+    r=requests.post("https://api.notion.com/v1/pages",headers=H,json=body,timeout=20)
+    return r.status_code,r.text
+
+def calc_revenue(audio_minutes,client_rate,cost_usd):
+    gross=audio_minutes*client_rate
+    profit=round(gross-cost_usd,4)
+    margin=round((profit/gross)*100,1) if gross>0 else 0
+    return dict(gross=gross,profit=profit,margin=margin)
+
+def gen_invoice_pdf(client_name,job_id,minutes,rate,cost,gross,profit):
+    """Return PDF bytes for invoice."""
+    buf=io.BytesIO()
+    c=canvas.Canvas(buf,pagesize=A4)
+    c.setFont("Helvetica",12)
+    y=800
+    c.drawString(50,y,f"EchoPilot Invoice — {datetime.date.today().isoformat()}")
+    y-=40
+    lines=[
+        f"Client: {client_name}",
+        f"Job ID: {job_id}",
+        f"Duration: {minutes:.2f} min",
+        f"Rate: ${rate:.2f}/min",
+        f"Gross: ${gross:.2f}",
+        f"AI Cost: ${cost:.4f}",
+        f"Profit: ${profit:.2f}",
+        f"Thank you for using EchoPilot AI."
+    ]
+    for L in lines: c.drawString(50,y,L); y-=25
+    c.showPage(); c.save()
+    buf.seek(0)
+    return buf.getvalue()
+
+def deliver_invoice(client_email,subject,body,pdf_bytes):
+    from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart
+    from email.mime.application import MIMEApplication
+    import smtplib
+    msg=MIMEMultipart()
+    msg["Subject"]=subject
+    msg["From"]=os.getenv("SMTP_USER")
+    msg["To"]=client_email
+    msg.attach(MIMEText(body))
+    part=MIMEApplication(pdf_bytes,Name="invoice.pdf")
+    msg.attach(part)
+    s=smtplib.SMTP(os.getenv("SMTP_HOST"),int(os.getenv("SMTP_PORT")))
+    s.starttls(); s.login(os.getenv("SMTP_USER"),os.getenv("SMTP_PASS"))
+    s.send_message(msg); s.quit()
+    print("✅ Invoice sent to",client_email)
+
+
+---
+
+2️⃣ Patch processor (after cost calculation)
+
+Add below your cost_usd / audio_seconds logic:
+
+from client_manager import calc_revenue, gen_invoice_pdf, deliver_invoice
+
+# get client rate from Notion (optional env fallback)
+client_rate = float(os.getenv("DEFAULT_RATE_USD_PER_MIN","5"))
+audio_minutes = audio_seconds/60.0
+rev = calc_revenue(audio_minutes, client_rate, cost_usd)
+
+# Update Notion Job Log fields
+notion_update_fields(job_id,{
+    "Client Rate USD/min":{"number":client_rate},
+    "Gross USD":{"number":rev["gross"]},
+    "Profit USD":{"number":rev["profit"]},
+    "Margin %":{"number":rev["margin"]}
+})
+
+# Generate invoice and deliver (optional)
+pdf_bytes = gen_invoice_pdf(client_name, job_id, audio_minutes, client_rate, cost_usd,
+                            rev["gross"], rev["profit"])
+deliver_invoice(client_email,
+    f"[EchoPilot] Invoice {job_id}",
+    f"Your EchoPilot job is complete.\nGross: ${rev['gross']:.2f}\nProfit: ${rev['profit']:.2f}\nThanks for your business.",
+    pdf_bytes)
+
+(This runs only when Status = Done and the client has an email.)
+
+
+---
+
+3️⃣ In Notion AI on Clients DB (create once)
+
+Create a database named “EchoPilot Clients” with these properties:
+- Client Name (Title)
+- Email (Email)
+- Rate USD/min (Number)
+- Active (Checkbox)
+- Notes (Rich text)
+
+Return a Property | Type | OK table.
+
+
+---
+
+4️⃣ Add columns to EchoPilot Job Log (Notion AI prompt)
+
+Add Number properties:
+- Client Rate USD/min
+- Gross USD
+- Profit USD
+- Margin %
+Create a Relation to the Clients DB (property name “Client”) so each job links to its client.
+
+
+---
+
+5️⃣ Secrets to set (Replit + Railway)
+
+DEFAULT_RATE_USD_PER_MIN=5
+NOTION_CLIENT_DB_ID=<Clients DB ID>
+
+
+---
+
+6️⃣ 60-Second Revenue Test
+
+Run a short job (30 s audio) then in Replit shell:
+
+python - <<'PY'
+import os,requests,json
+H={"Authorization":f"Bearer {os.getenv('NOTION_API_KEY')}","Notion-Version":"2022-06-28","Content-Type":"application/json"}
+db=os.getenv("NOTION_DB_ID")
+r=requests.post(f"https://api.notion.com/v1/databases/{db}/query",
+ headers=H,json={"page_size":1,"sorts":[{"timestamp":"last_edited_time","direction":"descending"}]},timeout=30).json()
+p=r["results"][0]["properties"]
+out={k:p[k].get("number") if p[k]["type"]=="number" else None
+     for k in["Gross USD","Profit USD","Margin %"]}
+print(json.dumps(out,indent=2))
+PY
+
+✅ Expect values like:
+
+{ "Gross USD": 5.00, "Profit USD": 4.85, "Margin %": 97.0 }
+
+and an email with attached invoice.pdf.
+
+
+---
+
+7️⃣ Result
+
+Notion → tracks client, rate, cost, profit per job.
+
+Email → auto-sends invoice.
+
+Telegram/Gmail → still alert you on errors.
+
+Everything runs autonomously.
+
+

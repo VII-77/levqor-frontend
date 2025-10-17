@@ -26,6 +26,13 @@ from bot.qa_thresholds import get_qa_threshold, extract_task_type, extract_qa_ta
 from bot.alerting import AlertManager
 from bot.metrics import MetricsCollector
 
+try:
+    from bot.payments import create_payment_link, is_payment_configured
+    PAYMENTS_AVAILABLE = True
+except ImportError:
+    PAYMENTS_AVAILABLE = False
+    print("[Processor] Payment module not available")
+
 class TaskProcessor:
     def __init__(self, commit: str = "unknown", alert_manager: Optional[AlertManager] = None, metrics: Optional[MetricsCollector] = None):
         self.openai_client = OpenAI(
@@ -38,6 +45,20 @@ class TaskProcessor:
         self.commit = commit
         self.alert_manager = alert_manager or AlertManager()
         self.metrics = metrics or MetricsCollector()
+    
+    def _create_payment_link(self, job_name: str, cost: float, client_email: str = None) -> Optional[Dict]:
+        """Create payment link if payment provider is configured"""
+        if not PAYMENTS_AVAILABLE or not is_payment_configured():
+            return None
+        
+        try:
+            amount = cost * 3.0
+            payment_info = create_payment_link(amount, job_name, client_email)
+            print(f"[Payment] Created {payment_info['provider']} link for {job_name}: ${amount:.2f}")
+            return payment_info
+        except Exception as e:
+            print(f"[Payment] Error creating payment link: {e}")
+            return None
     
     @retry_on_failure(max_retries=2)
     def calculate_qa_score(self, content: str, criteria: Optional[Dict] = None) -> int:
@@ -207,19 +228,27 @@ class TaskProcessor:
             commit=self.commit
         )
         
+        payment_info = self._create_payment_link(task_name, cost)
+        
+        job_data = {
+            'job_name': task_name,
+            'qa_score': qa_score,
+            'cost': cost,
+            'status': 'Waiting Human',
+            'notes': failure_note,
+            'commit': self.commit,
+            'task_type': task_type,
+            'duration_ms': duration_ms,
+            'tokens_in': tokens_in,
+            'tokens_out': tokens_out
+        }
+        
+        if payment_info:
+            job_data['payment_link'] = payment_info['url']
+            job_data['payment_status'] = 'Unpaid'
+        
         try:
-            self.notion.log_completed_job({
-                'job_name': task_name,
-                'qa_score': qa_score,
-                'cost': cost,
-                'status': 'Waiting Human',
-                'notes': failure_note,
-                'commit': self.commit,
-                'task_type': task_type,
-                'duration_ms': duration_ms,
-                'tokens_in': tokens_in,
-                'tokens_out': tokens_out
-            })
+            self.notion.log_completed_job(job_data)
         except Exception as e:
             print(f"Warning: Could not log to Job Log database: {e}")
         
@@ -266,19 +295,27 @@ class TaskProcessor:
         
         result_preview = truncate_text(result, JOB_RESULT_PREVIEW_LIMIT, "...")
         
+        payment_info = self._create_payment_link(task_name, cost)
+        
+        job_data = {
+            'job_name': task_name,
+            'qa_score': qa_score,
+            'cost': cost,
+            'status': 'Done',
+            'notes': f"Result: {result_preview}",
+            'commit': self.commit,
+            'task_type': task_type,
+            'duration_ms': duration_ms,
+            'tokens_in': tokens_in,
+            'tokens_out': tokens_out
+        }
+        
+        if payment_info:
+            job_data['payment_link'] = payment_info['url']
+            job_data['payment_status'] = 'Unpaid'
+        
         try:
-            self.notion.log_completed_job({
-                'job_name': task_name,
-                'qa_score': qa_score,
-                'cost': cost,
-                'status': 'Done',
-                'notes': f"Result: {result_preview}",
-                'commit': self.commit,
-                'task_type': task_type,
-                'duration_ms': duration_ms,
-                'tokens_in': tokens_in,
-                'tokens_out': tokens_out
-            })
+            self.notion.log_completed_job(job_data)
         except Exception as e:
             print(f"Warning: Could not log to Job Log database: {e}")
         

@@ -5,10 +5,25 @@ from notion_client import Client as NotionClient
 from typing import Dict, List, Optional, Any
 from bot import config
 
+_notion_wrapper = None
+
+def get_notion_client():
+    global _notion_wrapper
+    if _notion_wrapper is None:
+        _notion_wrapper = NotionClientWrapper()
+    return _notion_wrapper.get_client()
+
+def update_job_payment_status(job_id: str, status: str):
+    global _notion_wrapper
+    if _notion_wrapper is None:
+        _notion_wrapper = NotionClientWrapper()
+    return _notion_wrapper.update_job_payment_status(job_id, status)
+
 class NotionClientWrapper:
     def __init__(self):
         self.connection_settings = None
         self.client = None
+        self._cached_client = None
     
     def get_x_replit_token(self) -> str:
         if config.REPL_IDENTITY:
@@ -134,4 +149,15 @@ class NotionClientWrapper:
         if job_data.get('tokens_out'):
             properties["Tokens Out"] = {"number": job_data['tokens_out']}
         
+        if job_data.get('payment_link'):
+            properties["Payment Link"] = {"url": job_data['payment_link']}
+        
+        if job_data.get('payment_status'):
+            properties["Payment Status"] = {"select": {"name": job_data['payment_status']}}
+        
         return self.create_page(config.JOB_LOG_DB_ID, properties)
+    
+    def update_job_payment_status(self, job_id: str, status: str):
+        return self.update_page(job_id, {
+            "Payment Status": {"select": {"name": status}}
+        })

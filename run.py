@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from bot.main import EchoPilotBot
-from flask import Flask, jsonify, send_from_directory
+from flask import Flask, jsonify, send_from_directory, request
 import threading
 import os
 from bot import git_utils
@@ -46,6 +46,53 @@ def ops_report():
 def favicon():
     """Handle favicon requests to eliminate 404 errors"""
     return '', 204  # No content response
+
+@app.route('/webhook/stripe', methods=['POST'])
+def webhook_stripe():
+    """Stripe webhook endpoint for payment status updates"""
+    try:
+        from bot.payments import stripe_parse_webhook
+        from bot.notion_api import update_job_payment_status
+        
+        sig = request.headers.get("Stripe-Signature", "")
+        outcome = stripe_parse_webhook(request.data, sig)
+        
+        if not outcome.get("ok"):
+            return jsonify(outcome), 400
+        
+        job_id = outcome.get("job_id")
+        status = outcome.get("status")
+        
+        if job_id and status:
+            update_job_payment_status(job_id, status)
+            print(f"[Stripe Webhook] Updated job {job_id} to status: {status}")
+        
+        return jsonify({"ok": True})
+    except Exception as e:
+        print(f"[Stripe Webhook] Error: {e}")
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/webhook/paypal', methods=['POST'])
+def webhook_paypal():
+    """PayPal webhook endpoint for payment status updates"""
+    try:
+        from bot.payments import paypal_parse_webhook
+        from bot.notion_api import update_job_payment_status
+        
+        body = request.get_json(silent=True) or {}
+        outcome = paypal_parse_webhook(body)
+        
+        job_id = outcome.get("job_id")
+        status = outcome.get("status")
+        
+        if job_id and status:
+            update_job_payment_status(job_id, status)
+            print(f"[PayPal Webhook] Updated job {job_id} to status: {status}")
+        
+        return jsonify({"ok": True})
+    except Exception as e:
+        print(f"[PayPal Webhook] Error: {e}")
+        return jsonify({"ok": False, "error": str(e)}), 500
 
 def run_bot():
     """Run the bot in a separate thread"""

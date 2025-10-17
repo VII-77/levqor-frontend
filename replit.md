@@ -6,7 +6,9 @@ EchoPilot is an intelligent automation bot designed to process tasks from Notion
 
 ## User Preferences
 
-Preferred communication style: Simple, everyday language.
+- **Communication style:** Simple, everyday language
+- **Development environment:** Replit Android app on Galaxy Fold 6 (mobile device)
+- **Interface:** Mobile-optimized instructions preferred
 
 ## System Architecture
 

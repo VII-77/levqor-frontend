@@ -94,6 +94,24 @@ def webhook_paypal():
         print(f"[PayPal Webhook] Error: {e}")
         return jsonify({"ok": False, "error": str(e)}), 500
 
+@app.route('/exec-report')
+def exec_report_route():
+    """Generate and send executive report on-demand"""
+    try:
+        from bot.executive_report import run_exec_report
+        summary = run_exec_report()
+        return jsonify({
+            "ok": True,
+            "summary": summary,
+            "message": "Executive report generated and sent"
+        }), 200
+    except Exception as e:
+        print(f"[ExecReport] Error: {e}")
+        return jsonify({
+            "ok": False,
+            "error": str(e)
+        }), 500
+
 def run_bot():
     """Run the bot in a separate thread"""
     bot = EchoPilotBot()

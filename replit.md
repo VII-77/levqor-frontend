@@ -38,6 +38,8 @@ The application is built with a modular component design:
 - `metrics.py`: Collects and rolls up performance metrics.
 - `diagnostics.py` and `scheduler_diag.py`: Implement the live diagnostics and monitoring system.
 - `auto_operator.py`: Self-healing monitoring system that checks health every 5 minutes and auto-escalates issues.
+- `payments.py`: Stripe and PayPal payment integration for automated billing per job.
+- `reconcile_payments.py`: Nightly payment reconciliation system (2:10 UTC daily).
 
 ### AI Integration
 

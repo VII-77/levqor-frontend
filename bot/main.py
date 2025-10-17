@@ -217,6 +217,28 @@ class EchoPilotBot:
             except Exception as e:
                 print(f"⚠️  Auto-operator not started: {e}")
             
+            # Start nightly payment reconciliation (2:10 UTC daily)
+            try:
+                from bot.reconcile_payments import reconcile_once
+                
+                def reconciliation_scheduler():
+                    while self.is_running:
+                        now = datetime.now()
+                        if now.hour == 2 and now.minute == 10:
+                            try:
+                                changed = reconcile_once()
+                                print(f"[Reconcile] Completed. Updated {changed} job(s)")
+                            except Exception as e:
+                                print(f"[Reconcile] Error: {e}")
+                            time.sleep(70)
+                        time.sleep(20)
+                
+                reconcile_thread = threading.Thread(target=reconciliation_scheduler, daemon=True)
+                reconcile_thread.start()
+                print("💰 Payment reconciliation scheduled (2:10 UTC daily)")
+            except Exception as e:
+                print(f"⚠️  Payment reconciliation not started: {e}")
+            
             print("\n" + "=" * 80 + "\n")
             
             self.is_running = True

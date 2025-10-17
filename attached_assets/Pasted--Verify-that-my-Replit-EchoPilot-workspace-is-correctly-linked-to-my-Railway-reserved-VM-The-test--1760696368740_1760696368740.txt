@@ -1,0 +1,91 @@
+> Verify that my Replit EchoPilot workspace is correctly linked to my Railway reserved VM.
+The test should:
+
+1. Capture current commit hash.
+
+
+2. Append a harmless comment line in SYSTEM_AUDIT_REPORT.md for visibility.
+
+
+3. Commit & push changes to trigger an automatic Railway build.
+
+
+4. Poll Railway’s deployment logs via API until the new build completes.
+
+
+5. Fetch /health from the Railway public URL and print the JSON.
+
+
+6. Output a clear pass/fail summary.
+
+
+
+
+
+
+---
+
+Paste into Replit’s shell
+
+# --- EchoPilot Railway Link Test ---
+echo "# test-deploy-$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> SYSTEM_AUDIT_REPORT.md
+git add SYSTEM_AUDIT_REPORT.md
+git commit -m "test deploy trigger $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+git push
+
+# Capture commit hash
+COMMIT=$(git rev-parse --short HEAD)
+echo "📦 Commit pushed: $COMMIT"
+
+# Railway check (requires you to have set RAILWAY_TOKEN and RAILWAY_PROJECT_ID)
+if [ -z "$RAILWAY_TOKEN" ] || [ -z "$RAILWAY_PROJECT_ID" ]; then
+  echo "⚠️  Set env vars: RAILWAY_TOKEN, RAILWAY_PROJECT_ID (from Railway → Settings → API)."
+else
+  echo "⏳ Checking Railway for new deployment..."
+  for i in {1..12}; do
+    sleep 10
+    DEPLOY=$(curl -s -H "Authorization: Bearer $RAILWAY_TOKEN" \
+      https://backboard.railway.app/graphql \
+      -H "Content-Type: application/json" \
+      -d "{\"query\":\"{deployments(projectId:\\\"$RAILWAY_PROJECT_ID\\\",limit:1){edges{node{id,status,meta{commitId,branch,name},environment{name}}}}}\"}" \
+      | grep -o "$COMMIT" | head -1)
+    if [ ! -z "$DEPLOY" ]; then
+      echo "✅ Railway detected new build for commit $COMMIT"
+      break
+    fi
+    if [ "$i" -eq 12 ]; then
+      echo "❌ No new build detected after 2 minutes."
+      exit 1
+    fi
+  done
+fi
+
+# Get /health JSON from Railway app
+if [ -z "$APP_BASE_URL" ]; then
+  echo "⚠️  Set APP_BASE_URL to your Railway public URL (e.g., https://echopilot-production.up.railway.app)"
+else
+  echo "🌐 Checking health endpoint..."
+  curl -s "$APP_BASE_URL/health" | tee health.json
+  echo "✅ Health check complete."
+fi
+
+echo "-------------------------------"
+echo "EchoPilot Railway Link Test Done"
+echo "Commit: $COMMIT"
+echo "If '✅ Railway detected new build' + '✅ Health check complete', link is live."
+
+
+---
+
+✅ Success criteria
+
+Check	Pass condition
+
+Commit pushed	📦 Commit pushed: <hash>
+Railway detected new build	✅ Railway detected new build
+Health endpoint OK	JSON with "status":"healthy"
+No manual deploy required	Automatic trigger visible in Railway logs
+
+
+
+---

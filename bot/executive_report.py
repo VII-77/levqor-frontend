@@ -13,6 +13,8 @@ def summarize_7d():
     
     # Query job log database (get all jobs, no filter)
     from bot import config
+    if not config.JOB_LOG_DB_ID:
+        raise ValueError("JOB_LOG_DB_ID not configured")
     all_data = notion.query_database(config.JOB_LOG_DB_ID)
     
     # Filter to last 7 days in Python

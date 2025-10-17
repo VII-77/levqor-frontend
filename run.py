@@ -42,6 +42,36 @@ def ops_report():
             "overall_ok": False
         }), 500
 
+@app.route('/payments/debug')
+def payments_debug():
+    """Payment system debug information"""
+    try:
+        stripe_key = os.getenv("STRIPE_SECRET_KEY", "").strip()
+        stripe_wh = os.getenv("STRIPE_WEBHOOK_SECRET", "").strip()
+        paypal_id = os.getenv("PAYPAL_CLIENT_ID", "").strip()
+        paypal_sec = os.getenv("PAYPAL_SECRET", "").strip()
+        
+        return jsonify({
+            "stripe": {
+                "key_configured": bool(stripe_key),
+                "key_prefix": stripe_key[:15] + "..." if stripe_key else None,
+                "webhook_secret_configured": bool(stripe_wh),
+                "mode": "test" if stripe_key.startswith("sk_test_") else "live" if stripe_key.startswith("sk_live_") else "unknown"
+            },
+            "paypal": {
+                "client_id_configured": bool(paypal_id),
+                "secret_configured": bool(paypal_sec),
+                "mode": os.getenv("PAYPAL_LIVE", "true").lower()
+            },
+            "webhook_urls": {
+                "stripe": f"{os.getenv('REPLIT_DOMAINS', 'localhost').split(',')[0]}/webhook/stripe",
+                "paypal": f"{os.getenv('REPLIT_DOMAINS', 'localhost').split(',')[0]}/webhook/paypal"
+            },
+            "primary_provider": "stripe" if stripe_key else "paypal" if paypal_id else "none"
+        }), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/favicon.ico')
 def favicon():
     """Handle favicon requests to eliminate 404 errors"""

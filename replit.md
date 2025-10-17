@@ -41,6 +41,7 @@ The application is built with a modular component design:
 - `payments.py`: Stripe and PayPal payment integration for automated billing per job.
 - `reconcile_payments.py`: Nightly payment reconciliation system (2:10 UTC daily).
 - `client_manager.py`: Client management, revenue tracking, invoice generation, and email delivery system.
+- `executive_report.py`: Daily executive PDF reports with 7-day performance summaries and revenue analytics (06:55 UTC daily).
 
 ### AI Integration
 

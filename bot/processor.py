@@ -31,6 +31,8 @@ try:
     PAYMENTS_AVAILABLE = True
 except ImportError:
     PAYMENTS_AVAILABLE = False
+    create_payment_link = None  # type: ignore
+    is_payment_configured = None  # type: ignore
     print("[Processor] Payment module not available")
 
 try:
@@ -41,6 +43,10 @@ try:
     CLIENT_SYSTEM_AVAILABLE = True
 except ImportError:
     CLIENT_SYSTEM_AVAILABLE = False
+    calculate_revenue = None  # type: ignore
+    generate_invoice_pdf = None  # type: ignore
+    deliver_invoice_email = None  # type: ignore
+    is_client_system_configured = None  # type: ignore
     print("[Processor] Client management module not available")
 
 class TaskProcessor:
@@ -66,7 +72,7 @@ class TaskProcessor:
                 return None
             
             amount = cost * 3.0
-            payment_info = create_payment_link(amount, job_name, client_email)
+            payment_info = create_payment_link(amount, job_name, client_email or "")
             print(f"[Payment] Created {payment_info['provider']} link for {job_name}: ${amount:.2f}")
             return payment_info
         except Exception as e:

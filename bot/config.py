@@ -9,6 +9,7 @@ OPENAI_BASE_URL = os.getenv('AI_INTEGRATIONS_OPENAI_BASE_URL')
 AUTOMATION_QUEUE_DB_ID = os.getenv('AUTOMATION_QUEUE_DB_ID')
 AUTOMATION_LOG_DB_ID = os.getenv('AUTOMATION_LOG_DB_ID')
 JOB_LOG_DB_ID = os.getenv('JOB_LOG_DB_ID')
+CLIENT_DB_ID = os.getenv('NOTION_CLIENT_DB_ID')  # Optional: Client management system
 
 # Replit Connectors Configuration
 REPLIT_CONNECTORS_HOSTNAME = os.getenv('REPLIT_CONNECTORS_HOSTNAME', 'connectors-svc.util.repl.co')
@@ -20,6 +21,9 @@ WEB_REPL_RENEWAL = os.getenv('WEB_REPL_RENEWAL')
 # Application Configuration
 POLL_INTERVAL = POLL_INTERVAL_SECONDS
 QA_TARGET_SCORE = DEFAULT_QA_TARGET
+
+# Client System Configuration (Optional)
+DEFAULT_RATE_USD_PER_MIN = float(os.getenv('DEFAULT_RATE_USD_PER_MIN', '5.0'))  # Default client billing rate
 
 # Git Version Control
 ALLOW_DIRTY = os.getenv('ALLOW_DIRTY', 'false').lower() == 'true'

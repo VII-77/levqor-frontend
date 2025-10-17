@@ -155,6 +155,18 @@ class NotionClientWrapper:
         if job_data.get('payment_status'):
             properties["Payment Status"] = {"select": {"name": job_data['payment_status']}}
         
+        if job_data.get('client_rate_per_min') is not None:
+            properties["Client Rate USD/min"] = {"number": job_data['client_rate_per_min']}
+        
+        if job_data.get('gross_usd') is not None:
+            properties["Gross USD"] = {"number": job_data['gross_usd']}
+        
+        if job_data.get('profit_usd') is not None:
+            properties["Profit USD"] = {"number": job_data['profit_usd']}
+        
+        if job_data.get('margin_percent') is not None:
+            properties["Margin %"] = {"number": job_data['margin_percent']}
+        
         return self.create_page(config.JOB_LOG_DB_ID, properties)
     
     def update_job_payment_status(self, job_id: str, status: str):

@@ -1,0 +1,148 @@
+Goal:
+
+Set QC_PASS_THRESHOLD = 80 (was too high).
+
+When QC ≥ threshold → Notion Status=Done and status=Done tag in metrics.
+
+When QC < threshold → Notion Status=Waiting Human and status=WaitingHuman tag.
+
+Snapshot/metrics now report done_24h > 0 and sensible low-QA counts.
+
+
+
+---
+
+1) Update/create threshold in settings.py
+
+If settings.py exists: ensure this constant (create if missing).
+
+If it doesn’t exist, create it and we’ll import it.
+
+
+# settings.py
+# --- QC thresholds ---
+QC_PASS_THRESHOLD = 80  # Auto-pass gate (0-100 scale)
+
+
+---
+
+2) Patch the processing router (where QC score is computed)
+
+Find the code block after you compute qc_score and before you update Notion or write metrics. Replace with:
+
+# processing_router.py (or your main worker file)
+from settings import QC_PASS_THRESHOLD
+
+# ... after qc_score is computed (float 0-100) ...
+if qc_score >= QC_PASS_THRESHOLD:
+    status_tag = "Done"
+    # Update Notion item to Done + clear trigger
+    notion_update_status(job_id, status="Done", trigger=False)
+else:
+    status_tag = "WaitingHuman"
+    notion_update_status(job_id, status="Waiting Human", trigger=False)
+
+# Write metrics line with a status tag the diagnostics can read
+# append_metrics_row(cid, duration_sec, qc_score, cost_usd, note=...)
+append_metrics_row(
+    cid=correlation_id,
+    duration_sec=duration_sec,
+    qc_score=qc_score,
+    cost_usd=cost_usd,
+    note=f"status={status_tag}"
+)
+
+> If your Notion update helper differs, keep the exact select names: "Done" and "Waiting Human".
+
+
+
+
+---
+
+3) Ensure metrics appender uses the exact note format
+
+Open the function that writes CSV (usually metrics.csv). Make sure it keeps the note string untouched so it contains status=Done or status=WaitingHuman.
+
+Example (leave as-is if you already have this):
+
+def append_metrics_row(cid, duration_sec, qc_score, cost_usd, note=""):
+    import time, csv
+    with open("metrics.csv","a",encoding="utf-8",newline="") as f:
+        w = csv.writer(f)
+        # ts, cid, qc, cost, note
+        w.writerow([int(time.time()), cid, f"{qc_score:.2f}", f"{cost_usd:.4f}", note])
+
+
+---
+
+4) Notion schema sanity (run once via Notion AI on EchoPilot Job Log)
+
+Paste this in Notion AI on the Job Log DB page:
+
+Ensure the Status property is a Select with at least these options:
+- Done
+- Waiting Human
+- New
+- Running
+If missing, add them now (keep the exact casing). Reply with a short table of options present.
+
+
+---
+
+5) Quick rebuild/refresh
+
+If your app auto-reloads on save, you’re done. If not, restart your Replit process/container.
+
+
+---
+
+6) Verify (copy–paste these into Replit Shell)
+
+A) Make sure recent rows show a Status split
+
+python - <<'PY'
+import os,requests
+H={"Authorization":f"Bearer {os.getenv('NOTION_API_KEY')}","Notion-Version":"2022-06-28","Content-Type":"application/json"}
+db=os.getenv("NOTION_DB_ID")
+q={"page_size":50,"filter":{"property":"Date","date":{"past_week":{}}}}
+r=requests.post(f"https://api.notion.com/v1/databases/{db}/query",headers=H,json=q,timeout=30).json()
+counts={}
+for p in r.get("results",[]):
+    st=p["properties"].get("Status",{}).get("select",{}).get("name","")
+    counts[st]=counts.get(st,0)+1
+print("Status counts (past week):", counts)
+PY
+
+B) Snapshot again (should show done_24h > 0 soon after new jobs)
+
+python - <<'PY'
+from diagnostics import snapshot
+import json
+print(json.dumps(snapshot(), indent=2))
+PY
+
+You should no longer see done_24h: 0 with every job “low QA”. After a couple of processed jobs, expect:
+
+done_24h increasing,
+
+low_qa_count < total_24h,
+
+avg_qa_24h stabilising near 80–90.
+
+
+
+---
+
+7) If anything still looks off
+
+Paste the last 20 lines of the part where you:
+
+set Notion status, and
+
+call append_metrics_row(...).
+
+
+I’ll give you an exact line edit.
+
+
+---

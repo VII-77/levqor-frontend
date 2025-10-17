@@ -47,10 +47,13 @@ The bot integrates OpenAI via Replit AI Integrations:
 
 ### Quality Assurance System
 
-A dynamic QA scoring system is in place with task-type specific thresholds:
+A dynamic QA scoring system is in place with a fixed 80% pass threshold:
 - **Multi-criteria evaluation**: Clarity (30%), Accuracy (30%), Completeness (20%), Professional tone (20%).
-- **Per-task-type thresholds**: Customizable (e.g., Research: 95%, Drafting: 90%), with an option for custom overrides via a "QA Target" field.
-- Jobs failing to meet the threshold are marked with detailed failure notes.
+- **Fixed threshold**: All tasks use 80% (QC_PASS_THRESHOLD = 80), with option for custom overrides via a "QA Target" field.
+- **Status handling**: 
+  - QA ≥ 80% → Status "Done" (auto-passed)
+  - QA < 80% → Status "Waiting Human" (needs review)
+- Jobs are logged with appropriate status for tracking and metrics.
 
 ### Authentication & Token Management
 

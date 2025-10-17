@@ -186,7 +186,7 @@ class TaskProcessor:
     def _handle_qa_failure(self, task_id: str, task_name: str, task_type: str, 
                           qa_score: int, qa_threshold: int, cost: float, 
                           duration_ms: int, tokens_in: int, tokens_out: int) -> Dict:
-        """Handle task failure due to low QA score"""
+        """Handle task that needs human review due to low QA score"""
         failure_note = f"QA score {qa_score} below threshold {qa_threshold}"
         self.alert_manager.record_failure(task_name, task_type)
         self.metrics.record_failure(failure_note)
@@ -194,15 +194,15 @@ class TaskProcessor:
         self.notion.update_page(
             page_id=task_id,
             properties={
-                "Status": {"select": {"name": "Failed"}},
+                "Status": {"select": {"name": "Waiting Human"}},
                 "Trigger": {"checkbox": False}
             }
         )
         
         self.notion.log_activity(
             task_name=task_name,
-            status="Error",
-            message=f"QA score below threshold: {task_name}",
+            status="Review",
+            message=f"Task needs human review: {task_name}",
             details=failure_note,
             commit=self.commit
         )
@@ -212,7 +212,7 @@ class TaskProcessor:
                 'job_name': task_name,
                 'qa_score': qa_score,
                 'cost': cost,
-                'status': 'Failed',
+                'status': 'Waiting Human',
                 'notes': failure_note,
                 'commit': self.commit,
                 'task_type': task_type,
@@ -250,7 +250,7 @@ class TaskProcessor:
         self.notion.update_page(
             page_id=task_id,
             properties={
-                "Status": {"select": {"name": "Completed"}},
+                "Status": {"select": {"name": "Done"}},
                 "Trigger": {"checkbox": False},
                 "Result Summary": {"rich_text": [{"text": {"content": truncated_result}}]}
             }
@@ -271,7 +271,7 @@ class TaskProcessor:
                 'job_name': task_name,
                 'qa_score': qa_score,
                 'cost': cost,
-                'status': 'Completed',
+                'status': 'Done',
                 'notes': f"Result: {result_preview}",
                 'commit': self.commit,
                 'task_type': task_type,

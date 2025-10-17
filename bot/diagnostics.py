@@ -57,6 +57,7 @@ def get_recent_job_metrics() -> Dict[str, Any]:
     try:
         from bot.notion_api import NotionClientWrapper
         from datetime import timedelta
+        from bot.constants import QC_PASS_THRESHOLD
         wrapper = NotionClientWrapper()
         client = wrapper.get_client()
         
@@ -80,7 +81,7 @@ def get_recent_job_metrics() -> Dict[str, Any]:
             if qa_prop.get("type") == "number" and qa_prop.get("number") is not None:
                 qa = qa_prop["number"]
                 qa_sum += qa
-                if qa < 93:
+                if qa < QC_PASS_THRESHOLD:
                     low += 1
             
             # Get Status

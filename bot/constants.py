@@ -40,3 +40,6 @@ QA_SCORE_MAX = 100
 # Polling configuration
 POLL_INTERVAL_SECONDS = 60
 DEFAULT_QA_TARGET = 95
+
+# QA Pass Threshold (auto-pass gate)
+QC_PASS_THRESHOLD = 80

@@ -1,4 +1,5 @@
 from typing import Dict, Optional
+from bot.constants import QC_PASS_THRESHOLD
 
 QA_DEFAULTS = {
     'Research': 95,
@@ -12,7 +13,7 @@ def get_qa_threshold(task_type: str, custom_target: Optional[float] = None) -> i
     if custom_target is not None and custom_target > 0:
         return int(custom_target)
     
-    return QA_DEFAULTS.get(task_type, QA_DEFAULTS['Other'])
+    return QC_PASS_THRESHOLD
 
 def extract_task_type(properties: Dict) -> str:
     if 'Task Type' in properties:

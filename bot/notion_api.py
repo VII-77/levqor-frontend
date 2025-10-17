@@ -113,7 +113,7 @@ class NotionClientWrapper:
             "Job Name": {"title": [{"text": {"content": job_data.get('job_name', 'Unnamed Job')}}]},
             "QA Score": {"number": job_data.get('qa_score', 0)},
             "Cost": {"number": job_data.get('cost', 0)},
-            "Status": {"select": {"name": job_data.get('status', 'Completed')}}
+            "Status": {"select": {"name": job_data.get('status', 'Done')}}
         }
         
         if job_data.get('notes'):

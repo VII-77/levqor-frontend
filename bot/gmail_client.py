@@ -2,6 +2,8 @@ import requests
 import os
 import base64
 from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
 from datetime import datetime
 from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
@@ -134,3 +136,66 @@ class GmailClientWrapper:
                 'to': to,
                 'subject': subject
             }
+    
+    def send_email_with_attachment(
+        self,
+        to_email: str,
+        subject: str,
+        body: str,
+        attachment_data: bytes,
+        attachment_filename: str = "attachment.pdf",
+        attachment_mimetype: str = "application/pdf",
+        from_email: str | None = None
+    ) -> bool:
+        """
+        Send email with attachment via Gmail API
+        
+        Args:
+            to_email: Recipient email address
+            subject: Email subject
+            body: Email body (plain text)
+            attachment_data: Binary data for attachment
+            attachment_filename: Filename for attachment
+            attachment_mimetype: MIME type of attachment
+            from_email: Optional sender email
+            
+        Returns:
+            bool: True if sent successfully
+        """
+        try:
+            service = self.get_gmail_client()
+            
+            # Get sender email if not provided
+            if not from_email:
+                from_email = self.get_user_email()
+            
+            # Create multipart message
+            message = MIMEMultipart()
+            message['to'] = to_email
+            message['from'] = from_email
+            message['subject'] = subject
+            
+            # Attach body
+            message.attach(MIMEText(body, 'plain'))
+            
+            # Attach file
+            attachment = MIMEApplication(attachment_data, _subtype=attachment_mimetype.split('/')[-1])
+            attachment.add_header('Content-Disposition', 'attachment', filename=attachment_filename)
+            message.attach(attachment)
+            
+            # Encode message
+            raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode('utf-8')
+            
+            # Send via Gmail API
+            result = service.users().messages().send(
+                userId='me',
+                body={'raw': raw_message}
+            ).execute()
+            
+            print(f"✅ Email with attachment sent to {to_email} - Message ID: {result.get('id')}")
+            
+            return True
+            
+        except Exception as e:
+            print(f"❌ Failed to send email with attachment to {to_email}: {e}")
+            return False

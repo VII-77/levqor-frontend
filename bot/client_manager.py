@@ -246,7 +246,7 @@ def deliver_invoice_email(
         bool: True if sent successfully
     """
     try:
-        from bot.gmail_client import send_email_with_attachment
+        from bot.gmail_client import GmailClientWrapper
         
         subject = f"[EchoPilot AI] Invoice - Job #{job_id[-8:]}"
         
@@ -267,7 +267,8 @@ Thank you for using EchoPilot AI!
 This is an automated message from EchoPilot AI.
 """
         
-        result = send_email_with_attachment(
+        gmail = GmailClientWrapper()
+        result = gmail.send_email_with_attachment(
             to_email=client_email,
             subject=subject,
             body=body,

@@ -56,12 +56,15 @@ class TaskProcessor:
         self.alert_manager = alert_manager or AlertManager()
         self.metrics = metrics or MetricsCollector()
     
-    def _create_payment_link(self, job_name: str, cost: float, client_email: str = None) -> Optional[Dict]:
+    def _create_payment_link(self, job_name: str, cost: float, client_email: Optional[str] = None) -> Optional[Dict]:
         """Create payment link if payment provider is configured"""
-        if not PAYMENTS_AVAILABLE or not is_payment_configured():
+        if not PAYMENTS_AVAILABLE:
             return None
         
         try:
+            if not is_payment_configured():
+                return None
+            
             amount = cost * 3.0
             payment_info = create_payment_link(amount, job_name, client_email)
             print(f"[Payment] Created {payment_info['provider']} link for {job_name}: ${amount:.2f}")
@@ -330,7 +333,8 @@ class TaskProcessor:
         
         result_preview = truncate_text(result, JOB_RESULT_PREVIEW_LIMIT, "...")
         
-        task = self.notion.notion.pages.retrieve(page_id=task_id)
+        notion_client = self.notion.get_client()
+        task = notion_client.pages.retrieve(page_id=task_id)
         properties = task.get('properties', {})
         client_id, client_email, client_rate = self.extract_client_info(properties)
         
@@ -353,40 +357,44 @@ class TaskProcessor:
             job_data['payment_link'] = payment_info['url']
             job_data['payment_status'] = 'Unpaid'
         
-        if CLIENT_SYSTEM_AVAILABLE and is_client_system_configured():
-            duration_minutes = duration_ms / 60000.0
-            revenue = calculate_revenue(duration_minutes, client_rate, cost)
-            
-            job_data['client_rate_per_min'] = client_rate
-            job_data['gross_usd'] = revenue['gross']
-            job_data['profit_usd'] = revenue['profit']
-            job_data['margin_percent'] = revenue['margin_percent']
-            
-            if client_email:
-                try:
-                    client_name = extract_notion_property(properties, 'Client Name', 'title') or task_name
-                    pdf_bytes = generate_invoice_pdf(
-                        client_name=client_name,
-                        job_id=task_id,
-                        duration_minutes=duration_minutes,
-                        rate_per_min=client_rate,
-                        ai_cost=cost,
-                        gross=revenue['gross'],
-                        profit=revenue['profit'],
-                        margin_percent=revenue['margin_percent'],
-                        job_description=task_name
-                    )
+        if CLIENT_SYSTEM_AVAILABLE:
+            try:
+                if is_client_system_configured():
+                    duration_minutes = duration_ms / 60000.0
+                    revenue = calculate_revenue(duration_minutes, client_rate, cost)
                     
-                    deliver_invoice_email(
-                        client_email=client_email,
-                        client_name=client_name,
-                        job_id=task_id,
-                        gross=revenue['gross'],
-                        profit=revenue['profit'],
-                        pdf_bytes=pdf_bytes
-                    )
-                except Exception as e:
-                    print(f"[Client] Invoice delivery failed: {e}")
+                    job_data['client_rate_per_min'] = client_rate
+                    job_data['gross_usd'] = revenue['gross']
+                    job_data['profit_usd'] = revenue['profit']
+                    job_data['margin_percent'] = revenue['margin_percent']
+                    
+                    if client_email:
+                        try:
+                            client_name = extract_notion_property(properties, 'Client Name', 'title') or task_name
+                            pdf_bytes = generate_invoice_pdf(
+                                client_name=client_name,
+                                job_id=task_id,
+                                duration_minutes=duration_minutes,
+                                rate_per_min=client_rate,
+                                ai_cost=cost,
+                                gross=revenue['gross'],
+                                profit=revenue['profit'],
+                                margin_percent=revenue['margin_percent'],
+                                job_description=task_name
+                            )
+                            
+                            deliver_invoice_email(
+                                client_email=client_email,
+                                client_name=client_name,
+                                job_id=task_id,
+                                gross=revenue['gross'],
+                                profit=revenue['profit'],
+                                pdf_bytes=pdf_bytes
+                            )
+                        except Exception as e:
+                            print(f"[Client] Invoice delivery failed: {e}")
+            except Exception as e:
+                print(f"[Client] Revenue tracking failed: {e}")
         
         try:
             self.notion.log_completed_job(job_data)

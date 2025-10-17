@@ -33,6 +33,16 @@ except ImportError:
     PAYMENTS_AVAILABLE = False
     print("[Processor] Payment module not available")
 
+try:
+    from bot.client_manager import (
+        calculate_revenue, generate_invoice_pdf, 
+        deliver_invoice_email, is_client_system_configured
+    )
+    CLIENT_SYSTEM_AVAILABLE = True
+except ImportError:
+    CLIENT_SYSTEM_AVAILABLE = False
+    print("[Processor] Client management module not available")
+
 class TaskProcessor:
     def __init__(self, commit: str = "unknown", alert_manager: Optional[AlertManager] = None, metrics: Optional[MetricsCollector] = None):
         self.openai_client = OpenAI(
@@ -152,6 +162,31 @@ class TaskProcessor:
         task_name = extract_notion_property(properties, 'Task Name', 'title') or 'Unnamed Task'
         task_description = extract_notion_property(properties, 'Description', 'rich_text') or ''
         return task_name, task_description
+    
+    def extract_client_info(self, properties: Dict) -> tuple[Optional[str], Optional[str], float]:
+        """
+        Extract client information from task properties.
+        Returns: (client_id, client_email, rate_per_min)
+        """
+        import os
+        
+        client_id = None
+        client_email = None
+        default_rate = float(os.getenv("DEFAULT_RATE_USD_PER_MIN", "5.0"))
+        
+        if "Client" in properties and properties["Client"].get("relation"):
+            relations = properties["Client"]["relation"]
+            if relations and len(relations) > 0:
+                client_id = relations[0].get("id")
+        
+        if "Client Email" in properties:
+            client_email = properties["Client Email"].get("email")
+        
+        rate = default_rate
+        if "Client Rate USD/min" in properties and properties["Client Rate USD/min"].get("number") is not None:
+            rate = properties["Client Rate USD/min"]["number"]
+        
+        return client_id, client_email, rate
     
     def process_task(self, task: Dict) -> Dict:
         """
@@ -295,7 +330,11 @@ class TaskProcessor:
         
         result_preview = truncate_text(result, JOB_RESULT_PREVIEW_LIMIT, "...")
         
-        payment_info = self._create_payment_link(task_name, cost)
+        task = self.notion.notion.pages.retrieve(page_id=task_id)
+        properties = task.get('properties', {})
+        client_id, client_email, client_rate = self.extract_client_info(properties)
+        
+        payment_info = self._create_payment_link(task_name, cost, client_email)
         
         job_data = {
             'job_name': task_name,
@@ -313,6 +352,41 @@ class TaskProcessor:
         if payment_info:
             job_data['payment_link'] = payment_info['url']
             job_data['payment_status'] = 'Unpaid'
+        
+        if CLIENT_SYSTEM_AVAILABLE and is_client_system_configured():
+            duration_minutes = duration_ms / 60000.0
+            revenue = calculate_revenue(duration_minutes, client_rate, cost)
+            
+            job_data['client_rate_per_min'] = client_rate
+            job_data['gross_usd'] = revenue['gross']
+            job_data['profit_usd'] = revenue['profit']
+            job_data['margin_percent'] = revenue['margin_percent']
+            
+            if client_email:
+                try:
+                    client_name = extract_notion_property(properties, 'Client Name', 'title') or task_name
+                    pdf_bytes = generate_invoice_pdf(
+                        client_name=client_name,
+                        job_id=task_id,
+                        duration_minutes=duration_minutes,
+                        rate_per_min=client_rate,
+                        ai_cost=cost,
+                        gross=revenue['gross'],
+                        profit=revenue['profit'],
+                        margin_percent=revenue['margin_percent'],
+                        job_description=task_name
+                    )
+                    
+                    deliver_invoice_email(
+                        client_email=client_email,
+                        client_name=client_name,
+                        job_id=task_id,
+                        gross=revenue['gross'],
+                        profit=revenue['profit'],
+                        pdf_bytes=pdf_bytes
+                    )
+                except Exception as e:
+                    print(f"[Client] Invoice delivery failed: {e}")
         
         try:
             self.notion.log_completed_job(job_data)

@@ -171,6 +171,23 @@ class EchoPilotBot:
             except Exception as e:
                 print(f"⚠️  Supervisor email scheduler not started: {e}")
             
+            # Start daily executive report (PDF)
+            try:
+                from bot.executive_report import run_exec_report
+                def daily_exec_report():
+                    print(f"[{datetime.now().isoformat()}] 📊 Generating daily executive report...")
+                    try:
+                        summary = run_exec_report()
+                        print(f"✅ Executive report sent: {summary['total']} jobs, ${summary['sum_gross']:.2f} gross")
+                    except Exception as e:
+                        print(f"❌ Executive report failed: {e}")
+                
+                # Schedule for 6:55 UTC daily
+                schedule.every().day.at("06:55").do(daily_exec_report)
+                print("📊 Daily executive report scheduled for 06:55 UTC")
+            except Exception as e:
+                print(f"⚠️  Executive report scheduler not started: {e}")
+            
             # Start Telegram bot command listener
             try:
                 from bot.telegram_bot import start_telegram_listener, send_telegram

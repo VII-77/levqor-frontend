@@ -37,6 +37,7 @@ The application is built with a modular component design:
 - `alerting.py`: Implements the alerting policy with webhook, email, and Telegram integration.
 - `metrics.py`: Collects and rolls up performance metrics.
 - `diagnostics.py` and `scheduler_diag.py`: Implement the live diagnostics and monitoring system.
+- `auto_operator.py`: Self-healing monitoring system that checks health every 5 minutes and auto-escalates issues.
 
 ### AI Integration
 
@@ -92,6 +93,7 @@ Weekly metric rollups are computed, tracking total jobs, failures, failure rates
 ### Live Diagnostics & Monitoring System
 
 The system includes comprehensive monitoring capabilities:
+- **Auto-Operator (Self-Healing)**: Runs every 5 minutes to check system health, detect issues (stuck jobs, quality drops, integration failures), and auto-escalate via email/Telegram. Posts status to Notion Status Board. Available at `/ops-report` endpoint.
 - **Status Board Diagnostics**: Hourly heartbeats and 6-hour synthetic tests posted to Notion Status Board for 24/7 health monitoring
 - **Daily Supervisor Reports**: Automated email reports sent at 06:45 UTC daily containing:
   - System health status (Notion, Google Drive, OpenAI connectivity)

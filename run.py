@@ -25,6 +25,23 @@ def health():
     """Alternative health endpoint"""
     return jsonify({"status": "ok"})
 
+@app.route('/ops-report')
+def ops_report():
+    """Auto-operator monitoring report"""
+    try:
+        from bot.auto_operator import get_operator_report
+        report = get_operator_report()
+        
+        if report.get("overall_ok"):
+            return jsonify(report), 200
+        else:
+            return jsonify(report), 503  # Service unavailable if issues detected
+    except Exception as e:
+        return jsonify({
+            "error": str(e),
+            "overall_ok": False
+        }), 500
+
 @app.route('/favicon.ico')
 def favicon():
     """Handle favicon requests to eliminate 404 errors"""

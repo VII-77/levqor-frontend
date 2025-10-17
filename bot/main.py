@@ -1,6 +1,7 @@
 import time
 import schedule
 import json
+import threading
 from datetime import datetime
 from typing import Dict
 from bot import config
@@ -197,6 +198,24 @@ class EchoPilotBot:
                     send_telegram("🚀 <b>EchoPilot Bot Started</b>\n\nBot is live and monitoring!\nUse /help for commands.")
             except Exception as e:
                 print(f"⚠️  Telegram bot not started: {e}")
+            
+            # Start auto-operator monitoring (every 5 minutes)
+            try:
+                from bot.auto_operator import run_auto_operator_once
+                
+                def auto_operator_loop():
+                    while self.is_running:
+                        try:
+                            run_auto_operator_once()
+                        except Exception as e:
+                            print(f"[AutoOperator] error: {e}")
+                        time.sleep(300)  # 5 minutes
+                
+                operator_thread = threading.Thread(target=auto_operator_loop, daemon=True)
+                operator_thread.start()
+                print("🔧 Auto-operator monitoring started (checks every 5min)")
+            except Exception as e:
+                print(f"⚠️  Auto-operator not started: {e}")
             
             print("\n" + "=" * 80 + "\n")
             

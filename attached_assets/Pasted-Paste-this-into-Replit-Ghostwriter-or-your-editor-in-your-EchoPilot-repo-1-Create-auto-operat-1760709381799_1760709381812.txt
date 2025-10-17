@@ -1,0 +1,174 @@
+Paste this into Replit Ghostwriter (or your editor) in your EchoPilot repo.
+
+
+
+1) Create auto_operator.py
+
+# auto_operator.py — self-healing watcher + escalation
+import os, time, json, datetime, requests, statistics
+from alert_mailer import send_alert
+
+NOTION_API_KEY=os.getenv("NOTION_API_KEY","")
+JOB_DB=os.getenv("NOTION_DB_ID","")
+STATUS_DB=os.getenv("NOTION_STATUS_DB_ID","")
+APP_BASE=os.getenv("APP_BASE_URL","").rstrip("/")
+
+H={"Authorization":f"Bearer {NOTION_API_KEY}","Notion-Version":"2022-06-28","Content-Type":"application/json"}
+
+def _now(): return datetime.datetime.utcnow()
+def _iso(): return _now().isoformat()+"Z"
+
+def _notion_query(db, body):
+    r=requests.post(f"https://api.notion.com/v1/databases/{db}/query", headers=H, json=body, timeout=30)
+    r.raise_for_status(); return r.json()
+
+def _post_status(ok, notes):
+    if not STATUS_DB: return
+    payload={"parent":{"database_id":STATUS_DB},
+      "properties":{
+        "Name":{"title":[{"text":{"content":"Auto-Operator"}}]},
+        "When":{"date":{"start":_iso()}},
+        "OK":{"checkbox":bool(ok)},
+        "Notes":{"rich_text":[{"text":{"content":notes[:1800]}}]}
+      }}
+    try: requests.post("https://api.notion.com/v1/pages", headers=H, json=payload, timeout=20)
+    except: pass
+
+def _health_snap():
+    snap={"http":None,"openai":None,"drive":None,"notion":True}
+    # HTTP
+    if APP_BASE:
+        try:
+            r=requests.get(APP_BASE+"/health",timeout=10)
+            snap["http"]=(r.status_code==200)
+        except: snap["http"]=False
+    # OpenAI ping (cheap)
+    key=os.getenv("OPENAI_API_KEY","")
+    if key:
+        try:
+            r=requests.post("https://api.openai.com/v1/chat/completions",
+                headers={"Authorization":f"Bearer {key}","Content-Type":"application/json"},
+                json={"model":"gpt-4o-mini","messages":[{"role":"system","content":"Reply exactly: ok"},{"role":"user","content":"ping"}]},
+                timeout=12)
+            snap["openai"]= (r.status_code==200 and "ok" in r.text)
+        except: snap["openai"]=False
+    # Drive light check
+    if os.getenv("GDRIVE_SA_JSON") and os.getenv("GDRIVE_INPUT_FOLDER_ID"):
+        try:
+            import json as pj
+            from google.oauth2 import service_account
+            from googleapiclient.discovery import build
+            creds = service_account.Credentials.from_service_account_info(
+                pj.loads(os.getenv("GDRIVE_SA_JSON")), scopes=["https://www.googleapis.com/auth/drive"])
+            svc = build("drive","v3", credentials=creds, cache_discovery=False)
+            fid=os.getenv("GDRIVE_INPUT_FOLDER_ID")
+            svc.files().list(q=f"'{fid}' in parents and trashed=false",pageSize=1,fields="files(id)").execute()
+            snap["drive"]=True
+        except: snap["drive"]=False
+    return snap
+
+def _metrics_tail():
+    # Parse last 200 lines of metrics.csv: ts,cid,qc,cost,note
+    res={"total":0,"done":0,"low":0,"qa":[], "cost":[]}
+    try:
+        with open("metrics.csv","r",encoding="utf-8") as f:
+            lines=f.readlines()[-200:]
+        for ln in lines:
+            parts=ln.strip().split(",",4)
+            if len(parts)<5: continue
+            res["total"]+=1
+            try: q=float(parts[2]); res["qa"].append(q)
+            except: pass
+            try: c=float(parts[3]); res["cost"].append(c)
+            except: pass
+            note=parts[4]
+            if "status=Done" in note: res["done"]+=1
+            if res["qa"] and res["qa"][-1] < 80: res["low"]+=1
+    except FileNotFoundError:
+        pass
+    res["avg_qa"]= round(statistics.mean(res["qa"]),2) if res["qa"] else 0.0
+    res["sum_cost"]= round(sum(res["cost"]),4) if res["cost"] else 0.0
+    return res
+
+def _stuck_jobs(minutes=30):
+    # Jobs not Done and last edited > N minutes
+    if not JOB_DB: return []
+    cutoff=( _now() - datetime.timedelta(minutes=minutes) ).isoformat()+"Z"
+    body={"filter":{"and":[
+        {"property":"Status","select":{"does_not_equal":"Done"}},
+        {"timestamp":"last_edited_time","last_edited_time":{"before":cutoff}}
+    ]},"page_size":50}
+    try:
+        r=_notion_query(JOB_DB, body); return r.get("results",[])
+    except: return ["NOTION_QUERY_FAILED"]
+
+def _escalate(title, details):
+    msg=f"{title}\n{details}"
+    try: send_alert(f"[EchoPilot] {title}", details)
+    except: pass
+    # Telegram mirror via alert_mailer patch already handles this.
+
+def run_auto_operator_once():
+    health=_health_snap()
+    metrics=_metrics_tail()
+    stuck=_stuck_jobs(30)
+    ok = all(v is not False for v in health.values()) \
+         and (metrics["total"]==0 or metrics["done"]>0) \
+         and (len(stuck)==0 or stuck==["NOTION_QUERY_FAILED"])
+
+    summary=json.dumps({"health":health,"metrics":metrics,"stuck_count":0 if stuck==["NOTION_QUERY_FAILED"] else len(stuck)}, indent=2)
+    _post_status(ok, summary)
+
+    # Escalation rules
+    if health.get("openai") is False or health.get("notion") is False or health.get("drive") is False:
+        _escalate("Integration failure", summary)
+    if metrics["total"]>=10 and metrics["done"]==0:
+        _escalate("No completions in last window", summary)
+    if metrics["avg_qa"] and metrics["avg_qa"]<75:
+        _escalate("Quality dropping", summary)
+    if stuck not in ([], ["NOTION_QUERY_FAILED"]):
+        _escalate(f"{len(stuck)} job(s) stuck >30m", summary)
+
+    return ok, summary
+
+2) Add a scheduler (patch your main runner: main.py or bot.py)
+
+# after other schedulers start
+from threading import Thread
+from auto_operator import run_auto_operator_once
+import time
+
+def schedule_auto_operator():
+    def loop():
+        while True:
+            try:
+                run_auto_operator_once()
+            except Exception as e:
+                print("[AutoOperator] error:", e)
+            time.sleep(300)  # every 5 minutes
+    Thread(target=loop, daemon=True).start()
+
+schedule_auto_operator()
+
+3) Optional web endpoint (if you have Flask)
+
+# add once
+from auto_operator import run_auto_operator_once
+@app.route("/ops-report")
+def ops_report():
+    ok, summary = run_auto_operator_once()
+    return ("OK\n"+summary, 200) if ok else ("ALERT\n"+summary, 503)
+
+4) One-minute test (run in Replit Shell)
+
+python - <<'PY'
+from auto_operator import run_auto_operator_once
+ok, summary = run_auto_operator_once()
+print("OK?" , ok); print(summary)
+PY
+
+Pass = OK? True and a new “Auto-Operator” row in Status Board.
+Any alert conditions will arrive via Telegram + Gmail automatically.
+
+
+---

@@ -2,7 +2,11 @@
 
 ## Overview
 
-EchoPilot is an intelligent automation bot designed to process tasks from Notion databases using AI (OpenAI via Replit AI Integrations). It operates on a 60-second polling cycle, automatically processing triggered tasks, evaluating quality with dynamic per-task-type thresholds, and tracking comprehensive job performance metrics including costs, QA scores, token usage, and latency. The system features a live diagnostics system with hourly heartbeats and synthetic tests for 24/7 monitoring of its Reserved VM deployment.
+EchoPilot is an intelligent automation bot designed to process tasks from Notion databases using AI (OpenAI via Replit AI Integrations). It operates on a 60-second polling cycle, automatically processing triggered tasks, evaluating quality with dynamic per-task-type thresholds, and tracking comprehensive job performance metrics including costs, QA scores, token usage, and latency. The system features a live diagnostics system with hourly heartbeats and synthetic tests for 24/7 monitoring.
+
+**Deployment:** Replit Reserved VM (24/7 uptime)  
+**Production URL:** https://Echopilotai.replit.app  
+**Cost:** $20/month (covered by Replit Core credits)
 
 ## User Preferences
 

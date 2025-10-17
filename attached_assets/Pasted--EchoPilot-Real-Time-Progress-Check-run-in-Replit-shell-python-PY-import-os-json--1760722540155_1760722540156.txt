@@ -1,0 +1,116 @@
+# === EchoPilot Real-Time Progress Check (run in Replit shell) ===
+python - <<'PY'
+import os, json, time, requests, datetime, statistics, pathlib
+
+OUT = {"ts": datetime.datetime.utcnow().isoformat()+"Z"}
+
+# 1) Basic health (app + integrations)
+base = os.getenv("APP_BASE_URL","").rstrip("/")
+def ok(v): return bool(v is True or (isinstance(v,(list,tuple)) and v[0] is True))
+try:
+    OUT["app_health"] = requests.get(f"{base}/health", timeout=10).json() if base else {"status":"unknown","hint":"no APP_BASE_URL"}
+except Exception as e:
+    OUT["app_health"] = {"status":"error","error":str(e)}
+
+# OpenAI ping (cheap)
+try:
+    r = requests.post("https://api.openai.com/v1/chat/completions",
+                      headers={"Authorization":f"Bearer {os.getenv('OPENAI_API_KEY','')}",
+                               "Content-Type":"application/json"},
+                      json={"model":"gpt-4o-mini","messages":[{"role":"system","content":"ok"},{"role":"user","content":"ping"}]},
+                      timeout=12)
+    OUT["openai_ok"] = (r.status_code==200)
+except Exception as e:
+    OUT["openai_ok"] = False
+
+# Notion DB checks
+H={"Authorization":f"Bearer {os.getenv('NOTION_API_KEY','')}","Notion-Version":"2022-06-28","Content-Type":"application/json"}
+def get_db(dbid):
+    try:
+        r=requests.get(f"https://api.notion.com/v1/databases/{dbid}",headers=H,timeout=12)
+        return r.status_code==200
+    except: return False
+OUT["notion_joblog_ok"]   = get_db(os.getenv("NOTION_DB_ID",""))
+OUT["notion_status_ok"]   = get_db(os.getenv("NOTION_STATUS_DB_ID",""))
+OUT["notion_clients_ok"]  = bool(os.getenv("NOTION_CLIENT_DB_ID"))
+
+# 2) Recent jobs (last 7 days)
+counts = {}
+latest = {}
+try:
+    q={"page_size":50,"filter":{"property":"Date","date":{"past_week":{}}},"sorts":[{"timestamp":"last_edited_time","direction":"descending"}]}
+    r=requests.post(f"https://api.notion.com/v1/databases/{os.getenv('NOTION_DB_ID','')}/query",headers=H,json=q,timeout=20).json()
+    for p in r.get("results",[]):
+        st=p["properties"].get("Status",{}).get("select",{}).get("name","")
+        counts[st]=counts.get(st,0)+1
+    latest_row = (r.get("results") or [None])[0]
+    if latest_row:
+        props = latest_row["properties"]
+        latest = {
+            "Job Name": props.get("Job Name",{}).get("title",[{"plain_text":""}])[0].get("plain_text",""),
+            "QA Score": props.get("QA Score",{}).get("number"),
+            "Status":   props.get("Status",{}).get("select",{}).get("name"),
+            "Cost USD": props.get("Cost USD",{}).get("number"),
+            "Run Time (sec)": props.get("Run Time (sec)",{}).get("number"),
+            "Payment Status": props.get("Payment Status",{}).get("select",{}).get("name"),
+        }
+except Exception as e:
+    counts={"error":str(e)}
+OUT["jobs_7d_counts"]=counts
+OUT["latest_job"]=latest
+
+# 3) Payments setup + unpaid count
+OUT["payments_config"]={
+    "stripe": bool(os.getenv("STRIPE_SECRET_KEY")),
+    "paypal": bool(os.getenv("PAYPAL_CLIENT_ID") and os.getenv("PAYPAL_SECRET")),
+    "stripe_wh": bool(os.getenv("STRIPE_WEBHOOK_SECRET")),
+    "success_url": os.getenv("PAYMENT_SUCCESS_URL",""),
+}
+try:
+    q={"filter":{"property":"Payment Status","select":{"equals":"Unpaid"}},"page_size":100}
+    r=requests.post(f"https://api.notion.com/v1/databases/{os.getenv('NOTION_DB_ID','')}/query",headers=H,json=q,timeout=20).json()
+    OUT["unpaid_invoices"]=len(r.get("results",[]))
+except Exception as e:
+    OUT["unpaid_invoices_error"]=str(e)
+
+# 4) Metrics tail (local CSV)
+m = {"total":0,"done":0,"avg_qc":None,"sum_cost":0.0}
+try:
+    lines = pathlib.Path("metrics.csv").read_text(encoding="utf-8").strip().splitlines()[-200:]
+    qc=[]; cost=[]
+    for ln in lines:
+        parts=ln.split(",",4)
+        if len(parts)<5: continue
+        m["total"]+=1
+        try: qc.append(float(parts[2]))
+        except: pass
+        try: cost.append(float(parts[3]))
+        except: pass
+        if "status=Done" in parts[4]: m["done"]+=1
+    m["avg_qc"]= round(statistics.mean(qc),2) if qc else None
+    m["sum_cost"]= round(sum(cost),4) if cost else 0.0
+except Exception as e:
+    m["error"]=str(e)
+OUT["metrics_tail"]=m
+
+# 5) Schedulers & ops report (optional)
+try:
+    r = requests.get(f"{base}/ops-report", timeout=10)
+    OUT["ops_report_http"] = {"ok": r.status_code==200, "first_120": r.text[:120]}
+except Exception as e:
+    OUT["ops_report_http"] = {"ok": False, "error": str(e)}
+
+# 6) Verdicts
+ver = []
+if OUT["app_health"].get("status")=="healthy": ver.append("App ✓")
+else: ver.append("App ?")
+ver.append("OpenAI ✓" if OUT["openai_ok"] else "OpenAI ✗")
+ver.append("Notion ✓" if (OUT["notion_joblog_ok"] and OUT["notion_status_ok"]) else "Notion ✗")
+if OUT["payments_config"]["stripe"] or OUT["payments_config"]["paypal"]:
+    ver.append("Payments cfg ✓")
+else:
+    ver.append("Payments cfg ✗")
+OUT["verdict"] = " | ".join(ver)
+
+print(json.dumps(OUT, indent=2))
+PY

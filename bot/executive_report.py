@@ -1,37 +1,35 @@
 import os
 import io
 import datetime
-import requests
 import statistics
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from bot.gmail_client import GmailClientWrapper
-
-NOTION_KEY = os.getenv("NOTION_API_KEY", "")
-JOB_DB = os.getenv("JOB_LOG_DB_ID", "")
-H = {
-    "Authorization": f"Bearer {NOTION_KEY}",
-    "Notion-Version": "2022-06-28",
-    "Content-Type": "application/json"
-}
-
-def _q(body):
-    r = requests.post(
-        f"https://api.notion.com/v1/databases/{JOB_DB}/query",
-        headers=H,
-        json=body,
-        timeout=30
-    )
-    r.raise_for_status()
-    return r.json()
+from bot.notion_api import NotionClientWrapper
 
 def summarize_7d():
-    body = {
-        "page_size": 200,
-        "filter": {"property": "Date", "date": {"past_week": {}}},
-        "sorts": [{"timestamp": "last_edited_time", "direction": "descending"}]
-    }
-    data = _q(body).get("results", [])
+    """Summarize job data from last 7 days"""
+    notion = NotionClientWrapper()
+    
+    # Query job log database (get all jobs, no filter)
+    from bot import config
+    all_data = notion.query_database(config.JOB_LOG_DB_ID)
+    
+    # Filter to last 7 days in Python
+    import datetime as dt
+    seven_days_ago = dt.datetime.now() - dt.timedelta(days=7)
+    data = []
+    
+    for item in all_data:
+        try:
+            date_prop = item.get("properties", {}).get("Date", {}).get("date", {})
+            if date_prop and date_prop.get("start"):
+                item_date = dt.datetime.fromisoformat(date_prop["start"].replace("Z", "+00:00"))
+                if item_date >= seven_days_ago:
+                    data.append(item)
+        except:
+            # Include items with no date or parsing errors
+            data.append(item)
     total = len(data)
     done = 0
     qa = []

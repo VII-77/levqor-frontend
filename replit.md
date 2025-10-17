@@ -40,6 +40,7 @@ The application is built with a modular component design:
 - `auto_operator.py`: Self-healing monitoring system that checks health every 5 minutes and auto-escalates issues.
 - `payments.py`: Stripe and PayPal payment integration for automated billing per job.
 - `reconcile_payments.py`: Nightly payment reconciliation system (2:10 UTC daily).
+- `client_manager.py`: Client management, revenue tracking, invoice generation, and email delivery system.
 
 ### AI Integration
 
@@ -108,6 +109,40 @@ The system includes comprehensive monitoring capabilities:
   - `/health` - System health check (services, message, commit)
   - `/report` - Trigger on-demand supervisor report via email
   - `/help` - Show available commands
+
+## Client Management & Revenue Tracking System
+
+EchoPilot includes an optional client management system that transforms it from an internal automation bot to a monetized client service platform:
+
+### Revenue Calculation
+- **Automatic tracking**: Calculates gross revenue (Duration × Client Rate), profit (Revenue - AI Cost), and margin percentage
+- **Custom pricing tiers**: Per-client rates stored in Notion Clients database
+- **Fallback rates**: Uses `DEFAULT_RATE_USD_PER_MIN` environment variable (default: $5/min) when no client-specific rate is set
+
+### Invoice Generation & Delivery
+- **PDF invoices**: Professional invoices generated with ReportLab, including job details, financial summary, and branding
+- **Email delivery**: Automated invoice emails sent via Gmail API (OAuth-based, no SMTP credentials needed)
+- **Client notifications**: Clients receive invoice PDF attachments automatically after job completion
+
+### Notion Integration
+- **Client Database**: Optional "EchoPilot Clients" database tracks client names, emails, rates, and active status
+- **Revenue fields in Job Log**: Automatically logs Client Rate USD/min, Gross USD, Profit USD, and Margin % for each job
+- **Relation support**: Jobs can be linked to clients via Notion relations for automatic rate lookup
+
+### Configuration
+**Optional Environment Variables**:
+- `NOTION_CLIENT_DB_ID` (Client database ID for client management)
+- `DEFAULT_RATE_USD_PER_MIN` (Default billing rate, default: 5.0)
+
+**Required Notion Fields** (Job Log):
+- Client Rate USD/min (Number)
+- Gross USD (Number)
+- Profit USD (Number)
+- Margin % (Number)
+- Client (Relation to Clients DB, optional)
+- Client Email (Email, optional)
+
+See `CLIENT_SYSTEM_GUIDE.md` for complete setup and usage instructions.
 
 ## External Dependencies
 

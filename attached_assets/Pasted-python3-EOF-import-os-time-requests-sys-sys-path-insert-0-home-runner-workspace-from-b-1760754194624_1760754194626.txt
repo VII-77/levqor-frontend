@@ -1,0 +1,70 @@
+python3 << 'EOF'
+import os, time, requests, sys
+sys.path.insert(0, '/home/runner/workspace')
+
+from bot.payments import create_payment_link
+from bot.notion_api import NotionClientWrapper
+import datetime
+
+print("="*70)
+print("💳 STEP 3: $1 LIVE SANITY TEST")
+print("="*70)
+
+# Setup
+wrapper = NotionClientWrapper()
+queue_db = os.getenv("AUTOMATION_QUEUE_DB_ID")
+job_log_db = os.getenv("JOB_LOG_DB_ID")
+now = datetime.datetime.utcnow()
+job_name = f"PAYMENT-TEST-{now:%Y%m%d-%H%M%S}"
+amount = 1.00
+email = os.getenv("ALERT_TO") or "test@example.com"
+
+print(f"\n📝 Creating payment link...")
+print(f"   Job: {job_name}")
+print(f"   Amount: ${amount}")
+print(f"   Email: {email}")
+
+# Create payment link
+pay = create_payment_link(amount, job_name, email)
+
+print(f"\n✅ Payment link created!")
+print(f"   Provider: {pay['provider']}")
+print(f"   URL: {pay['url']}")
+
+# Create Notion page in Job Log
+print(f"\n📊 Creating Notion job entry...")
+try:
+    page = wrapper.create_page(job_log_db, {
+        "Job Name": {"title": [{"text": {"content": job_name}}]},
+        "Status": {"select": {"name": "Done"}},
+        "QA Score": {"number": 100},
+        "Cost": {"number": 0.00}
+    })
+    page_id = page.get("id")
+    print(f"   ✅ Job created: {page_id}")
+except Exception as e:
+    print(f"   ❌ Error: {e}")
+    sys.exit(1)
+
+print(f"\n" + "="*70)
+print(f"💳 PAYMENT LINK (Test Mode):")
+print(f"="*70)
+print(f"\n{pay['url']}\n")
+print("="*70)
+print("📌 INSTRUCTIONS:")
+print("="*70)
+print("1. Open the payment link above")
+print("2. Use test card: 4242 4242 4242 4242")
+print("3. Use any future expiry date (e.g., 12/34)")
+print("4. Use any CVC (e.g., 123)")
+print("5. Complete the payment")
+print("\n⏳ Watching for webhook confirmation...")
+print("="*70)
+
+# Wait for webhook to update (simplified - just show link)
+print(f"\n💡 After payment, check:")
+print(f"   • Stripe Dashboard → Webhooks → Logs")
+print(f"   • Notion Job Log for payment confirmation")
+print(f"\n✅ Test ready! Complete payment to verify webhook.")
+
+EOF

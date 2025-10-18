@@ -5,10 +5,9 @@ import pathlib
 import statistics
 import requests
 from bot.alert_mailer import send_alert
-from bot import config
 
-NOTION_KEY = config.NOTION_API_KEY
-JOB_DB = config.JOB_LOG_DB_ID
+NOTION_KEY = os.getenv("NOTION_API_KEY", "")
+JOB_DB = os.getenv("JOB_LOG_DB_ID", "")
 STATUS_DB = os.getenv("NOTION_STATUS_DB_ID", "")
 DSR_DB = os.getenv("NOTION_DSR_DB_ID", "")
 

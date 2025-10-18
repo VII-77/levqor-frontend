@@ -1,0 +1,415 @@
+Install/Update deps (once)
+
+pip install stripe requests cryptography reportlab google-api-python-client google-auth
+
+
+---
+
+1) Add/Replace Files
+
+1.1 cost_tracker.py
+
+import os, time
+def now_s(): return time.time()
+def seconds_since(t0): 
+    try: return round(max(0, time.time() - float(t0)), 3)
+    except: return 0.0
+def _p(k, d): return float(os.getenv(k, d))
+def read_price_env():
+    return {
+        "IN_1K": _p("COST_GPT_IN_PER_1K_USD","0.30"),
+        "OUT_1K": _p("COST_GPT_OUT_PER_1K_USD","0.60"),
+        "WHISPER_MIN": _p("COST_WHISPER_PER_MIN_USD","0.006"),
+    }
+def estimate_cost(usage: dict|None, audio_seconds: float|None):
+    P=read_price_env(); cost=0.0; tokens=0
+    if usage:
+        pt=int(usage.get("prompt_tokens",0)); ct=int(usage.get("completion_tokens",0)); tokens=pt+ct
+        cost += (pt/1000)*P["IN_1K"] + (ct/1000)*P["OUT_1K"]
+    if audio_seconds and audio_seconds>0:
+        cost += (audio_seconds/60.0)*P["WHISPER_MIN"]
+    return round(cost,6), tokens
+
+1.2 payments.py
+
+import os, base64, requests, stripe
+STRIPE_KEY=os.getenv("STRIPE_SECRET_KEY","").strip()
+STRIPE_WH_SECRET=os.getenv("STRIPE_WEBHOOK_SECRET","").strip()
+PAYPAL_ID=os.getenv("PAYPAL_CLIENT_ID","").strip()
+PAYPAL_SEC=os.getenv("PAYPAL_SECRET","").strip()
+PAYPAL_LIVE=os.getenv("PAYPAL_LIVE","true").lower()=="true"
+CUR=os.getenv("PAYMENT_CURRENCY","USD").upper()
+SUCCESS=os.getenv("PAYMENT_SUCCESS_URL","https://example.com/success")
+CANCEL=os.getenv("PAYMENT_CANCEL_URL","https://example.com/cancel")
+BRAND=os.getenv("PAYMENT_BRAND_NAME","EchoPilot AI")
+
+def stripe_create_checkout(amount_usd: float, job_id: str, client_email=None):
+    if not STRIPE_KEY: raise RuntimeError("STRIPE_SECRET_KEY missing")
+    stripe.api_key=STRIPE_KEY; cents=int(round(amount_usd*100))
+    s=stripe.checkout.Session.create(
+        mode="payment",
+        payment_method_types=["card"],
+        line_items=[{"price_data":{"currency":CUR.lower(),"unit_amount":cents,"product_data":{"name":f"{BRAND} Job {job_id}"}}, "quantity":1}],
+        customer_email=client_email or None,
+        success_url=f"{SUCCESS}?job={job_id}&status=success",
+        cancel_url=f"{CANCEL}?job={job_id}&status=cancel",
+        metadata={"job_id":job_id}
+    )
+    return {"provider":"stripe","amount":amount_usd,"currency":CUR,"url":s.url,"id":s.id}
+
+def stripe_parse_webhook(payload: bytes, sig_header: str):
+    if not STRIPE_WH_SECRET: raise RuntimeError("STRIPE_WEBHOOK_SECRET missing")
+    ev=stripe.Webhook.construct_event(payload, sig_header, STRIPE_WH_SECRET)
+    typ=ev["type"]; obj=ev["data"]["object"]
+    job=(obj.get("metadata") or {}).get("job_id")
+    status=None
+    if typ in ("checkout.session.completed","payment_intent.succeeded"): status="Paid"
+    elif typ in ("payment_intent.payment_failed","checkout.session.expired"): status="Cancelled"
+    return {"ok":True,"provider":"stripe","type":typ,"job_id":job,"status":status}
+
+def _pp_host(): return "https://api-m.paypal.com" if PAYPAL_LIVE else "https://api-m.sandbox.paypal.com"
+def _pp_token():
+    import base64
+    a=base64.b64encode(f"{PAYPAL_ID}:{PAYPAL_SEC}".encode()).decode()
+    r=requests.post(_pp_host()+"/v1/oauth2/token",headers={"Authorization":f"Basic {a}"},data={"grant_type":"client_credentials"},timeout=20)
+    r.raise_for_status(); return r.json()["access_token"]
+
+def paypal_create_order(amount_usd: float, job_id: str):
+    t=_pp_token()
+    body={"intent":"CAPTURE",
+          "purchase_units":[{"reference_id":job_id,"amount":{"currency_code":CUR,"value":f"{amount_usd:.2f}"},"description":f"{BRAND} Job {job_id}"}],
+          "application_context":{"brand_name":BRAND,"return_url":f"{SUCCESS}?job={job_id}&status=success","cancel_url":f"{CANCEL}?job={job_id}&status=cancel","shipping_preference":"NO_SHIPPING","user_action":"PAY_NOW"}}
+    r=requests.post(_pp_host()+"/v2/checkout/orders",headers={"Authorization":f"Bearer {t}","Content-Type":"application/json"},json=body,timeout=20); r.raise_for_status()
+    data=r.json(); approve=next((l["href"] for l in data["links"] if l["rel"]=="approve"),None)
+    return {"provider":"paypal","amount":amount_usd,"currency":CUR,"url":approve,"id":data["id"]}
+
+def paypal_parse_webhook(body: dict):
+    et=body.get("event_type"); res=body.get("resource",{}); job=None
+    pus=res.get("purchase_units") or []
+    if pus: job=pus[0].get("reference_id")
+    status="Paid" if et in ("CHECKOUT.ORDER.APPROVED","PAYMENT.CAPTURE.COMPLETED") else ("Cancelled" if et in ("CHECKOUT.ORDER.CANCELLED","PAYMENT.CAPTURE.DENIED") else None)
+    return {"ok":True,"provider":"paypal","type":et,"job_id":job,"status":status}
+
+def create_payment_link(amount_usd: float, job_id: str, client_email=None):
+    if STRIPE_KEY: return stripe_create_checkout(amount_usd, job_id, client_email)
+    if PAYPAL_ID and PAYPAL_SEC: return paypal_create_order(amount_usd, job_id)
+    raise RuntimeError("No payment provider configured")
+
+1.3 client_manager.py
+
+import os, io, datetime
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+
+def gen_invoice_pdf(client_name, job_id, minutes, rate, cost, gross, profit):
+    buf=io.BytesIO(); c=canvas.Canvas(buf,pagesize=A4)
+    y=800; c.setFont("Helvetica-Bold",12); c.drawString(40,y,"EchoPilot Invoice"); y-=24
+    c.setFont("Helvetica",10)
+    for L in [f"Date: {datetime.date.today().isoformat()}",
+              f"Client: {client_name}", f"Job ID: {job_id}", f"Duration: {minutes:.2f} min",
+              f"Rate: ${rate:.2f}/min", f"Gross: ${gross:.2f}", f"AI Cost: ${cost:.4f}", f"Profit: ${profit:.2f}"]:
+        c.drawString(40,y,L); y-=18
+    c.showPage(); c.save(); buf.seek(0); return buf.getvalue()
+
+def deliver_invoice(client_email, subject, body, pdf_bytes, payment_link=None):
+    from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart
+    from email.mime.application import MIMEApplication
+    import smtplib
+    msg=MIMEMultipart(); msg["Subject"]=subject; msg["From"]=os.getenv("SMTP_USER"); msg["To"]=client_email
+    if payment_link: body += f"\n\nPay now: {payment_link}"
+    msg.attach(MIMEText(body))
+    part=MIMEApplication(pdf_bytes,Name="invoice.pdf"); msg.attach(part)
+    s=smtplib.SMTP(os.getenv("SMTP_HOST"),int(os.getenv("SMTP_PORT","587"))); s.starttls()
+    s.login(os.getenv("SMTP_USER"),os.getenv("SMTP_PASS")); s.send_message(msg); s.quit()
+
+1.4 executive_report.py
+
+import os, io, datetime, requests, statistics
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+NOTION_KEY=os.getenv("NOTION_API_KEY",""); JOB_DB=os.getenv("NOTION_DB_ID","")
+H={"Authorization":f"Bearer {NOTION_KEY}","Notion-Version":"2022-06-28","Content-Type":"application/json"}
+def _q(b): r=requests.post(f"https://api.notion.com/v1/databases/{JOB_DB}/query",headers=H,json=b,timeout=30); r.raise_for_status(); return r.json()
+def summarize_7d():
+    d=_q({"page_size":200,"filter":{"property":"Date","date":{"past_week":{}}}}).get("results",[])
+    total=len(d); done=sum(1 for p in d if (p["properties"].get("Status",{}).get("select",{}).get("name","")== "Done"))
+    qa=[p["properties"].get("QA Score",{}).get("number") for p in d if p["properties"].get("QA Score",{}).get("number") is not None]
+    cost=[p["properties"].get("Cost USD",{}).get("number") or 0 for p in d]; gross=[p["properties"].get("Gross USD",{}).get("number") or 0 for p in d]
+    avg_qa=round(statistics.mean(qa),2) if qa else 0; s_cost=round(sum(cost),2); s_gross=round(sum(gross),2); margin=round(((s_gross-s_cost)/s_gross*100),1) if s_gross>0 else 0
+    unpaid=sum(1 for p in d if (p["properties"].get("Payment Status",{}).get("select",{}).get("name","")=="Unpaid"))
+    return {"total":total,"done":done,"avg_qa":avg_qa,"sum_cost":s_cost,"sum_gross":s_gross,"margin_pct":margin,"unpaid":unpaid}
+def build_pdf(s):
+    buf=io.BytesIO(); c=canvas.Canvas(buf,pagesize=A4); y=820; c.setFont("Helvetica-Bold",14); c.drawString(40,y,"EchoPilot — Daily Executive Report"); y-=24
+    c.setFont("Helvetica",10); ts=datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%MZ"); c.drawString(40,y,f"Generated: {ts}"); y-=26
+    for L in [f"Jobs(7d): {s['total']} | Done: {s['done']}", f"Avg QA: {s['avg_qa']} | Gross: ${s['sum_gross']:.2f} | Cost: ${s['sum_cost']:.2f} | Margin: {s['margin_pct']}%", f"Unpaid invoices: {s['unpaid']}"]:
+        c.drawString(40,y,L); y-=18
+    c.showPage(); c.save(); buf.seek(0); return buf.getvalue()
+def email_pdf(pdf,s):
+    import smtplib
+    from email.mime.text import MIMEText; from email.mime.multipart import MIMEMultipart; from email.mime.application import MIMEApplication
+    to=os.getenv("ALERT_TO") or os.getenv("SMTP_USER"); msg=MIMEMultipart()
+    msg["Subject"]=f"[EchoPilot] Daily Executive Report — {datetime.date.today().isoformat()}"; msg["From"]=os.getenv("SMTP_USER"); msg["To"]=to
+    body=f"Jobs: {s['total']} Done: {s['done']} Avg QA: {s['avg_qa']} Gross: ${s['sum_gross']:.2f} Cost: ${s['sum_cost']:.2f} Margin: {s['margin_pct']}% Unpaid: {s['unpaid']}"
+    msg.attach(MIMEText(body)); msg.attach(MIMEApplication(pdf,Name="EchoPilot_Daily_Executive_Report.pdf"))
+    sM=smtplib.SMTP(os.getenv("SMTP_HOST"),int(os.getenv("SMTP_PORT","587"))); sM.starttls(); sM.login(os.getenv("SMTP_USER"),os.getenv("SMTP_PASS")); sM.send_message(msg); sM.quit()
+def run_exec_report():
+    s=summarize_7d(); pdf=build_pdf(s); email_pdf(pdf,s); return s
+if __name__=="__main__": print(run_exec_report())
+
+1.5 compliance_tools.py
+
+import os, json, datetime, pathlib, statistics, requests
+from alert_mailer import send_alert
+NOTION_KEY=os.getenv("NOTION_API_KEY",""); JOB_DB=os.getenv("NOTION_DB_ID",""); STATUS_DB=os.getenv("NOTION_STATUS_DB_ID",""); DSR_DB=os.getenv("NOTION_DSR_DB_ID","")
+H={"Authorization":f"Bearer {NOTION_KEY}","Notion-Version":"2022-06-28","Content-Type":"application/json"}
+
+def compute_p95_latency():
+    try:
+        lines=pathlib.Path("metrics.csv").read_text(encoding="utf-8").splitlines()[-200:]
+        d=[float(l.split(",",2)[1]) for l in lines if l.count(",")>=2]
+        if not d: return None
+        d.sort(); idx=max(0,int(len(d)*0.95)-1); p95=round(d[idx],2)
+        send_alert("[EchoPilot] Weekly latency metric", f"p95={p95}s from {len(d)} jobs")
+        return p95
+    except Exception as e:
+        send_alert("[EchoPilot] p95 metric error", str(e)); return None
+
+def mark_refund(job_id, reason="Client refund"):
+    try:
+        r=requests.patch(f"https://api.notion.com/v1/pages/{job_id}", headers=H,
+                         json={"properties":{"Payment Status":{"select":{"name":"Cancelled"}},
+                                             "Notes":{"rich_text":[{"text":{"content":reason}}]}}}, timeout=20)
+        send_alert("[EchoPilot] Refund processed", f"{job_id} -> Cancelled ({reason})"); return r.status_code==200
+    except Exception as e:
+        send_alert("[EchoPilot] Refund error", f"{job_id}: {e}"); return False
+
+def create_dsr_ticket(cid, email, action="Erase", notes=""):
+    if not DSR_DB: return False
+    body={"parent":{"database_id":DSR_DB},
+          "properties":{"Correlation ID":{"title":[{"text":{"content":cid}}]},
+                        "Email":{"email":email},
+                        "Action":{"select":{"name":action}},
+                        "Status":{"select":{"name":"New"}},
+                        "Notes":{"rich_text":[{"text":{"content":notes}}]}}}
+    try:
+        requests.post("https://api.notion.com/v1/pages", headers=H, json=body, timeout=20)
+        send_alert("[EchoPilot] DSR ticket created", f"{cid} {action}"); return True
+    except Exception as e:
+        send_alert("[EchoPilot] DSR error", str(e)); return False
+
+def backup_config():
+    dest=pathlib.Path("backups/config"); dest.mkdir(parents=True, exist_ok=True)
+    out=dest/f"env_backup_{datetime.date.today()}.json"
+    keep=["OPENAI_API_KEY","STRIPE_SECRET_KEY","SMTP_USER","PAYMENT_CURRENCY","WHISPER_MODEL","GPT_MODEL","APP_BASE_URL"]
+    snap={k:("SET" if os.getenv(k) else None) for k in keep}; snap["timestamp"]=datetime.datetime.utcnow().isoformat()+"Z"
+    out.write_text(json.dumps(snap, indent=2))
+    send_alert("[EchoPilot] Config backup created", out.name)
+    return str(out)
+
+
+---
+
+2) Patch your processor (where jobs finish)
+
+Ensure after QC and cost you write revenue + invoice + payment link and update Notion:
+
+from cost_tracker import now_s, seconds_since, estimate_cost
+from client_manager import gen_invoice_pdf, deliver_invoice
+from payments import create_payment_link
+
+# t0 = now_s() at start; after OpenAI calls, collect total usage in total_usage dict
+run_time_sec = seconds_since(t0)
+cost_usd, tokens_used = estimate_cost(total_usage, audio_seconds)
+client_rate = float(os.getenv("DEFAULT_RATE_USD_PER_MIN","5"))
+audio_minutes = audio_seconds/60.0
+gross = round(client_rate * audio_minutes, 2)
+profit = round(gross - cost_usd, 2)
+margin = round((profit/gross*100),1) if gross>0 else 0.0
+
+notion_update_fields(job_id,{
+  "Run Time (sec)":{"number":run_time_sec},
+  "Tokens Used":{"number":tokens_used},
+  "Cost USD":{"number":round(cost_usd,4)},
+  "Client Rate USD/min":{"number":client_rate},
+  "Gross USD":{"number":gross},
+  "Profit USD":{"number":profit},
+  "Margin %":{"number":margin},
+})
+
+pay = create_payment_link(gross, job_id, client_email)
+notion_update_fields(job_id,{"Payment Status":{"select":{"name":"Unpaid"}},"Payment Link":{"url":pay["url"]}})
+
+pdf = gen_invoice_pdf(client_name, job_id, audio_minutes, client_rate, cost_usd, gross, profit)
+deliver_invoice(client_email, f"[EchoPilot] Invoice {job_id}",
+    f"Your EchoPilot job is complete.\nAmount due: ${gross:.2f}\nProfit (est): ${profit:.2f}",
+    pdf, payment_link=pay["url"])
+
+
+---
+
+3) Add/Update Flask routes (main.py)
+
+from flask import request, jsonify
+from payments import stripe_parse_webhook, paypal_parse_webhook
+from compliance_tools import mark_refund, compute_p95_latency, backup_config, create_dsr_ticket
+# ASSUMES notion_update_fields helper exists.
+
+@app.get("/payments/debug")
+def payments_debug():
+    import os
+    return (
+        "Stripe key set: " + str(bool(os.getenv("STRIPE_SECRET_KEY"))) + "\n" +
+        "Stripe webhook secret set: " + str(bool(os.getenv("STRIPE_WEBHOOK_SECRET"))) + "\n" +
+        "PayPal set: " + str(bool(os.getenv("PAYPAL_CLIENT_ID") and os.getenv("PAYPAL_SECRET"))) + "\n" +
+        "Success URL: " + str(os.getenv("PAYMENT_SUCCESS_URL",""))
+    ,200)
+
+@app.post("/webhook/stripe")
+def wh_stripe():
+    out=stripe_parse_webhook(request.data, request.headers.get("Stripe-Signature",""))
+    if not out.get("ok"): return jsonify(out), 400
+    job, status = out.get("job_id"), out.get("status")
+    if job and status: notion_update_fields(job, {"Payment Status":{"select":{"name":status}}})
+    return jsonify({"ok":True})
+
+@app.post("/webhook/paypal")
+def wh_paypal():
+    out=paypal_parse_webhook(request.get_json(silent=True) or {})
+    job, status = out.get("job_id"), out.get("status")
+    if job and status: notion_update_fields(job, {"Payment Status":{"select":{"name":status}}})
+    return jsonify({"ok":True})
+
+@app.get("/refund")
+def refund_now():
+    job=request.args.get("job"); reason=request.args.get("reason","Manual refund")
+    ok=mark_refund(job,reason); return jsonify({"ok":ok,"job":job,"reason":reason}), (200 if ok else 500)
+
+@app.get("/p95")
+def p95_now():
+    val=compute_p95_latency(); return jsonify({"p95_sec":val}), 200
+
+@app.get("/backup-config")
+def backup_now():
+    path=backup_config(); return jsonify({"ok":True,"path":path}),200
+
+@app.post("/dsr")
+def dsr_now():
+    data=request.get_json(force=True)
+    ok=create_dsr_ticket(data.get("cid"), data.get("email"), data.get("action","Erase"), data.get("notes",""))
+    return jsonify({"ok":ok}), (200 if ok else 500)
+
+
+---
+
+4) Schedulers (add to your runner)
+
+from threading import Thread
+import time, datetime
+from executive_report import run_exec_report
+from reconcile_payments import reconcile_once
+from auto_operator import run_auto_operator_once
+from compliance_tools import compute_p95_latency, backup_config
+
+def schedule_every(name, seconds, fn):
+    def loop():
+        while True:
+            try: fn()
+            except Exception as e: print(f"[{name}] error:", e)
+            time.sleep(seconds)
+    Thread(target=loop, daemon=True).start()
+
+# 5 min self-ops
+schedule_every("AutoOperator", 300, run_auto_operator_once)
+# 6h payment reconciliation (PayPal safety)
+schedule_every("Reconcile", 21600, reconcile_once)
+# Daily executive report 06:55 UTC
+def daily_exec():
+    now=datetime.datetime.utcnow()
+    if now.hour==6 and now.minute==55: run_exec_report(); time.sleep(70)
+schedule_every("DailyExec", 60, daily_exec)
+# Weekly p95 + backup Sunday 03:00 UTC
+def weekly_maint():
+    now=datetime.datetime.utcnow()
+    if now.weekday()==6 and now.hour==3 and now.minute==0:
+        compute_p95_latency(); backup_config(); time.sleep(70)
+schedule_every("WeeklyMaint", 60, weekly_maint)
+
+(Keep your Heartbeat and Supervisor if you already have them.)
+
+
+---
+
+5) Notion setup (one-time, in Notion AI)
+
+Create DB “DSR Requests” with properties:
+
+Correlation ID (Title) · Email (Email) · Action (Select: Access | Erase | Restrict) · Status (Select: New | In Progress | Closed) · Notes (Rich text)
+
+
+Set env NOTION_DSR_DB_ID=<that db id>.
+
+Ensure Job Log has: Payment Link (URL), Payment Status (Select: Unpaid|Paid|Cancelled), ROI fields.
+
+
+---
+
+6) ENV — add/check (Replit & Railway)
+
+# Prices (edit anytime)
+COST_GPT_IN_PER_1K_USD=0.30
+COST_GPT_OUT_PER_1K_USD=0.60
+COST_WHISPER_PER_MIN_USD=0.006
+
+# Payments (Stripe preferred)
+STRIPE_SECRET_KEY=sk_live_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+# Or PayPal
+PAYPAL_CLIENT_ID=...
+PAYPAL_SECRET=...
+PAYPAL_LIVE=true
+PAYMENT_CURRENCY=USD
+PAYMENT_BRAND_NAME=EchoPilot AI
+PAYMENT_SUCCESS_URL=https://<your-app>/pay/success
+PAYMENT_CANCEL_URL=https://<your-app>/pay/cancel
+
+
+---
+
+7) One-Minute Smoke Tests
+
+# App & payments config
+curl -s "$APP_BASE_URL/health"; echo
+curl -s "$APP_BASE_URL/payments/debug"; echo
+
+# Create a $1 live sanity row + expect webhook flip (run, pay, wait)
+python - <<'PY'
+import os, time, requests, datetime
+from payments import create_payment_link
+H={"Authorization":f"Bearer {os.getenv('NOTION_API_KEY','')}","Notion-Version":"2022-06-28","Content-Type":"application/json"}
+db=os.getenv("NOTION_DB_ID"); now=datetime.datetime.utcnow()
+job=f"SMOKE-{now:%Y%m%d-%H%M%S}"; amt=1.00; email=os.getenv("ALERT_TO") or os.getenv("SMTP_USER")
+pay=create_payment_link(amt, job, email); print("PAY LINK:", pay["url"])
+page=requests.post("https://api.notion.com/v1/pages", headers=H, json={"parent":{"database_id":db},
+ "properties":{"Job Name":{"title":[{"text":{"content":job}}]},"Date":{"date":{"start":now.isoformat()+"Z"}},
+ "Status":{"select":{"name":"Done"}},"Payment Status":{"select":{"name":"Unpaid"}},"Payment Link":{"url":pay["url"]},"Gross USD":{"number":amt}}}, timeout=20).json()
+pid=page.get("id"); print("NOTION PAGE:", pid)
+print(">>> Pay $1, waiting for webhook…")
+for _ in range(20):
+    time.sleep(3)
+    r=requests.get(f"https://api.notion.com/v1/pages/{pid}",headers=H,timeout=10).json()
+    try: s=r["properties"]["Payment Status"]["select"]["name"]
+    except: s=None
+    print("Payment Status:", s)
+    if s=="Paid": print("✅ Webhook OK"); break
+else: print("⚠️ Still Unpaid — check Stripe webhook logs.")
+PY
+
+# Refund endpoint (optional)
+# curl -s "$APP_BASE_URL/refund?job=<PAGE_ID>&reason=demo"
+# p95 & backup on-demand
+curl -s "$APP_BASE_URL/p95"; echo
+curl -s "$APP_BASE_URL/backup-config"; echo
+
+
+---

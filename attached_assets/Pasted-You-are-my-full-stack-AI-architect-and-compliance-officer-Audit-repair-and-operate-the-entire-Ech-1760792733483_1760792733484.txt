@@ -1,0 +1,153 @@
+You are my full-stack AI architect and compliance officer.
+Audit, repair, and operate the entire EchoPilot ecosystem end-to-end.
+
+──────────────────────────────
+SECTION 1 — SYSTEM AUDIT & REPAIR
+──────────────────────────────
+1️⃣ Detect and verify all connected platforms:
+- Notion (all DBs)
+- Replit / Railway runtime
+- Google Drive backups
+- Gmail + Telegram
+- Stripe + PayPal
+- Cloudflare DNS + uptime monitor
+- OpenAI API keys
+2️⃣ Confirm every DB exists and matches schema (Automation Queue, Job Log, Clients, Finance, Governance, Ops Monitor, Forecast, Region Compliance, Partners, Referrals, Growth Metrics).
+3️⃣ Test each critical route:
+/health, /supervisor, /payments/scan, /jobs/replay, /forecast, /p95.
+4️⃣ Output JSON summary:
+{component, status, last_success, notes}.
+
+──────────────────────────────
+SECTION 2 — LEGAL & COMPLIANCE
+──────────────────────────────
+• Validate ToS / Privacy / Cookie / Accessibility pages exist and link from landing.
+• Confirm data-retention ≤ 30 days (EU/US) and ≤ 60 (APAC).
+• Verify DSR endpoint reachable and logs stored.
+• Check encryption: TLS 1.3 + at-rest AES-256.
+• Produce “Compliance Summary 2025” with any gaps and auto-generate template policy text for missing documents.
+
+──────────────────────────────
+SECTION 3 — SECURITY & OPS
+──────────────────────────────
+• Confirm env vars and secrets rotation < 30 days.
+• Validate failover DNS + standby node works (call /flip → /restore).
+• Review access list: only owner + approved VAs.
+• Check audit log NDJSON size and rotate if > 1 GB.
+• Generate Security Audit Report (JSON + PDF).
+
+──────────────────────────────
+SECTION 4 — MONITORING & ALERTS
+──────────────────────────────
+• Ensure hourly /health pings → Notion Ops Monitor.
+• Verify Telegram alerts and Gmail digest trigger.
+• Compile uptime %, error %, QA avg (24 h).
+• Output “Operational Stability Report”.
+
+──────────────────────────────
+SECTION 5 — AI PIPELINE & QUALITY
+──────────────────────────────
+• Test Whisper + GPT workflow on sample audio.
+• Check average QA ≥ 85 ; flag any < 80.
+• Validate srt / txt / summary files upload to Drive.
+• Generate “Quality Assurance Report”.
+
+──────────────────────────────
+SECTION 6 — FINANCE & REPORTING
+──────────────────────────────
+• Sync Stripe + Notion Finance.
+• Compute revenue 7 d / 30 d, margin %, refund %.
+• Update Valuation DB (DCF + SaaS multiple).
+• Produce “P&L + Valuation Pack QTR”.
+
+──────────────────────────────
+SECTION 7 — FORECAST & SCALING
+──────────────────────────────
+• Run forecast_engine → predict 30 days (load + revenue).
+• Verify autoscaler thresholds (75 % target util).
+• Output Forecast Summary chart (JSON + CSV).
+
+──────────────────────────────
+SECTION 8 — LOCALIZATION & REGIONAL COMPLIANCE
+──────────────────────────────
+• Test translation EN→ES→UR on sample job.
+• Confirm Region Compliance DB rules applied.
+• Verify localized emails + multi-currency Stripe.
+• Produce “Localization Status Report”.
+
+──────────────────────────────
+SECTION 9 — MARKETPLACE & PARTNER OPS
+──────────────────────────────
+• Check API facade endpoints (/v1/jobs, /results).
+• Validate quota middleware per key.
+• List active partners, usage %, payout status.
+• Generate “Partner Dashboard Snapshot”.
+
+──────────────────────────────
+SECTION 10 — GROWTH & CUSTOMER ACQUISITION
+──────────────────────────────
+• Confirm outreach cron sent ≥ 10 emails today.
+• Log leads / conversions / CAC / LTV to Growth Metrics DB.
+• Verify referral credits applied in invoices.
+• Output “Growth Performance Digest”.
+
+──────────────────────────────
+SECTION 11 — GOVERNANCE & BOARD PACK
+──────────────────────────────
+• Run weekly board pack generator:
+- Financial Summary
+- Ops Summary
+- Risk Register
+- Recommendations
+• Post summary to Telegram (approve/reject buttons).
+• Update Decision Log → Approved / Rejected.
+
+──────────────────────────────
+SECTION 12 — REPORT GENERATION
+──────────────────────────────
+Combine all above into:
+• Operational Stability Report
+• Compliance Summary 2025
+• Finance & Valuation Pack
+• Forecast Report
+• Localization Report
+• Partner Dashboard Snapshot
+• Growth Digest
+• Governance Board Pack
+
+Output merged PDF “EchoPilot _Complete System Audit Report_v1.0.pdf”
+and upload to Google Drive /Reports/.
+
+──────────────────────────────
+SECTION 13 — AUTO-FIX & NOTIFICATIONS
+──────────────────────────────
+If any section status ≠ OK:
+• Post alert to Telegram “⚠️ Issue: {component} – {status}”.
+• Create Notion Task in “Ops Queue” with remediation step.
+• Retry once if transient.
+
+──────────────────────────────
+SECTION 14 — STRATEGIC REVIEW & FORECAST SUMMARY
+──────────────────────────────
+Generate short executive summary (≤ 400 words):
+• Key metrics (Revenue, Margin, Uptime, Growth %)
+• Top 3 Risks + Mitigations
+• Forecast 30-day outlook
+• Recommended Actions for next phase.
+
+──────────────────────────────
+OUTPUT FORMAT
+──────────────────────────────
+Return:
+1️⃣ System Audit Summary (JSON)
+2️⃣ Compliance Summary 2025 (PDF outline)
+3️⃣ Security Audit Report (highlights)
+4️⃣ Operational Stability Report
+5️⃣ QA Report
+6️⃣ Finance + Valuation Pack
+7️⃣ Forecast Chart (30 days)
+8️⃣ Localization Report
+9️⃣ Partner Snapshot
+🔟 Growth Digest
+1️⃣1️⃣ Governance Pack
+1️⃣2️⃣ Merged Audit Report v1.0 (upload path)

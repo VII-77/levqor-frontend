@@ -24,11 +24,11 @@ class FinanceSystem:
         transaction_type: str,
         amount: float,
         currency: str = "USD",
-        client: str = None,
-        job_id: str = None,
-        category: str = None,
-        stripe_payment_id: str = None,
-        notes: str = None
+        client: Optional[str] = None,
+        job_id: Optional[str] = None,
+        category: Optional[str] = None,
+        stripe_payment_id: Optional[str] = None,
+        notes: Optional[str] = None
     ) -> Dict[str, Any]:
         """Record a financial transaction"""
         

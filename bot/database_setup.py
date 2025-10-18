@@ -5,7 +5,7 @@ Creates all missing databases for enterprise features
 
 from notion_client import Client
 import os
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 
 
 class NotionDatabaseSetup:
@@ -21,7 +21,7 @@ class NotionDatabaseSetup:
         # For now, return env var
         return os.getenv('NOTION_INTEGRATION_TOKEN')
     
-    def create_finance_database(self) -> str:
+    def create_finance_database(self) -> Optional[str]:
         """Create Finance & Revenue Tracking Database"""
         properties = {
             "Transaction ID": {"title": {}},
@@ -66,7 +66,7 @@ class NotionDatabaseSetup:
         
         return self._create_database("Finance & Revenue Tracking", properties)
     
-    def create_governance_database(self) -> str:
+    def create_governance_database(self) -> Optional[str]:
         """Create Governance & Decision Log Database"""
         properties = {
             "Decision": {"title": {}},
@@ -111,7 +111,7 @@ class NotionDatabaseSetup:
         
         return self._create_database("Governance & Decision Log", properties)
     
-    def create_ops_monitor_database(self) -> str:
+    def create_ops_monitor_database(self) -> Optional[str]:
         """Create Operations Monitoring Database"""
         properties = {
             "Timestamp": {"title": {}},
@@ -146,7 +146,7 @@ class NotionDatabaseSetup:
         
         return self._create_database("Operations Monitor", properties)
     
-    def create_forecast_database(self) -> str:
+    def create_forecast_database(self) -> Optional[str]:
         """Create Forecast & Predictions Database"""
         properties = {
             "Date": {"title": {}},
@@ -178,7 +178,7 @@ class NotionDatabaseSetup:
         
         return self._create_database("Forecast & Predictions", properties)
     
-    def create_region_compliance_database(self) -> str:
+    def create_region_compliance_database(self) -> Optional[str]:
         """Create Regional Compliance Database"""
         properties = {
             "Region": {"title": {}},
@@ -195,7 +195,7 @@ class NotionDatabaseSetup:
         
         return self._create_database("Regional Compliance", properties)
     
-    def create_partners_database(self) -> str:
+    def create_partners_database(self) -> Optional[str]:
         """Create Partners & API Keys Database"""
         properties = {
             "Partner Name": {"title": {}},
@@ -230,7 +230,7 @@ class NotionDatabaseSetup:
         
         return self._create_database("Partners & API Keys", properties)
     
-    def create_referrals_database(self) -> str:
+    def create_referrals_database(self) -> Optional[str]:
         """Create Referral System Database"""
         properties = {
             "Referral Code": {"title": {}},
@@ -255,7 +255,7 @@ class NotionDatabaseSetup:
         
         return self._create_database("Referral System", properties)
     
-    def create_growth_metrics_database(self) -> str:
+    def create_growth_metrics_database(self) -> Optional[str]:
         """Create Growth & Customer Acquisition Database"""
         properties = {
             "Date": {"title": {}},
@@ -290,7 +290,7 @@ class NotionDatabaseSetup:
         
         return self._create_database("Growth & Customer Acquisition", properties)
     
-    def _create_database(self, title: str, properties: Dict[str, Any]) -> str:
+    def _create_database(self, title: str, properties: Dict[str, Any]) -> Optional[str]:
         """Create a Notion database with given properties"""
         try:
             if not self.parent_page_id:
@@ -313,7 +313,7 @@ class NotionDatabaseSetup:
             print(f"❌ Error creating database '{title}': {e}")
             return None
     
-    def setup_all_databases(self) -> Dict[str, str]:
+    def setup_all_databases(self) -> Dict[str, Optional[str]]:
         """Create all missing databases"""
         print("="*70)
         print("NOTION DATABASE SETUP - ENTERPRISE FEATURES")

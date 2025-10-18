@@ -250,6 +250,164 @@ def jobs_replay_route():
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
+@app.route('/forecast')
+def forecast_route():
+    """Generate 30-day forecast"""
+    try:
+        from bot.forecast_engine import get_forecast_engine
+        
+        engine = get_forecast_engine()
+        forecast = engine.generate_30day_forecast()
+        return jsonify(forecast), (200 if forecast['ok'] else 500)
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/forecast/chart')
+def forecast_chart_route():
+    """Get forecast in chart format (JSON + CSV)"""
+    try:
+        from bot.forecast_engine import get_forecast_engine
+        
+        engine = get_forecast_engine()
+        chart = engine.get_forecast_chart_data()
+        return jsonify(chart), (200 if chart['ok'] else 500)
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/finance/revenue')
+def finance_revenue_route():
+    """Get revenue summary"""
+    try:
+        from bot.finance_system import get_finance_system
+        
+        days = int(request.args.get('days', 30))
+        finance = get_finance_system()
+        summary = finance.get_revenue_summary(days)
+        return jsonify(summary), (200 if summary['ok'] else 500)
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/finance/pl')
+def finance_pl_route():
+    """Get P&L report"""
+    try:
+        from bot.finance_system import get_finance_system
+        
+        days = int(request.args.get('days', 30))
+        finance = get_finance_system()
+        report = finance.generate_pl_report(days)
+        return jsonify(report), (200 if report['ok'] else 500)
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/finance/valuation')
+def finance_valuation_route():
+    """Get valuation pack"""
+    try:
+        from bot.finance_system import get_finance_system
+        
+        days = int(request.args.get('days', 30))
+        finance = get_finance_system()
+        valuation = finance.generate_valuation_pack(days)
+        return jsonify(valuation), (200 if valuation['ok'] else 500)
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/v1/jobs', methods=['POST'])
+def marketplace_submit_job():
+    """Marketplace API - Submit job"""
+    try:
+        from bot.marketplace_api import get_marketplace_api
+        
+        api_key = request.headers.get('X-API-Key') or request.args.get('api_key')
+        if not api_key:
+            return jsonify({"ok": False, "error": "Missing API key"}), 401
+        
+        job_data = request.get_json(force=True)
+        marketplace = get_marketplace_api()
+        result = marketplace.submit_job_via_api(api_key, job_data)
+        
+        return jsonify(result), (200 if result['ok'] else 400)
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/v1/results/<job_id>')
+def marketplace_get_results(job_id):
+    """Marketplace API - Get job results"""
+    try:
+        from bot.marketplace_api import get_marketplace_api
+        
+        api_key = request.headers.get('X-API-Key') or request.args.get('api_key')
+        if not api_key:
+            return jsonify({"ok": False, "error": "Missing API key"}), 401
+        
+        marketplace = get_marketplace_api()
+        result = marketplace.get_job_results(api_key, job_id)
+        
+        return jsonify(result), (200 if result['ok'] else 400)
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/v1/stats')
+def marketplace_stats():
+    """Marketplace API - Get partner statistics"""
+    try:
+        from bot.marketplace_api import get_marketplace_api
+        
+        api_key = request.headers.get('X-API-Key') or request.args.get('api_key')
+        if not api_key:
+            return jsonify({"ok": False, "error": "Missing API key"}), 401
+        
+        marketplace = get_marketplace_api()
+        stats = marketplace.get_partner_stats(api_key)
+        
+        return jsonify(stats), (200 if stats['ok'] else 400)
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/supervisor')
+def supervisor_dashboard():
+    """Supervisor dashboard (simple HTML)"""
+    return """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>EchoPilot Supervisor Dashboard</title>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+            .card { background: white; padding: 20px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+            h1 { color: #333; }
+            .metric { font-size: 24px; font-weight: bold; color: #0066cc; }
+            .label { color: #666; font-size: 14px; }
+        </style>
+    </head>
+    <body>
+        <h1>🤖 EchoPilot Supervisor Dashboard</h1>
+        <div class="card">
+            <div class="label">System Health</div>
+            <div class="metric" id="health">Loading...</div>
+        </div>
+        <div class="card">
+            <div class="label">API Endpoints</div>
+            <ul>
+                <li><a href="/health">Health Check</a></li>
+                <li><a href="/ops-report">Auto-Operator Report</a></li>
+                <li><a href="/forecast">30-Day Forecast</a></li>
+                <li><a href="/finance/pl">P&L Report</a></li>
+                <li><a href="/exec-report">Executive Report</a></li>
+            </ul>
+        </div>
+        <script>
+            fetch('/health')
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('health').innerHTML = data.status === 'ok' ? '✅ Healthy' : '❌ Unhealthy';
+                });
+        </script>
+    </body>
+    </html>
+    """
+
 def run_bot():
     """Run the bot in a separate thread"""
     bot = EchoPilotBot()

@@ -220,6 +220,36 @@ def dsr_route():
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
+@app.route('/payments/scan')
+def payments_scan_route():
+    """Scan for missed Stripe webhook events and reconcile"""
+    try:
+        from bot.stripe_events_poller import poll_and_fix
+        
+        fixed = poll_and_fix()
+        return jsonify({
+            "ok": True,
+            "fixed": fixed,
+            "message": f"Reconciled {fixed} missed payment(s)" if fixed > 0 else "No missed payments found"
+        }), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/jobs/replay')
+def jobs_replay_route():
+    """Replay failed jobs by resetting them for retry"""
+    try:
+        from bot.replay_failed_jobs import replay_once
+        
+        count = replay_once()
+        return jsonify({
+            "ok": True,
+            "replayed": count,
+            "message": f"Replayed {count} failed job(s)" if count > 0 else "No failed jobs found"
+        }), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
 def run_bot():
     """Run the bot in a separate thread"""
     bot = EchoPilotBot()

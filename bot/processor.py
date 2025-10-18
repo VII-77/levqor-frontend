@@ -16,10 +16,10 @@ from bot.constants import (
 from bot.utils import (
     extract_notion_property, 
     retry_on_failure, 
-    calculate_cost, 
     truncate_text,
     safe_int_conversion
 )
+from bot.cost_tracker import estimate_cost, now_s, seconds_since
 from bot.notion_api import NotionClientWrapper
 from bot.google_drive_client import GoogleDriveClientWrapper
 from bot.qa_thresholds import get_qa_threshold, extract_task_type, extract_qa_target
@@ -229,7 +229,10 @@ class TaskProcessor:
             qa_score = self.calculate_qa_score(result)
             
             duration_ms = int((time.time() - start_time) * 1000)
-            cost = calculate_cost(tokens_in, tokens_out)
+            
+            # Use improved cost tracking
+            usage = {"prompt_tokens": tokens_in, "completion_tokens": tokens_out}
+            cost, total_tokens = estimate_cost(usage, audio_seconds=None)
             
             if qa_score < qa_threshold:
                 return self._handle_qa_failure(

@@ -48,6 +48,11 @@ The application is built with a modular component design:
 The bot integrates OpenAI via Replit AI Integrations:
 - **GPT-4o**: Used for core task processing, with tracking of tokens_in, tokens_out, cost, and duration.
 - **GPT-4o-mini**: Utilized for QA scoring with dynamic thresholds and a temperature of 0.3 for consistent evaluations.
+- **Cost Tracking**: Enhanced token usage and cost tracking via `cost_tracker.py`:
+  - Separates input/output token costs for precise billing
+  - Configurable pricing via environment variables
+  - Supports audio processing cost calculations (Whisper)
+  - Automatic cost calculation per job with 6-decimal precision
 - Token usage is meticulously tracked, and actual costs are computed for every AI operation.
 
 ### Quality Assurance System
@@ -187,3 +192,8 @@ See `CLIENT_SYSTEM_GUIDE.md` for complete setup and usage instructions.
 -   `POLL_INTERVAL_SECONDS` (60)
 -   `QA_TARGET_SCORE` (95, default global threshold)
 -   `QA_DEFAULTS` (Per-task-type thresholds)
+
+**Optional Cost Tracking Variables** (for custom pricing):
+-   `COST_GPT_IN_PER_1K_USD` (default: 0.0025 for GPT-4o input)
+-   `COST_GPT_OUT_PER_1K_USD` (default: 0.01 for GPT-4o output)
+-   `COST_WHISPER_PER_MIN_USD` (default: 0.006 for Whisper audio)

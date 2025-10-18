@@ -142,6 +142,84 @@ def exec_report_route():
             "error": str(e)
         }), 500
 
+@app.route('/refund')
+def refund_route():
+    """Mark a job as refunded"""
+    try:
+        from bot.compliance_tools import mark_refund
+        
+        job_id = request.args.get("job")
+        reason = request.args.get("reason", "Manual refund")
+        
+        if not job_id:
+            return jsonify({"ok": False, "error": "job parameter required"}), 400
+        
+        success = mark_refund(job_id, reason)
+        return jsonify({
+            "ok": success,
+            "job": job_id,
+            "reason": reason
+        }), (200 if success else 500)
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/p95')
+def p95_route():
+    """Compute p95 latency metric"""
+    try:
+        from bot.compliance_tools import compute_p95_latency
+        
+        p95 = compute_p95_latency()
+        return jsonify({
+            "ok": True,
+            "p95_sec": p95,
+            "message": f"p95 latency: {p95}s" if p95 else "No data available"
+        }), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/backup-config')
+def backup_config_route():
+    """Create configuration backup"""
+    try:
+        from bot.compliance_tools import backup_config
+        
+        path = backup_config()
+        return jsonify({
+            "ok": True,
+            "path": path,
+            "message": "Config backup created"
+        }), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/dsr', methods=['POST'])
+def dsr_route():
+    """Create Data Subject Request (DSR) ticket"""
+    try:
+        from bot.compliance_tools import create_dsr_ticket
+        
+        data = request.get_json(force=True)
+        correlation_id = data.get("cid") or data.get("correlation_id")
+        email = data.get("email")
+        action = data.get("action", "Erase")
+        notes = data.get("notes", "")
+        
+        if not correlation_id or not email:
+            return jsonify({
+                "ok": False,
+                "error": "cid and email parameters required"
+            }), 400
+        
+        success = create_dsr_ticket(correlation_id, email, action, notes)
+        return jsonify({
+            "ok": success,
+            "correlation_id": correlation_id,
+            "action": action
+        }), (200 if success else 500)
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
 def run_bot():
     """Run the bot in a separate thread"""
     bot = EchoPilotBot()

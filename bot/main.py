@@ -256,6 +256,35 @@ class EchoPilotBot:
             except Exception as e:
                 print(f"⚠️  Payment reconciliation not started: {e}")
             
+            # Start weekly compliance maintenance (Sundays at 03:00 UTC)
+            try:
+                from bot.compliance_tools import compute_p95_latency, backup_config
+                
+                def weekly_maintenance():
+                    while self.is_running:
+                        now = datetime.now()
+                        # Sunday = 6, at 03:00 UTC
+                        if now.weekday() == 6 and now.hour == 3 and now.minute == 0:
+                            try:
+                                print("[Maintenance] Running weekly p95 latency computation...")
+                                p95 = compute_p95_latency()
+                                if p95:
+                                    print(f"[Maintenance] p95 latency: {p95}s")
+                                
+                                print("[Maintenance] Creating config backup...")
+                                backup_path = backup_config()
+                                print(f"[Maintenance] Backup created: {backup_path}")
+                            except Exception as e:
+                                print(f"[Maintenance] Error: {e}")
+                            time.sleep(70)  # Sleep after running to avoid duplicate runs
+                        time.sleep(60)  # Check every minute
+                
+                maintenance_thread = threading.Thread(target=weekly_maintenance, daemon=True)
+                maintenance_thread.start()
+                print("🔧 Weekly compliance maintenance scheduled (Sundays 03:00 UTC)")
+            except Exception as e:
+                print(f"⚠️  Weekly maintenance not started: {e}")
+            
             print("\n" + "=" * 80 + "\n")
             
             self.is_running = True

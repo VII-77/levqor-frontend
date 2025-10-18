@@ -42,6 +42,8 @@ The application is built with a modular component design:
 - `reconcile_payments.py`: Nightly payment reconciliation system (2:10 UTC daily).
 - `client_manager.py`: Client management, revenue tracking, invoice generation, and email delivery system.
 - `executive_report.py`: Daily executive PDF reports with 7-day performance summaries and revenue analytics (06:55 UTC daily).
+- `compliance_tools.py`: Compliance and maintenance utilities including DSR ticket management, refund processing, p95 latency metrics, and config backups.
+- `alert_mailer.py`: Simple email alert wrapper using Gmail API for compliance notifications.
 
 ### AI Integration
 
@@ -150,6 +152,46 @@ EchoPilot includes an optional client management system that transforms it from 
 
 See `CLIENT_SYSTEM_GUIDE.md` for complete setup and usage instructions.
 
+## Compliance & Maintenance Tools
+
+EchoPilot includes automated compliance and maintenance features for enterprise operations:
+
+### Data Subject Requests (DSR)
+- **DSR ticket creation**: Creates structured tickets in Notion for GDPR/CCPA compliance
+- **Supported actions**: Access, Erase, Restrict
+- **Automatic tracking**: Status (New, In Progress, Closed), correlation ID, and notes
+- **Email notifications**: Alerts sent via Gmail API when tickets are created
+
+### Refund Processing
+- **Job refund tracking**: Marks jobs as refunded in Notion Job Log
+- **Audit trail**: Updates job notes with refund reason
+- **Alert notifications**: Email alerts sent when refunds are processed
+
+### Performance Metrics
+- **p95 latency tracking**: Computes 95th percentile latency from recent job history
+- **Multiple sources**: Reads from metrics.csv or Notion Job Log database
+- **Weekly reporting**: Automatic p95 computation sent via email every Sunday at 03:00 UTC
+
+### Configuration Backup
+- **Weekly snapshots**: Automated config backups every Sunday at 03:00 UTC
+- **Environment tracking**: Monitors critical environment variables (API keys, database IDs, pricing)
+- **Version history**: JSON snapshots stored in `backups/config/` directory
+- **Alert notifications**: Email confirmation when backups are created
+
+### API Endpoints
+- **GET `/refund?job=<ID>&reason=<text>`**: Process refund for a job
+- **GET `/p95`**: Compute and return p95 latency metric
+- **GET `/backup-config`**: Trigger config backup on-demand
+- **POST `/dsr`**: Create DSR ticket (requires JSON: `{cid, email, action, notes}`)
+
+### Scheduled Tasks
+- **Weekly maintenance**: Sundays at 03:00 UTC - runs p95 latency computation and config backup
+- **Automatic alerts**: All compliance actions trigger email notifications via Gmail API
+
+### Configuration
+**Optional Environment Variables**:
+- `NOTION_DSR_DB_ID` (DSR database ID for ticket tracking)
+
 ## External Dependencies
 
 ### Third-Party APIs
@@ -187,6 +229,7 @@ See `CLIENT_SYSTEM_GUIDE.md` for complete setup and usage instructions.
 -   `TELEGRAM_CHAT_ID` (Telegram chat ID for receiving messages and commands)
 -   `ALLOW_DIRTY` (allow execution with uncommitted Git changes)
 -   `NOTION_STATUS_DB_ID` (for live diagnostics posting to Status Board)
+-   `NOTION_DSR_DB_ID` (for DSR ticket tracking database)
 
 **Application Constants**:
 -   `POLL_INTERVAL_SECONDS` (60)

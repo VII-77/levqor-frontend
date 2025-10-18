@@ -1,0 +1,296 @@
+0) New env (add to Replit & Railway)
+
+# Failover / DNS
+PRIMARY_APP_URL=https://<railway-primary>.up.railway.app
+SECONDARY_APP_URL=https://<railway-standby>.up.railway.app
+CLOUDFLARE_ZONE_ID=...
+CLOUDFLARE_API_TOKEN=...
+
+# Stripe events poller (safety)
+STRIPE_SECRET_KEY=sk_live_...
+STRIPE_ACCOUNT_ID=acct_...         # optional, helps filtering
+
+# Queue replay limits
+REPLAY_LOOKBACK_DAYS=14
+REPLAY_MAX_PER_RUN=10
+
+# Media limits
+MAX_AUDIO_MINUTES=240
+MAX_FILE_MB=1536
+
+
+---
+
+1) Add file: failover_dns.py  (Cloudflare health-checked DNS, active→passive)
+
+import os, requests
+
+CF_ZONE=os.getenv("CLOUDFLARE_ZONE_ID","")
+CF_TOKEN=os.getenv("CLOUDFLARE_API_TOKEN","")
+PRIMARY=os.getenv("PRIMARY_APP_URL","").replace("https://","")
+SECONDARY=os.getenv("SECONDARY_APP_URL","").replace("https://","")
+
+def _cf(path, method="GET", json=None):
+    h={"Authorization":f"Bearer {CF_TOKEN}","Content-Type":"application/json"}
+    u=f"https://api.cloudflare.com/client/v4/{path}"
+    r=getattr(requests, method.lower())(u, headers=h, json=json, timeout=20)
+    r.raise_for_status(); return r.json()
+
+def ensure_dns(record_name):
+    """Create/Update a weighted A/AAAA/CNAME pair: primary weight 100, secondary 1."""
+    if not CF_ZONE or not CF_TOKEN: return False, "No CF env"
+    # We use CNAME to Railway hostnames (works for your setup)
+    desired=[{"name":record_name,"content":PRIMARY,"proxied":True,"type":"CNAME","comment":"EchoPilot primary","ttl":120,"priority":10},
+             {"name":record_name,"content":SECONDARY,"proxied":True,"type":"CNAME","comment":"EchoPilot standby","ttl":120,"priority":20}]
+    # Upsert logic
+    existing=_cf(f"zones/{CF_ZONE}/dns_records?name={record_name}")["result"]
+    by_content={r["content"]:r for r in existing}
+    for d in desired:
+        if d["content"] in by_content:
+            rid=by_content[d["content"]]["id"]
+            _cf(f"zones/{CF_ZONE}/dns_records/{rid}","PUT",d)
+        else:
+            _cf(f"zones/{CF_ZONE}/dns_records","POST",d)
+    return True, "DNS ensured"
+
+def flip_to_secondary(record_name):
+    """Downgrade primary weight by pausing proxy → forces traffic to secondary (simple approach)."""
+    if not CF_ZONE or not CF_TOKEN: return False, "No CF env"
+    existing=_cf(f"zones/{CF_ZONE}/dns_records?name={record_name}")["result"]
+    for r in existing:
+        # pause the primary proxy temporarily to simulate failover
+        if r["content"]==PRIMARY:
+            r["proxied"]=False
+            _cf(f"zones/{CF_ZONE}/dns_records/{r['id']}","PUT",r)
+    return True, "Failover simulated"
+
+def restore_primary(record_name):
+    if not CF_ZONE or not CF_TOKEN: return False, "No CF env"
+    existing=_cf(f"zones/{CF_ZONE}/dns_records?name={record_name}")["result"]
+    for r in existing:
+        if r["content"]==PRIMARY and not r["proxied"]:
+            r["proxied"]=True
+            _cf(f"zones/{CF_ZONE}/dns_records/{r['id']}","PUT",r)
+    return True, "Primary restored"
+
+
+---
+
+2) Add file: stripe_events_poller.py  (missed webhook reconciliation)
+
+import os, time, datetime, requests, stripe
+STRIPE_KEY=os.getenv("STRIPE_SECRET_KEY","")
+ACCOUNT=os.getenv("STRIPE_ACCOUNT_ID")
+NOTION_KEY=os.getenv("NOTION_API_KEY",""); JOB_DB=os.getenv("NOTION_DB_ID","")
+H={"Authorization":f"Bearer {NOTION_KEY}","Notion-Version":"2022-06-28","Content-Type":"application/json"}
+
+def _notion_query(filter_json):
+    u=f"https://api.notion.com/v1/databases/{JOB_DB}/query"
+    r=requests.post(u,headers=H,json=filter_json,timeout=30); r.raise_for_status(); return r.json()
+
+def _notion_set_paid(page_id):
+    requests.patch(f"https://api.notion.com/v1/pages/{page_id}", headers=H,
+                   json={"properties":{"Payment Status":{"select":{"name":"Paid"}}}}, timeout=20)
+
+def poll_and_fix(limit_minutes=1440):
+    """Scan Unpaid jobs with Stripe payment links; if Stripe shows completed, flip to Paid."""
+    if not STRIPE_KEY: return 0
+    stripe.api_key=STRIPE_KEY
+    # Find Unpaid jobs edited in last N minutes
+    q={"filter":{"and":[
+            {"property":"Payment Status","select":{"equals":"Unpaid"}},
+            {"timestamp":"last_edited_time","last_edited_time":{"past_week":{}}}
+        ]},"page_size":50}
+    pages=_notion_query(q).get("results",[])
+    fixed=0
+    for pg in pages:
+        pid=pg["id"]; props=pg["properties"]
+        link=props.get("Payment Link",{}).get("url","") or ""
+        job_name=(props.get("Job Name",{}).get("title") or [{}])[0].get("plain_text","")
+        if "stripe" not in link: continue
+        # Use events list to see completed checkout
+        evs=stripe.Event.list(limit=50)
+        found=False
+        for ev in evs.auto_paging_iter():
+            typ=ev["type"]
+            obj=ev["data"]["object"]
+            meta=(obj.get("metadata") or {}) if isinstance(obj, dict) else {}
+            jid=meta.get("job_id")
+            if jid and jid in job_name and typ in ("checkout.session.completed","payment_intent.succeeded"):
+                _notion_set_paid(pid); fixed+=1; found=True; break
+        # if not found, skip; webhook likely pending
+    return fixed
+
+
+---
+
+3) Add file: replay_failed_jobs.py  (idempotent replay for Failed-Final)
+
+import os, datetime, requests
+NOTION_KEY=os.getenv("NOTION_API_KEY",""); JOB_DB=os.getenv("NOTION_DB_ID","")
+LOOKBACK=int(os.getenv("REPLAY_LOOKBACK_DAYS","14"))
+BATCH=int(os.getenv("REPLAY_MAX_PER_RUN","10"))
+H={"Authorization":f"Bearer {NOTION_KEY}","Notion-Version":"2022-06-28","Content-Type":"application/json"}
+
+def find_failed():
+    q={"filter":{"and":[
+        {"property":"Status","select":{"equals":"Failed-Final"}},
+        {"timestamp":"last_edited_time","last_edited_time":{"past_month":{}}}
+    ]},"sorts":[{"timestamp":"last_edited_time","direction":"descending"}],"page_size":BATCH}
+    r=requests.post(f"https://api.notion.com/v1/databases/{JOB_DB}/query",headers=H,json=q,timeout=20).json()
+    return r.get("results",[])
+
+def reset_to_retry(page_id):
+    patch={"properties":{
+        "Status":{"select":{"name":"Running"}},
+        "Trigger":{"checkbox":True},
+        "Attempts":{"number":0},
+        "Logs":{"rich_text":[{"text":{"content":"Auto-replay initiated"}}]}
+    }}
+    requests.patch(f"https://api.notion.com/v1/pages/{page_id}",headers=H,json=patch,timeout=20)
+
+def replay_once():
+    items=find_failed()
+    for it in items:
+        reset_to_retry(it["id"])
+    return len(items)
+
+
+---
+
+4) Add file: media_preflight.py  (strict validation + remux)
+
+import os, subprocess, tempfile, math, requests
+
+MAX_MIN=int(os.getenv("MAX_AUDIO_MINUTES","240"))
+MAX_MB=int(os.getenv("MAX_FILE_MB","1536"))
+
+def _probe(path):
+    # requires ffprobe available in Railway buildpack (it is) or include static binary
+    cmd=["ffprobe","-v","error","-show_entries","format=duration,size","-of","default=nk=1:nw=1",path]
+    out=subprocess.check_output(cmd, stderr=subprocess.STDOUT).decode().strip().splitlines()
+    dur=float(out[0]); size=int(out[1]); return dur, size
+
+def validate_or_remux(in_path):
+    dur,size=_probe(in_path)
+    minutes=dur/60.0; mb=size/1_000_000.0
+    if minutes>MAX_MIN: raise ValueError(f"Audio too long ({minutes:.1f} min > {MAX_MIN})")
+    if mb>MAX_MB: raise ValueError(f"File too big ({mb:.0f} MB > {MAX_MB})")
+    # Quick remux if headers weird (copy streams)
+    tmp=in_path+".remux.mp3"
+    try:
+        subprocess.check_call(["ffmpeg","-y","-err_detect","ignore_err","-i",in_path,"-c","copy",tmp], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        return tmp if os.path.exists(tmp) and os.path.getsize(tmp)>0 else in_path
+    except Exception:
+        return in_path
+
+
+---
+
+5) Patch your processor to enforce preflight/remux
+
+At the point where you finished downloading the payload (local path local_file), add:
+
+from media_preflight import validate_or_remux
+try:
+    local_file = validate_or_remux(local_file)
+except Exception as e:
+    notion_update_fields(job_id,{
+      "Status":{"select":{"name":"Failed-Final"}},
+      "Trigger":{"checkbox":False},
+      "Notes":{"rich_text":[{"text":{"content":f"Preflight fail: {e}"}}]}
+    })
+    raise
+
+
+---
+
+6) Add routes & schedulers in main.py
+
+# --- Failover ops (optional endpoints) ---
+from flask import request, jsonify
+from failover_dns import ensure_dns, flip_to_secondary, restore_primary
+from stripe_events_poller import poll_and_fix
+from replay_failed_jobs import replay_once
+
+@app.get("/failover/dns-ensure")
+def dns_ensure():
+    name=request.args.get("name","echopilot.yourdomain.com"); ok,msg=ensure_dns(name); return jsonify({"ok":ok,"msg":msg}), 200 if ok else 500
+
+@app.get("/failover/flip")
+def dns_flip():
+    name=request.args.get("name","echopilot.yourdomain.com"); ok,msg=flip_to_secondary(name); return jsonify({"ok":ok,"msg":msg})
+
+@app.get("/failover/restore")
+def dns_restore():
+    name=request.args.get("name","echopilot.yourdomain.com"); ok,msg=restore_primary(name); return jsonify({"ok":ok,"msg":msg})
+
+@app.get("/payments/scan")
+def payments_scan():
+    fixed=poll_and_fix(); return jsonify({"fixed":fixed}),200
+
+@app.get("/jobs/replay")
+def jobs_replay():
+    n=replay_once(); return jsonify({"replayed":n}),200
+
+# --- Schedulers (add to your existing scheduler section) ---
+from threading import Thread
+import time, datetime
+
+def schedule_resilience():
+    def loop():
+        while True:
+            try:
+                # Every 15 min: payments scan (Stripe event reconciliation)
+                if datetime.datetime.utcnow().minute % 15 == 0:
+                    poll_and_fix()
+                # Every day 02:20 UTC: replay failed jobs (small batch)
+                now=datetime.datetime.utcnow()
+                if now.hour==2 and now.minute==20:
+                    replay_once()
+            except Exception as e:
+                print("[Resilience] error:", e)
+            time.sleep(60)
+    Thread(target=loop, daemon=True).start()
+schedule_resilience()
+
+
+---
+
+7) Standby app (Railway)
+
+Clone your Railway service to a new region (same env, do not run background workers that would double process — they’re safe due to Notion triggers, but passive is fine).
+
+Put its URL in SECONDARY_APP_URL.
+
+Point your custom domain through Cloudflare; set CLOUDFLARE_* env; call once:
+
+curl "$APP_BASE_URL/failover/dns-ensure?name=echopilot.<yourdomain>.com"
+
+Chaos test: temporarily kill primary or call
+
+curl "$APP_BASE_URL/failover/flip?name=echopilot.<yourdomain>.com"
+
+Confirm /health on the domain still returns healthy (served by standby). Restore:
+
+curl "$APP_BASE_URL/failover/restore?name=echopilot.<yourdomain>.com"
+
+
+
+---
+
+8) 5-minute validation plan (copy → run)
+
+# 1) Health / payments / ops
+curl -s "$APP_BASE_URL/health"; echo
+curl -s "$APP_BASE_URL/payments/debug"; echo
+curl -s "$APP_BASE_URL/payments/scan"; echo
+curl -s "$APP_BASE_URL/jobs/replay"; echo
+
+# 2) Chaos: simulate DNS failover (requires Cloudflare env + domain)
+# curl -s "$APP_BASE_URL/failover/flip?name=echopilot.<yourdomain>.com"; echo
+# sleep 30; curl -s "https://echopilot.<yourdomain>.com/health"; echo
+# curl -s "$APP_BASE_URL/failover/restore?name=echopilot.<yourdomain>.com"; echo
+
+
+---

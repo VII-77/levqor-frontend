@@ -285,6 +285,43 @@ class EchoPilotBot:
             except Exception as e:
                 print(f"⚠️  Weekly maintenance not started: {e}")
             
+            # Start resilience scheduler (payment scan + job replay)
+            try:
+                from bot.stripe_events_poller import poll_and_fix
+                from bot.replay_failed_jobs import replay_once
+                
+                def resilience_scheduler():
+                    while self.is_running:
+                        now = datetime.now()
+                        
+                        # Every 15 minutes: Stripe payment reconciliation
+                        if now.minute % 15 == 0:
+                            try:
+                                fixed = poll_and_fix()
+                                if fixed > 0:
+                                    print(f"[Resilience] Payment scan: Fixed {fixed} missed payment(s)")
+                            except Exception as e:
+                                print(f"[Resilience] Payment scan error: {e}")
+                            time.sleep(70)  # Sleep after running to avoid duplicate runs
+                        
+                        # Daily at 02:20 UTC: Replay failed jobs
+                        if now.hour == 2 and now.minute == 20:
+                            try:
+                                replayed = replay_once()
+                                if replayed > 0:
+                                    print(f"[Resilience] Job replay: Replayed {replayed} failed job(s)")
+                            except Exception as e:
+                                print(f"[Resilience] Job replay error: {e}")
+                            time.sleep(70)  # Sleep after running
+                        
+                        time.sleep(60)  # Check every minute
+                
+                resilience_thread = threading.Thread(target=resilience_scheduler, daemon=True)
+                resilience_thread.start()
+                print("🔄 Resilience scheduler started (payment scan every 15min, job replay daily 02:20 UTC)")
+            except Exception as e:
+                print(f"⚠️  Resilience scheduler not started: {e}")
+            
             print("\n" + "=" * 80 + "\n")
             
             self.is_running = True

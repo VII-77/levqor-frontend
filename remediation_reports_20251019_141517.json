@@ -1,0 +1,306 @@
+{
+  "schema": {
+    "databases": [
+      {
+        "db": "Automation Queue",
+        "env_var": "AUTOMATION_QUEUE_DB_ID",
+        "exists": true,
+        "id": "c0bbaea5-b859-4739-8793-35221896715d",
+        "created": false,
+        "fields_fixed": 0,
+        "verified": false,
+        "error": "Database with ID c0bbaea5-b859-4739-8793-35221896715d is a linked database. Database retrievals do not support linked databases."
+      },
+      {
+        "db": "Automation Log",
+        "env_var": "AUTOMATION_LOG_DB_ID",
+        "exists": true,
+        "id": "407255e3-4f90-4930-b291-999d025ea805",
+        "created": false,
+        "fields_fixed": 0,
+        "verified": true
+      },
+      {
+        "db": "EchoPilot Job Log",
+        "env_var": "JOB_LOG_DB_ID",
+        "exists": true,
+        "id": "28e6155c-cf54-8138-a346-f70a992d1e06",
+        "created": false,
+        "fields_fixed": 0,
+        "verified": true
+      },
+      {
+        "db": "Clients",
+        "env_var": "NOTION_CLIENT_DB_ID",
+        "exists": true,
+        "id": "28f6155c-cf54-818e-b1b4-d3c3de651d3c",
+        "created": false,
+        "fields_fixed": 0,
+        "verified": true
+      },
+      {
+        "db": "Finance",
+        "env_var": "NOTION_FINANCE_DB_ID",
+        "exists": true,
+        "id": "2916155c-cf54-81be-bfe8-d2d0619c1972",
+        "created": false,
+        "fields_fixed": 0,
+        "verified": true
+      },
+      {
+        "db": "Ops Monitor",
+        "env_var": "NOTION_OPS_MONITOR_DB_ID",
+        "exists": true,
+        "id": "2916155c-cf54-8181-ab56-fc6c34460cee",
+        "created": false,
+        "fields_fixed": 0,
+        "verified": true
+      },
+      {
+        "db": "Governance Ledger",
+        "env_var": "NOTION_GOVERNANCE_DB_ID",
+        "exists": true,
+        "id": "2916155c-cf54-81f2-ad92-c55f1d08a45c",
+        "created": false,
+        "fields_fixed": 0,
+        "verified": true
+      },
+      {
+        "db": "Region Compliance",
+        "env_var": "NOTION_REGION_COMPLIANCE_DB_ID",
+        "exists": true,
+        "id": "2916155c-cf54-819e-91ce-f28ecc31caad",
+        "created": false,
+        "fields_fixed": 0,
+        "verified": true
+      },
+      {
+        "db": "Partner Keys",
+        "env_var": "NOTION_PARTNERS_DB_ID",
+        "exists": true,
+        "id": "2916155c-cf54-812a-8449-c98b552bc622",
+        "created": false,
+        "fields_fixed": 0,
+        "verified": true
+      },
+      {
+        "db": "Referrals",
+        "env_var": "NOTION_REFERRALS_DB_ID",
+        "exists": true,
+        "id": "2916155c-cf54-8107-9548-e38c73ff327d",
+        "created": false,
+        "fields_fixed": 0,
+        "verified": true
+      },
+      {
+        "db": "Growth Metrics",
+        "env_var": "NOTION_GROWTH_METRICS_DB_ID",
+        "exists": true,
+        "id": "2916155c-cf54-81b1-b8de-ee3ff487dd08",
+        "created": false,
+        "fields_fixed": 0,
+        "verified": true
+      },
+      {
+        "db": "Pricing",
+        "env_var": "NOTION_PRICING_DB_ID",
+        "exists": false,
+        "id": null,
+        "created": false,
+        "fields_fixed": 0
+      },
+      {
+        "db": "Cost Dashboard",
+        "env_var": "NOTION_COST_DB_ID",
+        "exists": false,
+        "id": null,
+        "created": false,
+        "fields_fixed": 0
+      }
+    ],
+    "total": 13,
+    "exists": 11,
+    "verified": 10,
+    "score": 76.92307692307693,
+    "timestamp": "2025-10-19T14:15:05.138224"
+  },
+  "endpoints": {
+    "endpoints": [
+      {
+        "path": "/health",
+        "status_code": 200,
+        "latency_ms": 90.55,
+        "pass": true,
+        "contract_verified": true
+      },
+      {
+        "path": "/supervisor",
+        "status_code": 404,
+        "latency_ms": 84.51,
+        "pass": false,
+        "contract_verified": false
+      },
+      {
+        "path": "/ops-report",
+        "status_code": 503,
+        "latency_ms": 3720.76,
+        "pass": false,
+        "contract_verified": false
+      },
+      {
+        "path": "/forecast",
+        "status_code": 404,
+        "latency_ms": 94.55,
+        "pass": false,
+        "contract_verified": false
+      },
+      {
+        "path": "/p95",
+        "status_code": 200,
+        "latency_ms": 7948.66,
+        "pass": true,
+        "contract_verified": true
+      }
+    ],
+    "total": 5,
+    "passing": 2,
+    "score": 40.0,
+    "timestamp": "2025-10-19T14:15:17.077667"
+  },
+  "security": {
+    "improvements": [
+      {
+        "item": "HEALTH_TOKEN",
+        "status": "configured",
+        "action": "None needed"
+      },
+      {
+        "item": "Rate Limiting",
+        "status": "needs_implementation",
+        "action": "Add Flask-Limiter middleware for 60 req/min limit"
+      },
+      {
+        "item": "API Key Rotation",
+        "status": "manual_process",
+        "action": "Document rotation in Governance Ledger (30-day cycle)"
+      },
+      {
+        "item": "Log Rotation",
+        "status": "needs_implementation",
+        "action": "Implement daily rotation, keep 7 days, gzip compression"
+      }
+    ],
+    "score": 70,
+    "timestamp": "2025-10-19T14:15:17.078849"
+  },
+  "legal": {
+    "documents": [
+      {
+        "document": "TERMS_OF_SERVICE.md",
+        "exists": true,
+        "path": "legal/TERMS_OF_SERVICE.md"
+      },
+      {
+        "document": "PRIVACY_POLICY.md",
+        "exists": true,
+        "path": "legal/PRIVACY_POLICY.md"
+      },
+      {
+        "document": "COOKIE_POLICY.md",
+        "exists": true,
+        "path": "legal/COOKIE_POLICY.md"
+      },
+      {
+        "document": "ACCESSIBILITY_STATEMENT.md",
+        "exists": true,
+        "path": "legal/ACCESSIBILITY_STATEMENT.md"
+      }
+    ],
+    "payment_gate": {
+      "stripe_mode": "test",
+      "company_registered": false,
+      "ip_assignment_signed": false,
+      "legal_review_complete": false,
+      "can_go_live": false
+    },
+    "score": 50.0,
+    "timestamp": "2025-10-19T14:15:17.079122"
+  },
+  "cost": {
+    "guardrails": [
+      {
+        "item": "AI Model Policy",
+        "status": "needs_implementation",
+        "action": "Default to gpt-4o-mini, upgrade to gpt-4o only for QA refine",
+        "estimated_savings_pct": 80
+      },
+      {
+        "item": "Whisper Caching",
+        "status": "needs_implementation",
+        "action": "SHA256-based deduplication to skip repeat transcriptions",
+        "estimated_savings_pct": 30
+      },
+      {
+        "item": "Polling Optimization",
+        "status": "optimal",
+        "action": "60s polling is appropriate for current load",
+        "estimated_savings_pct": 0
+      }
+    ],
+    "score": 33.33333333333333,
+    "estimated_monthly_savings": "$20-50",
+    "timestamp": "2025-10-19T14:15:17.079144"
+  },
+  "growth": {
+    "features": [
+      {
+        "feature": "Growth Metrics Dashboard",
+        "status": "schema_ready",
+        "action": "Database created, views pending",
+        "completion_pct": 40
+      },
+      {
+        "feature": "Email Outreach Automation",
+        "status": "not_started",
+        "action": "Gmail API integration for automated outreach (dry-run)",
+        "completion_pct": 0
+      },
+      {
+        "feature": "Referral Auto-Credit",
+        "status": "schema_ready",
+        "action": "Database created, automation pending",
+        "completion_pct": 30
+      }
+    ],
+    "score": 23.333333333333332,
+    "timestamp": "2025-10-19T14:15:17.079654"
+  },
+  "e2e": {
+    "status": "skipped",
+    "reason": "Requires live job submission",
+    "score": 80,
+    "recommendation": "Test manually with real job",
+    "timestamp": "2025-10-19T14:15:17.079661"
+  },
+  "final_score": {
+    "score": 54.4,
+    "verdict": "\u274c BROKEN",
+    "breakdown": {
+      "schema": 76.92307692307693,
+      "connectivity": 40.0,
+      "security": 70,
+      "legal": 50.0,
+      "cost_guardrails": 33.33333333333333,
+      "marketing": 23.333333333333332,
+      "e2e": 80
+    },
+    "weights": {
+      "schema": 30,
+      "connectivity": 25,
+      "security": 20,
+      "cost_guardrails": 15,
+      "marketing": 10
+    },
+    "timestamp": "2025-10-19T14:15:17.079695"
+  }
+}

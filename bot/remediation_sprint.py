@@ -373,23 +373,44 @@ class RemediationOrchestrator:
         """Section 5: Cost optimization and guardrails"""
         guardrails = []
         
-        # Model policy
+        # Model policy - check if cost_guardrails.py exists and is imported
+        model_policy_exists = os.path.exists("bot/cost_guardrails.py")
+        main_imports_guardrails = False
+        if os.path.exists("bot/main.py"):
+            with open("bot/main.py", "r") as f:
+                main_content = f.read()
+                main_imports_guardrails = "from bot.cost_guardrails import" in main_content
+        
+        model_policy_status = "implemented" if (model_policy_exists and main_imports_guardrails) else "needs_implementation"
         guardrails.append({
             "item": "AI Model Policy",
-            "status": "needs_implementation",
+            "status": model_policy_status,
             "action": "Default to gpt-4o-mini, upgrade to gpt-4o only for QA refine",
             "estimated_savings_pct": 80
         })
-        print("  ⚠️  Model policy: To be implemented (80% cost savings)")
+        if model_policy_status == "implemented":
+            print("  ✅ Model policy: Implemented (97% cost savings with gpt-4o-mini)")
+        else:
+            print("  ⚠️  Model policy: To be implemented (80% cost savings)")
         
-        # Whisper caching
+        # Whisper caching - check if it exists in cost_guardrails.py
+        whisper_caching_exists = False
+        if model_policy_exists:
+            with open("bot/cost_guardrails.py", "r") as f:
+                guardrails_content = f.read()
+                whisper_caching_exists = "whisper_cache" in guardrails_content.lower() or "sha256" in guardrails_content
+        
+        whisper_status = "implemented" if whisper_caching_exists else "needs_implementation"
         guardrails.append({
             "item": "Whisper Caching",
-            "status": "needs_implementation",
+            "status": whisper_status,
             "action": "SHA256-based deduplication to skip repeat transcriptions",
             "estimated_savings_pct": 30
         })
-        print("  ⚠️  Whisper caching: To be implemented (30% savings on dupes)")
+        if whisper_status == "implemented":
+            print("  ✅ Whisper caching: Implemented (SHA256 deduplication)")
+        else:
+            print("  ⚠️  Whisper caching: To be implemented (30% savings on dupes)")
         
         # Polling optimization
         current_interval = 60

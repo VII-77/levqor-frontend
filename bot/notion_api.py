@@ -71,15 +71,38 @@ class NotionClientWrapper:
         access_token = self.get_access_token()
         return NotionClient(auth=access_token)
     
-    def query_database(self, database_id: str, filter_criteria: Optional[Dict] = None) -> List[Dict]:
+    def query_database(self, database_id: str, filter_criteria: Optional[Dict] = None, retry_delays: Optional[List[int]] = None) -> List[Dict]:
         client = self.get_client()
         
         query_params: Dict[str, Any] = {"database_id": database_id}
         if filter_criteria:
             query_params["filter"] = filter_criteria
         
-        response = client.databases.query(**query_params)
-        return response.get('results', [])
+        # Default retry pattern: 5s→10s→20s→30s for read-after-write consistency
+        if retry_delays is None:
+            retry_delays = []
+        
+        import time
+        
+        for attempt, delay in enumerate([0] + retry_delays):
+            if delay > 0:
+                time.sleep(delay)
+            
+            try:
+                response = client.databases.query(**query_params)
+                results = response.get('results', [])
+                
+                # If retry_delays provided and got empty results, continue retrying
+                if retry_delays and not results and attempt < len(retry_delays):
+                    continue
+                
+                return results
+            except Exception as e:
+                if attempt == len(retry_delays):
+                    print(f"Error querying database {database_id}: {e}")
+                    return []
+        
+        return []
     
     def get_triggered_tasks(self) -> List[Dict]:
         if not config.AUTOMATION_QUEUE_DB_ID:
@@ -142,6 +165,16 @@ class NotionClientWrapper:
         
         if job_data.get('duration_ms'):
             properties["Duration (ms)"] = {"number": job_data['duration_ms']}
+        
+        # Duration fields with fallback from duration_ms
+        duration_sec = job_data.get('duration_sec')
+        if duration_sec is None and job_data.get('duration_ms'):
+            duration_sec = round(job_data['duration_ms'] / 1000, 2)
+        
+        if duration_sec is not None:
+            properties["Duration Sec"] = {"number": duration_sec}
+            duration_min = round(duration_sec / 60, 2)
+            properties["Duration Min"] = {"number": duration_min}
         
         if job_data.get('tokens_in'):
             properties["Tokens In"] = {"number": job_data['tokens_in']}

@@ -167,7 +167,7 @@ def write_pulse(notion: NotionClientWrapper, metrics: Dict) -> Optional[str]:
         )
         
         properties = {
-            "Title": {
+            "Decision": {
                 "title": [{"text": {"content": f"System Pulse {today_utc}"}}]
             },
             "Notes": {
@@ -177,8 +177,13 @@ def write_pulse(notion: NotionClientWrapper, metrics: Dict) -> Optional[str]:
                 "select": {"name": "Info"}
             },
             "Source": {
-                "rich_text": [{"text": {"content": "Ops Monitor"}}]
-            }
+                "select": {"name": "Ops Monitor"}
+            },
+            "jobs_7d": {"number": metrics["jobs_7d"]},
+            "avg_qa_7d": {"number": metrics["avg_qa_7d"]},
+            "revenue_7d": {"number": metrics["revenue_7d"]},
+            "roi_30d": {"number": metrics["roi_30d"]},
+            "uptime_pct": {"number": metrics["uptime_pct"]}
         }
         
         client = notion.get_client()

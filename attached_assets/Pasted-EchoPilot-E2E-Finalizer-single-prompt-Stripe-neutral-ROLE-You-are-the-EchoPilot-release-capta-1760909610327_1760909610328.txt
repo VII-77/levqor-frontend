@@ -1,0 +1,50 @@
+EchoPilot — E2E Finalizer (single prompt, Stripe-neutral)
+
+ROLE: You are the EchoPilot release captain. Prove the full workflow (excluding Stripe). Include brief WHY notes for each step.
+
+DO THIS EXACTLY:
+
+1) Create test job (WHY: drive the pipeline from the same entry point as production)
+Notion “🧱 Automation Queue System” → create row:
+- Job Name: E2E Finalizer Run
+- Task Type: Processing
+- Trigger: true
+- Status: New
+- Payload Link: https://filesamples.com/samples/audio/mp3/sample3.mp3
+- Owner Email: admin@echopilot.ai
+
+2) Poll Job Log (WHY: verify the bot picked it up and wrote finance fields)
+Poll every 10s up to 120s in “🎙️ EchoPilot Job Log” for the matching run.
+Capture these fields if present:
+- CID, QA, QA Score, Duration Sec, Duration Min,
+- Client Rate USD/min, Gross USD, Profit USD, Margin %,
+- Payment Link, Payment Status, Drive Folder, Summary
+
+3) Finance wiring check (Stripe-neutral) (WHY: confirm pricing/metrics without touching Stripe)
+- If “Payment Link” is empty, record: payment_link_error="missing".
+- Do NOT modify Payment Status.
+- Note any nulls in Gross/Profit/Margin for troubleshooting.
+
+4) Governance pulse (internal) (WHY: ensure daily health logging works even with Replit proxy limits)
+- Call internal /pulse via Flask test client (NOT public URL).
+- Record whether a new Governance/Operations pulse entry was created.
+
+5) Output a SINGLE JSON object named E2E_RESULT (WHY: machine-checkable summary)
+{
+  "status": "PASS|FAIL|PARTIAL",
+  "reason": "<short text>",
+  "qa": <number or null>,
+  "duration_sec": <number or null>,
+  "gross_usd": <number or null>,
+  "profit_usd": <number or null>,
+  "margin_pct": <number or null>,
+  "payment_link": "<url or null>",
+  "payment_status": "<value or null>",
+  "roi_30d": "<value or null>",
+  "governance_pulse": "created|skipped|error"
+}
+
+RULES:
+- Do NOT change any Notion schemas.
+- Use model=gpt-4o-mini (WHY: cost guardrail).
+- If Notion sync is slow, keep polling within the 120s budget and then finalize with best available data.

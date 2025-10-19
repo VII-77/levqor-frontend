@@ -12,14 +12,17 @@ class NotionDatabaseSetup:
     """Creates and configures Notion databases for enterprise features"""
     
     def __init__(self):
-        self.notion = Client(auth=os.getenv('NOTION_TOKEN') or self._get_connector_token())
+        # Use the proper Notion client from bot.notion_api
+        try:
+            from bot.notion_api import get_notion_client
+            self.notion = get_notion_client()
+        except Exception as e:
+            print(f"Failed to get Notion client: {e}")
+            # Fallback to environment token
+            token = os.getenv('NOTION_TOKEN') or os.getenv('NOTION_INTEGRATION_TOKEN')
+            self.notion = Client(auth=token) if token else None
+        
         self.parent_page_id = os.getenv('NOTION_PARENT_PAGE_ID')  # Set this to your workspace page
-    
-    def _get_connector_token(self):
-        """Get token from Replit Connectors"""
-        # This would use Replit Connectors OAuth flow
-        # For now, return env var
-        return os.getenv('NOTION_INTEGRATION_TOKEN')
     
     def create_finance_database(self) -> Optional[str]:
         """Create Finance & Revenue Tracking Database"""

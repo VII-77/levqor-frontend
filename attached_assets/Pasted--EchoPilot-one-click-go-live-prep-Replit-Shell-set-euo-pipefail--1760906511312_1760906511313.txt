@@ -1,0 +1,51 @@
+# === EchoPilot: one-click go-live prep (Replit Shell) =========================
+set -euo pipefail
+
+echo "STEP 0 — Preflight (WHY: fail fast if live keys missing)"
+: "${STRIPE_SECRET_KEY_LIVE:?Missing STRIPE_SECRET_KEY_LIVE in Replit Secrets}"
+: "${STRIPE_WH_SECRET_LIVE:?Missing STRIPE_WH_SECRET_LIVE in Replit Secrets}"
+
+echo "STEP 1 — Cost guardrails (WHY: cap spend/job & enforce cheap model)"
+replit secrets add OPENAI_MODEL=gpt-4o-mini >/dev/null || true
+replit secrets add MAX_COST_USD_JOB=0.75      >/dev/null || true
+replit secrets add MAX_TOKENS_JOB=300000      >/dev/null || true
+
+echo "STEP 2 — Stripe live mode (WHY: enable real payments safely)"
+replit secrets add STRIPE_MODE=live >/dev/null || true
+# live secrets are already present; we just ensure mode=live is set
+
+echo "STEP 3 — Single-worker stability (WHY: eliminate Notion write races)"
+ENTRY="app:app"; [[ -f app.py ]] || ENTRY="main:app"
+cat > Procfile <<EOF
+web: gunicorn -w 1 -k gthread -t 120 ${ENTRY}
+EOF
+chmod +x Procfile
+
+echo "STEP 4 — Health & pulse (WHY: verify runtime + write governance pulse)"
+mkdir -p logs
+: > logs/health.ndjson
+
+# Health via public URL (works on Replit); fallback to local if needed
+BASE_URL="${BASE_URL:-https://echopilotai.replit.app}"
+curl -fsS "$BASE_URL/health" || python3 - <<'PY'
+import sys; sys.path.insert(0,'.'); import run
+with run.app.test_client() as c:
+    r=c.get('/health'); print(r.status_code, r.get_json())
+PY
+
+# Pulse via internal Flask client (avoids Replit proxy 404)
+python3 - <<'PY'
+import os, sys; sys.path.insert(0,'.'); import run
+tok=os.getenv("HEALTH_TOKEN","test")
+with run.app.test_client() as c:
+    r=c.post(f"/pulse?token={tok}")
+    print("Pulse:", r.status_code, r.get_json())
+PY
+
+echo "STEP 5 — Summary (WHY: confirm flip + next action)"
+echo "---------------------------------------------------"
+echo "✅ Guardrails: OPENAI_MODEL=gpt-4o-mini, MAX_COST_USD_JOB=0.75, MAX_TOKENS_JOB=300000"
+echo "✅ Stripe: STRIPE_MODE=live (keys present)"
+echo "✅ Workers: set to 1 (takes effect after Replit Restart)"
+echo "👉 Next: Click 'Stop' then 'Run' in Replit to apply Procfile change."
+echo "👉 Then create a client job; payment links will be LIVE."

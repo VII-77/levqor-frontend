@@ -31,10 +31,11 @@ class RemediationOrchestrator:
         self.telegram_token = os.getenv("TELEGRAM_BOT_TOKEN", "")
         self.telegram_chat = os.getenv("TELEGRAM_CHAT_ID", "")
         self.notion = None
-        try:
-            self.notion = get_notion_client()
-        except Exception as e:
-            print(f"⚠️  Notion client init failed: {e}")
+        if get_notion_client:
+            try:
+                self.notion = get_notion_client()
+            except Exception as e:
+                print(f"⚠️  Notion client init failed: {e}")
         
         self.reports = {}
         self.readiness_scores = {}

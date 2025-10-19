@@ -367,7 +367,17 @@ def marketplace_stats():
 
 @app.route('/supervisor')
 def supervisor_dashboard():
-    """Supervisor dashboard (simple HTML)"""
+    """Supervisor dashboard (simple HTML or JSON)"""
+    # Support JSON format for API/testing
+    if request.args.get('format') == 'json' or request.headers.get('Accept') == 'application/json':
+        try:
+            from bot.auto_operator import get_operator_report
+            report = get_operator_report()
+            return jsonify(report), 200
+        except Exception as e:
+            return jsonify({"ok": False, "error": str(e)}), 500
+    
+    # Default: HTML dashboard
     return """
     <!DOCTYPE html>
     <html>
@@ -395,6 +405,7 @@ def supervisor_dashboard():
                 <li><a href="/forecast">30-Day Forecast</a></li>
                 <li><a href="/finance/pl">P&L Report</a></li>
                 <li><a href="/exec-report">Executive Report</a></li>
+                <li><a href="/supervisor?format=json">Supervisor (JSON)</a></li>
             </ul>
         </div>
         <script>

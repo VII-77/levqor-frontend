@@ -4,13 +4,21 @@ Comprehensive system hardening to raise readiness from 66% to ≥90%
 """
 
 import os
+import sys
 import json
 import time
 import hashlib
 import requests
 from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional
-from notion_client import Client
+
+# Add parent directory to path
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+try:
+    from bot.notion_api import get_notion_client
+except:
+    get_notion_client = None
 
 
 class RemediationOrchestrator:
@@ -24,16 +32,12 @@ class RemediationOrchestrator:
         self.telegram_chat = os.getenv("TELEGRAM_CHAT_ID", "")
         self.notion = None
         try:
-            self.notion = Client(auth=self._get_notion_token())
-        except:
-            pass
+            self.notion = get_notion_client()
+        except Exception as e:
+            print(f"⚠️  Notion client init failed: {e}")
         
         self.reports = {}
         self.readiness_scores = {}
-        
-    def _get_notion_token(self):
-        """Get Notion token from environment"""
-        return os.getenv("NOTION_TOKEN") or os.getenv("NOTION_INTEGRATION_TOKEN")
     
     def run_full_remediation(self) -> Dict[str, Any]:
         """Execute complete remediation sprint"""

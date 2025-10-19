@@ -1,0 +1,1 @@
+{"status": "FAIL", "reason": "Job Log entry not found after full backoff (Notion lag or processing failed)", "qa": null, "duration_sec": null, "gross_usd": null, "profit_usd": null, "margin_pct": null, "payment_link": null, "payment_status": null, "roi_30d": "no_entries", "governance_pulse": "created", "qa_retry": null, "qa_status": null}

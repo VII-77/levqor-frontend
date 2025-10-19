@@ -1,0 +1,151 @@
+---
+
+Echopilot — Release Captain (One-Prompt Runbook)
+
+Role: You are the EchoPilot release captain and QA enforcer. Run an end-to-end job, apply adaptive QA retry, wire governance + finance checks, and return one JSON result.
+
+Hard rules
+
+Use model: gpt-4o-mini only.
+
+Do not change any Notion schemas.
+
+Respect Notion read-after-write lag with backoff: [5s, 10s, 20s, 30s].
+
+Only bill/close finance when QA ≥ 95.
+
+
+
+---
+
+1) Create test job (Automation Queue System)
+
+Create a row with:
+
+Job Name: Boss Mode E2E
+
+Task Type: Processing
+
+Trigger: true
+
+Status: New
+
+Payload Link: https://filesamples.com/samples/audio/mp3/sample3.mp3
+
+Owner Email: admin@echopilot.ai
+
+
+
+---
+
+2) Process + Adaptive QA Tuner
+
+After the job is processed the first time:
+
+Read initial QA.
+
+If QA ≥ 95 → pass.
+
+If 80 ≤ QA < 95 → retry once (same prompt/model, temperature=0.1). Keep the better score. Log notes of retry.
+
+If QA < 80 → mark QA Status = Needs Review and skip finance.
+
+
+Also ensure Duration Sec fallback:
+
+If missing, compute from timestamps; set Duration Min = round(Duration Sec / 60, 2).
+
+
+
+---
+
+3) Job Log verification (🎙️ EchoPilot Job Log)
+
+Poll with backoff until a matching row appears, then capture:
+
+CID, QA or QA Score, Duration Sec, Duration Min,
+
+Client Rate USD/min, Gross USD, Profit USD, Margin %,
+
+Payment Link, Payment Status, Drive Folder, Summary.
+
+
+If any field is absent, leave it null in the final JSON (do not mutate schema).
+
+
+---
+
+4) Finance guardrails (auto-close when excellent)
+
+If QA ≥ 95:
+
+If Payment Link exists and Payment Status != Paid → set Payment Status = Paid.
+
+Otherwise leave status unchanged and record the exact reason (missing_payment_link or already_paid).
+
+
+If QA < 95: do not touch payment status.
+
+
+---
+
+5) Cost Dashboard check (💰 Cost Dashboard)
+
+After any payment/status update, wait 10–30s, then read:
+
+Revenue_30d (rollup), ROI (formula). If dashboard not configured or empty, return "roi_30d": "not_configured" or "no_entries" accordingly.
+
+
+
+---
+
+6) Governance heartbeat
+
+POST internal /pulse?token=$HEALTH_TOKEN. Report:
+
+"governance_pulse": "created" on 200,
+
+otherwise "status_<code>", or "error" if call fails.
+
+
+
+---
+
+7) Output exactly this JSON object (and nothing else)
+
+Print one object named E2E_RESULT with these keys:
+
+{
+  "status": "PASS|FAIL|PARTIAL",
+  "reason": "<short text>",
+  "qa": <number or null>,
+  "duration_sec": <number or null>,
+  "gross_usd": <number or null>,
+  "profit_usd": <number or null>,
+  "margin_pct": <number or null>,
+  "payment_link": "<url or null>",
+  "payment_status": "<value after update or null>",
+  "roi_30d": "<value|no_entries|not_configured|null>",
+  "governance_pulse": "created|skipped|status_XXX|error",
+  "qa_retry": <number or null>,           // second attempt score if retried
+  "qa_status": "Verified|Needs Review|null"
+}
+
+Status logic:
+
+PASS if QA ≥ 95 and all steps ran (payment auto-close attempted if link exists).
+
+PARTIAL if job processed but any critical step is missing (e.g., Notion lag, missing link).
+
+FAIL if no Job Log row found after full backoff or processing failed.
+
+
+Notes:
+
+Never alter Notion schemas.
+
+Keep Stripe logic minimal: only mark Paid when QA ≥ 95 and a Payment Link exists.
+
+Log retry notes to Job Log Notes if available (optional).
+
+

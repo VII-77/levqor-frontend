@@ -3,3 +3,5 @@
 {"timestamp": "2025-10-19T18:40:09.612862Z", "status": "ok", "test": "e2e_smoke_test"}
 {"timestamp": "2025-10-19T19:42:32.623477Z", "status": "ok"}
 {"timestamp": "2025-10-19T19:42:32.625599Z", "status": "ok", "sweep": "go-live-validation"}
+{"timestamp": "2025-10-19T20:29:44.991469Z", "status": "ok"}
+{"timestamp": "2025-10-19T20:29:44.995808Z", "status": "ok", "event": "release-captain-final"}

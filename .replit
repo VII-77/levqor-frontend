@@ -30,7 +30,7 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "gunicorn --reload --worker-class gthread --workers 1 --threads 2 --timeout 120 --bind 0.0.0.0:5000 run:app"
+args = "gunicorn --worker-class gthread --workers 1 --threads 2 --timeout 120 --bind 0.0.0.0:5000 run:app"
 waitForPort = 5000
 
 [deployment]
@@ -40,14 +40,6 @@ run = ["gunicorn", "--worker-class", "gthread", "--workers", "1", "--threads", "
 [[ports]]
 localPort = 5000
 externalPort = 80
-
-[[ports]]
-localPort = 36163
-externalPort = 8000
-
-[[ports]]
-localPort = 36291
-externalPort = 4200
 
 [[ports]]
 localPort = 36637

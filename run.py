@@ -1,12 +1,21 @@
 #!/usr/bin/env python3
 
 from bot.main import EchoPilotBot
-from flask import Flask, jsonify, send_from_directory, request
+from flask import Flask, jsonify, send_from_directory, request, make_response
 import threading
 import os
 from bot import git_utils
 
 app = Flask(__name__)
+
+def no_cache(resp):
+    """Add no-cache headers to prevent edge proxy caching"""
+    if isinstance(resp, tuple):
+        resp = make_response(resp)
+    resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp
 
 @app.route('/')
 def health_check():
@@ -25,25 +34,34 @@ def health():
     """Alternative health endpoint"""
     return jsonify({"status": "ok"})
 
-@app.route("/supervisor", methods=["GET"])
+@app.get("/supervisor")
 def supervisor():
     """Supervisor endpoint"""
+    import datetime
     token = request.args.get("token", "")
     if os.getenv("HEALTH_TOKEN") and token != os.getenv("HEALTH_TOKEN"):
-        return jsonify({"error": "unauthorized"}), 401
-    
-    import datetime
-    return jsonify({
+        return no_cache(make_response(jsonify({"error": "unauthorized"}), 401))
+    return no_cache(make_response(jsonify({
         "notion": "ok",
         "drive": "ok",
         "openai": "ok",
         "ts": datetime.datetime.utcnow().isoformat() + "Z"
-    })
+    })))
 
-@app.route("/forecast", methods=["GET"])
+@app.get("/api/supervisor")
+def api_supervisor():
+    """Supervisor endpoint - alternative path"""
+    return supervisor()
+
+@app.get("/forecast")
 def forecast():
     """30-day forecast endpoint"""
-    return jsonify([0.82, 0.85, 0.88, 0.9, 0.92, 0.95, 0.97])
+    return no_cache(make_response(jsonify([0.82, 0.85, 0.88, 0.90, 0.92, 0.95, 0.97])))
+
+@app.get("/api/forecast")
+def api_forecast():
+    """Forecast endpoint - alternative path"""
+    return forecast()
 
 @app.route("/test-simple", methods=["GET"])
 def test_simple():

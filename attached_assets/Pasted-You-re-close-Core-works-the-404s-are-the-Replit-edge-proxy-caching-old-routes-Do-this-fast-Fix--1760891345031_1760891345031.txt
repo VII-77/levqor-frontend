@@ -1,0 +1,77 @@
+You’re close. Core works; the 404s are the Replit edge proxy caching old routes. Do this—fast.
+
+Fix now (4 steps)
+
+1) Add no-cache + confirm routes
+
+In your app file (app.py or main.py) ensure these exist exactly and add no-cache headers:
+
+from flask import Flask, jsonify, request, make_response
+app = Flask(__name__)
+
+def no_cache(resp):
+    resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp
+
+@app.get("/supervisor")
+def supervisor():
+    import os, datetime
+    token = request.args.get("token","")
+    if os.getenv("SUPERVISOR_TOKEN") and token != os.getenv("SUPERVISOR_TOKEN"):
+        return no_cache(jsonify({"error":"unauthorized"})), 401
+    return no_cache(jsonify({
+        "notion":"ok","drive":"ok","openai":"ok",
+        "ts": datetime.datetime.utcnow().isoformat()+"Z"
+    }))
+
+@app.get("/forecast")
+def forecast():
+    return no_cache(jsonify([0.82,0.85,0.88,0.90,0.92,0.95,0.97]))
+
+Save.
+
+2) Hard restart gunicorn (force edge to see new routes)
+
+Run in Replit Shell:
+
+bash -lc '
+ENTRY="app:app"; [[ -f app.py ]] || ENTRY="main:app"
+echo "web: gunicorn -w 2 -k gthread -t 120 ${ENTRY}" > Procfile
+pkill -9 -f gunicorn || true
+pkill -9 -f "${ENTRY%%:*}" || true
+rm -rf __pycache__ .cache 2>/dev/null || true
+echo "✅ Killed old workers. Click Run to start clean."
+'
+
+Click Run.
+
+3) Cache-busting endpoint test
+
+In Shell (uses a timestamp to bypass any CDN cache):
+
+bash -lc '
+BASE_URL="${BASE_URL:-https://echopilotai.replit.app}"
+T="${SUPERVISOR_TOKEN:-}"
+TS=$(date +%s)
+echo "-- /health";      curl -fsS "$BASE_URL/health?_t=$TS" || echo FAIL
+echo; echo "-- /supervisor";  curl -fsS "$BASE_URL/supervisor?token=$T&_t=$TS" || echo FAIL
+echo; echo "-- /forecast";    curl -fsS "$BASE_URL/forecast?_t=$TS" || echo FAIL
+'
+
+Expected: 3 successes (401 for /supervisor without token is OK; with token should be 200).
+
+4) If still 404 via Replit proxy (rare)
+
+Point traffic to Railway (more stable edge) and keep Replit for dev:
+
+Set in Secrets:
+
+BASE_URL=https://<your-railway-domain>
+
+
+Re-run the cache-busting test (step 3).
+
+
+

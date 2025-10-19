@@ -1,0 +1,72 @@
+bash -lc '
+set -e
+
+echo "=== EchoPilot Failure Triage (one-shot) ==="
+
+# 0) Basic context
+BASE="${BASE_URL:-https://echopilotai.replit.app}"
+SUP="$SUPERVISOR_TOKEN"
+HEALTH="$HEALTH_TOKEN"
+MP3="${PAYLOAD_TEST_URL:-https://filesamples.com/samples/audio/mp3/sample3.mp3}"
+
+echo "[ctx] BASE_URL=$BASE"
+echo "[ctx] MODEL=${OPENAI_MODEL:-gpt-4o-mini}"
+
+# 1) Secrets presence (masked)
+need=(AI_INTEGRATIONS_OPENAI_API_KEY AUTOMATION_QUEUE_DB_ID NOTION_JOB_DB_ID NOTION_OPS_DB_ID)
+missing=0
+for v in "${need[@]}"; do
+  if [ -z "${!v:-}" ]; then echo "❌ MISSING $v"; missing=1; else echo "✅ $v set"; fi
+done
+
+# 2) App health (also logs a heartbeat internally)
+echo -e "\n-- /health"
+curl -fsS "$BASE/health" || echo "FAIL"
+
+# 3) Public endpoints (expected 404 on Replit for some; informational only)
+echo -e "\n-- /supervisor"
+curl -fsS "$BASE/supervisor?token=$SUP" || echo "WARN(404 ok on Replit)"
+echo -e "\n-- /forecast"
+curl -fsS "$BASE/forecast" || echo "WARN(404 ok on Replit)"
+
+# 4) Can the bot reach the audio?
+echo -e "\n-- HEAD MP3 (network access)"
+curl -I -L --max-time 15 "$MP3" || echo "FAIL fetching MP3 (network/DNS/CORS)"
+echo -e "\n-- Probe MP3 size/type"
+python3 - <<PY
+import sys,requests
+u=sys.argv[1]
+try:
+  r=requests.get(u,timeout=20,stream=True,allow_redirects=True)
+  print("HTTP",r.status_code,"CT",r.headers.get("Content-Type"),"Len",r.headers.get("Content-Length"))
+  print("First-bytes:", next(r.iter_content(1024))[:64])
+except Exception as e:
+  print("PY_FETCH_ERROR:", e)
+PY
+"$MP3"
+
+# 5) Gunicorn + workers
+echo -e "\n-- Gunicorn processes"
+ps -ef | grep -E "gunicorn" | grep -v grep || true
+
+# 6) Recent app logs (last 120 lines) + error grep
+echo -e "\n-- Tail server.log"
+[ -f server.log ] && tail -n 120 server.log || echo "No server.log"
+echo -e "\n-- Tail replit console history"
+tail -n 120 ~/.cache/replit-shell/history 2>/dev/null || true
+echo -e "\n-- Grep ERROR in repo"
+grep -Rin "ERROR" -n . | tail -n 20 || true
+
+# 7) Try to replay last failed job (safe-noop if none)
+echo -e "\n-- /jobs/replay?last=true"
+curl -fsS "$BASE/jobs/replay?last=true&token=$SUP" || echo "replay endpoint not available"
+
+# 8) Next-step hints
+echo -e "\n=== Hints ==="
+echo "* If MP3 fetch failed: try another public MP3:"
+echo "  https://filesamples.com/samples/audio/mp3/sample1.mp3"
+echo "* In Notion → Automation Queue: set Status=New, Trigger=true on your test row."
+echo "* If Job Log fields missing: confirm Job Log schema has Payment/QA/Duration per SchemaMap."
+
+echo -e "\n=== DONE ==="
+'

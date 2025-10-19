@@ -9,7 +9,7 @@ integrations = ["python_openai_ai_integrations:1.0.0", "google-mail:1.0.0"]
 expertMode = true
 
 [workflows]
-runButton = "EchoPilot Bot"
+runButton = "Project"
 
 [[workflows.workflow]]
 name = "Project"
@@ -30,7 +30,7 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "gunicorn --worker-class gthread --workers 1 --threads 2 --timeout 120 --bind 0.0.0.0:5000 run:app"
+args = "gunicorn --reload --worker-class gthread --workers 1 --threads 2 --timeout 120 --bind 0.0.0.0:5000 run:app"
 waitForPort = 5000
 
 [deployment]
@@ -40,18 +40,6 @@ run = ["gunicorn", "--worker-class", "gthread", "--workers", "1", "--threads", "
 [[ports]]
 localPort = 5000
 externalPort = 80
-
-[[ports]]
-localPort = 34075
-externalPort = 6000
-
-[[ports]]
-localPort = 35295
-externalPort = 3003
-
-[[ports]]
-localPort = 35479
-externalPort = 6800
 
 [[ports]]
 localPort = 36163

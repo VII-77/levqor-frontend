@@ -1,0 +1,152 @@
+You are my full-stack AI operations, compliance, and business architect.
+Perform a complete end-to-end audit, verification, and launch of the EchoPilot autonomous AI system,
+including legal ownership, data compliance, operations monitoring, and investor readiness.
+
+──────────────────────────────
+SECTION 1 — SYSTEM AUDIT & VERIFICATION
+──────────────────────────────
+1️⃣ Confirm integrations live:
+   Notion, Replit, Railway, Google Drive, Gmail, Telegram, Stripe, Cloudflare, OpenAI.
+2️⃣ Verify core DBs exist:
+   Automation Queue, Job Log, Finance, Clients, Forecast, Governance, Region Compliance,
+   Partner Keys, Growth Metrics, Referrals, Ops Monitor.
+3️⃣ Check /health, /supervisor, /payments/scan, /jobs/replay all return OK.
+4️⃣ Output JSON summary: {component, status, last_success, notes}.
+
+──────────────────────────────
+SECTION 2 — LEGAL & OWNERSHIP VALIDATION
+──────────────────────────────
+• Confirm registered entity: EchoPilot Technologies Ltd (or equivalent).
+• Attach IP Assignment PDF, Data-Control Policy, Governance Policy, and Trademark docs.
+• Verify company email admin@echopilot.ai linked to all platforms.
+• Check ToS, Privacy, Cookie, Accessibility, and Data-Retention clauses live on landing.
+• Generate “Legal Ownership & Compliance Report 2025” summarizing gaps + fixes.
+
+──────────────────────────────
+SECTION 3 — SECURITY & BACKUPS
+──────────────────────────────
+• Ensure TLS 1.3, AES-256 encryption, 2FA on all accounts.
+• Validate API key rotation < 30 days.
+• Confirm Cloudflare DNS failover operational.
+• Verify daily config + weekly Notion/Drive backups.
+• Output “Security & Backup Integrity Report”.
+
+──────────────────────────────
+SECTION 4 — OPERATIONS & QUALITY CONTROL
+──────────────────────────────
+• Run daily health and QA checks.
+• Confirm QA ≥ 85, p95 latency ≤ 12 min, uptime ≥ 99 %.
+• Verify error alerts → Telegram; daily digest → Gmail.
+• Create/update Notion Ops Monitor entries.
+• Generate “Operational Stability Report”.
+
+──────────────────────────────
+SECTION 5 — FINANCE & VALUATION
+──────────────────────────────
+• Sync Stripe + Notion Finance DB.
+• Compute 7-day and 30-day revenue, cost, margin, refund %, cashflow.
+• Run valuation models (DCF + SaaS multiple).
+• Generate “P&L + Valuation Pack”.
+
+──────────────────────────────
+SECTION 6 — FORECAST & AUTO-SCALING
+──────────────────────────────
+• Execute forecast_engine → predict jobs, minutes, revenue (30 days).
+• Verify autoscaler thresholds and utilization ~75 %.
+• Output “Forecast & Scaling Report”.
+
+──────────────────────────────
+SECTION 7 — LOCALIZATION & REGIONAL COMPLIANCE
+──────────────────────────────
+• Test translation EN→ES→UR using localization.py.
+• Confirm Region Compliance DB enforced per job.
+• Verify localized emails, invoices, Stripe multi-currency.
+• Output “Localization Status Summary”.
+
+──────────────────────────────
+SECTION 8 — MARKETPLACE & PARTNER OPS
+──────────────────────────────
+• Confirm public API facade endpoints (/v1/jobs, /results, /webhook) active.
+• Validate quota middleware and rate-limit tiers.
+• Check Partner Dashboard + payouts (Stripe Connect).
+• Generate “Partner Performance Snapshot”.
+
+──────────────────────────────
+SECTION 9 — GROWTH ENGINE & MARKETING
+──────────────────────────────
+• Verify outreach automation running (≥10 leads/day).
+• Confirm referral system credited correctly.
+• Collect CAC, LTV, conversion %, ad CTR.
+• Populate Growth Metrics DB and produce “Growth Performance Digest”.
+
+──────────────────────────────
+SECTION 10 — GOVERNANCE & BOARD PACK
+──────────────────────────────
+• Run weekly Board Pack generator with:
+   - Financial Summary
+   - Ops KPIs
+   - Risk Register
+   - AI Recommendations
+• Send Telegram summary (Approve/Reject).
+• Update Decision Log accordingly.
+
+──────────────────────────────
+SECTION 11 — LEGAL ARCHIVE & OWNERSHIP SAFEGUARDS
+──────────────────────────────
+• Store copies:
+   /Drive/EchoPilot/Legal/
+     ├─ IP_Assignment.pdf
+     ├─ Governance_Policy.md
+     ├─ Data_Control_Policy.md
+     ├─ Trademarks/
+• Verify encryption and backup copies.
+• Confirm company owns domain + IP + brand.
+
+──────────────────────────────
+SECTION 12 — REPORT GENERATION
+──────────────────────────────
+Auto-generate and upload to Google Drive:
+1️⃣ Legal Ownership & Compliance Report  
+2️⃣ Security & Backup Integrity Report  
+3️⃣ Operational Stability Report  
+4️⃣ P&L + Valuation Pack  
+5️⃣ Forecast & Scaling Report  
+6️⃣ Localization Status Summary  
+7️⃣ Partner Performance Snapshot  
+8️⃣ Growth Performance Digest  
+9️⃣ Governance Board Pack  
+🔟 Merged “EchoPilot_Audit_v2.0.pdf”
+
+──────────────────────────────
+SECTION 13 — AUTO-FIX LOGIC
+──────────────────────────────
+If any check fails:
+• Retry once.
+• Create Notion task in Ops Queue with remediation.
+• Telegram alert: “⚠️ Issue: {component} – {status}”.
+• Mark resolved when rerun passes.
+
+──────────────────────────────
+SECTION 14 — EXECUTIVE SUMMARY
+──────────────────────────────
+Return concise summary (≤400 words) including:
+• Revenue / Margin / Uptime / Growth %  
+• Compliance & Risk highlights  
+• Forecast next 30 days  
+• Key actions for owner review.
+
+──────────────────────────────
+OUTPUT
+──────────────────────────────
+Return:
+1️⃣ System Audit JSON  
+2️⃣ Legal & Compliance Report  
+3️⃣ Security Report  
+4️⃣ Operational Report  
+5️⃣ Financial Pack  
+6️⃣ Forecast Summary  
+7️⃣ Localization Report  
+8️⃣ Partner Snapshot  
+9️⃣ Growth Digest  
+🔟 Governance Board Pack  
+1️⃣1️⃣ Merged EchoPilot_Audit_v2.0.pdf (Drive path)

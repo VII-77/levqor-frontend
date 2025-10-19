@@ -1,0 +1,146 @@
+set -euo pipefail
+
+echo "=== EchoPilot Replit Hardening & Sync — START ==="
+
+# 1) Basics
+python -V || true
+echo "Working dir: $(pwd)"
+date -u +"UTC %Y-%m-%dT%H:%M:%SZ"
+
+# 2) Print key env presence (masked)
+req_vars=(
+  OPENAI_API_KEY NOTION_API_KEY
+  NOTION_QUEUE_DB NOTION_LOG_DB NOTION_JOB_DB NOTION_OPS_DB
+  NOTION_FINANCE_DB NOTION_CLIENTS_DB NOTION_GOV_DB NOTION_REGION_DB
+  NOTION_PARTNER_DB NOTION_REFERRALS_DB NOTION_GROWTH_DB NOTION_PRICING_DB NOTION_COST_DB
+  STRIPE_SECRET_KEY STRIPE_WH_SECRET
+  GMAIL_CLIENT_ID GMAIL_CLIENT_SECRET TG_BOT_TOKEN TG_ALERT_CHAT
+  DRIVE_SERVICE_JSON GOOGLE_APPLICATION_CREDENTIALS
+  SUPERVISOR_TOKEN HEALTH_TOKEN BASE_URL
+)
+missing=()
+echo "— Env var presence check:"
+for v in "${req_vars[@]}"; do
+  if [[ -z "${!v:-}" ]]; then
+    echo "  ❌ $v = (missing)"
+    missing+=("$v")
+  else
+    echo "  ✅ $v = set (len=${#v})"
+  fi
+done
+
+# 3) Freeze dependencies (creates/updates requirements.txt, .env.sample)
+echo "— Freezing dependencies"
+pip install --disable-pip-version-check -q pip-tools >/dev/null 2>&1 || true
+pip freeze | sed '/^pkg-resources==/d' > requirements.txt
+echo "  ✅ requirements.txt updated"
+
+echo "— Generating .env.sample (masked)"
+cat > .env.sample <<'ENV_SAMPLE'
+# Copy to your environment variables; leave values empty to fill in UI
+OPENAI_API_KEY=
+NOTION_API_KEY=
+NOTION_QUEUE_DB=
+NOTION_LOG_DB=
+NOTION_JOB_DB=
+NOTION_OPS_DB=
+NOTION_FINANCE_DB=
+NOTION_CLIENTS_DB=
+NOTION_GOV_DB=
+NOTION_REGION_DB=
+NOTION_PARTNER_DB=
+NOTION_REFERRALS_DB=
+NOTION_GROWTH_DB=
+NOTION_PRICING_DB=
+NOTION_COST_DB=
+STRIPE_SECRET_KEY=
+STRIPE_WH_SECRET=
+GMAIL_CLIENT_ID=
+GMAIL_CLIENT_SECRET=
+TG_BOT_TOKEN=
+TG_ALERT_CHAT=
+DRIVE_SERVICE_JSON=
+GOOGLE_APPLICATION_CREDENTIALS=
+SUPERVISOR_TOKEN=
+HEALTH_TOKEN=
+BASE_URL=
+ENV_SAMPLE
+echo "  ✅ .env.sample written"
+
+# 4) Production server files (Procfile, start.sh, runtime.txt)
+[[ -f Procfile ]] || echo "web: gunicorn -w 2 -k gthread -t 120 app:app" > Procfile && echo "  ✅ Procfile ok"
+cat > start.sh <<'SH'
+#!/usr/bin/env bash
+set -e
+exec gunicorn -w 2 -k gthread -t 120 app:app
+SH
+chmod +x start.sh
+echo "  ✅ start.sh ok"
+python -V | awk '{print $2}' | cut -d. -f1,2 | xargs -I{} bash -c 'echo "python-{}" > runtime.txt'
+echo "  ✅ runtime.txt ok"
+
+# 5) Log rotation & cleanup
+mkdir -p logs backups tmp
+echo "— Archiving logs"
+ts=$(date -u +%Y%m%dT%H%M%SZ)
+if compgen -G "logs/*" > /dev/null; then
+  tar -czf "backups/logs_${ts}.tar.gz" logs || true
+  rm -rf logs/* || true
+fi
+# safe cache cleanup
+rm -rf __pycache__ .cache 2>/dev/null || true
+rm -rf tmp/* agent_space/* 2>/dev/null || true
+echo "  ✅ Logs archived & temp cleaned"
+
+# 6) Disk usage snapshot
+echo "— Disk usage (top 20):"
+du -sh * 2>/dev/null | sort -hr | head -20 || true
+
+# 7) Endpoint contract tests (if BASE_URL set)
+fail=0
+if [[ -n "${BASE_URL:-}" ]]; then
+  echo "— Endpoint checks against ${BASE_URL}"
+  curl -fsS "${BASE_URL}/health" | tee /tmp/health.json || fail=1
+  echo
+  if [[ -n "${SUPERVISOR_TOKEN:-}" ]]; then
+    curl -fsS "${BASE_URL}/supervisor?token=${SUPERVISOR_TOKEN}" | head -n 3 || fail=1
+    echo
+  else
+    echo "  ⚠️ SUPERVISOR_TOKEN missing; skipping /supervisor"
+  fi
+  curl -fsS "${BASE_URL}/forecast" | head -c 200; echo || true
+else
+  echo "  ⚠️ BASE_URL not set; skipping endpoint tests"
+fi
+
+# 8) Quick Notion write test (optional, non-destructive) – uses /supervisor to log
+if [[ -n "${BASE_URL:-}" && -n "${SUPERVISOR_TOKEN:-}" ]]; then
+  echo "— Nudging supervisor to log a Notion ping"
+  curl -fsS "${BASE_URL}/supervisor?token=${SUPERVISOR_TOKEN}&action=ping" | head -n 2 || true
+fi
+
+# 9) Summaries & next steps file
+cat > REPLIT_HARDENING_SUMMARY.md <<SUM
+# EchoPilot Replit Hardening Summary — ${ts}
+- Missing env vars: ${#missing[@]}
+$(for m in "${missing[@]}"; do echo "  - $m"; done)
+- requirements.txt: refreshed
+- .env.sample: generated (masked)
+- Procfile/start.sh/runtime.txt: ready
+- Logs archived to backups/logs_${ts}.tar.gz
+- Temp/cache cleaned
+- Endpoints tested: $( [[ -n "${BASE_URL:-}" ]] && echo "health, supervisor, forecast" || echo "skipped (no BASE_URL)" )
+
+## Next actions
+$( [[ ${#missing[@]} -gt 0 ]] && echo "- Fill missing envs above in Replit Secrets." || echo "- No missing envs." )
+- Commit changes and restart the service.
+- (Optional) Disable Always-On here; run on Railway for 24/7 uptime.
+SUM
+echo "  ✅ Wrote REPLIT_HARDENING_SUMMARY.md"
+
+echo "=== EchoPilot Replit Hardening & Sync — DONE ==="
+
+if [[ $fail -ne 0 ]]; then
+  echo "One or more endpoint checks failed. Open REPLIT_HARDENING_SUMMARY.md and fix env/BASE_URL."
+  exit 1
+fi

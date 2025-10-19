@@ -4,9 +4,40 @@ from bot.main import EchoPilotBot
 from flask import Flask, jsonify, send_from_directory, request, make_response
 import threading
 import os
+import requests
 from bot import git_utils
 
 app = Flask(__name__)
+
+# Edge routing configuration for Railway fallback
+EDGE_ENABLE = os.getenv("EDGE_ENABLE", "false").lower() == "true"
+EDGE_BASE_URL = os.getenv("EDGE_BASE_URL", "")
+
+def proxy_to_edge(endpoint, method="GET"):
+    """
+    Proxy request to Railway deployment if EDGE_ENABLE=true
+    Used when Replit proxy blocks certain endpoints (404s)
+    """
+    if not EDGE_ENABLE or not EDGE_BASE_URL:
+        return None
+    
+    try:
+        url = f"{EDGE_BASE_URL.rstrip('/')}/{endpoint.lstrip('/')}"
+        
+        # Forward query parameters
+        if request.query_string:
+            url = f"{url}?{request.query_string.decode()}"
+        
+        if method == "GET":
+            resp = requests.get(url, timeout=10)
+        elif method == "POST":
+            resp = requests.post(url, json=request.get_json(), timeout=10)
+        else:
+            return None
+        
+        return jsonify(resp.json()), resp.status_code
+    except Exception as e:
+        return jsonify({"error": "edge_proxy_failed", "details": str(e)}), 503
 
 def no_cache(resp):
     """Add no-cache headers to prevent edge proxy caching"""
@@ -38,7 +69,12 @@ def health():
 
 @app.get("/supervisor")
 def supervisor():
-    """Supervisor endpoint"""
+    """Supervisor endpoint (with Railway fallback)"""
+    # Try Railway fallback if enabled
+    edge_response = proxy_to_edge("supervisor", "GET")
+    if edge_response:
+        return edge_response
+    
     import datetime
     token = request.args.get("token", "")
     if os.getenv("HEALTH_TOKEN") and token != os.getenv("HEALTH_TOKEN"):
@@ -47,7 +83,8 @@ def supervisor():
         "notion": "ok",
         "drive": "ok",
         "openai": "ok",
-        "ts": datetime.datetime.utcnow().isoformat() + "Z"
+        "ts": datetime.datetime.utcnow().isoformat() + "Z",
+        "edge": "replit"
     })))
 
 @app.get("/api/supervisor")
@@ -57,7 +94,12 @@ def api_supervisor():
 
 @app.get("/forecast")
 def forecast():
-    """30-day forecast endpoint"""
+    """30-day forecast endpoint (with Railway fallback)"""
+    # Try Railway fallback if enabled
+    edge_response = proxy_to_edge("forecast", "GET")
+    if edge_response:
+        return edge_response
+    
     return no_cache(make_response(jsonify([0.82, 0.85, 0.88, 0.90, 0.92, 0.95, 0.97])))
 
 @app.get("/api/forecast")
@@ -401,7 +443,12 @@ def marketplace_stats():
 
 @app.route('/metrics')
 def metrics_route():
-    """Cross-database metrics aggregation"""
+    """Cross-database metrics aggregation (with Railway fallback)"""
+    # Try Railway fallback if enabled
+    edge_response = proxy_to_edge("metrics", "GET")
+    if edge_response:
+        return edge_response
+    
     try:
         from bot.notion_api import NotionClientWrapper
         from bot.metrics import get_metrics
@@ -415,7 +462,12 @@ def metrics_route():
 
 @app.route('/pulse', methods=['POST'])
 def pulse_route():
-    """Create System Pulse entry in Governance Ledger"""
+    """Create System Pulse entry in Governance Ledger (with Railway fallback)"""
+    # Try Railway fallback if enabled
+    edge_response = proxy_to_edge("pulse", "POST")
+    if edge_response:
+        return edge_response
+    
     try:
         token = request.args.get("token", "")
         if os.getenv("HEALTH_TOKEN") and token != os.getenv("HEALTH_TOKEN"):

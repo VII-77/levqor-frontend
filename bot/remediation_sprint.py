@@ -180,10 +180,10 @@ class RemediationOrchestrator:
                 "public": True
             },
             {
-                "path": f"/supervisor?token={self.supervisor_token}",
+                "path": "/supervisor?format=json",
                 "method": "GET",
                 "expected_keys": [],
-                "public": False
+                "public": True
             },
             {
                 "path": "/ops-report",

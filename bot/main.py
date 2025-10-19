@@ -9,6 +9,7 @@ from bot.git_utils import get_git_info, check_git_clean
 from bot.schema_validator import SchemaValidator
 from bot.alerting import AlertManager
 from bot.metrics import MetricsCollector
+from bot.cost_guardrails import get_cost_guardrails, apply_model_policy
 
 class EchoPilotBot:
     def __init__(self):
@@ -18,7 +19,13 @@ class EchoPilotBot:
         self.commit, self.branch, self.is_dirty = get_git_info()
         self.alert_manager = AlertManager()
         self.metrics = MetricsCollector()
+        self.cost_guardrails = get_cost_guardrails()
         self.last_alert_ts = None
+        
+        # Log cost guardrails status
+        print("💰 Cost Guardrails: Active")
+        print(f"   Default Model: {apply_model_policy('processing')}")
+        print(f"   QA Model: {apply_model_policy('qa_evaluation')}")
     
     def health_check(self) -> Dict:
         try:
@@ -67,7 +74,8 @@ class EchoPilotBot:
             processor = TaskProcessor(
                 commit=self.commit,
                 alert_manager=self.alert_manager,
-                metrics=self.metrics
+                metrics=self.metrics,
+                cost_guardrails=self.cost_guardrails
             )
             
             print(f"[{datetime.now().isoformat()}] Polling for triggered tasks... (commit: {self.commit[:8]})")

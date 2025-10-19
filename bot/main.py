@@ -8,7 +8,7 @@ from bot import config
 from bot.git_utils import get_git_info, check_git_clean
 from bot.schema_validator import SchemaValidator
 from bot.alerting import AlertManager
-from bot.metrics import MetricsCollector
+# Metrics are now handled via API endpoints
 from bot.cost_guardrails import get_cost_guardrails, apply_model_policy
 
 class EchoPilotBot:
@@ -18,7 +18,6 @@ class EchoPilotBot:
         self.demo_mode = config.DEMO_MODE
         self.commit, self.branch, self.is_dirty = get_git_info()
         self.alert_manager = AlertManager()
-        self.metrics = MetricsCollector()
         self.cost_guardrails = get_cost_guardrails()
         self.last_alert_ts = None
         
@@ -74,7 +73,6 @@ class EchoPilotBot:
             processor = TaskProcessor(
                 commit=self.commit,
                 alert_manager=self.alert_manager,
-                metrics=self.metrics,
                 cost_guardrails=self.cost_guardrails
             )
             
@@ -195,6 +193,24 @@ class EchoPilotBot:
                 print("📊 Daily executive report scheduled for 06:55 UTC")
             except Exception as e:
                 print(f"⚠️  Executive report scheduler not started: {e}")
+            
+            # Start daily System Pulse (06:30 UTC)
+            try:
+                from bot.pulse_scheduler import check_and_run_pulse
+                
+                def pulse_checker_loop():
+                    while self.is_running:
+                        try:
+                            check_and_run_pulse()
+                        except Exception as e:
+                            print(f"[Pulse] Error: {e}")
+                        time.sleep(60)  # Check every minute
+                
+                pulse_thread = threading.Thread(target=pulse_checker_loop, daemon=True)
+                pulse_thread.start()
+                print("📊 Daily System Pulse scheduled for 06:30 UTC")
+            except Exception as e:
+                print(f"⚠️  System Pulse scheduler not started: {e}")
             
             # Start Telegram bot command listener
             try:

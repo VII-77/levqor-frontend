@@ -24,7 +24,7 @@ from bot.notion_api import NotionClientWrapper
 from bot.google_drive_client import GoogleDriveClientWrapper
 from bot.qa_thresholds import get_qa_threshold, extract_task_type, extract_qa_target
 from bot.alerting import AlertManager
-from bot.metrics import MetricsCollector
+# Metrics now handled via API endpoints
 
 try:
     from bot.payments import create_payment_link, is_payment_configured
@@ -50,7 +50,7 @@ except ImportError:
     print("[Processor] Client management module not available")
 
 class TaskProcessor:
-    def __init__(self, commit: str = "unknown", alert_manager: Optional[AlertManager] = None, metrics: Optional[MetricsCollector] = None, cost_guardrails: Optional[Dict] = None):
+    def __init__(self, commit: str = "unknown", alert_manager: Optional[AlertManager] = None, cost_guardrails: Optional[Dict] = None):
         self.openai_client = OpenAI(
             api_key=config.OPENAI_API_KEY,
             base_url=config.OPENAI_BASE_URL,
@@ -60,7 +60,6 @@ class TaskProcessor:
         self.gdrive = GoogleDriveClientWrapper()
         self.commit = commit
         self.alert_manager = alert_manager or AlertManager()
-        self.metrics = metrics or MetricsCollector()
         self.cost_guardrails = cost_guardrails or {}
     
     def _create_payment_link(self, job_name: str, cost: float, client_email: Optional[str] = None) -> Optional[Dict]:
@@ -258,7 +257,6 @@ class TaskProcessor:
         """Handle task that needs human review due to low QA score"""
         failure_note = f"QA score {qa_score} below threshold {qa_threshold}"
         self.alert_manager.record_failure(task_name, task_type)
-        self.metrics.record_failure(failure_note)
         
         self.notion.update_page(
             page_id=task_id,
@@ -299,15 +297,6 @@ class TaskProcessor:
             self.notion.log_completed_job(job_data)
         except Exception as e:
             print(f"Warning: Could not log to Job Log database: {e}")
-        
-        self.metrics.record_job({
-            'timestamp': datetime.now(),
-            'success': False,
-            'error': failure_note,
-            'qa_score': qa_score,
-            'duration_ms': duration_ms,
-            'cost': cost
-        })
         
         return {
             'success': False,
@@ -411,14 +400,6 @@ class TaskProcessor:
         except Exception as e:
             print(f"Warning: Could not log to Job Log database: {e}")
         
-        self.metrics.record_job({
-            'timestamp': datetime.now(),
-            'success': True,
-            'qa_score': qa_score,
-            'duration_ms': duration_ms,
-            'cost': cost
-        })
-        
         return {
             'success': True,
             'task_name': task_name,
@@ -432,7 +413,6 @@ class TaskProcessor:
                                  duration_ms: int) -> Dict:
         """Handle processing errors"""
         self.alert_manager.record_failure(task_name, task_type)
-        self.metrics.record_failure(error_msg)
         
         self.notion.update_page(
             page_id=task_id,
@@ -449,14 +429,6 @@ class TaskProcessor:
             details=error_msg,
             commit=self.commit
         )
-        
-        self.metrics.record_job({
-            'timestamp': datetime.now(),
-            'success': False,
-            'error': error_msg,
-            'duration_ms': duration_ms,
-            'cost': 0
-        })
         
         return {
             'success': False,

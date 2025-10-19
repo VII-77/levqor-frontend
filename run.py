@@ -32,6 +32,8 @@ def health_check():
 @app.route('/health')
 def health():
     """Alternative health endpoint"""
+    from bot.metrics import log_health_check
+    log_health_check("ok")
     return jsonify({"status": "ok"})
 
 @app.get("/supervisor")
@@ -394,6 +396,50 @@ def marketplace_stats():
         stats = marketplace.get_partner_stats(api_key)
         
         return jsonify(stats), (200 if stats['ok'] else 400)
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/metrics')
+def metrics_route():
+    """Cross-database metrics aggregation"""
+    try:
+        from bot.notion_api import NotionClientWrapper
+        from bot.metrics import get_metrics
+        
+        notion = NotionClientWrapper()
+        metrics = get_metrics(notion)
+        
+        return jsonify(metrics), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/pulse', methods=['POST'])
+def pulse_route():
+    """Create System Pulse entry in Governance Ledger"""
+    try:
+        token = request.args.get("token", "")
+        if os.getenv("HEALTH_TOKEN") and token != os.getenv("HEALTH_TOKEN"):
+            return jsonify({"ok": False, "error": "unauthorized"}), 401
+        
+        from bot.notion_api import NotionClientWrapper
+        from bot.metrics import get_metrics, write_pulse
+        
+        notion = NotionClientWrapper()
+        metrics = get_metrics(notion)
+        pulse_id = write_pulse(notion, metrics)
+        
+        if pulse_id:
+            return jsonify({
+                "ok": True,
+                "id": pulse_id,
+                "metrics": metrics
+            }), 200
+        else:
+            return jsonify({
+                "ok": False,
+                "error": "Failed to create pulse entry"
+            }), 500
+            
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 

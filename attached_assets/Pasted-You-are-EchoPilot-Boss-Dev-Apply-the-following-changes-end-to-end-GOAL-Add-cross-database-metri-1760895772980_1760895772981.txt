@@ -1,0 +1,57 @@
+You are EchoPilot-Boss-Dev. Apply the following changes end-to-end.
+
+GOAL
+- Add cross-database metrics aggregation and a daily “System Pulse” log at 06:30 UTC.
+- Expose /metrics and /pulse endpoints.
+- Write pulse entries to Notion Governance Ledger.
+- Zero downtime. Keep existing bot behavior.
+
+CODE CHANGES
+1) Create file metrics.py with:
+- function get_metrics(notion) -> dict:
+  - jobs_7d: count Job Log rows created within 7 days
+  - avg_qa_7d: average QA over last 7 days (0 if none)
+  - revenue_7d: sum Financial Tracker.Amount where Paid=true and Date within 7 days
+  - roi_30d: average Cost Dashboard.ROI within last 30 days (0 if none)
+  - uptime_pct: read last 7 days of /health pings from our logs (fallback 100 if none)
+- function write_pulse(notion, metrics) -> pulse_id:
+  - Create new Governance Ledger row:
+    Title = f"System Pulse {today_UTC}"
+    Notes = f"Jobs {jobs_7d} | QA {avg_qa_7d}% | Rev ${revenue_7d} | ROI {roi_30d}% | Uptime {uptime_pct}%"
+    Severity = "Info"
+    Source = "Ops Monitor"
+
+2) In app.py (or main.py):
+- add route GET /metrics -> returns JSON from get_metrics()
+- add route POST /pulse?token=... -> if token==HEALTH_TOKEN then:
+    m = get_metrics(notion); id = write_pulse(notion,m); return {"ok":true,"id":id,"metrics":m}
+- keep existing imports; reuse Notion client you already use.
+
+3) Scheduler (cron-like):
+- In the main polling loop (or create scheduler.py), add a lightweight scheduler that runs once after 06:30 UTC each day:
+  - if not already ran today -> HTTP POST to /pulse?token=$HEALTH_TOKEN (internal call) and log result.
+- Ensure idempotency (only one pulse per day). Use a small file tmp/last_pulse_utc.txt to store the date.
+
+4) Logging:
+- Append each /health check result with timestamp to logs/health.ndjson (status:"ok"), keep 7 days.
+- get_metrics() computes uptime as 100 * ok_count / total_count over last 7 days.
+
+5) Env vars (read via existing config):
+- GOVERNANCE_DB_ID (Notion Governance Ledger DB)
+- HEALTH_TOKEN (already present)
+- JOBLOG_DB_ID, FINANCE_DB_ID, COST_DB_ID (use your existing variable names; fallbacks:
+  NOTION_JOB_DB_ID, NOTION_FINANCE_DB_ID, NOTION_COST_DB_ID)
+
+6) Tests:
+- Add GET /metrics smoke test (returns keys: jobs_7d, avg_qa_7d, revenue_7d, roi_30d, uptime_pct).
+- Add POST /pulse?token=$HEALTH_TOKEN returns ok:true.
+
+7) Procfile unchanged (gunicorn -w 2 -k gthread -t 120 app:app). No preload.
+
+RUN & VERIFY (Ghostwriter should run these in Shell)
+- curl -fsS "$BASE_URL/metrics" | python3 -m json.tool
+- curl -X POST -fsS "$BASE_URL/pulse?token=$HEALTH_TOKEN" | python3 -m json.tool
+
+OUTPUT
+- Create/overwrite file QUICK_METRICS_README.md explaining endpoints, envs, and daily schedule.
+- Print final line: READY with endpoints.

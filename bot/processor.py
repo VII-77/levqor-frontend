@@ -50,7 +50,7 @@ except ImportError:
     print("[Processor] Client management module not available")
 
 class TaskProcessor:
-    def __init__(self, commit: str = "unknown", alert_manager: Optional[AlertManager] = None, metrics: Optional[MetricsCollector] = None):
+    def __init__(self, commit: str = "unknown", alert_manager: Optional[AlertManager] = None, metrics: Optional[MetricsCollector] = None, cost_guardrails: Optional[Dict] = None):
         self.openai_client = OpenAI(
             api_key=config.OPENAI_API_KEY,
             base_url=config.OPENAI_BASE_URL,
@@ -61,6 +61,7 @@ class TaskProcessor:
         self.commit = commit
         self.alert_manager = alert_manager or AlertManager()
         self.metrics = metrics or MetricsCollector()
+        self.cost_guardrails = cost_guardrails or {}
     
     def _create_payment_link(self, job_name: str, cost: float, client_email: Optional[str] = None) -> Optional[Dict]:
         """Create payment link if payment provider is configured"""

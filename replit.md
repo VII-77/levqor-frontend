@@ -42,6 +42,8 @@ The application is built with a modular component design focusing on:
 -   **Authentication:** Handles authentication via Replit Connectors OAuth Flow for Notion, Google Drive, and Gmail with dynamic token refresh.
 -   **Alerting System:** Comprehensive alerting policy with webhook, email, and Telegram notifications for failures, including de-duplication.
 -   **Monitoring & Diagnostics:** Includes an Auto-Operator for self-healing, hourly heartbeats, synthetic tests, daily supervisor reports, and real-time failure alerts via email and Telegram.
+-   **Metrics Aggregation:** Cross-database metrics system with daily System Pulse reports to Governance Ledger, health logging (NDJSON), and uptime tracking.
+-   **Edge Routing:** Railway fallback support to work around Replit's GCP Load Balancer proxy limitations for `/supervisor`, `/forecast`, `/metrics`, and `/pulse` endpoints.
 -   **Client Management:** Automated revenue calculation, client tracking via Notion, payment processing (Stripe test mode).
 -   **Compliance & Maintenance:** Features for Data Subject Requests (DSR), refund processing, p95 latency tracking, and automated configuration backups.
 -   **Resilience & Auto-Recovery:** Mechanisms for Stripe payment reconciliation (missed webhooks), automatic retry of failed jobs, and media file validation (size/duration limits).
@@ -117,4 +119,26 @@ The system uses a **13-database structure** within Notion:
 -   `TELEGRAM_BOT_TOKEN`
 -   `TELEGRAM_CHAT_ID`
 
+**Railway Fallback (Optional - for external API access)**:
+-   `EDGE_ENABLE` - Set to `true` to enable Railway proxy routing
+-   `EDGE_BASE_URL` - Your Railway deployment URL (e.g., `https://your-app.railway.app`)
+
 **Setup:** Use `bot/database_setup.py` to auto-generate database IDs and environment variable configs.
+
+## Railway Fallback Feature
+
+EchoPilot supports **dual deployment** to work around Replit's proxy routing issues:
+
+-   **Replit Reserved VM**: Runs all automation, polling, and background tasks (works perfectly)
+-   **Railway Deployment** (optional): Provides stable external API access for endpoints blocked by Replit's proxy
+
+**Affected Endpoints** (return 404 on Replit's public URL):
+-   `/supervisor` - System supervisor status
+-   `/forecast` - 30-day forecasting
+-   `/metrics` - Cross-database metrics
+-   `/pulse` - System pulse reports
+
+**How it Works**: When `EDGE_ENABLE=true` and `EDGE_BASE_URL` is set, Replit automatically proxies these endpoints to your Railway deployment, providing transparent fallback routing with zero code changes.
+
+**Setup Guide**: See `RAILWAY_FALLBACK_SETUP.md` for detailed instructions.
+**Test Script**: Run `bash scripts/test_edge.sh` to verify Railway fallback configuration.

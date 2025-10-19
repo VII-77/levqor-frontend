@@ -1,0 +1,65 @@
+You are the EchoPilot release captain. Apply all changes and produce one final JSON summary.
+
+A) CONFIG: SINGLE WORKER + GUARDRAILS
+1) Edit Procfile EXACTLY:
+   web: gunicorn -w 1 -k gthread -t 120 app:app
+2) Ensure/Set secrets (create if missing):
+   OPENAI_MODEL=gpt-4o-mini
+   MAX_COST_USD_JOB=0.75
+   MAX_TOKENS_JOB=300000
+   # Stripe live (prompt me to paste if absent)
+   STRIPE_SECRET_KEY_LIVE=sk_live_********
+   STRIPE_WH_SECRET_LIVE=whsec_********
+   STRIPE_MODE=live
+3) Save, then clean-restart gunicorn (stop any stale workers). Confirm 1 worker active.
+
+B) HEALTH BASELINE
+1) Call /health and append a line to logs/health.ndjson.
+2) Note: /supervisor, /forecast, /metrics, /pulse may 404 via Replit proxy; verify the Flask routes internally instead and proceed.
+
+C) $1 LIVE PAYMENT SMOKE
+1) In Notion “🧱 Automation Queue System”, create row:
+   - Job Name: Go-Live $1 Charge
+   - Task Type: Processing
+   - Trigger: true
+   - Status: New
+   - Payload Link: https://filesamples.com/samples/audio/mp3/sample3.mp3
+   - Owner Email: admin@echopilot.ai
+2) Poll every 10s up to 120s for pickup. After it completes, WAIT 60s (Notion sync).
+
+D) JOB LOG VERIFICATION (🎙️ EchoPilot Job Log)
+1) Find the row with Job Name = "Go-Live $1 Charge".
+2) Assert and capture these fields (use exact names in your schema):
+   CID, QA, Duration Sec, Duration Min, Client Rate USD/min,
+   Gross USD, Profit USD, Margin %, Payment Link, Payment Status,
+   Drive Folder, Summary.
+3) If Payment Link missing OR Stripe errors, capture exact runtime error text and continue.
+
+E) PAYMENT → PAID + ROI
+1) Open the Payment Link and complete a **$1 live** test payment (if automation cannot click, mark Payment Status = Paid after verifying Stripe shows a successful payment for $1).
+2) In “💰 Cost Dashboard”, after save, WAIT 30–60s and read:
+   - Revenue_30d
+   - ROI
+   Capture both values.
+
+F) RESULT JSON (print only this object)
+E2E_RESULT = {
+  "status": "PASS|FAIL|PARTIAL",
+  "reason": "<short reason>",
+  "qa": <number or null>,
+  "duration_sec": <number or null>,
+  "gross_usd": <number or null>,
+  "profit_usd": <number or null>,
+  "margin_pct": <number or null>,
+  "payment_link": "<url or null>",
+  "payment_status": "<final status>",
+  "roi_30d": "<value or null>",
+  "governance_pulse": "created|skipped|error"
+}
+
+NOTES:
+- Do NOT change any Notion schemas.
+- If STRIPE live keys are missing, PROMPT ME to paste them, then continue.
+- If an external endpoint 404s via Replit, verify with Flask test client internally and proceed.
+- All model calls must use gpt-4o-mini.
+```0

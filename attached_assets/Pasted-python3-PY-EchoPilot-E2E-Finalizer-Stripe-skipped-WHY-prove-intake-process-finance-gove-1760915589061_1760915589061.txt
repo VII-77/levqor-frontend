@@ -1,0 +1,101 @@
+python3 - <<'PY'
+# EchoPilot E2E Finalizer (Stripe skipped) — WHY: prove intake→process→finance→governance in one go
+import sys, os, json, time
+sys.path.insert(0, '/home/runner/workspace')
+from datetime import datetime
+from bot.notion_api import NotionClientWrapper
+from bot import config
+from run import app
+
+WHY=lambda x:x  # tiny helper so comments stay brief
+
+n = NotionClientWrapper()
+
+# 1) Create test job (WHY: kicks pipeline)
+props = {
+  "Job Name": {"title":[{"text":{"content":"E2E Finalizer (no-Stripe)"}}]},
+  "Task Type": {"select":{"name":"Processing"}},
+  "Trigger": {"checkbox": True},
+  "Status": {"select":{"name":"New"}},
+  "Payload Link": {"url":"https://filesamples.com/samples/audio/mp3/sample3.mp3"}},
+page = n.create_page(config.AUTOMATION_QUEUE_DB_ID, props)
+job_id = page["id"]
+
+# 2) Poll Job Log with backoff 5→10→20→30s (WHY: Notion sync lag)
+delays=[5,10,20,30]
+job=None
+def get(p,t):
+    k=t.get('type')
+    return (t.get(k) or ({} if k!='title' else t.get(k,[])) )
+def val(props,name):
+    if name not in props: return None
+    t=props[name]['type']
+    if t=='number': return props[name]['number']
+    if t=='url': return props[name]['url']
+    if t=='select': s=props[name]['select']; return s['name'] if s else None
+    if t=='rich_text': r=props[name]['rich_text']; return r[0]['text']['content'] if r else None
+    if t=='title': r=props[name]['title']; return r[0]['text']['content'] if r else None
+    return None
+
+for d in delays:
+    time.sleep(d)
+    rows = n.query_database(config.JOB_LOG_DB_ID)
+    now = datetime.utcnow()
+    for r in rows[:10]:
+        props=r['properties']
+        # seen in last 5 min & has finance
+        created = r.get('created_time','')
+        has_fin = val(props,'Gross USD') is not None
+        if created[:16] == now.isoformat()[:16] and has_fin:
+            job = {
+              "page_id": r['id'],
+              "qa": val(props,'QA') or val(props,'QA Score'),
+              "duration_sec": val(props,'Duration Sec'),
+              "duration_min": val(props,'Duration Min'),
+              "gross_usd": val(props,'Gross USD'),
+              "profit_usd": val(props,'Profit USD'),
+              "margin_pct": val(props,'Margin %'),
+              "payment_link": val(props,'Payment Link'),
+              "payment_status": val(props,'Payment Status'),
+            }
+            break
+    if job: break
+
+# 3) Governance /pulse (WHY: heartbeat in Governance DB)
+gov="error"
+try:
+    with app.test_client() as c:
+        r=c.post(f"/pulse?token={os.getenv('HEALTH_TOKEN','test')}")
+        gov = "created" if r.status_code==200 else f"status_{r.status_code}"
+except Exception: pass
+
+# 4) ROI/Revenue read (WHY: confirm rollup wiring)
+roi="not_configured"
+try:
+    cid=os.getenv('NOTION_COST_DASHBOARD_DB_ID')
+    if cid:
+        res = n.query_database(cid)
+        if res:
+            p=res[0]['properties']
+            roi = (p.get('ROI',{}).get('formula',{}) or {}).get('number')
+            roi = roi if roi is not None else "no_entries"
+except Exception:
+    pass
+
+# 5) Output
+status, reason = ("PASS","processed + finance tracked + pulse ok") if job else ("PARTIAL","job not visible yet (Notion lag)")
+out = {
+  "status": status,
+  "reason": reason,
+  "qa": job.get("qa") if job else None,
+  "duration_sec": job.get("duration_sec") if job else None,
+  "gross_usd": job.get("gross_usd") if job else None,
+  "profit_usd": job.get("profit_usd") if job else None,
+  "margin_pct": job.get("margin_pct") if job else None,
+  "payment_link": None,                 # Stripe intentionally skipped
+  "payment_status": job.get("payment_status") if job else None,
+  "roi_30d": roi,
+  "governance_pulse": gov
+}
+print(json.dumps(out, indent=2))
+PY

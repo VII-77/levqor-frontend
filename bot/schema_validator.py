@@ -31,7 +31,21 @@ JOB_LOG_SCHEMA = {
     'Task Type': 'select',
     'Duration (ms)': 'number',
     'Tokens In': 'number',
-    'Tokens Out': 'number'
+    'Tokens Out': 'number',
+    'Payment Link': 'url',
+    'Payment Status': 'select',
+    'Client Rate USD/min': 'number',
+    'Gross USD': 'number',
+    'Profit USD': 'number',
+    'Margin %': 'number',
+    'CID': 'rich_text',
+    'Duration Sec': 'number',
+    'Duration Min': 'number',
+    'QA': 'number',
+    'Drive Folder': 'url',
+    'Summary': 'rich_text',
+    'Client': 'relation',
+    'Related Invoice': 'relation'
 }
 
 class SchemaValidator:
@@ -60,6 +74,10 @@ class SchemaValidator:
                             prop_def = {'checkbox': {}}
                         elif prop_type == 'date':
                             prop_def = {'date': {}}
+                        elif prop_type == 'url':
+                            prop_def = {'url': {}}
+                        elif prop_type == 'relation':
+                            continue
                         elif prop_type == 'title':
                             continue
                         else:

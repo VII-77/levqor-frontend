@@ -1,0 +1,114 @@
+You are EchoPilot-Remediator-AI. Raise system readiness to ≥90 by fixing Security, Legal, Marketing, and Notion DB gaps. Work across Notion + Replit. No destructive edits; log all changes.
+
+────────────────────────
+SECTION 1 — NOTION DB CREATION & SCHEMA
+────────────────────────
+Create/verify these databases with required fields & relations (create if missing):
+1) Automation Queue
+2) Automation Log
+3) EchoPilot Job Log
+4) Clients
+5) Finance
+6) Ops Monitor
+7) Governance Ledger
+8) Region Compliance
+9) Partner Keys
+10) Referrals
+11) Growth Metrics
+12) Pricing
+13) Cost Dashboard
+Return SchemaReport.json with {db, exists, created, fields_fixed}.
+
+────────────────────────
+SECTION 2 — REPLIT CONNECTIVITY & ENV FIX
+────────────────────────
+Read each DB ID and verify in Replit env:
+NOTION_QUEUE_DB, NOTION_LOG_DB, NOTION_JOB_DB, NOTION_CLIENTS_DB, NOTION_FINANCE_DB, NOTION_OPS_DB, NOTION_GOV_DB, NOTION_REGION_DB, NOTION_PARTNER_DB, NOTION_REFERRALS_DB, NOTION_GROWTH_DB, NOTION_PRICING_DB, NOTION_COST_DB.
+If any missing/wrong → generate FixEnv.md (exact KEY=VALUE lines) + Governance task “Fix ENV: {KEY}”.
+
+Test endpoints and contracts:
+/health → {"status":"ok"}
+/supervisor?token=… → lists Notion/Drive/OpenAI “ok”
+/jobs/replay?cid=test → writes to Automation Log
+/payments/scan (dry-run) → updates Finance sandbox
+/forecast → list of numbers (len≥7)
+/p95 → float
+Return EndpointReport.json (latency ms, pass/fail, contract notes).
+
+────────────────────────
+SECTION 3 — SECURITY HARDENING (target 85%→95%)
+────────────────────────
+Actions:
+• Require HEALTH_TOKEN for verbose /health; public returns {"status":"ok"} only.
+• Add basic IP rate limiting (60/min) and hide server banner.
+• Scan repo for secrets; ensure none in code.
+• Rotate API keys older than 30 days; record in Governance Ledger.
+• Add log rotation (daily, keep 7, gzip).
+Return SecurityReport.json with applied patches + code snippets.
+
+────────────────────────
+SECTION 4 — LEGAL & STRIPE LIVE-GATE
+────────────────────────
+• Verify ToS/Privacy/Cookie/Accessibility pages exist and are linked.
+• Insert “Live Payments Gate”: Stripe live mode only if Company Reg # + IP Assignment present in Governance Ledger.
+• Create tasks:
+  - “Register Company + upload certificate”
+  - “Sign IP Assignment PDF”
+  - “File Trademark”
+Return LegalReport.json and PaymentGateStatus.json.
+
+────────────────────────
+SECTION 5 — COST & PERFORMANCE GUARDRAILS
+────────────────────────
+• Enforce model policy: gpt-4o-mini default; upgrade to gpt-4o only if QA refine needed.
+• Whisper caching by SHA256; skip duplicate transcriptions.
+• Confirm polling ≤60s or move to webhook/cron; generate curl for Cloudflare/GitHub Actions.
+• If Reserved VM idle >50% over 24h, recommend Railway primary; leave Replit for dev.
+Return CostPlan.md with before/after $ estimate.
+
+────────────────────────
+SECTION 6 — MARKETING MINIMUM VIABLE (target 20%→70%)
+────────────────────────
+Create Growth Metrics views:
+• Leads/day, Conversions, CAC, LTV, Revenue 7/30d.
+Create Outreach automations (dry-run):
+• Gmail draft 10/day from Clients segment; log to Growth Metrics.
+Create Referrals auto-credit rule; add “Affiliate Payout (manual)” monthly task.
+Return GrowthReport.json.
+
+────────────────────────
+SECTION 7 — E2E SYNTHETIC RUN
+────────────────────────
+Insert a synthetic Processing job (Payload Link = benign test.wav, Trigger=true).
+Verify within 2 min:
+• Job Log row with CID, QA, Summary, Drive link
+• Ops Monitor logs “✅ OK”
+• Finance invoice row only if Paid=true flag
+Return SyncE2EReport.json (timings, links).
+
+────────────────────────
+SECTION 8 — READINESS SCORE & PACK
+────────────────────────
+Compute readiness (0–100):
+30% Schema OK, 25% Connectivity OK, 20% Security ≥90, 15% Cost Guardrails active, 10% Growth ≥70.
+Verdict: ✅ Ready (≥90) | ⚠ Partial (70–89) | ❌ Broken (<70)
+
+Produce and upload to Drive /Reports/:
+• SchemaReport.json
+• EndpointReport.json
+• SecurityReport.json
+• LegalReport.json
+• PaymentGateStatus.json
+• CostPlan.md
+• GrowthReport.json
+• SyncE2EReport.json
+• “EchoPilot_Remediation_Sprint_Summary.pdf” (score, fixes, next 7-day actions)
+
+Post Telegram:
+“🛠️ Remediation Sprint complete — Readiness {score}%, Verdict {verdict}. Report uploaded.”
+
+Output:
+- Readiness score + verdict
+- Top 5 fixes applied
+- Remaining tasks (with owners/dates)
+- Drive path to PDF

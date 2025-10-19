@@ -1,0 +1,119 @@
+---
+
+🔧 EchoPilot Go-Live Orchestrator (One Prompt)
+
+Role: You are the EchoPilot release captain for a live system already deployed at https://echopilotai.replit.app on a Reserved VM. Your job is to run a full end-to-end paid smoke test, verify finance wiring, and output a single PASS/FAIL report with fixes.
+
+Environment assumptions (already set):
+AI_INTEGRATIONS_OPENAI_API_KEY, AUTOMATION_QUEUE_DB_ID, JOB_LOG_DB_ID, NOTION_OPS_MONITOR_DB_ID, NOTION_FINANCE_DB_ID, NOTION_GOVERNANCE_DB_ID, NOTION_GROWTH_DB_ID, HEALTH_TOKEN, SUPERVISOR_TOKEN, OPENAI_MODEL=gpt-4o-mini.
+
+Do exactly this sequence:
+
+1. Preflight & Health
+
+
+
+GET /health → expect {"status":"ok"}.
+
+Log result to logs/health.ndjson (append).
+
+Print workers (gunicorn) and model in use.
+
+
+2. Pricing/Cost sanity
+
+
+
+Read Notion Pricing DB; assert 3 active tiers (Starter/Pro/Business) with correct per-min and overage.
+
+Read Cost Dashboard; assert at least Replit/OpenAI rows exist.
+
+If Notion access isn’t available from here, print the exact Notion checks for the user to run.
+
+
+3. Create a test job (paid flow)
+
+
+
+In Automation Queue System create:
+
+Job Name: Go-Live Paid Smoke
+
+Task Type: Processing
+
+Trigger: true
+
+Status: New
+
+Payload Link: https://filesamples.com/samples/audio/mp3/sample3.mp3
+
+Owner Email: admin@echopilot.ai
+
+
+Wait up to 120s (poll every 10s) for bot pickup.
+
+
+4. Verify processing outcome
+
+
+
+In EchoPilot Job Log find the new entry (same Job Name). Assert these fields present (or equivalent SchemaMap):
+CID, QA, Duration Sec, Duration Min (formula), Client Rate USD/min, Gross USD (formula), Profit USD, Margin %, Payment Link (URL), Payment Status, Drive Folder (URL), Summary.
+
+Print those values.
+
+
+5. Stripe/Finance wiring
+
+
+
+Ensure Payment Link exists; if not, record the error message from logs.
+
+Set Payment Status = Paid (update Job Log).
+
+In Cost Dashboard, confirm Revenue_30d rollup increases and ROI formula recomputes (or print why not).
+
+
+6. Daily metrics pulse
+
+
+
+POST /pulse?token=$HEALTH_TOKEN (internal call OK if public 404).
+
+Report whether a Governance/Operations pulse row was created (or simulated).
+
+
+7. Result & self-healing
+
+
+
+If any step fails, call /jobs/replay?last=true&token=$SUPERVISOR_TOKEN, then re-check Step 4 once.
+
+If still failing, print: last 60 lines of server.log, last 60 lines of console history, and the first failing assertion.
+
+
+8. Final PASS/FAIL
+
+
+
+PASS criteria: health ok, job processed, Job Log populated with finance fields, Stripe link generated, ROI visible after marking Paid, pulse recorded.
+
+Output one JSON blob named E2E_RESULT with keys: status, reason, qa, duration_sec, gross_usd, profit_usd, margin_pct, payment_link, roi_30d, governance_pulse.
+
+
+Notes/Constraints:
+
+Some endpoints (e.g., /supervisor, /metrics, /pulse) may 404 externally on Replit; use internal Flask test client or internal HTTP where available.
+
+Always prefer gpt-4o-mini.
+
+Never modify schemas—only read/write fields that exist.
+
+
+Deliverables:
+
+Printed preflight summary → pricing/cost checks → job result table → finance updates → pulse status → E2E_RESULT JSON.
+
+
+
+---

@@ -72,6 +72,28 @@ def check_csrf(f):
         return f(*args, **kwargs)
     return decorated_function
 
+# RBAC: Role-Based Access Control (Stabilization Sprint)
+import functools
+ROLES_JSON = os.getenv("ROLES_JSON", "{}")
+_ROLES = json.loads(ROLES_JSON or "{}")  # {"<DASHBOARD_KEY>":"admin"|"analyst"}
+
+def _role_from_key(req):
+    """Get role from dashboard key"""
+    key = req.headers.get("X-Dash-Key") or ""
+    return _ROLES.get(key)
+
+def require_role(*allowed):
+    """Decorator to require specific roles"""
+    def deco(fn):
+        @functools.wraps(fn)
+        def wrapped(*a, **kw):
+            role = _role_from_key(request)
+            if not role or role not in allowed:
+                return jsonify({"ok": False, "error": "forbidden", "need": list(allowed)}), 403
+            return fn(*a, **kw)
+        return wrapped
+    return deco
+
 @app.before_request
 def before_request_timing():
     """Record request start time for latency tracking"""
@@ -3727,6 +3749,37 @@ def api_ops_check():
     
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.get("/api/ops/slo/status")
+@require_role("analyst","admin")
+def slo_status():
+    """Get SLO status - analyst/admin only (Stabilization Sprint)"""
+    p = "logs/slo_guard.ndjson"
+    last = ""
+    if os.path.exists(p):
+        with open(p, "rb") as f:
+            try:
+                for line in f: pass
+                last = line.decode("utf-8").strip()
+            except:
+                last = "{}"
+    return jsonify({"ok": True, "last": last})
+
+@app.get("/api/ops/dr/last")
+@require_role("analyst","admin")
+def dr_last():
+    """Get last DR reports - analyst/admin only (Stabilization Sprint)"""
+    import glob
+    files = sorted(glob.glob("logs/dr_report_*.json"))[-3:]
+    return jsonify({"ok": True, "files": files})
+
+@app.post("/api/ops/uptime/test")
+@require_role("admin")
+def uptime_test():
+    """Run uptime test - admin only (Stabilization Sprint)"""
+    import subprocess, sys
+    r = subprocess.run([sys.executable,"scripts/uptime_monitor.py","--once"], capture_output=True, text=True)
+    return jsonify({"ok": r.returncode==0, "stdout": r.stdout, "stderr": r.stderr})
 
 @app.route('/api/revenue/intelligence', methods=['POST'])
 @require_dashboard_key

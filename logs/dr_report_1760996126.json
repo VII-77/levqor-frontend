@@ -1,0 +1,19 @@
+{
+  "ts": "2025-10-20T21:35:26Z",
+  "region": "replica-a",
+  "checks": [
+    {
+      "name": "config_load",
+      "ok": true
+    },
+    {
+      "name": "files_present",
+      "ok": true
+    },
+    {
+      "name": "boot_probe",
+      "ok": true
+    }
+  ],
+  "ok": true
+}

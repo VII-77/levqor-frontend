@@ -214,6 +214,17 @@
         </div>
         <!-- ==================== END OPS CHECK ==================== -->
 
+        <!-- ==================== RELIABILITY (Stabilization Sprint) ==================== -->
+        <div class="button-grid" style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); padding: 20px; border-radius: 12px; margin: 20px 0;">
+            <h3 style="grid-column: 1/-1; margin: 0 0 10px 0; font-size: 16px; color: white;">🛡️ Reliability & DR</h3>
+            <p style="grid-column: 1/-1; font-size: 13px; color: rgba(255,255,255,0.9); margin-bottom: 10px;">Uptime monitoring, SLO tracking, backup verification, and disaster recovery drills.</p>
+            <button onclick="runUptimeTest()" style="background: rgba(255,255,255,0.2); color: white; border: 2px solid rgba(255,255,255,0.3);">▶ Run Uptime Test</button>
+            <button onclick="viewSLO()" style="background: rgba(255,255,255,0.2); color: white; border: 2px solid rgba(255,255,255,0.3);">📈 View SLO</button>
+            <button onclick="viewDR()" style="background: rgba(255,255,255,0.2); color: white; border: 2px solid rgba(255,255,255,0.3);">🧰 Last DR Report</button>
+            <pre id="relOut" style="grid-column: 1/-1; max-height: 220px; overflow: auto; background: rgba(0,0,0,0.3); color: white; padding: 15px; border-radius: 8px; font-size: 12px; margin-top: 10px;"></pre>
+        </div>
+        <!-- ==================== END RELIABILITY ==================== -->
+
         <!-- ==================== POST-DEPLOY CHECKLIST (Phase 30) ==================== -->
         <div class="button-grid" style="background: #1a1a2e; padding: 20px; border-radius: 12px; margin: 20px 0;">
             <h3 style="grid-column: 1/-1; margin: 0 0 15px 0; font-size: 16px; color: #667eea;">🧾 Post-Deploy Checklist</h3>
@@ -1230,6 +1241,71 @@
             } catch (e) {
                 out.textContent = 'Error: ' + e;
                 log('❌ Ops Check failed: ' + e, 'error');
+            }
+        }
+
+        // Reliability functions (Stabilization Sprint)
+        async function runUptimeTest() {
+            const key = localStorage.getItem('dashKey') || prompt('Enter DASHBOARD_KEY:');
+            if (!key) return;
+            
+            const out = document.getElementById('relOut');
+            out.textContent = 'Running uptime test...';
+            log('⏱️ Testing uptime monitor...', 'info');
+            
+            try {
+                const res = await fetch('/api/ops/uptime/test', {
+                    method: 'POST',
+                    headers: { 'X-Dash-Key': key }
+                });
+                const j = await res.json();
+                out.textContent = JSON.stringify(j, null, 2);
+                log(`⏱️ Uptime test: ${j.ok ? 'PASS ✅' : 'FAIL ❌'}`, j.ok ? 'success' : 'error');
+            } catch (e) {
+                out.textContent = 'Error: ' + e;
+                log('❌ Uptime test failed: ' + e, 'error');
+            }
+        }
+
+        async function viewSLO() {
+            const key = localStorage.getItem('dashKey') || prompt('Enter DASHBOARD_KEY:');
+            if (!key) return;
+            
+            const out = document.getElementById('relOut');
+            out.textContent = 'Fetching SLO status...';
+            log('📊 Checking SLO metrics...', 'info');
+            
+            try {
+                const res = await fetch('/api/ops/slo/status', {
+                    headers: { 'X-Dash-Key': key }
+                });
+                const j = await res.json();
+                out.textContent = JSON.stringify(j, null, 2);
+                log('📊 SLO status retrieved', 'success');
+            } catch (e) {
+                out.textContent = 'Error: ' + e;
+                log('❌ SLO fetch failed: ' + e, 'error');
+            }
+        }
+
+        async function viewDR() {
+            const key = localStorage.getItem('dashKey') || prompt('Enter DASHBOARD_KEY:');
+            if (!key) return;
+            
+            const out = document.getElementById('relOut');
+            out.textContent = 'Fetching DR reports...';
+            log('🧰 Checking disaster recovery reports...', 'info');
+            
+            try {
+                const res = await fetch('/api/ops/dr/last', {
+                    headers: { 'X-Dash-Key': key }
+                });
+                const j = await res.json();
+                out.textContent = JSON.stringify(j, null, 2);
+                log(`🧰 Found ${j.files?.length || 0} DR reports`, 'success');
+            } catch (e) {
+                out.textContent = 'Error: ' + e;
+                log('❌ DR fetch failed: ' + e, 'error');
             }
         }
 

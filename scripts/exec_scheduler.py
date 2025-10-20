@@ -808,6 +808,30 @@ def run_scheduled_tasks():
     if is_time_match(datetime.utcnow().hour, 0) and should_run('predictive_maintenance'):
         run_predictive_maintenance()
         mark_run('predictive_maintenance')
+    
+    # ==================== STABILIZATION SPRINT: RELIABILITY ====================
+    
+    # 49) Uptime Monitor - Every minute
+    if 'uptime' not in last_run or \
+       (datetime.utcnow() - last_run['uptime']).total_seconds() >= 60:
+        run_uptime()
+        mark_run('uptime')
+    
+    # 50) Backup Verification - Daily at 02:30 UTC
+    if is_time_match(2, 30) and should_run('backup_verify'):
+        run_backup_verify()
+        mark_run('backup_verify')
+    
+    # 51) Secret Rotation - Daily at 00:10 UTC (script decides monthly rotation)
+    if is_time_match(0, 10) and should_run('rotate_secrets'):
+        run_rotate_secrets()
+        mark_run('rotate_secrets')
+    
+    # 52) DR Drill - Weekly on Sundays at 01:00 UTC
+    now = datetime.utcnow()
+    if now.weekday() == 6 and is_time_match(1, 0) and should_run('dr_drill'):
+        run_dr_drill()
+        mark_run('dr_drill')
 
 def write_pid():
     """Write PID to file with fsync"""
@@ -934,6 +958,40 @@ def run_predictive_maintenance():
         subprocess.run(['python3', 'scripts/predictive_maintenance.py'], check=False, timeout=60)
     except Exception as e:
         log_event('predictive_maintenance_error', {'error': str(e)})
+
+# ==================== STABILIZATION SPRINT: RELIABILITY TASKS ====================
+
+def run_uptime():
+    """Run uptime monitor - Stabilization Sprint"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/uptime_monitor.py', '--once'], check=False, timeout=15)
+    except Exception as e:
+        log_event('uptime_error', {'error': str(e)})
+
+def run_backup_verify():
+    """Run backup verification - Stabilization Sprint"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/backup_verify.py'], check=False, timeout=60)
+    except Exception as e:
+        log_event('backup_verify_error', {'error': str(e)})
+
+def run_rotate_secrets():
+    """Run secret rotation - Stabilization Sprint"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/rotate_secrets.py'], check=False, timeout=30)
+    except Exception as e:
+        log_event('rotate_secrets_error', {'error': str(e)})
+
+def run_dr_drill():
+    """Run DR drill - Stabilization Sprint"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/dr_drill.py'], check=False, timeout=60)
+    except Exception as e:
+        log_event('dr_drill_error', {'error': str(e)})
 
 if __name__ == '__main__':
     main()

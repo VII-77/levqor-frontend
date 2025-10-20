@@ -7,6 +7,10 @@ import os
 import json
 import requests
 from bot import git_utils
+from bot.security import (
+    rate_limit, require_csrf, audit_log, apply_security_headers,
+    generate_csrf_token, get_security_headers
+)
 from functools import wraps
 import time
 from collections import defaultdict
@@ -121,7 +125,10 @@ def before_request_timing():
 
 def add_security_headers(response):
     """Add security headers and record metrics/traces"""
-    # Security headers
+    # Apply Boss Mode security headers
+    response = apply_security_headers(response)
+    
+    # Security headers (legacy)
     response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
     response.headers['X-Frame-Options'] = 'DENY'
     response.headers['X-Content-Type-Options'] = 'nosniff'
@@ -766,6 +773,16 @@ def pulse_route():
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
+@app.route('/')
+def landing():
+    """Boss Mode: Landing page"""
+    return send_from_directory('templates', 'landing.html')
+
+@app.route('/about')
+def about():
+    """Boss Mode: About page with system info"""
+    return send_from_directory('templates', 'about.html')
+
 @app.route('/dashboard')
 @app.route('/dashboard.html')
 def dashboard():
@@ -790,6 +807,28 @@ def api_feature_flags():
     """Get current feature flags (public endpoint for UI)"""
     flags = load_feature_flags()
     return jsonify({"ok": True, "flags": flags})
+
+@app.route('/api/status/summary')
+@rate_limit(max_requests=30, window_seconds=60)
+def api_status_summary():
+    """Boss Mode: Aggregated system status summary"""
+    try:
+        from bot.status_summary import get_status_summary
+        summary = get_status_summary()
+        return jsonify({"ok": True, "data": summary})
+    except Exception as e:
+        audit_log("status_summary_error", {"error": str(e)}, ok=False)
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/csrf-token', methods=['GET'])
+def api_get_csrf_token():
+    """Boss Mode: Generate CSRF token for forms"""
+    token, session_id = generate_csrf_token()
+    return jsonify({
+        "ok": True,
+        "csrf_token": token,
+        "session_id": session_id
+    })
 
 @app.route('/api/supervisor-status')
 @require_dashboard_key

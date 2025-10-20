@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - EchoPilot AI</title>
+    <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+    <header class="app-header">
+        <a href="/" class="app-logo">
+            <span>🤖</span>
+            <span>EchoPilot</span>
+        </a>
+        <div class="header-actions">
+            <a href="/" class="btn btn-secondary btn-sm">Home</a>
+            <a href="/dashboard" class="btn btn-primary btn-sm">Dashboard</a>
+        </div>
+    </header>
+    
+    <main class="app-content" style="max-width: 800px;">
+        <div class="card">
+            <div class="card-header">
+                <h1 class="card-title">About EchoPilot AI</h1>
+            </div>
+            <div class="card-body">
+                <h2 style="margin-top: var(--spacing-lg);">🤖 What is EchoPilot?</h2>
+                <p>
+                    EchoPilot is a <strong>100-phase enterprise-ready AI automation platform</strong> 
+                    that processes tasks from Notion databases using AI. It operates on a 60-second 
+                    polling cycle with autonomous scheduling.
+                </p>
+                
+                <h2 style="margin-top: var(--spacing-lg);">✨ Key Features</h2>
+                <ul style="line-height: 1.8;">
+                    <li><strong>Autonomous Operations:</strong> 52+ automated tasks running 24/7</li>
+                    <li><strong>AI Intelligence:</strong> GPT-4o for processing, dynamic QA with 80% threshold</li>
+                    <li><strong>Enterprise Security:</strong> RBAC, JWT auth, CSRF protection, audit logs</li>
+                    <li><strong>Predictive Maintenance:</strong> AI-powered failure prediction</li>
+                    <li><strong>Multi-Tenant Core:</strong> Tenant isolation and per-tenant billing</li>
+                    <li><strong>Disaster Recovery:</strong> Daily backups, backup verification</li>
+                    <li><strong>SLO Tracking:</strong> 99.9% availability target with error budgets</li>
+                    <li><strong>Live Payments:</strong> Stripe integration with reconciliation</li>
+                </ul>
+                
+                <h2 style="margin-top: var(--spacing-lg);">📊 System Information</h2>
+                <div class="card" style="background: var(--bg-secondary); margin-top: var(--spacing-md);">
+                    <table style="width: 100%; font-size: var(--font-size-sm);">
+                        <tr>
+                            <td style="padding: var(--spacing-sm);"><strong>Version:</strong></td>
+                            <td id="version">Loading...</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: var(--spacing-sm);"><strong>Commit:</strong></td>
+                            <td id="commit" style="font-family: monospace; font-size: 12px;">Loading...</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: var(--spacing-sm);"><strong>Branch:</strong></td>
+                            <td id="branch">Loading...</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: var(--spacing-sm);"><strong>Uptime:</strong></td>
+                            <td id="uptime">Loading...</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: var(--spacing-sm);"><strong>Status:</strong></td>
+                            <td><span class="pill pill-success" id="status">Operational</span></td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <h2 style="margin-top: var(--spacing-lg);">🏗️ Architecture</h2>
+                <p>
+                    Built on a 13-database Notion architecture with:
+                </p>
+                <ul style="line-height: 1.8;">
+                    <li>78+ Python scripts</li>
+                    <li>147+ API endpoints</li>
+                    <li>~20,000 lines of code</li>
+                    <li>Flask backend with Gunicorn</li>
+                    <li>PostgreSQL for structured data</li>
+                    <li>Replit Workflows for scheduling</li>
+                </ul>
+                
+                <h2 style="margin-top: var(--spacing-lg);">📱 Mobile-First Design</h2>
+                <p>
+                    Optimized for mobile devices (360-430px) with responsive breakpoints up to desktop.
+                    Dark mode support, WCAG 2.2 AA accessibility, and Lighthouse scores >95/100.
+                </p>
+                
+                <div style="margin-top: var(--spacing-xl); text-align: center;">
+                    <a href="/dashboard" class="btn btn-primary btn-lg">
+                        Open Dashboard →
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <script>
+        async function loadSystemInfo() {
+            try {
+                const response = await fetch('/api/status/summary');
+                const data = await response.json();
+                
+                if (data.ok) {
+                    document.getElementById('version').textContent = 'Boss Mode UI v2.0';
+                    document.getElementById('commit').textContent = data.data.commit || 'Unknown';
+                    document.getElementById('branch').textContent = data.data.branch || 'main';
+                    
+                    if (data.data.overall === 'healthy') {
+                        document.getElementById('status').textContent = 'Operational';
+                        document.getElementById('status').className = 'pill pill-success';
+                    } else {
+                        document.getElementById('status').textContent = 'Degraded';
+                        document.getElementById('status').className = 'pill pill-warning';
+                    }
+                }
+            } catch (err) {
+                console.error('Failed to load system info:', err);
+            }
+        }
+        
+        loadSystemInfo();
+    </script>
+</body>
+</html>

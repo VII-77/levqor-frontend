@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="EchoPilot - Enterprise-ready AI automation platform for modern teams">
+    <title>EchoPilot AI - Autonomous Enterprise Operations</title>
+    <link rel="stylesheet" href="/static/app.css">
+    <style>
+        .hero {
+            min-height: 80vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: var(--spacing-2xl) var(--spacing-md);
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+            color: white;
+        }
+        
+        .hero-content {
+            max-width: 800px;
+        }
+        
+        .hero h1 {
+            font-size: var(--font-size-3xl);
+            font-weight: 700;
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .hero p {
+            font-size: var(--font-size-lg);
+            margin-bottom: var(--spacing-xl);
+            opacity: 0.95;
+        }
+        
+        .benefits {
+            padding: var(--spacing-2xl) var(--spacing-md);
+            max-width: var(--max-width-content);
+            margin: 0 auto;
+        }
+        
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--spacing-lg);
+            margin-top: var(--spacing-xl);
+        }
+        
+        .benefit-card {
+            text-align: center;
+            padding: var(--spacing-lg);
+        }
+        
+        .benefit-icon {
+            font-size: 48px;
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .benefit-title {
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            margin-bottom: var(--spacing-sm);
+            color: var(--text-primary);
+        }
+        
+        .benefit-description {
+            color: var(--text-secondary);
+        }
+        
+        .cta-section {
+            background: var(--bg-secondary);
+            padding: var(--spacing-2xl) var(--spacing-md);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <header class="app-header">
+        <a href="/" class="app-logo">
+            <span>🤖</span>
+            <span>EchoPilot</span>
+        </a>
+        <div class="header-actions">
+            <a href="/about" class="btn btn-secondary btn-sm">About</a>
+            <a href="/dashboard" class="btn btn-primary">Open Dashboard</a>
+        </div>
+    </header>
+    
+    <main>
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-content">
+                <h1>🤖 Autonomous Enterprise Operations</h1>
+                <p>
+                    EchoPilot is your AI-powered ops platform. 
+                    Autonomous scheduling, intelligent monitoring, and enterprise-grade reliability.
+                </p>
+                <div style="display: flex; gap: var(--spacing-md); justify-content: center; flex-wrap: wrap;">
+                    <a href="/dashboard" class="btn btn-lg" style="background: white; color: var(--color-primary);">
+                        Open Dashboard →
+                    </a>
+                    <div class="status-indicator" style="background: rgba(255,255,255,0.2); padding: 12px 20px; border-radius: var(--border-radius-lg);">
+                        <span class="status-dot green" id="statusDot"></span>
+                        <span id="statusText">System Live</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Benefits Section -->
+        <section class="benefits">
+            <h2 style="text-align: center; font-size: var(--font-size-2xl); margin-bottom: var(--spacing-lg);">
+                Why EchoPilot?
+            </h2>
+            
+            <div class="benefits-grid">
+                <div class="benefit-card">
+                    <div class="benefit-icon">⚡</div>
+                    <h3 class="benefit-title">Lightning Fast</h3>
+                    <p class="benefit-description">
+                        Sub-300ms API responses. Optimized for mobile with Lighthouse scores >95.
+                        Built for speed from the ground up.
+                    </p>
+                </div>
+                
+                <div class="benefit-card">
+                    <div class="benefit-icon">🔒</div>
+                    <h3 class="benefit-title">Enterprise Security</h3>
+                    <p class="benefit-description">
+                        RBAC, CSRF protection, rate limiting, audit logs, PII redaction.
+                        WCAG 2.2 AA compliant. SOC2 ready.
+                    </p>
+                </div>
+                
+                <div class="benefit-card">
+                    <div class="benefit-icon">🤖</div>
+                    <h3 class="benefit-title">AI-Powered Intelligence</h3>
+                    <p class="benefit-description">
+                        Predictive maintenance, automated incident response, intelligent routing.
+                        Continuous learning from your operations.
+                    </p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- CTA Section -->
+        <section class="cta-section">
+            <h2 style="font-size: var(--font-size-2xl); margin-bottom: var(--spacing-md);">
+                Ready to get started?
+            </h2>
+            <p style="color: var(--text-secondary); margin-bottom: var(--spacing-lg); max-width: 600px; margin-left: auto; margin-right: auto;">
+                Access your operations dashboard and start managing your autonomous systems.
+            </p>
+            <a href="/dashboard" class="btn btn-primary btn-lg">
+                Open Dashboard →
+            </a>
+        </section>
+    </main>
+    
+    <footer style="padding: var(--spacing-xl) var(--spacing-md); text-align: center; border-top: 1px solid var(--border-color); color: var(--text-tertiary); font-size: var(--font-size-sm);">
+        <p>© 2025 EchoPilot AI. Enterprise-ready autonomous operations.</p>
+        <p style="margin-top: var(--spacing-sm);">
+            <a href="/about" style="color: var(--color-primary); text-decoration: none;">About</a> · 
+            <a href="/dashboard" style="color: var(--color-primary); text-decoration: none;">Dashboard</a>
+        </p>
+    </footer>
+    
+    <script>
+        async function checkStatus() {
+            try {
+                const response = await fetch('/api/status/summary');
+                const data = await response.json();
+                
+                if (data.ok && data.data.overall === 'healthy') {
+                    document.getElementById('statusDot').className = 'status-dot green';
+                    document.getElementById('statusText').textContent = 'System Live';
+                } else {
+                    document.getElementById('statusDot').className = 'status-dot yellow';
+                    document.getElementById('statusText').textContent = 'Limited';
+                }
+            } catch (err) {
+                document.getElementById('statusDot').className = 'status-dot red';
+                document.getElementById('statusText').textContent = 'Offline';
+            }
+        }
+        
+        checkStatus();
+        setInterval(checkStatus, 30000);
+    </script>
+</body>
+</html>

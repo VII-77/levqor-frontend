@@ -164,11 +164,14 @@ def add_security_headers(response):
 
 app.after_request(add_security_headers)
 
-# Rate limiting for public endpoints (5 req/min/IP)
+# Rate limiting moved to bot/security.py (Boss Mode upgrade)
+# Old implementation removed to avoid conflicts
+
+# Legacy rate limit store (kept for compatibility)
 rate_limit_store = defaultdict(list)
 
-def rate_limit(max_requests=5, window_minutes=1):
-    """Simple in-memory rate limiter"""
+def rate_limit_legacy(max_requests=5, window_minutes=1):
+    """Legacy in-memory rate limiter (deprecated - use bot.security.rate_limit)"""
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
@@ -809,7 +812,7 @@ def api_feature_flags():
     return jsonify({"ok": True, "flags": flags})
 
 @app.route('/api/status/summary')
-@rate_limit(max_requests=30, window_seconds=60)
+@rate_limit(max_requests=30, window=60)
 def api_status_summary():
     """Boss Mode: Aggregated system status summary"""
     try:
@@ -1518,7 +1521,7 @@ def api_public_job_history(email):
         return jsonify({"ok": False, "error": str(e)}), 500
 
 @app.route('/api/public/send-email', methods=['POST'])
-@rate_limit(max_requests=5, window_minutes=1)
+@rate_limit(max_requests=5, window=60)
 def api_public_send_email():
     """Customer Portal: Send job completion email"""
     import datetime
@@ -1598,7 +1601,7 @@ def api_public_send_email():
         return jsonify({"ok": False, "error": str(e)}), 500
 
 @app.route('/api/public/support', methods=['POST'])
-@rate_limit(max_requests=5, window_minutes=1)
+@rate_limit(max_requests=5, window=60)
 def api_public_support():
     """Customer Portal: Log support requests"""
     import datetime
@@ -2359,7 +2362,7 @@ def finance_metrics():
 
 
 @app.route('/api/growth/subscribe', methods=['POST'])
-@rate_limit(max_requests=5, window_minutes=1)
+@rate_limit(max_requests=5, window=60)
 def growth_subscribe():
     """
     Growth hooks: subscribe email with optional referral code.

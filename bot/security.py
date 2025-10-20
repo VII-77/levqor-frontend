@@ -52,7 +52,7 @@ class RateLimiter:
 
 rate_limiter = RateLimiter()
 
-def rate_limit(max_requests=10, window_seconds=60):
+def rate_limit(max_requests=10, window=60):
     """Decorator for rate limiting endpoints"""
     def decorator(f):
         @wraps(f)
@@ -61,7 +61,7 @@ def rate_limit(max_requests=10, window_seconds=60):
             key = f"{request.remote_addr}:{request.headers.get('User-Agent', 'unknown')}"
             key_hash = hashlib.sha256(key.encode()).hexdigest()[:16]
             
-            limited, message = rate_limiter.is_rate_limited(key_hash, max_requests, window_seconds)
+            limited, message = rate_limiter.is_rate_limited(key_hash, max_requests, window)
             
             if limited:
                 audit_log("rate_limit_exceeded", {

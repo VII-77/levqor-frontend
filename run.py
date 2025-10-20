@@ -3725,6 +3725,90 @@ def run_ops_brain():
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
+@app.route('/api/observability/snapshot', methods=['GET'])
+@require_dashboard_key
+def api_observability_snapshot():
+    """Get current observability snapshot (Phase 53)"""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/observability_snapshot.py'],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        
+        if result.returncode == 0:
+            import json
+            data = json.loads(result.stdout)
+            return jsonify(data), 200
+        else:
+            return jsonify({"ok": False, "error": result.stderr}), 500
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/fraud/check', methods=['POST'])
+@require_dashboard_key
+def api_fraud_check():
+    """Check payment for fraud risk (Phase 54)"""
+    try:
+        from scripts.fraud_guard import evaluate_payment
+        
+        data = request.get_json() or {}
+        email = data.get('email', '')
+        card_type = data.get('card_type', 'credit')
+        amount = float(data.get('amount', 0))
+        recent_count = int(data.get('recent_count', 0))
+        daily_total = float(data.get('daily_total', 0))
+        
+        result = evaluate_payment(email, card_type, amount, recent_count, daily_total)
+        return jsonify(result), 200
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/portal/link', methods=['POST'])
+@require_dashboard_key
+def api_portal_link():
+    """Generate signed portal link for customer (Phase 55)"""
+    try:
+        from scripts.customer_portal import create_portal_link
+        
+        data = request.get_json() or {}
+        email = data.get('email', '')
+        expiry_hours = int(data.get('expiry_hours', 24))
+        
+        if not email:
+            return jsonify({"ok": False, "error": "email required"}), 400
+        
+        result = create_portal_link(email, expiry_hours)
+        return jsonify(result), 200
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/email/send', methods=['POST'])
+@require_dashboard_key
+def api_send_email():
+    """Send email via SMTP (Phase 52)"""
+    try:
+        from scripts.emailer import send_email
+        
+        data = request.get_json() or {}
+        to = data.get('to', '')
+        subject = data.get('subject', '')
+        body = data.get('body', '')
+        
+        if not all([to, subject, body]):
+            return jsonify({"ok": False, "error": "to, subject, body required"}), 400
+        
+        result = send_email(to, subject, body)
+        return jsonify(result), 200
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
 
 def run_bot():
     """Run the bot in a separate thread"""

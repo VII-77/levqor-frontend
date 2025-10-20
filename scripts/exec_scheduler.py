@@ -216,6 +216,14 @@ def run_auto_governance():
     except Exception as e:
         log_event('auto_governance_error', {'error': str(e)})
 
+def run_observability():
+    """Run observability snapshot"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/observability_snapshot.py'], check=False, timeout=30)
+    except Exception as e:
+        log_event('observability_error', {'error': str(e)})
+
 def run_scheduled_tasks():
     """Check and run scheduled tasks"""
     
@@ -312,6 +320,11 @@ def run_scheduled_tasks():
     if is_time_match(datetime.utcnow().hour, 0) and should_run('auto_governance'):
         run_auto_governance()
         mark_run('auto_governance')
+    
+    # 14) Observability Snapshot - Every hour (Phase 53)
+    if is_time_match(datetime.utcnow().hour, 0) and should_run('observability'):
+        run_observability()
+        mark_run('observability')
 
 def write_pid():
     """Write PID to file with fsync"""
@@ -352,6 +365,8 @@ def main():
     print(f"   Revenue Intelligence: Every 30 minutes", flush=True)
     print(f"   Finance Reconcile: Every 6 hours", flush=True)
     print(f"   Auto-Governance: Every hour", flush=True)
+    print(f"   --- Phases 51-55: Post-Live Hardening ---", flush=True)
+    print(f"   Observability Snapshot: Every hour", flush=True)
     print(f"   Logs: {log_file}", flush=True)
     print(f"   PID: {pid_file}", flush=True)
     print(flush=True)

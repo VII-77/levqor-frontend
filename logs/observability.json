@@ -1,0 +1,23 @@
+{
+  "ts": 1760980782.6887534,
+  "ts_iso": "2025-10-20T17:19:42.688755Z",
+  "system": {
+    "cpu_percent": 17.7,
+    "mem_percent": 16.6,
+    "mem_available_gb": 52.409400939941406,
+    "disk_percent": 61.3,
+    "disk_free_gb": 18.18712615966797
+  },
+  "process": {
+    "memory_mb": 14.125
+  },
+  "api": {
+    "healthy": true,
+    "latency_sec": 0.04191780090332031
+  },
+  "health": {
+    "governance_status": "healthy",
+    "ops_warnings": [],
+    "overall": "healthy"
+  }
+}

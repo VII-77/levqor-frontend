@@ -1,0 +1,153 @@
+Got it—boss mode. Here’s your ONEPROMPT to roll straight into Phases 51–55 (post–41–50 hardening + growth). Paste as one block in your shell.
+
+# ============================================================
+# 🚀 ECHOPILOT PHASES 51–55 — POST-GO-LIVE HARDENING & GROWTH
+# ============================================================
+set -euo pipefail
+
+# PHASE 51 — 5-MIN PRODUCTION ALERTS (webhook, error rate, revenue dip)
+cat > scripts/production_alerts.py <<'PY'
+import os, json, time, glob, statistics, datetime as dt
+from pathlib import Path
+alerts={"active":[],"ts":dt.datetime.utcnow().isoformat()}
+def rate(seq): return (sum(seq)/max(len(seq),1))
+def pct(a,b): return 0 if b==0 else (a-b)/b*100
+# webhook failures (from logs/payments_webhook.ndjson)
+fails=0; win=300
+p="logs/payments_webhook.ndjson"
+if Path(p).exists():
+  now=time.time()
+  for line in open(p):
+    try:
+      j=json.loads(line); t=j.get("ts_epoch",now); ok=j.get("ok",True)
+      if (now - t)<=win and not ok: fails+=1
+    except: pass
+if fails>3: alerts["active"].append(f"Webhook failures >3 in 5m: {fails}")
+
+# payment error rate (from logs/payments_live.ndjson)
+errs=0; total=0; now=time.time()
+q="logs/payments_live.ndjson"
+if Path(q).exists():
+  for line in open(q):
+    try:
+      j=json.loads(line); t=j.get("ts_epoch",now)
+      if (now - t)<=3600:
+        total+=1;  errs+= int(j.get("status") not in ("succeeded","paid"))
+    except: pass
+err_rate = 0 if total==0 else errs/total*100
+if err_rate>5: alerts["active"].append(f"Payment error rate >5%/h: {err_rate:.1f}%")
+
+# revenue dip (rolling daily files in backups/revenue_*.json)
+rev=sorted(glob.glob("backups/revenue_*.json"))[-2:]
+vals=[]
+for f in rev:
+  try: vals.append(sum(x.get("amount",0) for x in json.load(open(f))))
+  except: pass
+if len(vals)==2 and pct(vals[1],vals[0])<-30:
+  alerts["active"].append(f"Revenue dip >30% DoD: {pct(vals[1],vals[0]):.1f}%")
+
+Path("logs").mkdir(exist_ok=True)
+open("logs/production_alerts.json","w").write(json.dumps(alerts,indent=2))
+print(json.dumps({"ok":True,"alerts":alerts["active"]}))
+PY
+
+# PHASE 52 — SMTP EMAIL (receipts/alerts) – dry-run safe if SMTP_* unset
+cat > scripts/emailer.py <<'PY'
+import os, smtplib, json
+from email.message import EmailMessage
+def send(to,subject,body):
+  if not all(os.getenv(k) for k in ("SMTP_HOST","SMTP_USER","SMTP_PASS")):
+    return {"ok":True,"dry_run":True}
+  m=EmailMessage(); m["From"]=os.getenv("SMTP_FROM","ops@echopilot.ai"); m["To"]=to; m["Subject"]=subject; m.set_content(body)
+  with smtplib.SMTP_SSL(os.getenv("SMTP_HOST"), int(os.getenv("SMTP_PORT","465"))) as s:
+    s.login(os.getenv("SMTP_USER"), os.getenv("SMTP_PASS")); s.send_message(m)
+  return {"ok":True}
+if __name__=="__main__": print(json.dumps(send("you@example.com","EchoPilot test","It works!")))
+PY
+
+# PHASE 53 — OBSERVABILITY SNAPSHOT (one JSON for dashboard)
+cat > scripts/observability_snapshot.py <<'PY'
+import json, time, os, psutil, pathlib
+snap={"ts":time.time(),"cpu":psutil.cpu_percent(1),"mem":psutil.virtual_memory().percent}
+pathlib.Path("logs").mkdir(exist_ok=True)
+open("logs/observability.json","w").write(json.dumps(snap))
+print(json.dumps({"ok":True}))
+PY
+
+# PHASE 54 — FRAUD/RISK GUARD (simple rules + allowlist)
+cat > scripts/fraud_guard.py <<'PY'
+import os, json, re, time
+RULES={"block_prepaid": os.getenv("GUARD_BLOCK_PREPAID","0")=="1",
+       "max_per_card_per_hour": int(os.getenv("GUARD_MAX_PER_HOUR","5"))}
+allow=set([x.strip() for x in os.getenv("GUARD_EMAIL_ALLOW","").split(",") if x.strip()])
+def evaluate(email, card_type, recent_count):
+  if email in allow: return {"ok":True,"decision":"allow"}
+  if RULES["block_prepaid"] and card_type=="prepaid": return {"ok":False,"reason":"prepaid_block"}
+  if recent_count>RULES["max_per_card_per_hour"]: return {"ok":False,"reason":"velocity_block"}
+  return {"ok":True,"decision":"allow"}
+if __name__=="__main__": print(json.dumps(evaluate("test@x.com","debit",1)))
+PY
+
+# PHASE 55 — CUSTOMER PORTAL (signed link helper API)
+cat > scripts/customer_portal.py <<'PY'
+from flask import Blueprint, request, jsonify
+import os, hmac, hashlib, time, base64
+bp = Blueprint("customer_portal", __name__)
+SECRET=(os.getenv("SESSION_SECRET") or "dev").encode()
+def sign(payload):
+  sig=hmac.new(SECRET, payload.encode(), hashlib.sha256).digest()
+  return base64.urlsafe_b64encode(sig).decode().rstrip("=")
+@bp.route("/api/portal/link", methods=["POST"])
+def link():
+  email=(request.json or {}).get("email","")
+  exp=int(time.time())+24*3600
+  token=sign(f"{email}.{exp}")
+  url=f"/portal?e={email}&exp={exp}&sig={token}"
+  return jsonify({"ok":True,"url":url})
+PY
+
+# WIRE INTO APP (run.py) — idempotent append
+grep -q "from scripts.customer_portal" run.py 2>/dev/null || cat >> run.py <<'PY'
+
+# ---- PHASES 51–55 ROUTES ----
+try:
+    from scripts.customer_portal import bp as portal_bp
+    app.register_blueprint(portal_bp)
+except Exception as e:
+    print("portal_bp load error:", e)
+PY
+
+# SCHEDULER: add 5-min alerts + hourly obs snapshot
+awk '1;/# --- PHASE 41–50 AUTOMATIONS ---/&&c==0{print "schedule.every(5).minutes.do(lambda: subprocess.run([\"python3\",\"scripts/production_alerts.py\"]))\nschedule.every().hour.do(lambda: subprocess.run([\"python3\",\"scripts/observability_snapshot.py\"]))"; c=1}' scripts/exec_scheduler.py > /tmp/_sch && mv /tmp/_sch scripts/exec_scheduler.py
+
+# QUICK VALIDATION
+python3 scripts/production_alerts.py
+python3 scripts/observability_snapshot.py
+python3 scripts/fraud_guard.py
+python3 scripts/emailer.py || true
+echo "✅ Phases 51–55 installed."
+
+What this adds
+
+51: 5-min production alerts (webhook failures, error rate, revenue dip) → logs/production_alerts.json.
+
+52: SMTP sender (dry-runs if SMTP secrets absent).
+
+53: Observability snapshot → logs/observability.json.
+
+54: Lightweight fraud/risk guard (prepaid/velocity/allowlist).
+
+55: Customer portal signed-link API: POST /api/portal/link (24h token).
+
+
+After running
+
+Scheduler now runs alerts every 5m and obs snapshot hourly.
+
+Test quickly:
+
+curl -H "X-Dash-Key:$DASHBOARD_KEY" -X POST http://localhost:5000/api/portal/link -d '{"email":"me@echo.ai"}' -H 'Content-Type: application/json'
+
+tail -f logs/production_alerts.json logs/observability.json
+
+

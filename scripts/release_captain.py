@@ -7,6 +7,7 @@ import sys
 import os
 import json
 import time
+import argparse
 from datetime import datetime
 
 sys.path.insert(0, '/home/runner/workspace')
@@ -36,11 +37,21 @@ def val(props, name):
 
 
 def main():
+    parser = argparse.ArgumentParser(description='EchoPilot Release Captain')
+    parser.add_argument('--dry-finance', action='store_true', help='Skip payment auto-close')
+    parser.add_argument('--max-retries', type=int, default=1, help='Max QA retries')
+    parser.add_argument('--temperature', type=float, default=0.0, help='QA retry temperature')
+    parser.add_argument('--payload', type=str, default='https://filesamples.com/samples/audio/mp3/sample1.mp3', help='Test payload URL')
+    args = parser.parse_args()
+    
     n = NotionClientWrapper()
     
     print("=" * 80)
     print("🚀 ECHOPILOT RELEASE CAPTAIN — E2E RUNBOOK")
     print("=" * 80)
+    if args.dry_finance:
+        print("💰 DRY-FINANCE MODE: Payment auto-close disabled")
+    print(f"🎯 Payload: {args.payload}")
     print()
     
     # Step 1: Create test job
@@ -50,9 +61,14 @@ def main():
         "Task Type": {"select": {"name": "Processing"}},
         "Trigger": {"checkbox": True},
         "Status": {"select": {"name": "New"}},
-        "Payload Link": {"url": "https://filesamples.com/samples/audio/mp3/sample3.mp3"},
+        "Payload Link": {"url": args.payload},
         "Owner Email": {"email": "admin@echopilot.ai"}
     }
+    
+    if not config.AUTOMATION_QUEUE_DB_ID:
+        print("❌ AUTOMATION_QUEUE_DB_ID not configured")
+        return {"status": "FAIL", "reason": "Config error"}
+    
     page = n.create_page(config.AUTOMATION_QUEUE_DB_ID, props)
     job_id = page["id"]
     print(f"✅ Job created: {job_id[:8]}...")
@@ -67,6 +83,11 @@ def main():
     for delay in delays:
         time.sleep(delay)
         print(f"  Waiting {delay}s...", end=" ", flush=True)
+        
+        if not config.JOB_LOG_DB_ID:
+            print("❌ JOB_LOG_DB_ID not configured")
+            break
+        
         rows = n.query_database(config.JOB_LOG_DB_ID)
         now = datetime.utcnow()
         
@@ -135,7 +156,11 @@ def main():
     finance_action = "skipped"
     if job and job['qa'] >= 95:
         print("STEP 4: Finance guardrails — QA ≥ 95, checking payment...")
-        if job['payment_link'] and job['payment_status'] != 'Paid':
+        
+        if args.dry_finance:
+            finance_action = "dry_run_skipped"
+            print("💰 DRY-FINANCE: Payment auto-close skipped")
+        elif job['payment_link'] and job['payment_status'] != 'Paid' and job_page_id:
             try:
                 n.update_page(job_page_id, {
                     "Payment Status": {"select": {"name": "Paid"}}

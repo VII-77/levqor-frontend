@@ -3925,6 +3925,137 @@ def api_audit_summary():
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
+@app.route('/api/support/digest', methods=['POST'])
+@require_dashboard_key
+def api_support_digest():
+    """Fetch support inbox digest (Phase 61)"""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/support_inbox.py'],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        
+        if result.returncode == 0:
+            import json
+            data = json.loads(result.stdout)
+            return jsonify(data), 200
+        else:
+            return jsonify({"ok": False, "error": result.stderr}), 500
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/flags/get', methods=['GET'])
+@require_dashboard_key
+def api_flags_get():
+    """Get all feature flags (Phase 62)"""
+    try:
+        from scripts.feature_flags import get_flags
+        flags = get_flags()
+        return jsonify({"ok": True, "flags": flags}), 200
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/flags/set', methods=['POST'])
+@require_dashboard_key
+def api_flags_set():
+    """Set feature flag (Phase 62)"""
+    try:
+        from scripts.feature_flags import set_flag
+        
+        data = request.get_json() or {}
+        key = data.get('key')
+        value = data.get('value')
+        
+        if not key:
+            return jsonify({"ok": False, "error": "key required"}), 400
+        
+        flags = set_flag(key, value)
+        return jsonify({"ok": True, "flags": flags}), 200
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/exp/assign', methods=['GET'])
+@require_dashboard_key
+def api_exp_assign():
+    """Assign user to experiment variant (Phase 63)"""
+    try:
+        from scripts.experiments import assign_variant
+        
+        user = request.args.get('user', 'anonymous')
+        experiment = request.args.get('exp', 'pricing_v2')
+        
+        result = assign_variant(user, experiment)
+        return jsonify(result), 200
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/exp/log', methods=['POST'])
+@require_dashboard_key
+def api_exp_log():
+    """Log experiment event (Phase 63)"""
+    try:
+        from scripts.experiments import log_event
+        
+        data = request.get_json() or {}
+        result = log_event(data)
+        return jsonify(result), 200
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/costs/report', methods=['GET'])
+@require_dashboard_key
+def api_costs_report():
+    """Get infrastructure cost report (Phase 64)"""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/cost_tracker.py'],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        
+        if result.returncode == 0:
+            import json
+            data = json.loads(result.stdout)
+            return jsonify(data), 200
+        else:
+            return jsonify({"ok": False, "error": result.stderr}), 500
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/incidents/scan', methods=['POST'])
+@require_dashboard_key
+def api_incidents_scan():
+    """Scan for incidents (Phase 65)"""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/incident_autoresponder.py'],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        
+        if result.returncode == 0:
+            import json
+            data = json.loads(result.stdout)
+            return jsonify(data), 200
+        else:
+            return jsonify({"ok": False, "error": result.stderr}), 500
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
 
 def run_bot():
     """Run the bot in a separate thread"""

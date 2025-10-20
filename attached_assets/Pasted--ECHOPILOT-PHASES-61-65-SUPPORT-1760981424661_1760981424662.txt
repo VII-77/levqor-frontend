@@ -1,0 +1,179 @@
+# ============================================================
+# 🚀 ECHOPILOT PHASES 61–65 — SUPPORT INBOX, FEATURE FLAGS,
+#     EXPERIMENTS, COST TRACKER, INCIDENT AUTORESPONDER
+# ============================================================
+set -euo pipefail
+
+mkdir -p scripts configs logs
+
+# PHASE 61 — SUPPORT INBOX DIGEST (IMAP if creds, else DRYRUN)
+cat > scripts/support_inbox.py <<'PY'
+import os, json, time, datetime as dt
+OUT="logs/support_digest.json"
+def fetch():
+    host=os.getenv("IMAP_HOST"); user=os.getenv("IMAP_USER"); pw=os.getenv("IMAP_PASS")
+    items=[]
+    if host and user and pw:
+        try:
+            import imaplib, email
+            m=imaplib.IMAP4_SSL(host); m.login(user,pw); m.select("INBOX")
+            typ, data=m.search(None,'(UNSEEN)')
+            for i in data[0].split()[:20]:
+                _, msg=m.fetch(i,'(RFC822)'); em=email.message_from_bytes(msg[0][1])
+                items.append({"from":em.get("From"),"subj":em.get("Subject"),"date":em.get("Date")})
+            m.logout()
+        except Exception as e:
+            items.append({"error":"imap_failed","detail":str(e)})
+    else:
+        items=[{"from":"dryrun@example.com","subj":"Hello","date":dt.datetime.utcnow().isoformat()}]
+    res={"ts":time.time(),"count":len(items),"items":items}
+    open(OUT,"w").write(json.dumps(res,indent=2)); return {"ok":True,"count":len(items),"dry_run": not bool(host)}
+if __name__=="__main__": print(json.dumps(fetch()))
+PY
+
+# PHASE 62 — FEATURE FLAGS (lightweight JSON store)
+cat > configs/flags.json <<'JSON'
+{"payments.live": true, "ui.new_dashboard": false, "ab.pricing_v2": false}
+JSON
+cat > scripts/feature_flags.py <<'PY'
+import json, os, threading
+PATH="configs/flags.json"; _lock=threading.Lock()
+def get_flags():
+    try: return json.load(open(PATH))
+    except: return {}
+def set_flag(key,val):
+    with _lock:
+        f=get_flags(); f[key]=val; open(PATH,"w").write(json.dumps(f,indent=2)); return f
+PY
+
+# PHASE 63 — EXPERIMENTS (assign + log)
+cat > configs/experiments.json <<'JSON'
+{"pricing_v2":{"variants":["A","B"],"salt":"ECHO2025"}}
+JSON
+cat > scripts/experiments.py <<'PY'
+import json, hashlib, time, os
+def assign(user, exp):
+    cfg=json.load(open("configs/experiments.json")).get(exp)
+    if not cfg: return {"ok":False,"error":"unknown_exp"}
+    h=int(hashlib.sha256((user+cfg["salt"]).encode()).hexdigest(),16)
+    v=cfg["variants"][h % len(cfg["variants"])]
+    return {"ok":True,"user":user,"exp":exp,"variant":v}
+def log_event(payload):
+    open("logs/experiments.ndjson","a").write(json.dumps({"ts":time.time(),**payload})+"\n"); return {"ok":True}
+PY
+
+# PHASE 64 — COST TRACKER (rough compute/storage estimate)
+cat > scripts/cost_tracker.py <<'PY'
+import os, json, time, glob, math
+PRICES={"storage_per_GB_month":0.023,"cpu_per_hr":0.05}
+def sizeof_logs():
+    total=0
+    for p in glob.glob("logs/**/*", recursive=True):
+        if os.path.isfile(p): total+=os.path.getsize(p)
+    return total
+def run():
+    bytes_=sizeof_logs(); gb=bytes_/1_073_741_824
+    # naive compute guess from scheduler ticks
+    ticks=sum(1 for _ in open("logs/scheduler.log","a+"))
+    cpu_hours= ticks/60/24 * 0.1  # guess: 6 min CPU/day
+    report={"ts":time.time(),"storage_gb":round(gb,4),
+            "est_storage_month_usd":round(gb*PRICES["storage_per_GB_month"],4),
+            "est_cpu_hours":round(cpu_hours,3),
+            "est_cpu_month_usd":round(cpu_hours*PRICES["cpu_per_hr"],3)}
+    open("logs/cost_report.json","w").write(json.dumps(report,indent=2)); return {"ok":True,**report}
+if __name__=="__main__": print(json.dumps(run()))
+PY
+
+# PHASE 65 — INCIDENT AUTORESPONDER (breach→alert)
+cat > scripts/incident_autoresponder.py <<'PY'
+import os, json, time, requests
+INC="logs/incidents.ndjson"
+def _tel(msg):
+    tok=os.getenv("TELEGRAM_BOT_TOKEN"); chat=os.getenv("TELEGRAM_CHAT_ID")
+    if not (tok and chat): return {"ok":True,"dry_run":True}
+    try:
+        requests.post(f"https://api.telegram.org/bot{tok}/sendMessage", data={"chat_id":chat,"text":msg[:3900]})
+        return {"ok":True}
+    except Exception as e:
+        return {"ok":False,"error":str(e)}
+def scan():
+    breach=False; details=[]
+    try:
+        slo=json.load(open("logs/slo_report.json"))
+        if slo.get("breach"): breach=True; details.append(f"SLO breach p95={slo.get('p95_ms')}ms success={slo.get('success')}")
+    except: pass
+    try:
+        wr=json.load(open("logs/payout_recon.json"))
+        if wr.get("summary",{}).get("missing_in_ledger"): breach=True; details.append("Payout missing in ledger")
+    except: pass
+    if breach:
+        evt={"ts":time.time(),"type":"incident","details":details}
+        open(INC,"a").write(json.dumps(evt)+"\n")
+        _tel("🚨 EchoPilot Incident: " + " | ".join(details))
+    return {"ok":True,"breach":breach,"details":details}
+if __name__=="__main__": print(json.dumps(scan()))
+PY
+
+# ---- WIRE INTO run.py
+grep -q "PHASES 61–65 ROUTES" run.py 2>/dev/null || cat >> run.py <<'PY'
+
+# ---- PHASES 61–65 ROUTES ----
+from flask import request, jsonify
+import subprocess, json
+@app.route("/api/support/digest", methods=["POST"])
+def api_support_digest():
+    p=subprocess.run(["python3","scripts/support_inbox.py"],capture_output=True,text=True)
+    return jsonify({"ok":p.returncode==0, "stdout":p.stdout})
+
+@app.route("/api/flags/get", methods=["GET"])
+def api_flags_get():
+    from scripts.feature_flags import get_flags
+    return jsonify({"ok":True,"flags":get_flags()})
+
+@app.route("/api/flags/set", methods=["POST"])
+def api_flags_set():
+    data=request.get_json(force=True); k=data.get("key"); v=data.get("value")
+    from scripts.feature_flags import set_flag
+    return jsonify({"ok":True,"flags":set_flag(k,v)})
+
+@app.route("/api/exp/assign", methods=["GET"])
+def api_exp_assign():
+    from scripts.experiments import assign
+    return jsonify(assign(request.args.get("user","anon"), request.args.get("exp","pricing_v2")))
+
+@app.route("/api/exp/log", methods=["POST"])
+def api_exp_log():
+    from scripts.experiments import log_event
+    return jsonify(log_event(request.get_json(force=True)))
+
+@app.route("/api/costs/report", methods=["GET"])
+def api_costs_report():
+    p=subprocess.run(["python3","scripts/cost_tracker.py"],capture_output=True,text=True)
+    try: j=json.loads(p.stdout or "{}")
+    except: j={"ok":False}
+    return jsonify(j)
+
+@app.route("/api/incidents/test", methods=["POST"])
+def api_incidents_test():
+    p=subprocess.run(["python3","scripts/incident_autoresponder.py"],capture_output=True,text=True)
+    try: j=json.loads(p.stdout or "{}")
+    except: j={"ok":False}
+    return jsonify(j)
+PY
+
+# ---- SCHEDULER HOOKS (hourly inbox, 30m exp log rollup, daily costs, 5m incidents)
+awk '1;/# --- PHASE 41–50 AUTOMATIONS ---/&&c==0{
+print "schedule.every().hour.do(lambda: subprocess.run([\"python3\",\"scripts/support_inbox.py\"]))";
+print "schedule.every(30).minutes.do(lambda: subprocess.run([\"python3\",\"scripts/experiments.py\"]))";
+print "schedule.every().day.at(\"01:10\").do(lambda: subprocess.run([\"python3\",\"scripts/cost_tracker.py\"]))";
+print "schedule.every(5).minutes.do(lambda: subprocess.run([\"python3\",\"scripts/incident_autoresponder.py\"]))";
+c=1}' scripts/exec_scheduler.py > /tmp/_sch3 && mv /tmp/_sch3 scripts/exec_scheduler.py
+
+# ---- QUICK VALIDATION
+python3 scripts/support_inbox.py
+python3 scripts/cost_tracker.py
+python3 scripts/incident_autoresponder.py
+
+echo "✅ Phases 61–65 installed: /api/support/digest, /api/flags/*, /api/exp/*, /api/costs/report, /api/incidents/test."
+echo "⏱️ Scheduler: inbox@hourly, experiments@30m, costs@01:10, incidents@5m. IMAP & Telegram run DRYRUN unless creds set."
+```0

@@ -1,0 +1,7 @@
+{
+  "payments.live": true,
+  "ui.new_dashboard": false,
+  "ab.pricing_v2": false,
+  "features.churn_ai": true,
+  "features.slo_monitoring": true
+}

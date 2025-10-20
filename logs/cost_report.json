@@ -1,0 +1,19 @@
+{
+  "ts": 1760981535.5062687,
+  "ts_iso": "2025-10-20T17:32:15.506269Z",
+  "storage": {
+    "bytes": 943868,
+    "gb": 0.0009,
+    "monthly_usd": 0.0
+  },
+  "compute": {
+    "estimated_hours": 0.395,
+    "monthly_usd": 0.02
+  },
+  "total_monthly_usd": 0.0198,
+  "pricing": {
+    "storage_per_gb_month": 0.023,
+    "cpu_per_hour": 0.05,
+    "bandwidth_per_gb": 0.09
+  }
+}

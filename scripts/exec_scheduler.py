@@ -248,6 +248,30 @@ def run_slo_guard():
     except Exception as e:
         log_event('slo_guard_error', {'error': str(e)})
 
+def run_support_inbox():
+    """Fetch support inbox digest"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/support_inbox.py'], check=False, timeout=30)
+    except Exception as e:
+        log_event('support_inbox_error', {'error': str(e)})
+
+def run_cost_tracker():
+    """Run infrastructure cost tracking"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/cost_tracker.py'], check=False, timeout=30)
+    except Exception as e:
+        log_event('cost_tracker_error', {'error': str(e)})
+
+def run_incident_scan():
+    """Scan for incidents"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/incident_autoresponder.py'], check=False, timeout=30)
+    except Exception as e:
+        log_event('incident_scan_error', {'error': str(e)})
+
 def run_scheduled_tasks():
     """Check and run scheduled tasks"""
     
@@ -369,6 +393,24 @@ def run_scheduled_tasks():
        (datetime.utcnow() - last_run['slo_guard']).total_seconds() >= (10 * 60):
         run_slo_guard()
         mark_run('slo_guard')
+    
+    # ==================== PHASES 61-65: SUPPORT & INFRASTRUCTURE ====================
+    
+    # 18) Support Inbox - Every hour (Phase 61)
+    if is_time_match(datetime.utcnow().hour, 0) and should_run('support_inbox'):
+        run_support_inbox()
+        mark_run('support_inbox')
+    
+    # 19) Cost Tracker - Daily at 01:10 UTC (Phase 64)
+    if is_time_match(1, 10) and should_run('cost_tracker'):
+        run_cost_tracker()
+        mark_run('cost_tracker')
+    
+    # 20) Incident Scanner - Every 5 minutes (Phase 65)
+    if 'incident_scan' not in last_run or \
+       (datetime.utcnow() - last_run['incident_scan']).total_seconds() >= (5 * 60):
+        run_incident_scan()
+        mark_run('incident_scan')
 
 def write_pid():
     """Write PID to file with fsync"""
@@ -415,6 +457,10 @@ def main():
     print(f"   Payout Reconciliation: Every 6 hours", flush=True)
     print(f"   Churn AI: Every 2 hours", flush=True)
     print(f"   SLO Guard: Every 10 minutes", flush=True)
+    print(f"   --- Phases 61-65: Support & Infrastructure ---", flush=True)
+    print(f"   Support Inbox: Every hour", flush=True)
+    print(f"   Cost Tracker: Daily at 01:10 UTC", flush=True)
+    print(f"   Incident Scanner: Every 5 minutes", flush=True)
     print(f"   Logs: {log_file}", flush=True)
     print(f"   PID: {pid_file}", flush=True)
     print(flush=True)

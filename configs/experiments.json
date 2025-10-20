@@ -1,0 +1,12 @@
+{
+  "pricing_v2": {
+    "variants": ["A", "B"],
+    "salt": "ECHO2025",
+    "description": "Test new pricing page design"
+  },
+  "onboarding_flow": {
+    "variants": ["standard", "guided", "quick"],
+    "salt": "ONBOARD2025",
+    "description": "Test onboarding variations"
+  }
+}

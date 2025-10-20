@@ -1,0 +1,70 @@
+{
+  "ts": "2025-10-20T14:04:59.259586Z",
+  "headline": "\u26a0\ufe0f 2 HIGH SEVERITY ALERTS",
+  "summary": "Jobs (7d): 0 | QA: 0.0% | ROI: 0.0x\nRevenue: $0.00 | Margin: 0.0%\n\nTop Risks:\n  \u2022 [HIGH] Finance metrics failed: Cannot compute metrics\n  \u2022 [HIGH] Job Log entry not found after full backoff\n  \u2022 [MED] QA below threshold",
+  "kpis": {
+    "avg_qa_7d": 0.0,
+    "jobs_7d": 0,
+    "margin_pct_7d": 0,
+    "revenue_7d": 0,
+    "roi_7d": 0
+  },
+  "top_risks": [
+    {
+      "evidence": [
+        "Cost, jobs, profit, and revenue metrics are all zero.",
+        "Error: Finance metrics failed: Cannot compute metrics"
+      ],
+      "severity": "high",
+      "signal": "Finance metrics failed: Cannot compute metrics",
+      "suggested_fix": "Investigate finance module for errors.",
+      "type": "finance"
+    },
+    {
+      "evidence": [
+        "Multiple failures in release captain due to job log entry not found.",
+        "Notion sync lag reported."
+      ],
+      "severity": "high",
+      "signal": "Job Log entry not found after full backoff",
+      "suggested_fix": "Check Notion integration and job processing.",
+      "type": "ops"
+    },
+    {
+      "evidence": [
+        "QA score of 85% < 95% for a job.",
+        "QA metrics are not being computed."
+      ],
+      "severity": "med",
+      "signal": "QA below threshold",
+      "suggested_fix": "Review QA processes and ensure metrics are captured.",
+      "type": "quality"
+    }
+  ],
+  "actions_next_24h": [
+    {
+      "eta_hours": 2,
+      "owner": "finance",
+      "priority": 1,
+      "task": "Investigate and resolve finance metrics computation issue."
+    },
+    {
+      "eta_hours": 2,
+      "owner": "ops",
+      "priority": 1,
+      "task": "Resolve Notion sync issues and job log entry failures."
+    },
+    {
+      "eta_hours": 2,
+      "owner": "quality",
+      "priority": 1,
+      "task": "Review QA processes and ensure metrics are captured."
+    }
+  ],
+  "actions_next_7d": [],
+  "confidence": 0.0,
+  "attachments": {
+    "analysis_json_path": "logs/exec_analysis_20251020_140459.json",
+    "ingest_json_path": "logs/exec_ingest_20251020_140454.json"
+  }
+}

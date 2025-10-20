@@ -1,0 +1,50 @@
+{
+  "kpis": {
+    "jobs_7d": 0,
+    "revenue_7d": 0,
+    "avg_qa_7d": 0.0,
+    "roi_7d": 0,
+    "margin_pct_7d": 0
+  },
+  "anomalies": [
+    {
+      "type": "finance",
+      "severity": "high",
+      "signal": "Finance metrics failed to compute",
+      "evidence": [
+        "Finance metrics failed: Cannot compute metrics",
+        "Error: module 'bot.config' has no attribute 'NOTION_GOVERNANCE_DB_ID'"
+      ],
+      "suggested_fix": "Investigate finance metrics computation failure."
+    },
+    {
+      "type": "ops",
+      "severity": "high",
+      "signal": "Notion sync lag causing job log entry failures",
+      "evidence": [
+        "Job Log entry not found after full backoff (Notion lag or processing failed)",
+        "Notion sync lag (retry)"
+      ],
+      "suggested_fix": "Resolve Notion sync issues."
+    }
+  ],
+  "actions": [
+    {
+      "owner": "finance",
+      "priority": 1,
+      "task": "Investigate and fix finance metrics computation errors.",
+      "eta_hours": 2
+    },
+    {
+      "owner": "ops",
+      "priority": 1,
+      "task": "Address Notion sync lag and ensure job log entries are processed.",
+      "eta_hours": 2
+    }
+  ],
+  "notes": [
+    "No jobs or revenue recorded in the last 7 days.",
+    "Multiple failures related to Notion sync and job log processing."
+  ],
+  "confidence": 0.0
+}

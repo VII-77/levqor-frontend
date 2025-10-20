@@ -1,0 +1,54 @@
+{
+  "ts": "2025-10-20T14:07:24.591134Z",
+  "headline": "\u26a0\ufe0f 2 HIGH SEVERITY ALERTS",
+  "summary": "Jobs (7d): 0 | QA: 0.0% | ROI: 0.0x\nRevenue: $0.00 | Margin: 0.0%\n\nTop Risks:\n  \u2022 [HIGH] Finance metrics failed to compute\n  \u2022 [HIGH] Notion sync lag causing job log entry failures",
+  "kpis": {
+    "avg_qa_7d": 0.0,
+    "jobs_7d": 0,
+    "margin_pct_7d": 0,
+    "revenue_7d": 0,
+    "roi_7d": 0
+  },
+  "top_risks": [
+    {
+      "evidence": [
+        "Finance metrics failed: Cannot compute metrics",
+        "Error: module 'bot.config' has no attribute 'NOTION_GOVERNANCE_DB_ID'"
+      ],
+      "severity": "high",
+      "signal": "Finance metrics failed to compute",
+      "suggested_fix": "Investigate finance metrics computation failure.",
+      "type": "finance"
+    },
+    {
+      "evidence": [
+        "Job Log entry not found after full backoff (Notion lag or processing failed)",
+        "Notion sync lag (retry)"
+      ],
+      "severity": "high",
+      "signal": "Notion sync lag causing job log entry failures",
+      "suggested_fix": "Resolve Notion sync issues.",
+      "type": "ops"
+    }
+  ],
+  "actions_next_24h": [
+    {
+      "eta_hours": 2,
+      "owner": "finance",
+      "priority": 1,
+      "task": "Investigate and fix finance metrics computation errors."
+    },
+    {
+      "eta_hours": 2,
+      "owner": "ops",
+      "priority": 1,
+      "task": "Address Notion sync lag and ensure job log entries are processed."
+    }
+  ],
+  "actions_next_7d": [],
+  "confidence": 0.0,
+  "attachments": {
+    "analysis_json_path": "logs/exec_analysis_20251020_140724.json",
+    "ingest_json_path": "logs/exec_ingest_20251020_140720.json"
+  }
+}

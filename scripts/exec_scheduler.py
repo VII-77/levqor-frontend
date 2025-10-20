@@ -189,6 +189,19 @@ def run_production_alerts():
     except Exception as e:
         log_event('production_alerts_error', {'error': str(e)})
 
+def run_slo_guard():
+    """Run SLO compliance guard - Phase 51"""
+    import subprocess
+    try:
+        result = subprocess.run(['python3', 'scripts/slo_guard.py'], 
+                              capture_output=True, text=True, check=False, timeout=30)
+        if result.returncode == 0:
+            log_event('alerts_run_slo', {'ok': True, 'status': 'slo_checked'})
+        else:
+            log_event('slo_guard_error', {'ok': False, 'error': result.stderr})
+    except Exception as e:
+        log_event('slo_guard_error', {'error': str(e)})
+
 def run_ops_sentinel():
     """Run ops sentinel system watchdog"""
     import subprocess
@@ -558,6 +571,12 @@ def run_scheduled_tasks():
        (datetime.utcnow() - last_run['production_alerts']).total_seconds() >= (5 * 60):
         run_production_alerts()
         mark_run('production_alerts')
+    
+    # 9b) SLO Guard - Every 15 minutes (Phase 51)
+    if 'slo_guard' not in last_run or \
+       (datetime.utcnow() - last_run['slo_guard']).total_seconds() >= (15 * 60):
+        run_slo_guard()
+        mark_run('slo_guard')
     
     # ==================== PHASES 41-50: AUTONOMOUS ENTERPRISE ====================
     

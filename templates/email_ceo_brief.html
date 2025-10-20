@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EchoPilot CEO Brief</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f5f7fa;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .email-container {
+            max-width: 700px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+        .email-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 40px;
+            text-align: center;
+        }
+        .email-header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .email-header .date {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .email-body {
+            padding: 40px;
+        }
+        .headline {
+            font-size: 22px;
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+        }
+        .kpis-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        .kpi-card {
+            flex: 1;
+            min-width: 120px;
+            background: linear-gradient(135deg, #f6f8fb 0%, #f1f4f9 100%);
+            border-radius: 8px;
+            padding: 20px 15px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+        .kpi-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .kpi-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+        }
+        .kpi-value.positive {
+            color: #10b981;
+        }
+        .kpi-value.negative {
+            color: #ef4444;
+        }
+        .section {
+            margin-bottom: 35px;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        .section-title::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 20px;
+            background: #667eea;
+            margin-right: 10px;
+            border-radius: 2px;
+        }
+        .risk-card {
+            padding: 15px 18px;
+            margin-bottom: 12px;
+            border-radius: 6px;
+            border-left: 4px solid;
+            background-color: #f9fafb;
+        }
+        .risk-card.high {
+            border-left-color: #dc2626;
+            background-color: #fef2f2;
+        }
+        .risk-card.med {
+            border-left-color: #f59e0b;
+            background-color: #fffbeb;
+        }
+        .risk-card.low {
+            border-left-color: #10b981;
+            background-color: #f0fdf4;
+        }
+        .risk-severity {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            margin-bottom: 6px;
+        }
+        .risk-severity.high {
+            background-color: #dc2626;
+            color: white;
+        }
+        .risk-severity.med {
+            background-color: #f59e0b;
+            color: white;
+        }
+        .risk-severity.low {
+            background-color: #10b981;
+            color: white;
+        }
+        .risk-signal {
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 4px;
+        }
+        .risk-fix {
+            font-size: 13px;
+            color: #64748b;
+            font-style: italic;
+        }
+        .action-item {
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            background-color: #f8fafc;
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
+            display: flex;
+            align-items: center;
+        }
+        .action-priority {
+            display: inline-block;
+            background-color: #667eea;
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 4px;
+            margin-right: 12px;
+            min-width: 30px;
+            text-align: center;
+        }
+        .action-owner {
+            font-weight: 600;
+            color: #667eea;
+            margin-right: 8px;
+            text-transform: uppercase;
+            font-size: 12px;
+        }
+        .action-task {
+            flex: 1;
+            color: #1a202c;
+            font-size: 14px;
+        }
+        .action-eta {
+            font-size: 12px;
+            color: #64748b;
+            margin-left: 10px;
+            white-space: nowrap;
+        }
+        .no-items {
+            padding: 20px;
+            text-align: center;
+            color: #94a3b8;
+            background-color: #f8fafc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .email-footer {
+            background-color: #f8fafc;
+            padding: 25px 40px;
+            border-top: 1px solid #e2e8f0;
+            font-size: 12px;
+            color: #64748b;
+            text-align: center;
+        }
+        .footer-links {
+            margin-top: 15px;
+        }
+        .footer-links a {
+            color: #667eea;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+        .correlation {
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            color: #94a3b8;
+            margin-top: 10px;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="email-header">
+            <h1>🚀 EchoPilot CEO Brief</h1>
+            <div class="date">{{DATE}}</div>
+        </div>
+        
+        <!-- Body -->
+        <div class="email-body">
+            <!-- Headline -->
+            <div class="headline">
+                {{HEADLINE}}
+            </div>
+            
+            <!-- KPIs Row -->
+            <div class="kpis-row">
+                <div class="kpi-card">
+                    <div class="kpi-label">Jobs (7d)</div>
+                    <div class="kpi-value">{{JOBS_7D}}</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Revenue (7d)</div>
+                    <div class="kpi-value {{REVENUE_CLASS}}">${{REVENUE_7D}}</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Avg QA (7d)</div>
+                    <div class="kpi-value {{QA_CLASS}}">{{AVG_QA_7D}}%</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">ROI (7d)</div>
+                    <div class="kpi-value {{ROI_CLASS}}">{{ROI_7D}}x</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Margin (7d)</div>
+                    <div class="kpi-value {{MARGIN_CLASS}}">{{MARGIN_7D}}%</div>
+                </div>
+            </div>
+            
+            <!-- Top Risks Section -->
+            <div class="section">
+                <div class="section-title">Top Risks</div>
+                {{RISKS_HTML}}
+            </div>
+            
+            <!-- Actions: Next 24 Hours -->
+            <div class="section">
+                <div class="section-title">Actions: Next 24 Hours</div>
+                {{ACTIONS_24H_HTML}}
+            </div>
+            
+            <!-- Actions: Next 7 Days -->
+            <div class="section">
+                <div class="section-title">Actions: Next 7 Days</div>
+                {{ACTIONS_7D_HTML}}
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="email-footer">
+            <div>Generated by AI Executive Mode · {{TIMESTAMP}}</div>
+            <div class="correlation">Correlation: {{ANALYSIS_PATH}}</div>
+            <div class="footer-links">
+                <a href="https://echopilotai.replit.app/dashboard">View Dashboard</a>
+                <a href="{{HTML_BRIEF_PATH}}">Download Full Report</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

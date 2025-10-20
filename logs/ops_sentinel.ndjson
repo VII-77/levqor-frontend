@@ -19,3 +19,5 @@
 {"ts": "2025-10-20T17:56:25.960196Z", "event": "ops_sentinel", "status": "healthy", "cpu_percent": 27.2, "mem_percent": 24.0, "disk_percent": 61.5, "latency_sec": 0.023350954055786133, "warnings": []}
 {"ts": "2025-10-20T17:58:27.707043Z", "event": "ops_sentinel", "status": "healthy", "cpu_percent": 37.2, "mem_percent": 24.4, "disk_percent": 61.5, "latency_sec": 0.02349257469177246, "warnings": []}
 {"ts": "2025-10-20T18:01:35.331178Z", "event": "ops_sentinel", "status": "healthy", "cpu_percent": 26.0, "mem_percent": 25.5, "disk_percent": 61.5, "latency_sec": 0.025323867797851562, "warnings": []}
+{"ts": "2025-10-20T18:04:38.084223Z", "event": "ops_sentinel", "status": "healthy", "cpu_percent": 38.6, "mem_percent": 26.5, "disk_percent": 61.5, "latency_sec": 0.06000161170959473, "warnings": []}
+{"ts": "2025-10-20T18:05:04.207103Z", "event": "ops_sentinel", "status": "healthy", "cpu_percent": 38.1, "mem_percent": 26.4, "disk_percent": 61.8, "latency_sec": 0.028199434280395508, "warnings": []}

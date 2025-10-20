@@ -7,3 +7,6 @@
 {"ts": 1760983111.131625, "ts_iso": "2025-10-20T17:58:31.131625Z", "attempt": 1, "wait_seconds": 0.354, "target": "/api/health"}
 {"ts": 1760983111.1418262, "ts_iso": "2025-10-20T17:58:31.141826Z", "attempt": 2, "wait_seconds": 0.85, "target": "/api/health"}
 {"ts": 1760983111.1519933, "ts_iso": "2025-10-20T17:58:31.151994Z", "attempt": 3, "wait_seconds": 2.064, "target": "/api/health"}
+{"ts": 1760983507.8679376, "ts_iso": "2025-10-20T18:05:07.867938Z", "attempt": 1, "wait_seconds": 0.598, "target": "/api/health"}
+{"ts": 1760983507.8784914, "ts_iso": "2025-10-20T18:05:07.878492Z", "attempt": 2, "wait_seconds": 0.792, "target": "/api/health"}
+{"ts": 1760983507.8889105, "ts_iso": "2025-10-20T18:05:07.888912Z", "attempt": 3, "wait_seconds": 1.752, "target": "/api/health"}

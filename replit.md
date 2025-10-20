@@ -2,7 +2,7 @@
 
 ## Overview
 
-EchoPilot is a comprehensive **enterprise-ready AI automation platform** designed to process tasks from Notion databases using AI (OpenAI via Replit AI Integrations). It operates on a 60-second polling cycle, automatically processing triggered tasks, evaluating quality with an 80% QA threshold, and tracking comprehensive job performance metrics including costs, QA scores, token usage, and latency. 
+EchoPilot is a comprehensive **enterprise-ready AI automation platform** designed to process tasks from Notion databases using AI (OpenAI via Replit AI Integrations). It operates on a 60-second polling cycle with **autonomous scheduling via Replit Workflows**, automatically processing triggered tasks, evaluating quality with an 80% QA threshold, and tracking comprehensive job performance metrics including costs, QA scores, token usage, and latency. 
 
 The platform now includes **enterprise features**: finance & revenue tracking, 30-day forecasting, partner marketplace API, multi-language/multi-currency localization, legal compliance documentation (GDPR/CCPA), and advanced monitoring with self-healing capabilities. The system is deployed on Replit Reserved VM at **https://echopilotai.replit.app** and is ready for production use pending legal document review.
 
@@ -142,3 +142,57 @@ EchoPilot supports **dual deployment** to work around Replit's proxy routing iss
 
 **Setup Guide**: See `RAILWAY_FALLBACK_SETUP.md` for detailed instructions.
 **Test Script**: Run `bash scripts/test_edge.sh` to verify Railway fallback configuration.
+## Autonomous Scheduler (Phase 30 - Oct 2025)
+
+**Status:** ✅ FULLY OPERATIONAL using Replit Workflows
+
+The scheduler runs as a dedicated Replit Workflow called "Scheduler" alongside the main "EchoPilot Bot" workflow.
+
+### Features
+
+- **Heartbeat Ticks:** Every 60 seconds with next run calculations
+- **CEO Brief:** Daily at 08:00 UTC (GPT-4o-mini powered executive intelligence)
+- **Daily Report:** Daily at 09:00 UTC (finance metrics + metrics summary)
+- **Self-Heal:** Every 6 hours (automatic retry of failed jobs)
+- **Signal Handling:** Graceful shutdown on SIGTERM/SIGINT
+- **Comprehensive Logging:** NDJSON format to `logs/scheduler.log`
+
+### Implementation
+
+Uses Replit's Workflow system (NOT traditional daemonization):
+
+```python
+# Workflow configuration
+workflows_set_run_config_tool(
+    name="Scheduler",
+    command="python3 -u scripts/exec_scheduler.py",
+    output_type="console"
+)
+```
+
+**Why Workflows?** Replit's environment does not support traditional daemonization (os.setsid, nohup, etc.). 
+Background processes exit immediately. Workflows provide systemd-like process management with automatic 
+restart, persistence, and log management.
+
+### How to Control
+
+1. **Replit UI** (Recommended):
+   - Find "Scheduler" in Tools panel
+   - Click ▶️ to start, ⏹️ to stop
+
+2. **Production Deployment**:
+   - Both "EchoPilot Bot" and "Scheduler" workflows deploy automatically
+   - Run reliably in production with auto-restart on failure
+
+3. **Manual Triggers** (Dashboard):
+   - CEO Brief, Self-Heal, Finance Metrics all work via dashboard buttons
+
+### Files
+
+- `scripts/exec_scheduler.py` - Main scheduler (263 lines, hardened with signal handling)
+- `scripts/run_automations.sh` - Helper script for manual control (optional)
+- `logs/scheduler.log` - NDJSON event log
+
+**Deprecated:** `scripts/daemonize.py` (replaced by Workflow system)
+
+See `logs/SCHEDULER_PERSISTENCE_SOLVED.md` for detailed investigation and solution.

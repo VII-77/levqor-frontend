@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-10-20T11:31:41Z",
+  "timestamp": "2025-10-20T11:38:50Z",
   "finance_metrics": {"data":{"cost_30d":0,"cost_7d":0,"jobs_30d":0,"jobs_7d":0,"profit_30d":0,"profit_7d":0,"revenue_30d":0,"revenue_7d":0,"roi_30d":0},"error":"Finance metrics failed: Cannot compute metrics","ok":false,"source":"error","warnings":["Cannot compute metrics"]},
   "self_heal": {"eligible_unpaid":[],"notes":["Could not query Job Log: 404"],"ok":true,"retried_count":0,"worker_restart_suggested":false},
   "metrics_summary": {"data":{"avg_qa_7d":0.0,"jobs_7d":0,"note":"Error: module 'bot.config' has no attribute 'NOTION_GOVERNANCE_DB_ID'","revenue_7d":0.0},"error":null,"ok":true}

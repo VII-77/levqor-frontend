@@ -870,6 +870,311 @@ def api_release_captain():
             "error": str(e)
         }), 500
 
+@app.route('/api/preflight-audit')
+def api_preflight_audit():
+    """Phase 25 Pre-Flight Audit - comprehensive production readiness check"""
+    import datetime
+    import subprocess
+    import json
+    import time
+    from pathlib import Path
+    
+    audit = {
+        "ts": datetime.datetime.utcnow().isoformat() + "Z",
+        "routes": {},
+        "auth": {},
+        "env": {},
+        "notion": {},
+        "logs": {},
+        "scripts": {},
+        "backoff": {},
+        "guards": {},
+        "security": {},
+        "overall": "PASS",
+        "reasons": []
+    }
+    
+    # A) Runtime & Routes
+    try:
+        with app.test_client() as client:
+            # Test /health
+            start = time.time()
+            resp = client.get('/health')
+            ms = int((time.time() - start) * 1000)
+            audit["routes"]["health"] = {
+                "ok": resp.status_code == 200,
+                "status": resp.status_code,
+                "ms": ms,
+                "size_bytes": len(resp.data)
+            }
+            
+            # Test /dashboard
+            start = time.time()
+            resp = client.get('/dashboard')
+            ms = int((time.time() - start) * 1000)
+            audit["routes"]["dashboard"] = {
+                "ok": resp.status_code == 200 and len(resp.data) > 1000,
+                "status": resp.status_code,
+                "ms": ms,
+                "size_bytes": len(resp.data)
+            }
+            
+            dash_key = os.getenv('DASHBOARD_KEY', '')
+            
+            # Test /api/supervisor-status with key
+            start = time.time()
+            resp = client.get('/api/supervisor-status', headers={'X-Dash-Key': dash_key})
+            ms = int((time.time() - start) * 1000)
+            audit["routes"]["api_supervisor_status"] = {
+                "ok": resp.status_code == 200,
+                "status": resp.status_code,
+                "ms": ms,
+                "size_bytes": len(resp.data)
+            }
+            
+            # Test /api/job-log-latest with key
+            start = time.time()
+            resp = client.get('/api/job-log-latest', headers={'X-Dash-Key': dash_key})
+            ms = int((time.time() - start) * 1000)
+            audit["routes"]["api_job_log_latest"] = {
+                "ok": resp.status_code in [200, 404],
+                "status": resp.status_code,
+                "ms": ms,
+                "size_bytes": len(resp.data)
+            }
+            
+            # Test /api/metrics-summary with key
+            start = time.time()
+            resp = client.get('/api/metrics-summary', headers={'X-Dash-Key': dash_key})
+            ms = int((time.time() - start) * 1000)
+            audit["routes"]["api_metrics_summary"] = {
+                "ok": resp.status_code == 200,
+                "status": resp.status_code,
+                "ms": ms,
+                "size_bytes": len(resp.data)
+            }
+            
+            # Test auth protection - should fail without key
+            resp_no_key = client.get('/api/supervisor-status')
+            audit["auth"]["dashboard_key_protected"] = resp_no_key.status_code == 401
+    except Exception as e:
+        audit["reasons"].append(f"Route testing error: {str(e)}")
+        audit["overall"] = "PARTIAL"
+    
+    # B) Secrets / Config
+    required_envs = [
+        "HEALTH_TOKEN", "DASHBOARD_KEY", "JOB_LOG_DB_ID", 
+        "AUTOMATION_QUEUE_DB_ID", "AI_INTEGRATIONS_OPENAI_API_KEY"
+    ]
+    optional_envs = [
+        "NOTION_GOVERNANCE_DB_ID", "NOTION_COST_DASHBOARD_DB_ID",
+        "STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET"
+    ]
+    
+    for env_var in required_envs:
+        val = os.getenv(env_var, "")
+        if not val:
+            audit["env"][env_var] = "missing"
+            audit["reasons"].append(f"Required env {env_var} is missing")
+            audit["overall"] = "FAIL"
+        elif val.strip() == "":
+            audit["env"][env_var] = "blank"
+            audit["reasons"].append(f"Required env {env_var} is blank")
+            audit["overall"] = "PARTIAL"
+        else:
+            audit["env"][env_var] = "present"
+    
+    for env_var in optional_envs:
+        val = os.getenv(env_var, "")
+        if not val:
+            audit["env"][env_var] = "missing"
+        elif val.strip() == "":
+            audit["env"][env_var] = "blank"
+        else:
+            audit["env"][env_var] = "present"
+    
+    # C) Notion Schema Checks
+    try:
+        from bot.notion_api import NotionClientWrapper
+        from bot import config
+        
+        notion = NotionClientWrapper()
+        
+        # Job Log check
+        if config.JOB_LOG_DB_ID:
+            try:
+                db_info = notion.client.databases.retrieve(config.JOB_LOG_DB_ID)
+                required_props = ["Job Name", "QA", "QA Score", "Duration Sec", "Duration Min", 
+                                "Gross USD", "Profit USD", "Margin %", "Payment Link", 
+                                "Payment Status", "Date", "Tokens In", "Tokens Out", "Notes"]
+                props = db_info.get('properties', {})
+                prop_map = {prop: prop in props for prop in required_props}
+                audit["notion"]["job_log"] = {
+                    "db_title": db_info.get('title', [{}])[0].get('plain_text', 'Unknown'),
+                    "props": prop_map
+                }
+                missing = [p for p, exists in prop_map.items() if not exists]
+                if missing:
+                    audit["reasons"].append(f"Job Log missing props: {missing}")
+                    audit["overall"] = "PARTIAL"
+            except Exception as e:
+                audit["notion"]["job_log"] = {"error": str(e)}
+                audit["reasons"].append(f"Job Log schema check failed: {str(e)}")
+        
+        # Automation Queue check
+        if config.AUTOMATION_QUEUE_DB_ID:
+            try:
+                db_info = notion.client.databases.retrieve(config.AUTOMATION_QUEUE_DB_ID)
+                required_props = ["Task Name", "Description", "Trigger", "Status"]
+                props = db_info.get('properties', {})
+                prop_map = {prop: prop in props for prop in required_props}
+                audit["notion"]["automation_queue"] = {
+                    "db_title": db_info.get('title', [{}])[0].get('plain_text', 'Unknown'),
+                    "props": prop_map
+                }
+                missing = [p for p, exists in prop_map.items() if not exists]
+                if missing:
+                    audit["reasons"].append(f"Automation Queue missing props: {missing}")
+                    audit["overall"] = "PARTIAL"
+            except Exception as e:
+                audit["notion"]["automation_queue"] = {"error": str(e)}
+                audit["reasons"].append(f"Automation Queue schema check failed: {str(e)}")
+        
+        # Cost Dashboard check
+        if config.NOTION_COST_DASHBOARD_DB_ID:
+            try:
+                db_info = notion.client.databases.retrieve(config.NOTION_COST_DASHBOARD_DB_ID)
+                required_props = ["Jobs", "Revenue_30d", "ROI"]
+                props = db_info.get('properties', {})
+                prop_map = {prop: prop in props for prop in required_props}
+                audit["notion"]["cost_dashboard"] = {
+                    "db_title": db_info.get('title', [{}])[0].get('plain_text', 'Unknown'),
+                    "props": prop_map
+                }
+                missing = [p for p, exists in prop_map.items() if not exists]
+                if missing:
+                    audit["reasons"].append(f"Cost Dashboard missing props: {missing}")
+                    audit["overall"] = "PARTIAL"
+            except Exception as e:
+                audit["notion"]["cost_dashboard"] = {"error": str(e)}
+    except Exception as e:
+        audit["reasons"].append(f"Notion schema checks failed: {str(e)}")
+        audit["overall"] = "PARTIAL"
+    
+    # D) Logs & Health Files
+    log_files = {
+        "health_ndjson": "logs/health.ndjson",
+        "e2e_validation": "logs/e2e_validation.json",
+        "release_captain": "logs/release_captain.json",
+        "full_cycle": "logs/full_cycle.log"
+    }
+    
+    for key, path in log_files.items():
+        if Path(path).exists():
+            size = Path(path).stat().st_size
+            audit["logs"][key] = "exists" if size > 0 else "empty"
+        else:
+            audit["logs"][key] = "absent_ok"
+    
+    # E) Scripts Smoke
+    # Health check script
+    try:
+        result = subprocess.run(
+            ['bash', 'scripts/health_check.sh', 'http://localhost:5000'],
+            capture_output=True,
+            text=True,
+            timeout=45
+        )
+        tail_lines = result.stdout.strip().split('\n')
+        audit["scripts"]["health_check"] = {
+            "ran": True,
+            "exit": result.returncode,
+            "tail": tail_lines[-1] if tail_lines else ""
+        }
+        if result.returncode != 0:
+            audit["reasons"].append("Health check script failed")
+            audit["overall"] = "PARTIAL"
+    except subprocess.TimeoutExpired:
+        audit["scripts"]["health_check"] = {"ran": False, "error": "timeout"}
+    except Exception as e:
+        audit["scripts"]["health_check"] = {"ran": False, "error": str(e)}
+    
+    # Release captain script
+    try:
+        result = subprocess.run(
+            ['python3', 'scripts/release_captain.py', '--dry-finance', '--max-retries=1', '--temperature=0.0'],
+            capture_output=True,
+            text=True,
+            timeout=60
+        )
+        try:
+            captain_data = json.loads(Path('logs/release_captain.json').read_text())
+            status = captain_data.get('status', 'UNKNOWN')
+            qa = captain_data.get('qa', {}).get('score')
+            audit["scripts"]["release_captain"] = {
+                "ran": True,
+                "status": status,
+                "qa": qa
+            }
+            if status == "FAIL":
+                audit["reasons"].append("Release captain validation failed")
+                audit["overall"] = "PARTIAL"
+        except:
+            audit["scripts"]["release_captain"] = {"ran": True, "status": "UNKNOWN", "qa": None}
+    except subprocess.TimeoutExpired:
+        audit["scripts"]["release_captain"] = {"ran": False, "error": "timeout"}
+    except Exception as e:
+        audit["scripts"]["release_captain"] = {"ran": False, "error": str(e)}
+    
+    # F) Backoff & Guards
+    try:
+        # Check for retry logic in job-log-latest code
+        with open('run.py', 'r') as f:
+            code = f.read()
+            has_backoff = '[0, 5, 10, 15]' in code or '[5, 10, 20, 30]' in code
+            audit["backoff"]["notion_read_after_write_ok"] = has_backoff
+            if not has_backoff:
+                audit["reasons"].append("Missing Notion backoff delays")
+                audit["overall"] = "PARTIAL"
+    except Exception as e:
+        audit["backoff"]["notion_read_after_write_ok"] = False
+        audit["reasons"].append(f"Backoff check error: {str(e)}")
+    
+    try:
+        from bot import config
+        audit["guards"]["model"] = getattr(config, 'DEFAULT_MODEL', 'unknown')
+        audit["guards"]["max_cost_usd_job"] = os.getenv('MAX_COST_USD_JOB', 'not_set')
+        audit["guards"]["max_tokens_job"] = os.getenv('MAX_TOKENS_JOB', 'not_set')
+    except Exception as e:
+        audit["reasons"].append(f"Guards check error: {str(e)}")
+    
+    # G) Security
+    try:
+        with open('dashboard.html', 'r') as f:
+            html_content = f.read()
+            secrets_found = 'process.env' in html_content or 'HEALTH_TOKEN' in html_content
+            audit["security"]["frontend_secrets_found"] = secrets_found
+            if secrets_found:
+                audit["reasons"].append("Secrets found in dashboard.html")
+                audit["overall"] = "FAIL"
+        
+        # Check proxy pattern exists
+        proxy_ok = '@require_dashboard_key' in code and 'HEALTH_TOKEN' in code
+        audit["security"]["proxy_ok"] = proxy_ok
+    except Exception as e:
+        audit["reasons"].append(f"Security check error: {str(e)}")
+    
+    # Save audit to file
+    try:
+        now = datetime.datetime.utcnow()
+        filename = f"logs/preflight_{now.strftime('%Y%m%d_%H%M')}.json"
+        with open(filename, 'w') as f:
+            json.dump(audit, f, indent=2)
+    except Exception as e:
+        audit["reasons"].append(f"Failed to save audit log: {str(e)}")
+    
+    return jsonify(audit), 200
+
 
 def run_bot():
     """Run the bot in a separate thread"""

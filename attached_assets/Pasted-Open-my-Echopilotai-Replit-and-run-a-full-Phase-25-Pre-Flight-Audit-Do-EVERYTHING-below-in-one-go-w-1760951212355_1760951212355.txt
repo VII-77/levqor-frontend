@@ -1,0 +1,84 @@
+Open my Echopilotai Replit and run a full Phase-25 Pre-Flight Audit. Do EVERYTHING below in one go without breaking existing logic:
+
+GOAL
+- Verify production readiness before Customer Portal build. Produce a single machine-readable JSON report and minimal console noise.
+
+SCOPE
+A) Runtime & Routes
+1) Hit these endpoints internally (Flask test client) and capture status + payload sizes (no secrets in frontend):
+   - GET /health
+   - POST /pulse?token=${HEALTH_TOKEN} (internal call only)
+   - GET /api/supervisor-status (proxy)
+   - GET /api/job-log-latest
+   - GET /api/metrics-summary
+   - POST /api/release-captain (dry run)
+   - GET /dashboard (render ok? length>1k)
+2) Confirm /dashboard API protection uses DASHBOARD_KEY and returns 401 without it.
+
+B) Secrets / Config
+- Verify the following envs exist and are non-empty: HEALTH_TOKEN, DASHBOARD_KEY, JOB_LOG_DB_ID, AUTOMATION_QUEUE_DB_ID, NOTION_GOVERNANCE_DB_ID, NOTION_COST_DASHBOARD_DB_ID, STRIPE_SECRET_KEY or STRIPE_SECRET_LIVE, STRIPE_WEBHOOK_SECRET, AI_INTEGRATIONS_OPENAI_API_KEY.
+- Report missing or blank keys.
+
+C) Notion Schema Checks (no schema writes; read-only validation)
+1) 🎙️ EchoPilot Job Log must include (as properties, any type variants ok): 
+   ["Job Name","QA","QA Score","Duration Sec","Duration Min","Gross USD","Profit USD","Margin %","Payment Link","Payment Status","Date","Tokens In","Tokens Out","Notes"]
+2) 🧱 Automation Queue must include:
+   ["Task Name","Description","Trigger","Status"]
+3) 💰 Cost Dashboard must include:
+   ["Jobs"(relation→Job Log),"Revenue_30d"(rollup of Gross USD),"ROI"(formula)]
+- For each DB, return property presence map {prop: true|false} and the Notion DB title.
+
+D) Logs & Health Files
+- Confirm these files exist and are non-empty if present (don’t create): 
+  logs/health.ndjson, logs/e2e_validation.json, logs/release_captain.json, logs/full_cycle.log
+- If missing, note “absent_ok”.
+
+E) Scripts Smoke
+- If present, run with safe flags and timeouts:
+  - scripts/health_check.sh http://localhost:5000 (timeout 45s) → capture exit code & last line
+  - python3 scripts/release_captain.py --dry-finance --max-retries=1 --temperature=0.0 (timeout 60s) → capture PASS/PARTIAL/FAIL and QA
+
+F) Backoff & Guards
+- Verify Notion read-after-write backoff includes at least [5,10,20,30] seconds in code paths used by job-log reads.
+- Verify cost guardrails (model=gpt-4o-mini, per-job caps envs) are present in config.
+
+G) Security
+- Ensure no secrets are referenced in dashboard.html or any static asset.
+- Confirm proxy pattern is used for /api/supervisor-status and /api/pulse so HEALTH_TOKEN is server-side only.
+
+IMPLEMENTATION NOTES
+- Add a new internal-only endpoint GET /api/preflight-audit that runs all checks in-process (Flask test_client), then returns a SINGLE JSON object:
+  {
+    "ts": "...ISO...",
+    "routes": {name:{ok:true/false, status, ms, size_bytes}},
+    "auth": {"dashboard_key_protected": true/false},
+    "env": {VAR:"present|missing|blank"},
+    "notion": {
+      "job_log": {"db_title":"...", "props":{"QA Score":true,...}},
+      "automation_queue": {...},
+      "cost_dashboard": {...}
+    },
+    "logs": {"health_ndjson":"exists|absent_ok|empty", ...},
+    "scripts": {"health_check":{"ran":true,"exit":0,"tail":"..."}, "release_captain":{"ran":true,"status":"PASS|PARTIAL|FAIL","qa":number|null}},
+    "backoff": {"notion_read_after_write_ok": true/false},
+    "guards": {"model":"gpt-4o-mini","max_cost_usd_job": "...", "max_tokens_job":"..."},
+    "security": {"frontend_secrets_found": false, "proxy_ok": true},
+    "overall": "PASS|PARTIAL|FAIL",
+    "reasons": ["short bullet points if not PASS"]
+  }
+- Use try/except around each probe; never raise; always include errors in the JSON.
+- DO NOT expose raw secrets in responses; only “present/missing/blank”.
+- Keep existing routes intact. Add only the /api/preflight-audit route and minimal helper functions.
+- Add unit-safe timeouts (5s) on internal HTTP calls.
+- Keep code changes minimal and tidy.
+
+TEST & OUTPUT
+1) Run /api/preflight-audit once and print the returned JSON in the console (pretty).
+2) Save it also to logs/preflight_YYYYMMDD_HHMM.json.
+3) Commit with message: "Phase 25 Preflight: add /api/preflight-audit + secure readiness checks".
+4) Reply back with:
+   - The JSON summary (collapsed fields ok if large)
+   - Any non-PASS reasons
+   - Exact files modified
+
+DO NOT leak tokens to frontend. Do not change payment configs. Keep everything idempotent and safe.

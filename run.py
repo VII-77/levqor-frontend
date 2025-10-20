@@ -4202,6 +4202,94 @@ def api_slo_status():
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
+@app.route('/api/ops/analytics', methods=['GET'])
+@require_dashboard_key
+def api_ops_analytics():
+    """Get ops analytics with predictive scaling (Phase 71/74)"""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/predictive_scaling.py'],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        
+        if result.returncode == 0:
+            data = json.loads(result.stdout)
+            return jsonify(data), 200
+        else:
+            return jsonify({"ok": False, "error": result.stderr}), 500
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/retries/simulate', methods=['POST'])
+@require_dashboard_key
+def api_retries_simulate():
+    """Simulate smart retry with exponential backoff (Phase 72)"""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/smart_retries.py'],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        
+        if result.returncode == 0:
+            data = json.loads(result.stdout)
+            return jsonify(data), 200
+        else:
+            return jsonify({"ok": False, "error": result.stderr}), 500
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/reports/email-daily', methods=['POST'])
+@require_dashboard_key
+def api_reports_email_daily():
+    """Generate daily HTML email report (Phase 73)"""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/email_reports_v2.py'],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        
+        if result.returncode == 0:
+            data = json.loads(result.stdout)
+            return jsonify(data), 200
+        else:
+            return jsonify({"ok": False, "error": result.stderr}), 500
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/incidents/summarize', methods=['POST'])
+@require_dashboard_key
+def api_incidents_summarize():
+    """Generate AI-powered incident summary (Phase 75)"""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/ai_incident_summaries.py'],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        
+        if result.returncode == 0:
+            data = json.loads(result.stdout)
+            return jsonify(data), 200
+        else:
+            return jsonify({"ok": False, "error": result.stderr}), 500
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
 
 def run_bot():
     """Run the bot in a separate thread"""

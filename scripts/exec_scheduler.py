@@ -296,6 +296,38 @@ def run_daily_backup():
     except Exception as e:
         log_event('daily_backup_error', {'error': str(e)})
 
+def run_predictive_scaling():
+    """Run predictive scaling analysis"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/predictive_scaling.py'], check=False, timeout=30)
+    except Exception as e:
+        log_event('predictive_scaling_error', {'error': str(e)})
+
+def run_smart_retries():
+    """Run smart retries test"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/smart_retries.py'], check=False, timeout=30)
+    except Exception as e:
+        log_event('smart_retries_error', {'error': str(e)})
+
+def run_email_reports():
+    """Generate daily email reports"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/email_reports_v2.py'], check=False, timeout=30)
+    except Exception as e:
+        log_event('email_reports_error', {'error': str(e)})
+
+def run_ai_incident_summaries():
+    """Generate AI incident summaries"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/ai_incident_summaries.py'], check=False, timeout=30)
+    except Exception as e:
+        log_event('ai_incident_summaries_error', {'error': str(e)})
+
 def run_scheduled_tasks():
     """Check and run scheduled tasks"""
     
@@ -452,6 +484,30 @@ def run_scheduled_tasks():
     if is_time_match(0, 30) and should_run('daily_backup'):
         run_daily_backup()
         mark_run('daily_backup')
+    
+    # ==================== PHASES 71-75: PREDICTIVE, SMART RETRIES & AI ====================
+    
+    # 24) Predictive Scaling - Every hour (Phase 71)
+    if is_time_match(datetime.utcnow().hour, 0) and should_run('predictive_scaling'):
+        run_predictive_scaling()
+        mark_run('predictive_scaling')
+    
+    # 25) AI Incident Summaries - Every 30 minutes (Phase 75)
+    if 'ai_incident_summaries' not in last_run or \
+       (datetime.utcnow() - last_run['ai_incident_summaries']).total_seconds() >= (30 * 60):
+        run_ai_incident_summaries()
+        mark_run('ai_incident_summaries')
+    
+    # 26) Smart Retries Test - Every 6 hours (Phase 72)
+    if 'smart_retries' not in last_run or \
+       (datetime.utcnow() - last_run['smart_retries']).total_seconds() >= (6 * 3600):
+        run_smart_retries()
+        mark_run('smart_retries')
+    
+    # 27) Email Reports - Daily at 07:45 UTC (Phase 73)
+    if is_time_match(7, 45) and should_run('email_reports'):
+        run_email_reports()
+        mark_run('email_reports')
 
 def write_pid():
     """Write PID to file with fsync"""
@@ -506,6 +562,11 @@ def main():
     print(f"   Payment Recon Nightly: Daily at 23:50 UTC", flush=True)
     print(f"   SLO Monitor: Every hour", flush=True)
     print(f"   Daily Backup: Daily at 00:30 UTC", flush=True)
+    print(f"   --- Phases 71-75: Predictive, Smart Retries & AI ---", flush=True)
+    print(f"   Predictive Scaling: Every hour", flush=True)
+    print(f"   AI Incident Summaries: Every 30 minutes", flush=True)
+    print(f"   Smart Retries Test: Every 6 hours", flush=True)
+    print(f"   Email Reports: Daily at 07:45 UTC", flush=True)
     print(f"   Logs: {log_file}", flush=True)
     print(f"   PID: {pid_file}", flush=True)
     print(flush=True)

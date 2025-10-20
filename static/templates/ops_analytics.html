@@ -1,0 +1,70 @@
+<!-- Phase 74: Ops Analytics UI -->
+<div class="card bg-gradient-to-br from-indigo-900 to-indigo-800 text-white p-6 rounded-2xl shadow-xl mt-4 border border-indigo-700">
+  <div class="flex items-center mb-4">
+    <div class="text-3xl mr-3">📈</div>
+    <div>
+      <h3 class="text-xl font-bold">Ops Analytics</h3>
+      <p class="text-sm opacity-80">Predictive scaling, trends & 24h incidents</p>
+    </div>
+  </div>
+  
+  <div class="space-y-2 mb-4">
+    <button class="w-full bg-indigo-700 hover:bg-indigo-600 px-4 py-2 rounded-lg font-medium transition-colors"
+            onclick="loadOpsAnalytics()">
+      🔄 Refresh Analytics
+    </button>
+    <button class="w-full bg-purple-700 hover:bg-purple-600 px-4 py-2 rounded-lg font-medium transition-colors"
+            onclick="loadIncidentSummary()">
+      🚨 View Incident Summary
+    </button>
+    <button class="w-full bg-blue-700 hover:bg-blue-600 px-4 py-2 rounded-lg font-medium transition-colors"
+            onclick="simulateRetries()">
+      🔁 Test Smart Retries
+    </button>
+  </div>
+  
+  <pre id="opsOut" class="text-xs bg-black bg-opacity-50 p-3 rounded-lg overflow-auto max-h-96 font-mono"></pre>
+</div>
+
+<script>
+async function loadOpsAnalytics() {
+  try {
+    const dashKey = window.dashKey || localStorage.getItem('DASHBOARD_KEY') || '';
+    const response = await fetch('/api/ops/analytics', {
+      headers: {'X-Dash-Key': dashKey}
+    });
+    const text = await response.text();
+    document.getElementById('opsOut').textContent = text;
+  } catch (error) {
+    document.getElementById('opsOut').textContent = 'Error: ' + error.message;
+  }
+}
+
+async function loadIncidentSummary() {
+  try {
+    const dashKey = window.dashKey || localStorage.getItem('DASHBOARD_KEY') || '';
+    const response = await fetch('/api/incidents/summarize', {
+      method: 'POST',
+      headers: {'X-Dash-Key': dashKey}
+    });
+    const text = await response.text();
+    document.getElementById('opsOut').textContent = text;
+  } catch (error) {
+    document.getElementById('opsOut').textContent = 'Error: ' + error.message;
+  }
+}
+
+async function simulateRetries() {
+  try {
+    const dashKey = window.dashKey || localStorage.getItem('DASHBOARD_KEY') || '';
+    const response = await fetch('/api/retries/simulate', {
+      method: 'POST',
+      headers: {'X-Dash-Key': dashKey}
+    });
+    const text = await response.text();
+    document.getElementById('opsOut').textContent = text;
+  } catch (error) {
+    document.getElementById('opsOut').textContent = 'Error: ' + error.message;
+  }
+}
+</script>

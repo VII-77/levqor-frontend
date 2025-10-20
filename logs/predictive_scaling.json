@@ -1,0 +1,24 @@
+{
+  "ts": "2025-10-20T17:48:36.429450Z",
+  "cpu": {
+    "current": 0,
+    "p95": 0,
+    "trend": "unknown",
+    "avg": 0
+  },
+  "ram": {
+    "current": 0,
+    "p95": 0,
+    "trend": "unknown",
+    "avg": 0
+  },
+  "latency": {
+    "current": 0,
+    "p95": 0,
+    "trend": "unknown",
+    "avg": 0
+  },
+  "recommendations": [
+    "System metrics healthy - no action needed"
+  ]
+}

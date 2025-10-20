@@ -168,7 +168,8 @@ class TaskProcessor:
     
     def extract_task_properties(self, properties: Dict) -> tuple[str, str]:
         """Extract task name and description from Notion properties"""
-        task_name = extract_notion_property(properties, 'Task Name', 'title') or 'Unnamed Task'
+        task_name = extract_notion_property(properties, 'Job Name', 'title') or \
+                   extract_notion_property(properties, 'Task Name', 'title') or 'Unnamed Task'
         task_description = extract_notion_property(properties, 'Description', 'rich_text') or ''
         return task_name, task_description
     

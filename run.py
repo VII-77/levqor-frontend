@@ -921,17 +921,20 @@ def api_public_create_job():
         
         notion = NotionClientWrapper()
         properties = {
-            "Task Name": {
+            "Job Name": {
                 "title": [{"text": {"content": f"Customer Upload {correlation_id}"}}]
             },
-            "Description": {
-                "rich_text": [{"text": {"content": f"File: {filename}\nCorrelation ID: {correlation_id}\nPath: {file_path}"}}]
+            "Task Type": {
+                "select": {"name": "Processing"}
             },
             "Trigger": {
                 "checkbox": True
             },
             "Status": {
-                "select": {"name": "Pending"}
+                "select": {"name": "New"}
+            },
+            "Payload Link": {
+                "url": f"file://{file_path}"
             }
         }
         

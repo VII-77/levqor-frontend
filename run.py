@@ -1779,6 +1779,473 @@ def api_preflight_audit():
     return jsonify(audit), 200
 
 
+# ============================================================================
+# PHASE 27: AUTONOMY & SCALE ENDPOINTS
+# ============================================================================
+
+def _backend_fetch(path, method="GET", json_data=None, timeout=5):
+    """
+    Internal failover helper: try localhost first, fallback to Railway if configured.
+    Logs to logs/failover.log on fallback.
+    """
+    from pathlib import Path
+    import time
+    
+    log_file = Path('logs/failover.log')
+    log_file.parent.mkdir(exist_ok=True)
+    
+    def log_failover(msg):
+        with open(log_file, 'a') as f:
+            ts = datetime.utcnow().isoformat() + 'Z'
+            f.write(f"[{ts}] {msg}\n")
+    
+    # Try localhost first
+    try:
+        url = f"http://localhost:5000{path}"
+        response = requests.request(method, url, json=json_data, timeout=timeout)
+        if response.status_code != 404:
+            return response
+        else:
+            log_failover(f"404 on localhost{path}, status={response.status_code}")
+    except Exception as e:
+        log_failover(f"Localhost error on {path}: {str(e)}")
+    
+    # Try Railway fallback if configured
+    railway_url = os.getenv('RAILWAY_URL', '').strip()
+    if railway_url:
+        try:
+            url = f"{railway_url}{path}"
+            response = requests.request(method, url, json=json_data, timeout=timeout)
+            log_failover(f"Railway fallback success: {path}, status={response.status_code}")
+            return response
+        except Exception as e:
+            log_failover(f"Railway fallback error on {path}: {str(e)}")
+    
+    # Return None if all failed
+    return None
+
+
+@app.route('/api/self-heal', methods=['POST'])
+@require_dashboard_key
+def self_heal():
+    """
+    Self-heal service: retry failed/stuck jobs, check worker health, surface unpaid jobs.
+    Requires X-Dash-Key header.
+    """
+    from pathlib import Path
+    from bot import config
+    
+    log_file = Path('logs/self_heal.log')
+    log_file.parent.mkdir(exist_ok=True)
+    
+    def log_heal(data):
+        with open(log_file, 'a') as f:
+            import json
+            f.write(json.dumps({"ts": datetime.utcnow().isoformat() + 'Z', **data}) + '\n')
+    
+    try:
+        notes = []
+        retried_count = 0
+        eligible_unpaid = []
+        worker_restart_suggested = False
+        
+        # 1) Scan last 25 Job Log rows for Failed/Stuck
+        try:
+            token = os.getenv('REPLIT_CONNECTORS_HOSTNAME')
+            job_log_id = config.JOB_LOG_DB_ID
+            
+            url = f"https://{token}/notion/v1/databases/{job_log_id}/query"
+            payload = {
+                "page_size": 25,
+                "sorts": [{"timestamp": "created_time", "direction": "descending"}]
+            }
+            response = requests.post(url, json=payload, timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                results = data.get('results', [])
+                
+                for page in results:
+                    props = page.get('properties', {})
+                    page_id = page.get('id', '')
+                    
+                    # Extract properties
+                    status = None
+                    if 'Status' in props and props['Status'].get('select'):
+                        status = props['Status']['select']['name']
+                    
+                    payment_status = None
+                    if 'Payment Status' in props and props['Payment Status'].get('select'):
+                        payment_status = props['Payment Status']['select']['name']
+                    
+                    qa_score = None
+                    if 'QA Score' in props and props['QA Score'].get('number') is not None:
+                        qa_score = props['QA Score']['number']
+                    
+                    correlation_id = None
+                    if 'Correlation ID' in props and props['Correlation ID'].get('rich_text'):
+                        correlation_id = props['Correlation ID']['rich_text'][0]['plain_text']
+                    
+                    # Check for Failed/Stuck
+                    if status in ['Failed', 'Stuck']:
+                        # Re-enqueue into Automation Queue
+                        try:
+                            queue_url = f"https://{token}/notion/v1/pages"
+                            queue_payload = {
+                                "parent": {"database_id": config.AUTOMATION_QUEUE_DB_ID},
+                                "properties": {
+                                    "Task Name": {
+                                        "title": [{"text": {"content": f"self-heal retry {datetime.utcnow().isoformat()} (cid={correlation_id or page_id[:8]})"}}]
+                                    },
+                                    "Trigger": {"checkbox": True},
+                                    "Task Type": {"select": {"name": "audio_transcription"}}
+                                }
+                            }
+                            queue_resp = requests.post(queue_url, json=queue_payload, timeout=10)
+                            
+                            if queue_resp.status_code == 200:
+                                retried_count += 1
+                                log_heal({
+                                    "action": "retry_queued",
+                                    "result": "success",
+                                    "page_id": page_id,
+                                    "correlation_id": correlation_id,
+                                    "status": status
+                                })
+                                notes.append(f"Queued retry for {status} job {correlation_id or page_id[:8]}")
+                            else:
+                                log_heal({
+                                    "action": "retry_queued",
+                                    "result": "failed",
+                                    "page_id": page_id,
+                                    "error": queue_resp.text[:200]
+                                })
+                        except Exception as e:
+                            log_heal({
+                                "action": "retry_queued",
+                                "result": "error",
+                                "page_id": page_id,
+                                "error": str(e)
+                            })
+                    
+                    # Check for Unpaid with high QA
+                    if payment_status == 'Unpaid' and qa_score and qa_score >= 95:
+                        payment_link = None
+                        if 'Payment Link' in props and props['Payment Link'].get('url'):
+                            payment_link = props['Payment Link']['url']
+                        
+                        eligible_unpaid.append({
+                            "correlation_id": correlation_id or page_id[:8],
+                            "qa_score": qa_score,
+                            "payment_link": payment_link
+                        })
+            else:
+                notes.append(f"Could not query Job Log: {response.status_code}")
+        
+        except Exception as e:
+            notes.append(f"Job Log scan error: {str(e)}")
+            log_heal({"action": "scan_job_log", "result": "error", "error": str(e)})
+        
+        # 2) Check worker heartbeat from supervisor
+        try:
+            supervisor_resp = _backend_fetch('/api/supervisor-status', method='GET', timeout=5)
+            if supervisor_resp and supervisor_resp.status_code == 200:
+                supervisor_data = supervisor_resp.json()
+                last_poll = supervisor_data.get('data', {}).get('last_poll_time')
+                
+                if last_poll:
+                    from dateutil import parser
+                    last_poll_dt = parser.parse(last_poll)
+                    now = datetime.utcnow().replace(tzinfo=last_poll_dt.tzinfo)
+                    stale_seconds = (now - last_poll_dt).total_seconds()
+                    
+                    if stale_seconds > 300:  # 5 minutes
+                        worker_restart_suggested = True
+                        notes.append(f"Worker stale for {int(stale_seconds)}s (>5min)")
+                        
+                        # Write sentinel file (no actual kill)
+                        with open('/tmp/restart_requested', 'w') as f:
+                            f.write(f"RESTART_REQUESTED at {datetime.utcnow().isoformat()}\n")
+                        
+                        log_heal({
+                            "action": "worker_check",
+                            "result": "restart_suggested",
+                            "stale_seconds": int(stale_seconds)
+                        })
+                    else:
+                        notes.append(f"Worker healthy (last poll {int(stale_seconds)}s ago)")
+        except Exception as e:
+            notes.append(f"Worker check error: {str(e)}")
+        
+        return jsonify({
+            "ok": True,
+            "retried_count": retried_count,
+            "eligible_unpaid": eligible_unpaid,
+            "worker_restart_suggested": worker_restart_suggested,
+            "notes": notes
+        }), 200
+    
+    except Exception as e:
+        log_heal({"action": "self_heal", "result": "error", "error": str(e)})
+        return jsonify({
+            "ok": False,
+            "error": f"Self-heal failed: {str(e)}",
+            "retried_count": 0,
+            "eligible_unpaid": [],
+            "worker_restart_suggested": False,
+            "notes": []
+        }), 500
+
+
+@app.route('/api/finance-metrics', methods=['GET'])
+@require_dashboard_key
+def finance_metrics():
+    """
+    Finance & ROI metrics: try Notion Cost Dashboard rollups first, fallback to Job Log computation.
+    Requires X-Dash-Key header.
+    """
+    try:
+        from bot import config
+        from dateutil import parser
+        
+        token = os.getenv('REPLIT_CONNECTORS_HOSTNAME')
+        cost_dashboard_id = os.getenv('NOTION_COST_DASHBOARD_DB_ID', '').strip()
+        job_log_id = config.JOB_LOG_DB_ID
+        
+        warnings = []
+        source = "computed"
+        
+        # Try rollups first
+        if cost_dashboard_id:
+            try:
+                url = f"https://{token}/notion/v1/databases/{cost_dashboard_id}/query"
+                response = requests.post(url, json={"page_size": 1}, timeout=10)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    results = data.get('results', [])
+                    
+                    if results:
+                        props = results[0].get('properties', {})
+                        
+                        # Extract rollup values if they exist
+                        def get_rollup(name):
+                            if name in props and props[name].get('rollup', {}).get('number') is not None:
+                                return props[name]['rollup']['number']
+                            return None
+                        
+                        revenue_7d = get_rollup('Revenue_7d')
+                        revenue_30d = get_rollup('Revenue_30d')
+                        cost_7d = get_rollup('Cost_7d')
+                        cost_30d = get_rollup('Cost_30d')
+                        profit_7d = get_rollup('Profit_7d')
+                        profit_30d = get_rollup('Profit_30d')
+                        roi_30d = get_rollup('ROI_30d')
+                        
+                        # If all exist, use rollups
+                        if all(x is not None for x in [revenue_7d, revenue_30d, profit_7d, profit_30d]):
+                            source = "rollup"
+                            return jsonify({
+                                "ok": True,
+                                "data": {
+                                    "revenue_7d": round(revenue_7d, 2),
+                                    "revenue_30d": round(revenue_30d, 2),
+                                    "cost_7d": round(cost_7d or 0, 2),
+                                    "cost_30d": round(cost_30d or 0, 2),
+                                    "profit_7d": round(profit_7d, 2),
+                                    "profit_30d": round(profit_30d, 2),
+                                    "roi_30d": round(roi_30d or 0, 2),
+                                    "jobs_7d": 0,
+                                    "jobs_30d": 0
+                                },
+                                "source": source,
+                                "warnings": []
+                            }), 200
+                        else:
+                            warnings.append("Cost Dashboard rollups incomplete, falling back to computation")
+                else:
+                    warnings.append(f"Cost Dashboard query failed: {response.status_code}")
+            except Exception as e:
+                warnings.append(f"Rollup fetch error: {str(e)}")
+        else:
+            warnings.append("NOTION_COST_DASHBOARD_DB_ID not configured")
+        
+        # Compute from Job Log
+        source = "computed"
+        now = datetime.utcnow()
+        seven_days_ago = now - timedelta(days=7)
+        thirty_days_ago = now - timedelta(days=30)
+        
+        # Query Job Log
+        url = f"https://{token}/notion/v1/databases/{job_log_id}/query"
+        payload = {
+            "page_size": 100,
+            "sorts": [{"timestamp": "created_time", "direction": "descending"}]
+        }
+        response = requests.post(url, json=payload, timeout=10)
+        
+        if response.status_code != 200:
+            warnings.append(f"Job Log query failed: {response.status_code}")
+            raise Exception("Cannot compute metrics")
+        
+        data = response.json()
+        results = data.get('results', [])
+        
+        # Aggregate metrics
+        revenue_7d = revenue_30d = 0
+        cost_7d = cost_30d = 0
+        profit_7d = profit_30d = 0
+        jobs_7d = jobs_30d = 0
+        
+        for page in results:
+            created_time = page.get('created_time')
+            if not created_time:
+                continue
+            
+            created_dt = parser.parse(created_time)
+            props = page.get('properties', {})
+            
+            # Extract values
+            gross = 0
+            if 'Gross USD' in props and props['Gross USD'].get('number') is not None:
+                gross = props['Gross USD']['number']
+            
+            profit = 0
+            if 'Profit USD' in props and props['Profit USD'].get('number') is not None:
+                profit = props['Profit USD']['number']
+            
+            # Cost = Gross - Profit
+            job_cost = gross - profit
+            
+            # Aggregate by time window
+            if created_dt >= seven_days_ago:
+                revenue_7d += gross
+                cost_7d += job_cost
+                profit_7d += profit
+                jobs_7d += 1
+            
+            if created_dt >= thirty_days_ago:
+                revenue_30d += gross
+                cost_30d += job_cost
+                profit_30d += profit
+                jobs_30d += 1
+        
+        # Calculate ROI
+        roi_30d = (profit_30d / cost_30d * 100) if cost_30d > 0 else 0
+        
+        return jsonify({
+            "ok": True,
+            "data": {
+                "revenue_7d": round(revenue_7d, 2),
+                "revenue_30d": round(revenue_30d, 2),
+                "cost_7d": round(cost_7d, 2),
+                "cost_30d": round(cost_30d, 2),
+                "profit_7d": round(profit_7d, 2),
+                "profit_30d": round(profit_30d, 2),
+                "roi_30d": round(roi_30d, 2),
+                "jobs_7d": jobs_7d,
+                "jobs_30d": jobs_30d
+            },
+            "source": source,
+            "warnings": warnings
+        }), 200
+    
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "error": f"Finance metrics failed: {str(e)}",
+            "data": {
+                "revenue_7d": 0,
+                "revenue_30d": 0,
+                "cost_7d": 0,
+                "cost_30d": 0,
+                "profit_7d": 0,
+                "profit_30d": 0,
+                "roi_30d": 0,
+                "jobs_7d": 0,
+                "jobs_30d": 0
+            },
+            "source": "error",
+            "warnings": [str(e)]
+        }), 200  # Never fail hard
+
+
+@app.route('/api/growth/subscribe', methods=['POST'])
+@rate_limit(max_requests=5, window_minutes=1)
+def growth_subscribe():
+    """
+    Growth hooks: subscribe email with optional referral code.
+    Public endpoint with rate limiting.
+    """
+    from pathlib import Path
+    
+    log_file = Path('logs/growth_subscribers.log')
+    log_file.parent.mkdir(exist_ok=True)
+    
+    try:
+        data = request.get_json() or {}
+        email = data.get('email', '').strip()
+        ref = data.get('ref', '').strip()
+        
+        if not email:
+            return jsonify({"ok": False, "error": "Email required"}), 400
+        
+        # Log locally
+        with open(log_file, 'a') as f:
+            ts = datetime.utcnow().isoformat() + 'Z'
+            f.write(f"[{ts}] {email} | ref={ref or 'none'}\n")
+        
+        # Try MailerLite or Brevo if configured (server-side only)
+        mailerlite_key = os.getenv('MAILERLITE_API_KEY', '').strip()
+        brevo_key = os.getenv('BREVO_API_KEY', '').strip()
+        
+        if mailerlite_key:
+            try:
+                # MailerLite API v2
+                url = "https://api.mailerlite.com/api/v2/subscribers"
+                headers = {"X-MailerLite-ApiKey": mailerlite_key}
+                payload = {"email": email, "fields": {"ref": ref} if ref else {}}
+                response = requests.post(url, json=payload, headers=headers, timeout=5)
+            except:
+                pass  # Silent fail
+        elif brevo_key:
+            try:
+                # Brevo (Sendinblue) API
+                url = "https://api.brevo.com/v3/contacts"
+                headers = {"api-key": brevo_key}
+                payload = {
+                    "email": email,
+                    "attributes": {"REF": ref} if ref else {},
+                    "listIds": [2]  # Default list
+                }
+                response = requests.post(url, json=payload, headers=headers, timeout=5)
+            except:
+                pass  # Silent fail
+        
+        # Try Notion Referrals DB if configured
+        referrals_db_id = os.getenv('NOTION_REFERRALS_DB_ID', '').strip()
+        if referrals_db_id:
+            try:
+                token = os.getenv('REPLIT_CONNECTORS_HOSTNAME')
+                url = f"https://{token}/notion/v1/pages"
+                payload = {
+                    "parent": {"database_id": referrals_db_id},
+                    "properties": {
+                        "Email": {"email": email},
+                        "Referrer Code": {"rich_text": [{"text": {"content": ref or "none"}}]},
+                        "Source": {"select": {"name": "portal"}}
+                    }
+                }
+                requests.post(url, json=payload, timeout=5)
+            except:
+                pass  # Silent fail
+        
+        return jsonify({"ok": True, "queued": True}), 200
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
 def run_bot():
     """Run the bot in a separate thread"""
     bot = EchoPilotBot()

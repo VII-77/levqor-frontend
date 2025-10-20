@@ -295,6 +295,16 @@
         let currentCorrelationId = null;
         let statusCheckInterval = null;
         let userEmail = null;
+        let referralCode = null;
+
+        // Capture ?ref= parameter from URL
+        (function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            referralCode = urlParams.get('ref');
+            if (referralCode) {
+                log(`🎁 Referral code detected: ${referralCode}`, 'info');
+            }
+        })();
 
         function log(message, type = 'info') {
             const logDiv = document.getElementById('log');
@@ -382,6 +392,27 @@
                     document.getElementById('correlationId').textContent = currentCorrelationId;
                     log(`✅ Job created: ${currentCorrelationId}`, 'success');
                     setProgress(100);
+
+                    // Subscribe to growth list if checkbox is checked
+                    if (document.getElementById('subscribeCheckbox').checked) {
+                        try {
+                            const subResponse = await fetch('/api/growth/subscribe', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    email: userEmail,
+                                    ref: referralCode || ''
+                                })
+                            });
+                            const subData = await subResponse.json();
+                            if (subData.ok) {
+                                log('✅ Subscribed to updates', 'success');
+                            }
+                        } catch (e) {
+                            // Silent fail - don't block main flow
+                            console.log('Subscribe failed:', e);
+                        }
+                    }
                     showStatus();
                     startStatusPolling();
                     setTimeout(loadJobHistory, 2000);

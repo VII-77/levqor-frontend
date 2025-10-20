@@ -1,0 +1,112 @@
+Open my Echopilotai Replit and do ALL of the following in one go. Keep existing logic intact. Use server-side env only; never expose secrets client-side. Reuse DASHBOARD_KEY auth already in run.py (X-Dashboard-Key header). Be surgical and idempotent.
+
+========================================
+PHASE 27 – AUTONOMY & SCALE (BUILD LIST)
+========================================
+
+A) SELF-HEAL SERVICE
+1) In run.py add:
+   - POST /api/self-heal  (DASHBOARD_KEY required)
+     Behavior:
+       • Scan last 25 Notion Job Log rows; find jobs with Status in ["Failed","Stuck"] OR Payment Status is "Unpaid" AND QA Score >= 95.
+       • For Failed/Stuck: enqueue a re-run into Automation Queue with a note "self-heal retry <timestamp> (cid=<cid>)".
+       • If worker heartbeat (from /api/supervisor-status) indicates stale > 5 min, trigger a soft restart: write "RESTART_REQUESTED\n" to logs/self_heal.log and touch a sentinel file /tmp/restart_requested (NO real process kill; just log & return).
+       • For Unpaid with link present: re-emit the Payment Link in response payload (no changes to Stripe).
+       • Log outcomes to logs/self_heal.log (append NDJSON lines: ts, action, result, page_id, correlation_id).
+       • Return JSON: {ok, retried_count, eligible_unpaid, worker_restart_suggested, notes:[...]}.
+   - Helper: def _require_dashboard_key(request) -> (ok,bool/response) to DRY auth checks if not already present.
+
+B) FINANCE & ROI METRICS (BACKEND)
+2) In run.py add:
+   - GET /api/finance-metrics  (DASHBOARD_KEY required)
+     Behavior:
+       • Try Notion Cost Dashboard rollups first (Revenue_7d, Revenue_30d, Cost_7d, Cost_30d, Profit_7d, Profit_30d, ROI_30d). If these properties do NOT exist, compute on the fly by querying Job Log for last 7/30 days and summing "Gross USD" (revenue) and (Gross USD - Profit USD) to derive cost if explicit Cost not logged; fallback cost= (Gross - Profit).
+       • Return: {ok:true, data:{ revenue_7d, revenue_30d, cost_7d, cost_30d, profit_7d, profit_30d, roi_30d, jobs_7d, jobs_30d }, source:"rollup"|"computed", warnings:[...] }.
+       • Never fail hard—return zeros with warnings if Notion is unavailable.
+
+C) GROWTH HOOKS (SUBSCRIPTIONS & REFERRALS)
+3) In run.py add:
+   - POST /api/growth/subscribe  (public)
+     Input: JSON {email, ref?}
+     Behavior:
+       • If MAILERLITE_API_KEY or BREVO_API_KEY present, subscribe via their HTTP API (server-side only). Else, append to logs/growth_subscribers.log with ts/email/ref.
+       • If NOTION_REFERRALS_DB_ID present, create a row with {Email, Referrer Code, Source:"portal"}.
+       • Return {ok:true, queued:true}.
+   - Update /portal (portal.html) to:
+       • Capture ?ref= in URL and keep it in local state (NO secrets).
+       • On upload success, POST /api/growth/subscribe if user ticks a "Get tips & updates" checkbox (already present if you added it earlier—use or add a minimalist checkbox).
+       • Do not block the main flow if subscribe fails; just log in console area.
+
+D) DASHBOARD CHARTS (OBSERVABILITY 2.0)
+4) In dashboard.html:
+   - Add three small canvases using Chart.js (include via CDN) under a "Metrics" section:
+       • Jobs (7-day) – bar chart
+       • Avg QA (7-day) – line chart
+       • Revenue vs Cost (last 14 days) – line chart
+   - Fetch data by calling existing /api/metrics-summary AND new /api/finance-metrics with header X-Dashboard-Key: <entered password value>. Never store the key; keep it in JS memory only.
+   - Add a refresh button "⟳ Refresh Charts" that refetches and redraws.
+   - Keep the current password field & log area UX; reuse the same fetch wrapper.
+
+E) FAILOVER LOGIC (REPLIT → RAILWAY)
+5) In run.py:
+   - Implement a small helper _backend_fetch(path, method="GET", json=None, timeout=5) that tries http://localhost:5000{path}; on 404/timeout and if RAILWAY_URL env is set, retry RAILWAY_URL{path}. Include reason in logs/failover.log.
+   - Update internal calls that previously hit /pulse or /supervisor locally to use _backend_fetch, so the ops flows still work when Replit proxy 404s.
+   - Do NOT change public routes; this is internal resilience only.
+
+F) SCRIPTS & CRON
+6) Add scripts/self_heal.sh:
+   - Curl POST /api/self-heal with -H "X-Dashboard-Key: $DASHBOARD_KEY", save JSON to logs/self_heal_run_$(date +%F_%H%M).json.
+   - Exit 0 regardless (never crash cron).
+7) Add scripts/phase27_validate.sh:
+   - Sequence:
+       1) Hit /api/supervisor-status
+       2) Hit /api/finance-metrics
+       3) Hit /api/self-heal
+       4) Hit /api/metrics-summary (existing)
+       5) Validate JSON keys exist; write a consolidated logs/phase27_report_YYYYMMDD_HHMM.json.
+   - Accept DASHBOARD_KEY via env; fail gracefully if missing.
+8) Add a Makefile (non-destructive) with targets:
+   - make self-heal
+   - make validate27
+   Both call the scripts with sensible defaults.
+
+G) SECURITY HARDENING
+9) Ensure all new protected endpoints require DASHBOARD_KEY and set headers:
+   - Cache-Control: no-store
+   - X-Frame-Options: DENY
+   - X-Content-Type-Options: nosniff
+10) Keep all tokens server-side only. No API keys in dashboard.html or portal.html.
+11) Maintain uniform JSON: {ok, data?, error?, warnings?}.
+
+H) TESTS (MANUAL RUNNER)
+12) After implementing, run these from the app (no external tools):
+   - GET /api/supervisor-status (with dashboard key) → expect ok:true
+   - GET /api/finance-metrics (with key) → expect numbers; source in {"rollup","computed"}
+   - POST /api/self-heal (with key) → expect retried_count (>=0) and worker_restart_suggested in {true,false}
+   - On dashboard, enter key → press "⟳ Refresh Charts" → all 3 charts render without console errors.
+
+I) LOGGING
+13) Create/append the following:
+   - logs/self_heal.log (NDJSON)
+   - logs/failover.log
+   - logs/growth_subscribers.log
+   - logs/phase27_report_*.json
+   - scripts outputs referenced above
+
+J) NON-BREAKING GUARANTEES
+14) Do NOT change existing Stripe behavior, Notion schemas, or processor flow.
+15) If Notion rollups (Revenue_7d/30d etc.) aren’t present, compute metrics from Job Log automatically instead of failing.
+16) Keep portal & ops dashboard styling intact; add metrics section cleanly below existing controls.
+
+K) COMMIT
+17) Single commit (after all items pass basic tests):
+   Message: "Phase 27: self-heal endpoint, finance metrics, growth hooks, dashboard charts, failover helper, validation scripts"
+
+L) OUTPUT BACK TO ME
+18) When done, print:
+   - List of files created/edited with line counts
+   - Example curl commands for:
+       curl -s -H "X-Dashboard-Key: $DASHBOARD_KEY" https://{host}/api/self-heal | jq
+       curl -s -H "X-Dashboard-Key: $DASHBOARD_KEY" https://{host}/api/finance-metrics | jq
+   - Dashboard instructions: “Open /dashboard, enter your key, then click ⟳ Refresh Charts”
+   - Where logs were written

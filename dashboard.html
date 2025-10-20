@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EchoPilot Ops Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -114,6 +115,40 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        .metrics-section {
+            padding: 30px;
+            background: #f8f9fa;
+            border-top: 2px solid #e0e0e0;
+        }
+        .metrics-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .metrics-header h2 { font-size: 1.4em; color: #333; }
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .chart-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .chart-card h3 {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .chart-canvas {
+            max-height: 200px;
+        }
     </style>
 </head>
 <body>
@@ -138,6 +173,29 @@
             <button onclick="flipToPaid()">💰 Flip to Paid</button>
             <button onclick="getMetricsSummary()">📈 Metrics Summary</button>
             <button onclick="runFullValidation()">🔍 Run Full Validation</button>
+            <button onclick="runSelfHeal()">🔧 Self-Heal</button>
+            <button onclick="getFinanceMetrics()">💰 Finance Metrics</button>
+        </div>
+
+        <div class="metrics-section">
+            <div class="metrics-header">
+                <h2>📊 Metrics Visualization</h2>
+                <button onclick="refreshCharts()">⟳ Refresh Charts</button>
+            </div>
+            <div class="chart-grid">
+                <div class="chart-card">
+                    <h3>Jobs (7-day)</h3>
+                    <canvas id="jobsChart" class="chart-canvas"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>Avg QA (7-day)</h3>
+                    <canvas id="qaChart" class="chart-canvas"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>Revenue vs Cost (14-day)</h3>
+                    <canvas id="revenueChart" class="chart-canvas"></canvas>
+                </div>
+            </div>
         </div>
 
         <div class="log-container">
@@ -288,8 +346,164 @@
             }
         }
 
+        async function runSelfHeal() {
+            log('Running self-heal service...', 'warning');
+            const data = await apiCall('/api/self-heal', 'POST');
+            if (data && data.ok) {
+                log(`\n🔧 SELF-HEAL RESULTS:\n` +
+                    `   Retried: ${data.retried_count} jobs\n` +
+                    `   Unpaid eligible: ${data.eligible_unpaid.length}\n` +
+                    `   Worker restart needed: ${data.worker_restart_suggested}\n` +
+                    `   Notes: ${data.notes.join('; ')}`,
+                    data.worker_restart_suggested ? 'warning' : 'success');
+            }
+        }
+
+        async function getFinanceMetrics() {
+            log('Fetching finance metrics...', 'info');
+            const data = await apiCall('/api/finance-metrics', 'GET');
+            if (data && data.ok) {
+                const m = data.data;
+                log(`\n💰 FINANCE METRICS (${data.source}):\n` +
+                    `   Revenue (7d): $${m.revenue_7d} | (30d): $${m.revenue_30d}\n` +
+                    `   Cost (7d): $${m.cost_7d} | (30d): $${m.cost_30d}\n` +
+                    `   Profit (7d): $${m.profit_7d} | (30d): $${m.profit_30d}\n` +
+                    `   ROI (30d): ${m.roi_30d}%\n` +
+                    `   Jobs (7d): ${m.jobs_7d} | (30d): ${m.jobs_30d}\n` +
+                    (data.warnings.length ? `   Warnings: ${data.warnings.join('; ')}` : ''),
+                    'success');
+            }
+        }
+
+        // Chart.js instances
+        let jobsChart, qaChart, revenueChart;
+
+        function initCharts() {
+            const jobsCtx = document.getElementById('jobsChart').getContext('2d');
+            jobsChart = new Chart(jobsCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Jobs'],
+                    datasets: [{
+                        label: '7-day Jobs',
+                        data: [0],
+                        backgroundColor: 'rgba(102, 126, 234, 0.7)',
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+
+            const qaCtx = document.getElementById('qaChart').getContext('2d');
+            qaChart = new Chart(qaCtx, {
+                type: 'line',
+                data: {
+                    labels: ['QA Score'],
+                    datasets: [{
+                        label: '7-day Avg QA %',
+                        data: [0],
+                        borderColor: 'rgba(39, 174, 96, 1)',
+                        backgroundColor: 'rgba(39, 174, 96, 0.2)',
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, max: 100 } }
+                }
+            });
+
+            const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+            revenueChart = new Chart(revenueCtx, {
+                type: 'line',
+                data: {
+                    labels: ['7d', '14d'],
+                    datasets: [
+                        {
+                            label: 'Revenue ($)',
+                            data: [0, 0],
+                            borderColor: 'rgba(102, 126, 234, 1)',
+                            backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Cost ($)',
+                            data: [0, 0],
+                            borderColor: 'rgba(231, 76, 60, 1)',
+                            backgroundColor: 'rgba(231, 76, 60, 0.2)',
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+
+        async function refreshCharts() {
+            const dashKey = document.getElementById('dashKey').value;
+            if (!dashKey) {
+                log('⚠️ Please enter your DASHBOARD_KEY first', 'warning');
+                return;
+            }
+
+            log('Refreshing charts...', 'info');
+
+            try {
+                // Fetch metrics summary
+                const metricsResp = await fetch('/api/metrics-summary', {
+                    headers: { 'X-Dash-Key': dashKey }
+                });
+                const metricsData = await metricsResp.json();
+
+                // Fetch finance metrics
+                const financeResp = await fetch('/api/finance-metrics', {
+                    headers: { 'X-Dash-Key': dashKey }
+                });
+                const financeData = await financeResp.json();
+
+                if (metricsData.ok && financeData.ok) {
+                    const m = metricsData.data;
+                    const f = financeData.data;
+
+                    // Update Jobs chart
+                    jobsChart.data.datasets[0].data = [f.jobs_7d || m.jobs_7d || 0];
+                    jobsChart.update();
+
+                    // Update QA chart
+                    qaChart.data.datasets[0].data = [m.avg_qa_7d || 0];
+                    qaChart.update();
+
+                    // Update Revenue vs Cost chart (7d vs 14d approximation)
+                    revenueChart.data.datasets[0].data = [f.revenue_7d, f.revenue_30d / 2];
+                    revenueChart.data.datasets[1].data = [f.cost_7d, f.cost_30d / 2];
+                    revenueChart.update();
+
+                    log('✅ Charts refreshed successfully', 'success');
+                } else {
+                    log('⚠️ Failed to fetch chart data', 'warning');
+                }
+            } catch (error) {
+                log(`❌ Chart refresh error: ${error.message}`, 'error');
+            }
+        }
+
+        // Initialize charts on load
+        initCharts();
+
         log('🚀 Dashboard loaded successfully', 'success');
         log('Click buttons above to interact with EchoPilot APIs', 'info');
+        log('📊 Use "⟳ Refresh Charts" to update metrics visualization', 'info');
     </script>
 </body>
 </html>

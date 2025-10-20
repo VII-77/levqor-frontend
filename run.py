@@ -3285,6 +3285,7 @@ def live_ops_status():
     """Get live ops monitoring status including rate limits and bans"""
     import subprocess
     import json
+    from datetime import datetime
     
     try:
         # Get rate guard stats
@@ -3313,7 +3314,7 @@ def live_ops_status():
         
         return jsonify({
             "ok": True,
-            "ts": datetime.datetime.utcnow().isoformat() + "Z",
+            "ts": datetime.utcnow().isoformat() + "Z",
             "system_metrics": sys_data.get("metrics", {}),
             "system_ok": sys_data.get("ok", False),
             "rate_guard": rate_stats,

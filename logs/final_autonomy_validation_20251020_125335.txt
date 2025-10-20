@@ -1,0 +1,50 @@
+╔══════════════════════════════════════════════════════════════════╗
+║         FINAL AUTONOMY VALIDATION REPORT - PHASE 30              ║
+╚══════════════════════════════════════════════════════════════════╝
+
+Timestamp: Mon Oct 20 12:53:35 PM UTC 2025
+
+═══════════════════════════════════════════════════════════════════
+SCHEDULER STATUS (from API)
+═══════════════════════════════════════════════════════════════════
+
+
+═══════════════════════════════════════════════════════════════════
+SCHEDULER LOG (Last 20 lines)
+═══════════════════════════════════════════════════════════════════
+
+{"ts": "2025-10-20T12:34:39.094595Z", "task": "startup", "ok": true, "config": {"brief_time": "08:00", "report_time": "09:00", "selfheal_hours": 6, "base_url": "http://localhost:5000"}}
+{"ts": "2025-10-20T12:43:04.733322Z", "task": "startup", "ok": true, "config": {"brief_time": "08:00", "report_time": "09:00", "selfheal_hours": 6, "base_url": "http://localhost:5000"}}
+
+═══════════════════════════════════════════════════════════════════
+LATEST CEO BRIEF FILES (3 most recent)
+═══════════════════════════════════════════════════════════════════
+
+-rw-r--r-- 1 runner runner 2148 Oct 20 12:53 logs/exec_briefs/brief_20251020_125300.json
+-rw-r--r-- 1 runner runner 2344 Oct 20 12:51 logs/exec_briefs/brief_20251020_125158.json
+-rw-r--r-- 1 runner runner 1997 Oct 20 12:43 logs/exec_briefs/brief_20251020_124348.json
+
+═══════════════════════════════════════════════════════════════════
+SELF-HEAL LOG (Last 10 lines)
+═══════════════════════════════════════════════════════════════════
+
+
+═══════════════════════════════════════════════════════════════════
+RETENTION LOG (Last 10 lines)
+═══════════════════════════════════════════════════════════════════
+
+{"ts": "2025-10-20T12:51:32.543860Z", "pattern": "logs/exec_ingest_*.json", "total": 8, "deleted": 0, "kept": 8, "action": "skip"}
+{"ts": "2025-10-20T12:51:32.544916Z", "pattern": "logs/exec_analysis_*.json", "total": 6, "deleted": 0, "kept": 6, "action": "skip"}
+{"ts": "2025-10-20T12:51:32.545825Z", "pattern": "logs/daily_report_*.json", "total": 1, "deleted": 0, "kept": 1, "action": "skip"}
+{"ts": "2025-10-20T12:51:32.546233Z", "action": "summary", "total_deleted": 0, "patterns_checked": 5}
+{"ts": "2025-10-20T12:53:07.528947Z", "pattern": "logs/exec_briefs/brief_*.json", "total": 8, "deleted": 0, "kept": 8, "action": "skip"}
+{"ts": "2025-10-20T12:53:07.530328Z", "pattern": "logs/exec_briefs/brief_*.html", "total": 8, "deleted": 0, "kept": 8, "action": "skip"}
+{"ts": "2025-10-20T12:53:07.532251Z", "pattern": "logs/exec_ingest_*.json", "total": 10, "deleted": 0, "kept": 10, "action": "skip"}
+{"ts": "2025-10-20T12:53:07.533527Z", "pattern": "logs/exec_analysis_*.json", "total": 8, "deleted": 0, "kept": 8, "action": "skip"}
+{"ts": "2025-10-20T12:53:07.534625Z", "pattern": "logs/daily_report_*.json", "total": 1, "deleted": 0, "kept": 1, "action": "skip"}
+{"ts": "2025-10-20T12:53:07.535173Z", "action": "summary", "total_deleted": 0, "patterns_checked": 5}
+
+═══════════════════════════════════════════════════════════════════
+System Health: ✅ Autonomy Verified
+═══════════════════════════════════════════════════════════════════
+

@@ -1,0 +1,42 @@
+Open my Echopilotai Replit and do ALL of the following in one go:
+
+1) Validate required files & endpoints exist (do NOT recreate if present):
+   - Files: run.py, dashboard.html, Makefile, scripts/exec_scheduler.py, scripts/retention.py, scripts/run_automations.sh
+   - Endpoints (DASHBOARD_KEY auth): 
+     POST /api/automations/start, POST /api/automations/stop, GET /api/automations/status,
+     POST /api/exec/brief, POST /api/self-heal, GET /api/finance-metrics, GET /api/metrics-summary
+   - If any missing, add them exactly as implemented in Phase 27–30.
+
+2) Start clean scheduler session:
+   - Run: `make stop-automations || true`
+   - Sleep 3s
+   - Run: `DASHBOARD_KEY=$DASHBOARD_KEY make start-automations`
+   - Confirm PID written to logs/scheduler.pid and write a line to logs/scheduler.log.
+
+3) Execute one manual autonomy cycle:
+   - Run: `DASHBOARD_KEY=$DASHBOARD_KEY make run-brief`
+   - Run: `DASHBOARD_KEY=$DASHBOARD_KEY make run-selfheal`
+   - Curl (with X-Dash-Key): `/api/finance-metrics` and `/api/metrics-summary` and pretty-print JSON
+   - Run retention cleanup: `python3 scripts/retention.py`
+
+4) Produce a FINAL validation report file with everything below appended in order:
+   - File: `logs/final_autonomy_validation_$(date +%Y%m%d_%H%M%S).txt`
+   - Header with UTC timestamp
+   - Output of: `curl -s -H "X-Dash-Key: $DASHBOARD_KEY" https://echopilotai.replit.app/api/automations/status | python3 -m json.tool`
+   - Tail 20 of logs/scheduler.log
+   - Latest 3 CEO brief files: `ls -lt logs/exec_briefs/brief_*.json | head -3`
+   - Tail 10 of logs/self_heal.log (if exists)
+   - Tail 10 of logs/retention.log (if exists)
+   - A final line: `System Health: ✅ Autonomy Verified` (always print)
+
+5) Output to me (in this chat), verbatim:
+   - The scheduler status JSON
+   - The last 10 lines from logs/scheduler.log
+   - The path of the final report created
+   - If any step failed, paste the exact error and the last 10 lines of the Replit console.
+
+6) Do NOT expose any secrets. Keep all server-only tokens on the backend.
+
+When finished, also confirm the dashboard URL:
+https://echopilotai.replit.app/dashboard
+```0

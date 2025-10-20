@@ -3228,30 +3228,98 @@ def automations_status():
 @app.route('/api/system-health', methods=['GET'])
 @require_dashboard_key
 def system_health():
-    """Run 5-point health probe and return status"""
+    """Run comprehensive health checks including 5-point probe + system metrics"""
     import subprocess
     import json
     
     try:
-        result = subprocess.run(
+        # Run health probe
+        health_result = subprocess.run(
             ['python3', 'scripts/health_probe.py'],
             capture_output=True,
             text=True,
             timeout=15
         )
         
-        if result.returncode == 0:
-            data = json.loads(result.stdout)
-            return jsonify(data), 200
-        else:
+        if health_result.returncode != 0:
             return jsonify({
                 "ok": False,
                 "error": "Health probe failed",
-                "stderr": result.stderr
+                "stderr": health_result.stderr
             }), 500
+        
+        health_data = json.loads(health_result.stdout)
+        
+        # Run sys probe for system metrics
+        sys_result = subprocess.run(
+            ['python3', 'scripts/sys_probe.py'],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        
+        sys_data = {}
+        if sys_result.returncode == 0:
+            sys_data = json.loads(sys_result.stdout)
+        
+        # Combine results
+        combined = {
+            "ts": health_data.get("ts"),
+            "ok": health_data.get("ok", False) and sys_data.get("ok", False),
+            "components": health_data.get("components", {}),
+            "system_metrics": sys_data.get("metrics", {}),
+            "issues": health_data.get("issues", []) + sys_data.get("issues", [])
+        }
+        
+        return jsonify(combined), 200
             
     except subprocess.TimeoutExpired:
         return jsonify({"ok": False, "error": "Health probe timed out"}), 500
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@app.route('/api/live-ops', methods=['GET'])
+@require_dashboard_key
+def live_ops_status():
+    """Get live ops monitoring status including rate limits and bans"""
+    import subprocess
+    import json
+    
+    try:
+        # Get rate guard stats
+        rate_result = subprocess.run(
+            ['python3', 'scripts/rate_guard.py', 'stats'],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        
+        rate_stats = {}
+        if rate_result.returncode == 0:
+            rate_stats = json.loads(rate_result.stdout)
+        
+        # Get sys probe metrics
+        sys_result = subprocess.run(
+            ['python3', 'scripts/sys_probe.py'],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        
+        sys_data = {}
+        if sys_result.returncode == 0:
+            sys_data = json.loads(sys_result.stdout)
+        
+        return jsonify({
+            "ok": True,
+            "ts": datetime.datetime.utcnow().isoformat() + "Z",
+            "system_metrics": sys_data.get("metrics", {}),
+            "system_ok": sys_data.get("ok", False),
+            "rate_guard": rate_stats,
+            "issues": sys_data.get("issues", [])
+        }), 200
+        
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 

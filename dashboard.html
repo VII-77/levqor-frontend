@@ -293,6 +293,18 @@
         </div>
         <!-- ==================== END LIVE OPS MONITOR ==================== -->
 
+        <!-- ==================== ENTERPRISE EXPANSION (Phase 33-40) ==================== -->
+        <div class="button-grid" style="background: linear-gradient(135deg, #4c1d95 0%, #5b21b6 100%); padding: 20px; border-radius: 12px; margin: 20px 0;">
+            <h3 style="grid-column: 1/-1; margin: 0 0 15px 0; font-size: 16px; color: #fff;">🚀 Enterprise Expansion Tools</h3>
+            <button onclick="runPricingAI()" style="grid-column: 1/2; background: #10b981;">💹 Optimize Pricing</button>
+            <button onclick="generateReferral()" style="grid-column: 2/-1; background: #6366f1;">🎯 New Referral</button>
+            <button onclick="runAuditReport()" style="grid-column: 1/2; background: #eab308;">🛡️ Run Audit</button>
+            <button onclick="syncRegions()" style="grid-column: 2/-1; background: #3b82f6;">🌍 Sync Regions</button>
+            <button onclick="runOpsBrain()" style="grid-column: 1/-1; background: #7c3aed;">🧠 Run AI Ops Brain</button>
+            <p id="enterpriseResult" style="grid-column: 1/-1; font-size: 12px; color: #ccc; margin-top: 10px; min-height: 20px;"></p>
+        </div>
+        <!-- ==================== END ENTERPRISE EXPANSION ==================== -->
+
         <div class="metrics-section">
             <div class="metrics-header">
                 <h2>📊 Metrics Visualization</h2>
@@ -978,6 +990,66 @@
                 }
             } catch (error) {
                 log(`❌ Chart refresh error: ${error.message}`, 'error');
+            }
+        }
+
+        // ==================== ENTERPRISE EXPANSION FUNCTIONS (Phase 33-40) ====================
+
+        async function runPricingAI() {
+            log('Running Adaptive Pricing AI...', 'info');
+            const data = await apiCall('/api/pricing/optimize', 'POST');
+            if (data && data.ok) {
+                const pricing = data.data;
+                log(`\n💹 PRICING OPTIMIZATION:\n` +
+                    `   Current Rate: $${pricing.current_rate}/min\n` +
+                    `   Recommended: $${pricing.new_rate}/min\n` +
+                    `   Change: ${pricing.recommendation.toUpperCase()}\n` +
+                    `   QA Score: ${pricing.factors.qa_avg}%\n` +
+                    `   Margin: ${pricing.factors.margin_avg}%`,
+                    'success');
+            }
+        }
+
+        async function generateReferral() {
+            log('Generating new referral code...', 'info');
+            const data = await apiCall('/api/growth/referral/new', 'POST');
+            if (data && data.ok) {
+                const ref = data.data;
+                log(`\n🎯 REFERRAL CODE GENERATED:\n` +
+                    `   Code: ${ref.referral_code}\n` +
+                    `   Share URL: ${ref.share_url}`,
+                    'success');
+            }
+        }
+
+        async function runAuditReport() {
+            log('Generating SOC-lite audit report...', 'info');
+            const data = await apiCall('/api/audit/report', 'GET');
+            if (data && data.ok) {
+                log(`\n🛡️ AUDIT REPORT:\n` +
+                    `   Root Hash: ${data.hash_root.substring(0, 16)}...\n` +
+                    `   Entries: ${data.entries}\n` +
+                    `   File: ${data.audit_file}\n` +
+                    `   Timestamp: ${data.ts}`,
+                    'success');
+            }
+        }
+
+        async function syncRegions() {
+            log('Syncing data to replica regions...', 'info');
+            const data = await apiCall('/api/regions/sync', 'POST');
+            if (data && data.ok) {
+                log(`\n🌍 REGION SYNC:\n${data.message}`, 'success');
+            }
+        }
+
+        async function runOpsBrain() {
+            log('Running AI Ops Brain (GPT-4o-mini)...', 'warning');
+            const data = await apiCall('/api/brain/decide', 'POST');
+            if (data && data.ok) {
+                log(`\n🧠 AI OPS BRAIN RECOMMENDATIONS:\n\n${data.plan}\n\n` +
+                    `Model: ${data.model} | Context Files: ${data.context_files}`,
+                    'success');
             }
         }
 

@@ -1,0 +1,67 @@
+{
+  "ts": "2025-10-20T14:06:15.742427Z",
+  "headline": "\u26a0\ufe0f 2 HIGH SEVERITY ALERTS",
+  "summary": "Jobs (7d): 0 | QA: 0.0% | ROI: 0.0x\nRevenue: $0.00 | Margin: 0.0%\n\nTop Risks:\n  \u2022 [HIGH] Finance metrics failed to compute\n  \u2022 [HIGH] Job Log entry not found after full backoff\n  \u2022 [MED] QA score below threshold",
+  "kpis": {
+    "avg_qa_7d": 0.0,
+    "jobs_7d": 0,
+    "margin_pct_7d": 0,
+    "revenue_7d": 0,
+    "roi_7d": 0
+  },
+  "top_risks": [
+    {
+      "evidence": [
+        "Error: Finance metrics failed: Cannot compute metrics"
+      ],
+      "severity": "high",
+      "signal": "Finance metrics failed to compute",
+      "suggested_fix": "Investigate finance metrics computation errors.",
+      "type": "finance"
+    },
+    {
+      "evidence": [
+        "Job Log entry not found after full backoff (Notion lag or processing failed)"
+      ],
+      "severity": "high",
+      "signal": "Job Log entry not found after full backoff",
+      "suggested_fix": "Check Notion integration for issues.",
+      "type": "ops"
+    },
+    {
+      "evidence": [
+        "QA 85% < 95 (clean payload sample1.mp3, dry-finance mode)"
+      ],
+      "severity": "med",
+      "signal": "QA score below threshold",
+      "suggested_fix": "Review QA processes to improve scores.",
+      "type": "quality"
+    }
+  ],
+  "actions_next_24h": [
+    {
+      "eta_hours": 2,
+      "owner": "finance",
+      "priority": 1,
+      "task": "Resolve finance metrics computation issue."
+    },
+    {
+      "eta_hours": 2,
+      "owner": "ops",
+      "priority": 1,
+      "task": "Investigate Notion integration for job log issues."
+    },
+    {
+      "eta_hours": 2,
+      "owner": "quality",
+      "priority": 1,
+      "task": "Analyze QA process for improvement."
+    }
+  ],
+  "actions_next_7d": [],
+  "confidence": 0.0,
+  "attachments": {
+    "analysis_json_path": "logs/exec_analysis_20251020_140615.json",
+    "ingest_json_path": "logs/exec_ingest_20251020_140610.json"
+  }
+}

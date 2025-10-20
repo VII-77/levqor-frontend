@@ -123,6 +123,12 @@
             <p>Real-time system monitoring and control</p>
         </div>
 
+        <div style="padding: 20px 30px 0;">
+            <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #333;">Dashboard Access Key:</label>
+            <input type="password" id="dashKey" placeholder="Enter DASHBOARD_KEY" 
+                   style="width: 100%; padding: 12px; border: 2px solid #667eea; border-radius: 8px; font-size: 14px; margin-bottom: 15px;">
+        </div>
+
         <div class="grid">
             <button onclick="checkHealth()">✅ Check Health</button>
             <button onclick="getSupervisorStatus()">📊 Supervisor Status</button>
@@ -173,6 +179,12 @@
         }
 
         async function apiCall(endpoint, method = 'GET', body = null) {
+            const dashKey = document.getElementById('dashKey').value;
+            if (!dashKey) {
+                log('⚠️ Please enter your DASHBOARD_KEY first', 'warning');
+                return null;
+            }
+
             const buttons = document.querySelectorAll('button');
             buttons.forEach(btn => btn.disabled = true);
 
@@ -181,7 +193,10 @@
                 
                 const options = {
                     method: method,
-                    headers: { 'Content-Type': 'application/json' }
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-Dash-Key': dashKey
+                    }
                 };
                 
                 if (body) {

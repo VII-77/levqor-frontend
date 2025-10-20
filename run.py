@@ -6,8 +6,51 @@ import threading
 import os
 import requests
 from bot import git_utils
+from functools import wraps
 
 app = Flask(__name__)
+
+def require_dashboard_key(f):
+    """Middleware to require DASHBOARD_KEY for secure API routes"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        dash_key = request.headers.get('X-Dash-Key')
+        expected_key = os.getenv('DASHBOARD_KEY')
+        
+        if not expected_key:
+            return jsonify({"ok": False, "error": "DASHBOARD_KEY not configured on server"}), 500
+        
+        if dash_key != expected_key:
+            return jsonify({"ok": False, "error": "Unauthorized - invalid dashboard key"}), 401
+        
+        return f(*args, **kwargs)
+    return decorated_function
+
+def check_csrf(f):
+    """CSRF protection for POST requests"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if request.method == 'POST':
+            origin = request.headers.get('Origin', '')
+            referer = request.headers.get('Referer', '')
+            
+            allowed = 'echopilotai.replit.app' in origin or 'echopilotai.replit.app' in referer or 'localhost' in origin or 'localhost' in referer
+            
+            if not allowed:
+                return jsonify({"ok": False, "error": "CSRF check failed"}), 403
+        
+        return f(*args, **kwargs)
+    return decorated_function
+
+def add_security_headers(response):
+    """Add security headers to responses"""
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['Pragma'] = 'no-cache'
+    return response
+
+app.after_request(add_security_headers)
 
 # Edge routing configuration for Railway fallback
 EDGE_ENABLE = os.getenv("EDGE_ENABLE", "false").lower() == "true"
@@ -501,22 +544,28 @@ def dashboard():
     return send_from_directory('.', 'dashboard.html')
 
 @app.route('/api/supervisor-status')
+@require_dashboard_key
 def api_supervisor_status():
     """Supervisor status (secure proxy - no token needed from frontend)"""
     try:
         import datetime
         return jsonify({
             "ok": True,
-            "notion": "ok",
-            "drive": "ok",
-            "openai": "ok",
-            "ts": datetime.datetime.utcnow().isoformat() + "Z",
-            "edge": "replit"
+            "data": {
+                "notion": "ok",
+                "drive": "ok",
+                "openai": "ok",
+                "ts": datetime.datetime.utcnow().isoformat() + "Z",
+                "edge": "replit"
+            },
+            "error": None
         }), 200
     except Exception as e:
-        return jsonify({"ok": False, "error": str(e)}), 500
+        return jsonify({"ok": False, "data": None, "error": str(e)}), 500
 
 @app.route('/api/pulse', methods=['POST'])
+@require_dashboard_key
+@check_csrf
 def api_pulse():
     """Create governance pulse (secure proxy - no token needed from frontend)"""
     try:
@@ -530,18 +579,21 @@ def api_pulse():
         if pulse_id:
             return jsonify({
                 "ok": True,
-                "id": pulse_id,
-                "message": "Governance pulse created"
+                "data": {"id": pulse_id, "message": "Governance pulse created"},
+                "error": None
             }), 200
         else:
             return jsonify({
                 "ok": False,
+                "data": None,
                 "error": "Failed to create pulse entry"
             }), 500
     except Exception as e:
-        return jsonify({"ok": False, "error": str(e)}), 500
+        return jsonify({"ok": False, "data": None, "error": str(e)}), 500
 
 @app.route('/api/create-test-job', methods=['POST'])
+@require_dashboard_key
+@check_csrf
 def api_create_test_job():
     """Create a test job in Automation Queue"""
     try:
@@ -574,9 +626,12 @@ def api_create_test_job():
         
         return jsonify({
             "ok": True,
-            "page_id": result.get('id'),
-            "correlation_id": correlation_id,
-            "message": "Test job created (will process in ~60s)"
+            "data": {
+                "page_id": result.get('id'),
+                "correlation_id": correlation_id,
+                "message": "Test job created (will process in ~60s)"
+            },
+            "error": None
         }), 200
     except Exception as e:
         error_msg = str(e)
@@ -584,14 +639,14 @@ def api_create_test_job():
         if "is not a property that exists" in error_msg:
             return jsonify({
                 "ok": False,
-                "error": "Database properties not configured",
-                "details": "Your Automation Queue database needs these properties: Task Name (title), Description (rich_text), Trigger (checkbox), Status (select)",
-                "notion_error": error_msg
+                "data": None,
+                "error": "Database properties not configured. Your Automation Queue needs: Task Name (title), Description (rich_text), Trigger (checkbox), Status (select)"
             }), 400
         
-        return jsonify({"ok": False, "error": error_msg}), 500
+        return jsonify({"ok": False, "data": None, "error": error_msg}), 500
 
 @app.route('/api/job-log-latest')
+@require_dashboard_key
 def api_job_log_latest():
     """Get latest job from Job Log (with retry for Notion sync lag)"""
     try:
@@ -636,26 +691,32 @@ def api_job_log_latest():
                 
                 return jsonify({
                     "ok": True,
-                    "page_id": latest.get('id'),
-                    "job_name": get_prop('Job Name', 'title'),
-                    "qa_score": get_prop('QA Score'),
-                    "duration_sec": get_prop('Duration Sec'),
-                    "gross_usd": get_prop('Gross USD'),
-                    "profit_usd": get_prop('Profit USD'),
-                    "margin_pct": get_prop('Margin %'),
-                    "payment_status": get_prop('Payment Status', 'select'),
-                    "payment_link": get_prop('Payment Link', 'url'),
-                    "attempt": attempt + 1
+                    "data": {
+                        "page_id": latest.get('id'),
+                        "job_name": get_prop('Job Name', 'title'),
+                        "qa_score": get_prop('QA Score'),
+                        "duration_sec": get_prop('Duration Sec'),
+                        "gross_usd": get_prop('Gross USD'),
+                        "profit_usd": get_prop('Profit USD'),
+                        "margin_pct": get_prop('Margin %'),
+                        "payment_status": get_prop('Payment Status', 'select'),
+                        "payment_link": get_prop('Payment Link', 'url'),
+                        "attempt": attempt + 1
+                    },
+                    "error": None
                 }), 200
         
         return jsonify({
             "ok": False,
+            "data": None,
             "error": "No jobs found after retries (Notion sync lag)"
         }), 404
     except Exception as e:
-        return jsonify({"ok": False, "error": str(e)}), 500
+        return jsonify({"ok": False, "data": None, "error": str(e)}), 500
 
 @app.route('/api/flip-paid', methods=['POST'])
+@require_dashboard_key
+@check_csrf
 def api_flip_paid():
     """Update Payment Status to Paid"""
     try:
@@ -667,6 +728,7 @@ def api_flip_paid():
         if not page_id:
             return jsonify({
                 "ok": False,
+                "data": None,
                 "error": "page_id required in request body"
             }), 400
         
@@ -677,11 +739,14 @@ def api_flip_paid():
         
         return jsonify({
             "ok": True,
-            "page_id": page_id,
-            "message": "Payment Status updated to Paid"
+            "data": {
+                "page_id": page_id,
+                "message": "Payment Status updated to Paid"
+            },
+            "error": None
         }), 200
     except Exception as e:
-        return jsonify({"ok": False, "error": str(e)}), 500
+        return jsonify({"ok": False, "data": None, "error": str(e)}), 500
 
 
 def run_bot():

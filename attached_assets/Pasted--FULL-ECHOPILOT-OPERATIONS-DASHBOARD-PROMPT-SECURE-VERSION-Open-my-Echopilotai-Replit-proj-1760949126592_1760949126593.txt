@@ -1,0 +1,125 @@
+---
+
+🧠 FULL ECHOPILOT OPERATIONS DASHBOARD PROMPT (SECURE VERSION)
+
+Open my Echopilotai Replit project and perform all of the following steps **in one go**:
+
+────────────────────────────
+🔧 OBJECTIVE
+────────────────────────────
+Create a secure operational dashboard at `/dashboard` to monitor and control EchoPilot’s system without exposing any secrets.
+This dashboard will call backend proxy routes that handle tokens server-side and display live system status (health, supervisor, jobs, finance, governance).
+
+────────────────────────────
+🗂️ FILES & STRUCTURE
+────────────────────────────
+1. Create `dashboard.html` at the project root.
+2. In `run.py` (Flask main), add these new routes:
+
+    ✅ GET `/api/health`
+       → Returns system health JSON from internal `/health`.
+
+    ✅ GET `/api/supervisor-status`
+       → Internally calls `/supervisor?token=<HEALTH_TOKEN>` via Flask test_client or requests, returns parsed JSON (3-line summary only).
+
+    ✅ POST `/api/pulse`
+       → Internally posts to `/pulse?token=<HEALTH_TOKEN>` and returns status: “created” or “error”.
+
+    ✅ POST `/api/create-test-job`
+       → Adds a new job to the Notion Automation Queue using:
+         Payload Link: https://filesamples.com/samples/audio/mp3/sample1.mp3
+         Job Name: “Dashboard Test Job”
+         Trigger: true
+         Status: “New”.
+
+    ✅ GET `/api/job-log-latest`
+       → Queries 🎙️ EchoPilot Job Log DB (using JOB_LOG_DB_ID), returning the latest job’s:
+         { Job Name, QA, Duration Sec, Gross USD, Profit USD, Margin %, Payment Status }.
+         Includes retry/backoff 5s→10s→20s→30s for Notion sync lag.
+
+    ✅ POST `/api/flip-paid`
+       → Input: { "page_id": "<Notion Job ID>" }
+         Sets Payment Status = “Paid” in Job Log and confirms update.
+
+    ✅ GET `/dashboard`
+       → Serves the `dashboard.html` file securely.
+
+────────────────────────────
+🧱 SECURITY RULES
+────────────────────────────
+- Use `os.getenv("HEALTH_TOKEN")` server-side only (never expose to frontend).
+- All `/api/*` routes require a request header `X-Dash-Key` matching env `DASHBOARD_KEY`.
+- Return uniform JSON shape: `{ "ok": true|false, "data": <object|null>, "error": <string|null> }`.
+- Apply `Cache-Control: no-store`, `X-Frame-Options: DENY` to dashboard responses.
+- CSRF protection: for POSTs, require Origin/Referer contains “echopilotai.replit.app”.
+- CORS disabled (same-origin only).
+
+────────────────────────────
+💻 FRONTEND (dashboard.html)
+────────────────────────────
+- Clean minimal UI:
+  • Buttons: Check Health, Supervisor Status, Send Pulse, Create Test Job, Refresh Job Log, Flip Paid.
+  • Readout area (`<pre id="log">`) showing formatted JSON results.
+- Use a small JS fetch wrapper:
+
+async function callAPI(endpoint, method='GET', body=null) { log(Calling ${endpoint}...); const res = await fetch(endpoint, { method, headers: { 'Content-Type': 'application/json', 'X-Dash-Key': '<read from input field>', }, body: body ? JSON.stringify(body) : null }); const json = await res.json(); log(JSON.stringify(json, null, 2)); }
+
+- Disable buttons while a call runs, show spinner or “Working…” label.
+- Add a small text input at the top for DASHBOARD_KEY.
+- No environment variables in frontend.
+
+────────────────────────────
+⚙️ ENVIRONMENT
+────────────────────────────
+Confirm these secrets exist in Replit:
+- HEALTH_TOKEN
+- JOB_LOG_DB_ID
+- AUTOMATION_QUEUE_DB_ID
+- DASHBOARD_KEY (create one if missing; any long random string)
+
+────────────────────────────
+🧪 VALIDATION
+────────────────────────────
+After setup:
+1. Open: https://Echopilotai.replit.app/dashboard
+2. Enter your DASHBOARD_KEY in the input box.
+3. Click buttons in this order:
+ ✅ Check Health
+ ✅ Supervisor Status
+ ✅ Send Pulse
+ ✅ Create Test Job
+ ✅ (wait 60–90s)
+ ✅ Refresh Job Log
+ ✅ Flip Paid
+4. Verify all JSON responses show `"ok": true`.
+
+────────────────────────────
+📦 COMMIT
+────────────────────────────
+After successful testing:
+Commit all changes with message:
+"Add secure ops dashboard + API proxy routes for EchoPilot"
+
+────────────────────────────
+✅ EXPECTED OUTCOME
+────────────────────────────
+- Secure, functional dashboard served at `/dashboard`
+- All API calls proxy safely through Flask
+- No secrets in frontend
+- Health, supervisor, governance, and finance checks working
+- Ready for daily use and diagnostics
+
+────────────────────────────
+🧩 BONUS (OPTIONAL)
+────────────────────────────
+If time allows, add:
+- Metrics summary (Jobs_7d, Revenue_7d, Avg_QA_7d) card
+- Button to trigger `/api/release-captain` (dry-finance validation mode)
+────────────────────────────
+
+
+---
+
+✅ Next:
+Once Replit AI finishes, open /dashboard → test each button → copy any JSON or error output here so I can verify functionality.
+

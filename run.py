@@ -3075,6 +3075,148 @@ def exec_schedule_daily():
         return jsonify({"ok": False, "error": str(e)}), 500
 
 
+# ============================================================================
+# AUTOMATION CONTROL (Phases 27-29 Scheduler)
+# ============================================================================
+
+@app.route('/api/automations/start', methods=['POST'])
+@require_dashboard_key
+def automations_start():
+    """
+    POST /api/automations/start
+    Starts the background scheduler via scripts/run_automations.sh
+    """
+    from pathlib import Path
+    import subprocess
+    
+    try:
+        script_path = Path('scripts/run_automations.sh')
+        if not script_path.exists():
+            return jsonify({"ok": False, "error": "run_automations.sh not found"}), 404
+        
+        # Run supervisor script
+        result = subprocess.Popen(
+            ['bash', str(script_path)],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            start_new_session=True
+        )
+        
+        # Read PID from file after a moment
+        import time
+        time.sleep(2)
+        
+        pid = None
+        pid_file = Path('logs/scheduler.pid')
+        if pid_file.exists():
+            pid = int(pid_file.read_text().strip())
+        
+        return jsonify({
+            "ok": True,
+            "status": "Scheduler started",
+            "pid": pid,
+            "error": None
+        }), 200
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@app.route('/api/automations/stop', methods=['POST'])
+@require_dashboard_key
+def automations_stop():
+    """
+    POST /api/automations/stop
+    Stops the background scheduler by killing the process
+    """
+    import subprocess
+    from pathlib import Path
+    
+    try:
+        # Try pkill first
+        result = subprocess.run(
+            ['pkill', '-f', 'exec_scheduler.py'],
+            capture_output=True,
+            text=True
+        )
+        
+        # Remove PID file
+        pid_file = Path('logs/scheduler.pid')
+        if pid_file.exists():
+            pid_file.unlink()
+        
+        return jsonify({
+            "ok": True,
+            "status": "Scheduler stopped",
+            "error": None
+        }), 200
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@app.route('/api/automations/status', methods=['GET'])
+@require_dashboard_key
+def automations_status():
+    """
+    GET /api/automations/status
+    Returns scheduler status by scanning processes
+    """
+    import subprocess
+    from pathlib import Path
+    
+    try:
+        # Check if process is running
+        result = subprocess.run(
+            ['pgrep', '-f', 'exec_scheduler.py'],
+            capture_output=True,
+            text=True
+        )
+        
+        running = result.returncode == 0
+        pid = None
+        
+        if running:
+            pids = result.stdout.strip().split('\n')
+            if pids and pids[0]:
+                pid = int(pids[0])
+        
+        # Check PID file
+        pid_file = Path('logs/scheduler.pid')
+        pid_from_file = None
+        if pid_file.exists():
+            try:
+                pid_from_file = int(pid_file.read_text().strip())
+            except:
+                pass
+        
+        # Get last scheduler log entry
+        scheduler_log = Path('logs/scheduler.log')
+        last_log = None
+        if scheduler_log.exists():
+            lines = scheduler_log.read_text().strip().split('\n')
+            if lines:
+                try:
+                    import json
+                    last_log = json.loads(lines[-1])
+                except:
+                    pass
+        
+        return jsonify({
+            "ok": True,
+            "data": {
+                "running": running,
+                "pid": pid or pid_from_file,
+                "last_activity": last_log.get('ts') if last_log else None,
+                "last_task": last_log.get('task') if last_log else None
+            },
+            "error": None
+        }), 200
+    
+    except Exception as e:
+        return jsonify({"ok": False, "data": None, "error": str(e)}), 500
+
+
 def run_bot():
     """Run the bot in a separate thread"""
     bot = EchoPilotBot()

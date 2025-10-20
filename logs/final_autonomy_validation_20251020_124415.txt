@@ -1,0 +1,31 @@
+╔══════════════════════════════════════════════════════╗
+║ ECHOPILOT AUTONOMY FINAL VALIDATION REPORT           ║
+╚══════════════════════════════════════════════════════╝
+
+Timestamp: Mon Oct 20 12:44:15 PM UTC 2025
+
+--- Scheduler Status ---
+{
+    "data": {
+        "last_activity": "2025-10-20T12:43:04.733322Z",
+        "last_task": "startup",
+        "pid": 2274,
+        "running": false
+    },
+    "error": null,
+    "ok": true
+}
+
+--- Scheduler Log (Last 20 entries) ---
+{"ts": "2025-10-20T12:34:39.094595Z", "task": "startup", "ok": true, "config": {"brief_time": "08:00", "report_time": "09:00", "selfheal_hours": 6, "base_url": "http://localhost:5000"}}
+{"ts": "2025-10-20T12:43:04.733322Z", "task": "startup", "ok": true, "config": {"brief_time": "08:00", "report_time": "09:00", "selfheal_hours": 6, "base_url": "http://localhost:5000"}}
+
+--- Recent CEO Briefs ---
+-rw-r--r-- 1 runner runner 1997 Oct 20 12:43 logs/exec_briefs/brief_20251020_124348.json
+-rw-r--r-- 1 runner runner 1985 Oct 20 12:43 logs/exec_briefs/brief_20251020_124304.json
+-rw-r--r-- 1 runner runner 2261 Oct 20 12:35 logs/exec_briefs/brief_20251020_123556.json
+
+--- Self-Heal Log (Last 10 entries) ---
+No self-heal log
+
+--- Retention Summary (Last 10 entries) ---

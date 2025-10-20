@@ -1,0 +1,13 @@
+{"ts": "2025-10-20T12:42:40.902219Z", "pattern": "logs/exec_ingest_*.json", "total": 6, "deleted": 0, "kept": 6, "action": "skip"}
+{"ts": "2025-10-20T12:42:40.903539Z", "pattern": "logs/exec_analysis_*.json", "total": 4, "deleted": 0, "kept": 4, "action": "skip"}
+{"ts": "2025-10-20T12:42:40.904774Z", "pattern": "logs/daily_report_*.json", "total": 1, "deleted": 0, "kept": 1, "action": "skip"}
+{"ts": "2025-10-20T12:42:40.905479Z", "action": "summary", "total_deleted": 0, "patterns_checked": 5}
+{"ts": "2025-10-20T12:44:03.223273Z", "pattern": "logs/exec_briefs/brief_*.json", "total": 6, "deleted": 0, "kept": 6, "action": "skip"}
+{"ts": "2025-10-20T12:44:03.224461Z", "pattern": "logs/exec_briefs/brief_*.html", "total": 6, "deleted": 0, "kept": 6, "action": "skip"}
+{"ts": "2025-10-20T12:44:03.225707Z", "pattern": "logs/exec_ingest_*.json", "total": 8, "deleted": 0, "kept": 8, "action": "skip"}
+{"ts": "2025-10-20T12:44:03.226779Z", "pattern": "logs/exec_analysis_*.json", "total": 6, "deleted": 0, "kept": 6, "action": "skip"}
+{"ts": "2025-10-20T12:44:03.227732Z", "pattern": "logs/daily_report_*.json", "total": 1, "deleted": 0, "kept": 1, "action": "skip"}
+{"ts": "2025-10-20T12:44:03.228098Z", "action": "summary", "total_deleted": 0, "patterns_checked": 5}
+
+System Health: ✅ Autonomy Verified
+

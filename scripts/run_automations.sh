@@ -38,10 +38,10 @@ start_scheduler() {
     python3 scripts/retention.py || true
     echo ""
     
-    # Trigger initial CEO Brief (non-blocking)
+    # Trigger initial CEO Brief (background, non-blocking)
     if [ -n "${DASHBOARD_KEY:-}" ]; then
-        echo "📊 Triggering initial CEO Brief..."
-        curl -s -H "X-Dash-Key: ${DASHBOARD_KEY}" -X POST http://localhost:5000/api/exec/brief >/dev/null 2>&1 || true
+        echo "📊 Triggering initial CEO Brief (background)..."
+        (curl -s -H "X-Dash-Key: ${DASHBOARD_KEY}" -X POST http://localhost:5000/api/exec/brief >/dev/null 2>&1 || true) &
         echo "   ✅ Brief triggered (check logs/exec_briefs/)"
         echo ""
     fi

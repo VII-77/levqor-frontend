@@ -1,0 +1,66 @@
+{
+  "kpis": {
+    "jobs_7d": 0,
+    "revenue_7d": 0,
+    "avg_qa_7d": 0.0,
+    "roi_7d": 0,
+    "margin_pct_7d": 0
+  },
+  "anomalies": [
+    {
+      "type": "finance",
+      "severity": "high",
+      "signal": "Finance metrics failed: Cannot compute metrics",
+      "evidence": [
+        "Cannot compute metrics",
+        "Job Log entry not found after full backoff (Notion lag or processing failed)"
+      ],
+      "suggested_fix": "Investigate Notion integration issues."
+    },
+    {
+      "type": "ops",
+      "severity": "high",
+      "signal": "Notion sync lag detected",
+      "evidence": [
+        "Notion sync lag (retry) reported multiple times",
+        "Job Log entry not found after full backoff"
+      ],
+      "suggested_fix": "Check Notion service status and logs."
+    },
+    {
+      "type": "quality",
+      "severity": "med",
+      "signal": "QA score below threshold",
+      "evidence": [
+        "QA 85% < 95 (clean payload sample1.mp3, dry-finance mode)"
+      ],
+      "suggested_fix": "Review QA processes for improvements."
+    }
+  ],
+  "actions": [
+    {
+      "owner": "ops",
+      "priority": 1,
+      "task": "Investigate Notion integration issues.",
+      "eta_hours": 2
+    },
+    {
+      "owner": "finance",
+      "priority": 1,
+      "task": "Resolve finance metrics computation failure.",
+      "eta_hours": 2
+    },
+    {
+      "owner": "quality",
+      "priority": 1,
+      "task": "Review QA processes for improvements.",
+      "eta_hours": 2
+    }
+  ],
+  "notes": [
+    "Multiple Notion sync lags detected.",
+    "Finance metrics are not computable.",
+    "QA score is below acceptable levels."
+  ],
+  "confidence": 0.9
+}

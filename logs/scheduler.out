@@ -1,0 +1,16 @@
+{"ts": "2025-10-20T14:18:11.557784Z", "event": "startup", "ok": true, "pid": 3581, "config": {"brief_time": "08:00", "report_time": "09:00", "selfheal_hours": 6, "base_url": "http://localhost:5000"}}
+🤖 EchoPilot Executive Scheduler Started (PID: 3581)
+   CEO Brief: 08:00 UTC
+   Daily Report: 09:00 UTC
+   Self-Heal: Every 6 hours
+   Logs: logs/scheduler.log
+   PID: logs/scheduler.pid
+
+{"ts": "2025-10-20T14:20:45.824459Z", "event": "startup", "ok": true, "pid": 3811, "config": {"brief_time": "08:00", "report_time": "09:00", "selfheal_hours": 6, "base_url": "http://localhost:5000"}}
+🤖 EchoPilot Executive Scheduler Started (PID: 3811)
+   CEO Brief: 08:00 UTC
+   Daily Report: 09:00 UTC
+   Self-Heal: Every 6 hours
+   Logs: logs/scheduler.log
+   PID: logs/scheduler.pid
+

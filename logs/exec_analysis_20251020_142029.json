@@ -1,0 +1,65 @@
+{
+  "kpis": {
+    "jobs_7d": 0,
+    "revenue_7d": 0,
+    "avg_qa_7d": 0.0,
+    "roi_7d": 0,
+    "margin_pct_7d": 0
+  },
+  "anomalies": [
+    {
+      "type": "finance",
+      "severity": "high",
+      "signal": "Finance metrics failed: Cannot compute metrics",
+      "evidence": [
+        "Finance metrics failed: Cannot compute metrics"
+      ],
+      "suggested_fix": "Investigate finance metrics computation errors."
+    },
+    {
+      "type": "ops",
+      "severity": "high",
+      "signal": "Job Log entry not found after full backoff (Notion lag or processing failed)",
+      "evidence": [
+        "Job Log entry not found after full backoff (Notion lag or processing failed)",
+        "Could not query Job Log: 404"
+      ],
+      "suggested_fix": "Check Notion integration and job processing."
+    },
+    {
+      "type": "quality",
+      "severity": "med",
+      "signal": "QA 85% < 95 (clean payload sample1.mp3, dry-finance mode)",
+      "evidence": [
+        "QA 85% < 95 (clean payload sample1.mp3, dry-finance mode)"
+      ],
+      "suggested_fix": "Review QA processes to improve quality."
+    }
+  ],
+  "actions": [
+    {
+      "owner": "finance",
+      "priority": 1,
+      "task": "Resolve finance metrics computation issues.",
+      "eta_hours": 2
+    },
+    {
+      "owner": "ops",
+      "priority": 1,
+      "task": "Investigate Notion integration and job processing failures.",
+      "eta_hours": 2
+    },
+    {
+      "owner": "quality",
+      "priority": 1,
+      "task": "Enhance QA processes to meet standards.",
+      "eta_hours": 2
+    }
+  ],
+  "notes": [
+    "Finance metrics are not computable.",
+    "Job Log entries are missing due to Notion lag.",
+    "QA scores are below acceptable thresholds."
+  ],
+  "confidence": 0.0
+}

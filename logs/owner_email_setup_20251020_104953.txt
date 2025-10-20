@@ -1,0 +1,62 @@
+╔══════════════════════════════════════════════════════════════════╗
+║           OWNER EMAIL PROPERTY - SETUP INSTRUCTIONS              ║
+╚══════════════════════════════════════════════════════════════════╝
+
+⚠️  ISSUE DETECTED
+The "Owner Email" property is missing from the Job Log database.
+
+Current Error:
+  "Could not find property with name or id: Owner Email"
+  Database ID: 28e6155c-cf54-8138-a346-f70a992d1e06
+
+═══════════════════════════════════════════════════════════════════
+
+📋 STEP-BY-STEP INSTRUCTIONS
+
+1. Open Notion and navigate to your workspace
+
+2. Find the database called "EchoPilot Job Log" 
+   (Database ID: 28e6155c-cf54-8138-a346-f70a992d1e06)
+   ⚠️ NOT the "Automation Queue" database!
+
+3. Click the "+" button in the database header to add a new property
+
+4. Configure the property:
+   • Name: Owner Email
+   • Type: Email
+   
+   IMPORTANT: The name must be exactly "Owner Email" (with a space)
+
+5. Save the property
+
+═══════════════════════════════════════════════════════════════════
+
+✅ VERIFICATION
+
+After adding the property, test it by running this command:
+
+  curl "http://localhost:5000/api/public/job-history/verify@test.com"
+
+You should see job data instead of an empty array.
+
+═══════════════════════════════════════════════════════════════════
+
+🔍 TROUBLESHOOTING
+
+If you still see errors:
+  • Double-check the property name is exactly "Owner Email" (case-sensitive, with space)
+  • Make sure it's in the Job Log database, not Automation Queue
+  • Verify the property type is "Email" (not Text or Rich Text)
+
+═══════════════════════════════════════════════════════════════════
+
+⚠️ ALSO FIX: ALLOW_DIRTY Secret
+
+Your ALLOW_DIRTY secret has a typo:
+  Current: "Fales"
+  Should be: "false"
+
+To fix:
+  Replit → Secrets → Edit ALLOW_DIRTY → Change to "false"
+
+═══════════════════════════════════════════════════════════════════

@@ -3398,6 +3398,43 @@ def create_payment_invoice():
         return jsonify({"ok": False, "error": str(e)}), 500
 
 
+@app.route('/api/payments/webhook', methods=['POST'])
+def stripe_webhook():
+    """Stripe webhook handler (Phase 33)"""
+    import json
+    from datetime import datetime
+    
+    try:
+        payload = request.get_data(as_text=True)
+        sig_header = request.headers.get('Stripe-Signature')
+        
+        # Verify webhook signature
+        from scripts.stripe_live_guard import verify_webhook
+        verify_result = verify_webhook(payload, sig_header)
+        
+        if not verify_result.get('ok'):
+            return jsonify({"error": verify_result.get('error')}), 400
+        
+        event = verify_result.get('event')
+        
+        # Log webhook to file
+        os.makedirs('logs', exist_ok=True)
+        log_entry = {
+            'ts': datetime.utcnow().isoformat() + 'Z',
+            'event_type': event['type'],
+            'event_id': event['id'],
+            'mode': os.getenv('STRIPE_MODE', 'test')
+        }
+        
+        with open('logs/stripe_webhook.log', 'a') as f:
+            f.write(json.dumps(log_entry) + '\n')
+        
+        return jsonify({"ok": True, "received": True}), 200
+        
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 400
+
+
 @app.route('/api/customer/signed-url/<client_id>', methods=['GET'])
 @require_dashboard_key
 def get_signed_url(client_id):

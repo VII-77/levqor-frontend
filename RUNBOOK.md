@@ -276,3 +276,50 @@ Automated tasks run via `scripts/exec_scheduler.py`:
 - `logs/stripe_webhook.log` - Payment webhooks
 - `logs/ops_brain_*.json` - AI recommendations
 
+
+---
+
+## Production Deployment Notes
+
+**Deployment Date:** October 20, 2025  
+**Release Version:** v33-40-release  
+**Status:** Production-ready, TEST mode active
+
+### Stripe Configuration
+
+**Current Mode:** TEST  
+**Live Mode Setup:** To enable live payments:
+1. Set `STRIPE_MODE=live` in secrets
+2. Configure `STRIPE_SECRET_LIVE` with live secret key
+3. Update `STRIPE_WEBHOOK_SECRET` for live webhook signing
+4. Configure Stripe webhook endpoint: `https://echopilotai.replit.app/api/payments/webhook`
+5. Send test event from Stripe Dashboard
+6. Verify logs: `logs/stripe_webhook.log`
+
+**Rollback:** Set `STRIPE_MODE=test` to revert to test mode instantly (30 seconds)
+
+### Webhook Endpoint
+
+**URL:** https://echopilotai.replit.app/api/payments/webhook  
+**Method:** POST  
+**Events:** payment_intent.succeeded, checkout.session.completed  
+**Verification:** HMAC-SHA256 signature using STRIPE_WEBHOOK_SECRET
+
+### Scheduled Tasks Verification
+
+All Phase 33-40 automated tasks confirmed active:
+- Pricing AI: Daily 03:00 UTC → `/api/pricing/optimize`
+- Weekly Audit: Monday 00:30 UTC → `/api/audit/report`
+- Replica Sync: Every 2 hours → `/api/regions/sync`
+- AI Ops Brain: Every 12 hours → `/api/brain/decide`
+
+### Go-Live Checklist
+
+- [x] Git tag created: v33-40-release
+- [x] All 8 phases validated (gate files present)
+- [x] Security audit passed
+- [x] Smoke tests passed
+- [ ] Stripe switched to LIVE mode (manual)
+- [ ] Webhook configured in Stripe Dashboard (manual)
+- [ ] Production smoke tests executed
+

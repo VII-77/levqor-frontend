@@ -1,0 +1,105 @@
+Awesome—Release Captain gates all green. 🚦✅
+Here’s the tight, no-fluff Go-Live Cutover + Smoke Tests + Rollback you can run now.
+
+Go-Live Cutover (Stripe live)
+
+1. Freeze version
+
+
+
+Tag & note: git tag -a v33-40-release -m "Phases 33–40 release"; git push --tags
+
+
+2. Switch payments to LIVE (safe)
+
+
+
+Set secrets:
+
+STRIPE_MODE=live
+
+STRIPE_SECRET_LIVE=<live_secret_key>
+
+STRIPE_WEBHOOK_SECRET=<live_webhook_secret>
+
+
+Keep guards: min price ≥ $0.50, minutes > 0 (already enforced).
+
+
+3. Webhooks
+
+
+
+Configure Stripe endpoint → https://echopilotai.replit.app/api/payments/webhook
+
+Send a live test event from Stripe Dashboard; confirm log: logs/stripe_webhook.log
+
+
+4. Scheduler sanity
+
+
+
+Dashboard ▶ Status → verify running + recent tick
+
+Ensure Phase 36/38/39/40 schedules present (03:00 / Mon 00:30 / q2h / q12h)
+
+
+5. Runbook
+
+
+
+Open RUNBOOK.md → mark Stripe: LIVE and record webhook signing secret.
+
+
+Post-Cutover Smoke Tests (copy/paste)
+
+# Health
+curl -s https://echopilotai.replit.app/ | jq
+
+# Payments (expect live checkout URL; still price-guarded)
+curl -s -H "X-Dash-Key: $DASHBOARD_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"minutes":5,"email":"live-test@example.com"}' \
+  https://echopilotai.replit.app/api/payments/create-invoice | jq
+
+# Signed URL (24h)
+curl -s -H "X-Dash-Key: $DASHBOARD_KEY" \
+  "https://echopilotai.replit.app/api/customer/signed-url/TESTCID?email=live-test@example.com" | jq
+
+# Compliance export
+curl -s -H "X-Dash-Key: $DASHBOARD_KEY" \
+  https://echopilotai.replit.app/api/compliance/export-data | jq
+
+# Pricing AI (graceful if no data)
+curl -s -H "X-Dash-Key: $DASHBOARD_KEY" \
+  -X POST https://echopilotai.replit.app/api/pricing/optimize | jq
+
+# Audit, Region Sync, Ops Brain
+curl -s -H "X-Dash-Key: $DASHBOARD_KEY" https://echopilotai.replit.app/api/audit/report | jq
+curl -s -H "X-Dash-Key: $DASHBOARD_KEY" -X POST https://echopilotai.replit.app/api/regions/sync | jq
+curl -s -H "X-Dash-Key: $DASHBOARD_KEY" -X POST https://echopilotai.replit.app/api/brain/decide | jq
+
+Rollback (30 seconds)
+
+Set STRIPE_MODE=test (only), keep the same webhook until you swap back.
+
+If needed: git revert --no-edit v33-40-release..HEAD && git push (or deploy previous image).
+
+Verify with the same smoke tests (expect test checkout URLs).
+
+
+Where to look (fast)
+
+Status/controls: /dashboard (Automations + Post-Deploy Checklist)
+
+Final artifacts:
+
+logs/phase33_ok.txt … logs/phase40_ok.txt
+
+logs/RELEASE_CAPTAIN_REPORT.txt
+
+logs/PHASE33-40_ENTERPRISE_EXPANSION_COMPLETE.txt
+
+RUNBOOK.md
+
+

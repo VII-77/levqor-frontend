@@ -1,0 +1,264 @@
+{
+  "ts": "2025-10-20T12:52:35.824762Z",
+  "signals": {
+    "daily_report": {
+      "timestamp": "2025-10-20T11:38:50Z",
+      "finance_metrics": {
+        "data": {
+          "cost_30d": 0,
+          "cost_7d": 0,
+          "jobs_30d": 0,
+          "jobs_7d": 0,
+          "profit_30d": 0,
+          "profit_7d": 0,
+          "revenue_30d": 0,
+          "revenue_7d": 0,
+          "roi_30d": 0
+        },
+        "error": "Finance metrics failed: Cannot compute metrics",
+        "ok": false,
+        "source": "error",
+        "warnings": [
+          "Cannot compute metrics"
+        ]
+      },
+      "self_heal": {
+        "eligible_unpaid": [],
+        "notes": [
+          "Could not query Job Log: 404"
+        ],
+        "ok": true,
+        "retried_count": 0,
+        "worker_restart_suggested": false
+      },
+      "metrics_summary": {
+        "data": {
+          "avg_qa_7d": 0.0,
+          "jobs_7d": 0,
+          "note": "Error: module 'bot.config' has no attribute 'NOTION_GOVERNANCE_DB_ID'",
+          "revenue_7d": 0.0
+        },
+        "error": null,
+        "ok": true
+      }
+    },
+    "alerts_log": [
+      {
+        "ts": "2025-10-20T11:31:15.529943Z",
+        "alert": "checked",
+        "triggered": false,
+        "reasons": [],
+        "target": "none"
+      },
+      {
+        "ts": "2025-10-20T11:31:52.937061Z",
+        "alert": "checked",
+        "triggered": false,
+        "reasons": [],
+        "target": "none"
+      }
+    ],
+    "e2e_validation": [
+      {
+        "timestamp": "2025-10-19T23:35:38.174710",
+        "status": "PARTIAL",
+        "reason": "Notion sync lag (retry)",
+        "qa": null,
+        "duration_sec": null,
+        "gross_usd": null,
+        "profit_usd": null,
+        "margin_pct": null,
+        "payment_status": null,
+        "roi_30d": "no_entries",
+        "governance_pulse": "created"
+      },
+      {
+        "timestamp": "2025-10-19T23:45:15.872897",
+        "status": "PARTIAL",
+        "reason": "Notion sync lag (retry)",
+        "qa": null,
+        "duration_sec": null,
+        "gross_usd": null,
+        "profit_usd": null,
+        "margin_pct": null,
+        "payment_status": null,
+        "roi_30d": "no_entries",
+        "governance_pulse": "created"
+      },
+      {
+        "timestamp": "2025-10-20T00:32:20.487312",
+        "status": "PARTIAL",
+        "reason": "Notion sync lag (retry)",
+        "qa": null,
+        "duration_sec": null,
+        "gross_usd": null,
+        "profit_usd": null,
+        "margin_pct": null,
+        "payment_status": null,
+        "roi_30d": "no_entries",
+        "governance_pulse": "created"
+      }
+    ],
+    "release_captain": [
+      {
+        "status": "FAIL",
+        "reason": "Job Log entry not found after full backoff (Notion lag or processing failed)",
+        "qa": null,
+        "duration_sec": null,
+        "gross_usd": null,
+        "profit_usd": null,
+        "margin_pct": null,
+        "payment_link": null,
+        "payment_status": null,
+        "roi_30d": "no_entries",
+        "governance_pulse": "created",
+        "qa_retry": null,
+        "qa_status": null
+      },
+      {
+        "status": "FAIL",
+        "reason": "Job Log entry not found after full backoff (Notion lag or processing failed)",
+        "qa": null,
+        "duration_sec": null,
+        "gross_usd": null,
+        "profit_usd": null,
+        "margin_pct": null,
+        "payment_link": null,
+        "payment_status": null,
+        "roi_30d": "no_entries",
+        "governance_pulse": "created",
+        "qa_retry": null,
+        "qa_status": null
+      },
+      {
+        "timestamp": "2025-10-20T00:06:36Z",
+        "status": "PARTIAL",
+        "reason": "QA 85% < 95 (clean payload sample1.mp3, dry-finance mode)",
+        "qa": 85,
+        "duration_sec": null,
+        "gross_usd": null,
+        "profit_usd": null,
+        "margin_pct": null,
+        "payment_link": "generated",
+        "payment_status": "Unpaid",
+        "roi_30d": "no_entries",
+        "governance_pulse": "created",
+        "qa_retry": null,
+        "qa_status": "Verified"
+      },
+      {
+        "status": "FAIL",
+        "reason": "Job Log entry not found after full backoff (Notion lag or processing failed)",
+        "qa": null,
+        "duration_sec": null,
+        "gross_usd": null,
+        "profit_usd": null,
+        "margin_pct": null,
+        "payment_link": null,
+        "payment_status": null,
+        "roi_30d": "no_entries",
+        "governance_pulse": "created",
+        "qa_retry": null,
+        "qa_status": null
+      }
+    ],
+    "health_ndjson": [
+      {
+        "timestamp": "2025-10-19T17:50:02.848828Z",
+        "status": "ok"
+      },
+      {
+        "timestamp": "2025-10-19T18:40:09.611356Z",
+        "status": "ok"
+      },
+      {
+        "timestamp": "2025-10-19T18:40:09.612862Z",
+        "status": "ok",
+        "test": "e2e_smoke_test"
+      },
+      {
+        "timestamp": "2025-10-19T19:42:32.623477Z",
+        "status": "ok"
+      },
+      {
+        "timestamp": "2025-10-19T19:42:32.625599Z",
+        "status": "ok",
+        "sweep": "go-live-validation"
+      },
+      {
+        "timestamp": "2025-10-19T20:29:44.991469Z",
+        "status": "ok"
+      },
+      {
+        "timestamp": "2025-10-19T20:29:44.995808Z",
+        "status": "ok",
+        "event": "release-captain-final"
+      },
+      {
+        "timestamp": "2025-10-19T20:43:12.099971Z",
+        "status": "ok"
+      },
+      {
+        "timestamp": "2025-10-19T20:43:12.116220Z",
+        "status": "ok",
+        "event": "go-live-prep"
+      },
+      {
+        "timestamp": "2025-10-20T08:24:46.758698Z",
+        "status": "ok"
+      },
+      {
+        "timestamp": "2025-10-20T08:26:16.249180Z",
+        "status": "ok"
+      },
+      {
+        "timestamp": "2025-10-20T08:27:38.864571Z",
+        "status": "ok"
+      },
+      {
+        "timestamp": "2025-10-20T08:50:51.129828Z",
+        "status": "ok"
+      },
+      {
+        "timestamp": "2025-10-20T08:50:52.547083Z",
+        "status": "ok"
+      },
+      {
+        "timestamp": "2025-10-20T08:58:29.491788Z",
+        "status": "ok"
+      },
+      {
+        "timestamp": "2025-10-20T09:09:18.430847Z",
+        "status": "ok"
+      },
+      {
+        "timestamp": "2025-10-20T09:11:06.559425Z",
+        "status": "ok"
+      },
+      {
+        "timestamp": "2025-10-20T09:53:40.930882Z",
+        "status": "ok"
+      },
+      {
+        "timestamp": "2025-10-20T09:55:26.817125Z",
+        "status": "ok"
+      },
+      {
+        "timestamp": "2025-10-20T09:55:26.835837Z",
+        "status": "ok"
+      },
+      {
+        "timestamp": "2025-10-20T09:57:15.821308Z",
+        "status": "ok"
+      },
+      {
+        "ts": "2025-10-20T10:17:00.408494Z",
+        "status": "ok"
+      },
+      {
+        "ts": "2025-10-20T10:53:56.063455Z",
+        "status": "ok"
+      }
+    ]
+  }
+}

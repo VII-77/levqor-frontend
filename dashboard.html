@@ -191,6 +191,13 @@
             <button onclick="getLastBrief()">📄 Last Brief</button>
         </div>
 
+        <div class="button-grid">
+            <h3 style="grid-column: 1/-1; margin: 15px 0 5px 0; font-size: 16px; color: #667eea;">⚙️ Automations (Scheduler)</h3>
+            <button onclick="startAutomations()">▶️ Start Scheduler</button>
+            <button onclick="stopAutomations()">⏹️ Stop Scheduler</button>
+            <button onclick="checkAutomationsStatus()">🔍 Check Status</button>
+        </div>
+
         <div class="metrics-section">
             <div class="metrics-header">
                 <h2>📊 Metrics Visualization</h2>
@@ -478,6 +485,44 @@
                     `   KPIs: Jobs=${brief.kpis?.jobs_7d}, QA=${brief.kpis?.avg_qa_7d}%, ROI=${brief.kpis?.roi_7d}x\n` +
                     `   Timestamp: ${brief.ts}`,
                     'success');
+            }
+        }
+
+        // Automations Scheduler functions
+        async function startAutomations() {
+            log('Starting background scheduler...', 'warning');
+            const data = await apiCall('/api/automations/start', 'POST');
+            if (data && data.ok) {
+                log(`\n▶️ SCHEDULER STARTED:\n` +
+                    `   Status: ${data.status}\n` +
+                    `   PID: ${data.pid || 'N/A'}\n` +
+                    `   Schedule: CEO Brief (08:00 UTC), Report (09:00 UTC), Self-Heal (6h)`,
+                    'success');
+            }
+        }
+
+        async function stopAutomations() {
+            log('Stopping background scheduler...', 'warning');
+            const data = await apiCall('/api/automations/stop', 'POST');
+            if (data && data.ok) {
+                log(`\n⏹️ SCHEDULER STOPPED:\n` +
+                    `   Status: ${data.status}`,
+                    'success');
+            }
+        }
+
+        async function checkAutomationsStatus() {
+            log('Checking scheduler status...', 'info');
+            const data = await apiCall('/api/automations/status', 'GET');
+            if (data && data.ok) {
+                const status = data.data;
+                const statusType = status.running ? 'success' : 'warning';
+                log(`\n🔍 SCHEDULER STATUS:\n` +
+                    `   Running: ${status.running ? 'YES ✅' : 'NO ❌'}\n` +
+                    `   PID: ${status.pid || 'N/A'}\n` +
+                    `   Last Activity: ${status.last_activity || 'N/A'}\n` +
+                    `   Last Task: ${status.last_task || 'N/A'}`,
+                    statusType);
             }
         }
 

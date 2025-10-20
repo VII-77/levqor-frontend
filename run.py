@@ -8,8 +8,37 @@ import json
 import requests
 from bot import git_utils
 from functools import wraps
+import time
+from collections import defaultdict
 
 app = Flask(__name__)
+
+# Phase 51: Observability metrics storage
+metrics_storage = {
+    'http_requests_total': defaultdict(int),  # {route_status: count}
+    'http_request_duration_ms': [],  # list of (route, duration_ms)
+    'scheduler_tick_total': 0,
+    'stripe_webhook_fail_total': 0,
+    'payments_error_rate': 0.0,
+    'app_start_time': time.time()
+}
+
+def record_metric(metric_name, value=1, labels=None):
+    """Record a metric value"""
+    if metric_name == 'http_requests_total' and labels:
+        key = f"{labels.get('route', 'unknown')}_{labels.get('status', '000')}"
+        metrics_storage['http_requests_total'][key] += value
+    elif metric_name == 'http_request_duration_ms' and labels:
+        metrics_storage['http_request_duration_ms'].append({
+            'route': labels.get('route', 'unknown'),
+            'duration_ms': value,
+            'timestamp': time.time()
+        })
+        # Keep only last 10000 requests
+        if len(metrics_storage['http_request_duration_ms']) > 10000:
+            metrics_storage['http_request_duration_ms'] = metrics_storage['http_request_duration_ms'][-10000:]
+    elif metric_name in metrics_storage:
+        metrics_storage[metric_name] = value
 
 def require_dashboard_key(f):
     """Middleware to require DASHBOARD_KEY for secure API routes"""
@@ -43,20 +72,50 @@ def check_csrf(f):
         return f(*args, **kwargs)
     return decorated_function
 
+@app.before_request
+def before_request_timing():
+    """Record request start time for latency tracking"""
+    request._start_time = time.time()
+
 def add_security_headers(response):
-    """Add security headers to responses"""
+    """Add security headers and record metrics/traces"""
+    # Security headers
     response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
     response.headers['X-Frame-Options'] = 'DENY'
     response.headers['X-Content-Type-Options'] = 'nosniff'
     response.headers['Pragma'] = 'no-cache'
+    
+    # Phase 51: Record HTTP traces and metrics
+    if hasattr(request, '_start_time'):
+        duration_ms = (time.time() - request._start_time) * 1000
+        route = request.endpoint or request.path
+        status = response.status_code
+        
+        # Record metrics
+        record_metric('http_requests_total', 1, {'route': route, 'status': str(status)})
+        record_metric('http_request_duration_ms', duration_ms, {'route': route})
+        
+        # Write trace to NDJSON
+        try:
+            os.makedirs('logs', exist_ok=True)
+            trace_entry = {
+                'ts': datetime.utcnow().isoformat() + 'Z',
+                'route': route,
+                'method': request.method,
+                'status': status,
+                'duration_ms': round(duration_ms, 2),
+                'path': request.path
+            }
+            with open('logs/http_traces.ndjson', 'a') as f:
+                f.write(json.dumps(trace_entry) + '\n')
+        except:
+            pass  # Don't fail requests if logging fails
+    
     return response
 
 app.after_request(add_security_headers)
 
 # Rate limiting for public endpoints (5 req/min/IP)
-from collections import defaultdict
-from datetime import datetime, timedelta
-
 rate_limit_store = defaultdict(list)
 
 def rate_limit(max_requests=5, window_minutes=1):
@@ -5024,3 +5083,155 @@ if __name__ == "__main__":
     # Start Flask development server (only used for local testing)
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
+
+# ==================== PHASE 51: OBSERVABILITY & SLOS ====================
+
+@app.route('/metrics', methods=['GET'])
+def prometheus_metrics():
+    """Prometheus-style metrics endpoint (no auth required for scraping)"""
+    import psutil
+    
+    lines = []
+    
+    # App uptime
+    uptime = time.time() - metrics_storage['app_start_time']
+    lines.append('# HELP app_uptime_seconds Application uptime in seconds')
+    lines.append('# TYPE app_uptime_seconds gauge')
+    lines.append(f'app_uptime_seconds {uptime:.0f}')
+    
+    # HTTP requests total
+    lines.append('# HELP http_requests_total Total HTTP requests by route and status')
+    lines.append('# TYPE http_requests_total counter')
+    for key, count in metrics_storage['http_requests_total'].items():
+        parts = key.rsplit('_', 1)
+        route = parts[0] if len(parts) > 1 else 'unknown'
+        status = parts[1] if len(parts) > 1 else '000'
+        lines.append(f'http_requests_total{{route="{route}",status="{status}"}} {count}')
+    
+    # HTTP request duration buckets (simplified histogram)
+    lines.append('# HELP http_request_duration_ms HTTP request duration in milliseconds')
+    lines.append('# TYPE http_request_duration_ms histogram')
+    durations = metrics_storage['http_request_duration_ms']
+    if durations:
+        buckets = [10, 50, 100, 200, 400, 800, 1600, 3200, 6400, float('inf')]
+        counts = {b: 0 for b in buckets}
+        total_sum = 0
+        for d in durations:
+            ms = d['duration_ms']
+            total_sum += ms
+            for bucket in buckets:
+                if ms <= bucket:
+                    counts[bucket] += 1
+        
+        for bucket in buckets:
+            label = '+Inf' if bucket == float('inf') else str(bucket)
+            lines.append(f'http_request_duration_ms_bucket{{le="{label}"}} {counts[bucket]}')
+        lines.append(f'http_request_duration_ms_sum {total_sum:.2f}')
+        lines.append(f'http_request_duration_ms_count {len(durations)}')
+    
+    # Scheduler ticks
+    lines.append('# HELP scheduler_tick_total Total scheduler ticks')
+    lines.append('# TYPE scheduler_tick_total counter')
+    lines.append(f'scheduler_tick_total {metrics_storage["scheduler_tick_total"]}')
+    
+    # Stripe webhook failures
+    lines.append('# HELP stripe_webhook_fail_total Total Stripe webhook failures')
+    lines.append('# TYPE stripe_webhook_fail_total counter')
+    lines.append(f'stripe_webhook_fail_total {metrics_storage["stripe_webhook_fail_total"]}')
+    
+    # Payment error rate
+    lines.append('# HELP payments_error_rate Payment error rate (0-1)')
+    lines.append('# TYPE payments_error_rate gauge')
+    lines.append(f'payments_error_rate {metrics_storage["payments_error_rate"]:.4f}')
+    
+    # System metrics
+    try:
+        cpu = psutil.cpu_percent(interval=0.1)
+        mem = psutil.virtual_memory().percent
+        disk = psutil.disk_usage('/').percent
+        
+        lines.append('# HELP cpu_percent CPU usage percentage')
+        lines.append('# TYPE cpu_percent gauge')
+        lines.append(f'cpu_percent {cpu:.1f}')
+        
+        lines.append('# HELP mem_percent Memory usage percentage')
+        lines.append('# TYPE mem_percent gauge')
+        lines.append(f'mem_percent {mem:.1f}')
+        
+        lines.append('# HELP disk_percent Disk usage percentage')
+        lines.append('# TYPE disk_percent gauge')
+        lines.append(f'disk_percent {disk:.1f}')
+    except:
+        pass
+    
+    return '\n'.join(lines) + '\n', 200, {'Content-Type': 'text/plain; charset=utf-8'}
+
+
+@app.route('/api/observability/slo', methods=['GET'])
+@require_dashboard_key
+def api_observability_slo():
+    """Get SLO report (Phase 51)"""
+    try:
+        report_path = 'logs/slo_report.json'
+        if os.path.exists(report_path):
+            with open(report_path, 'r') as f:
+                report = json.load(f)
+            return jsonify({"ok": True, "data": report}), 200
+        else:
+            return jsonify({"ok": False, "error": "No SLO report available yet. Run slo_guard first."}), 404
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@app.route('/api/observability/latency', methods=['GET'])
+@require_dashboard_key
+def api_observability_latency():
+    """Get latency metrics (p50/p95/p99 last 24h) (Phase 51)"""
+    try:
+        cutoff = time.time() - (24 * 3600)
+        recent = [d for d in metrics_storage['http_request_duration_ms'] if d['timestamp'] > cutoff]
+        
+        if not recent:
+            return jsonify({
+                "ok": True,
+                "data": {
+                    "p50_ms": 0,
+                    "p95_ms": 0,
+                    "p99_ms": 0,
+                    "count": 0,
+                    "period_hours": 24,
+                    "recent_60": []
+                }
+            }), 200
+        
+        durations = sorted([d['duration_ms'] for d in recent])
+        count = len(durations)
+        
+        def percentile(data, pct):
+            if not data:
+                return 0
+            idx = int(len(data) * pct / 100)
+            return data[min(idx, len(data) - 1)]
+        
+        p50 = percentile(durations, 50)
+        p95 = percentile(durations, 95)
+        p99 = percentile(durations, 99)
+        
+        # Last 60 for sparkline
+        recent_60 = [d['duration_ms'] for d in recent[-60:]]
+        
+        return jsonify({
+            "ok": True,
+            "data": {
+                "p50_ms": round(p50, 2),
+                "p95_ms": round(p95, 2),
+                "p99_ms": round(p99, 2),
+                "count": count,
+                "period_hours": 24,
+                "recent_60": recent_60
+            }
+        }), 200
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+

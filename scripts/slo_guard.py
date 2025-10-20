@@ -1,125 +1,211 @@
 #!/usr/bin/env python3
 """
-Phase 59: SLO Guardrails
-Monitors service level objectives (latency & success rate)
+SLO Guard - Monitor SLOs and error budgets (Phase 51)
+
+SLO Targets:
+- API Availability: 99.9% (43.2 min downtime/month)
+- P95 Latency: < 400ms
+- Webhook Success: 99%
 """
-import os
-import sys
 import json
-import time
-from datetime import datetime
-from pathlib import Path
+import os
+from datetime import datetime, timedelta, timezone
+from collections import defaultdict
 
-# Add bot to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+# SLO Targets
+SLO_TARGETS = {
+    'availability_pct': 99.9,
+    'p95_latency_ms': 400,
+    'webhook_success_pct': 99.0
+}
 
-# SLO Thresholds
-SLO_P95_MS = int(os.getenv('SLO_P95_MS', '1200'))  # 1.2 seconds
-SLO_SUCCESS_RATE = float(os.getenv('SLO_SUCCESS_RATE', '0.98'))  # 98%
+# Error budget thresholds
+ERROR_BUDGET_BURN_ALERT_PCT_PER_DAY = 2.0  # Alert if burning >2% budget per day
 
-def load_ndjson(filepath):
-    """Load NDJSON file and return list of records"""
-    if not Path(filepath).exists():
+NOW = datetime.now(timezone.utc)
+WINDOW_DAYS = 30
+
+def read_ndjson_lines(path, max_lines=100000):
+    """Read NDJSON file"""
+    if not os.path.exists(path):
         return []
-    
-    records = []
-    with open(filepath, 'r') as f:
-        for line in f:
-            try:
-                records.append(json.loads(line.strip()))
-            except:
-                continue
-    return records
-
-def evaluate_slo():
-    """Evaluate SLO compliance"""
     try:
-        # Load recent API access logs (last 1000 events)
-        events = load_ndjson('logs/api_access.ndjson')[-1000:]
-        
-        if not events:
-            # No data yet, create placeholder
-            return {
-                "ok": True,
-                "p95_ms": 0,
-                "success_rate": 1.0,
-                "breach": False,
-                "message": "No API access data yet"
+        with open(path, 'r') as f:
+            lines = f.readlines()
+            return lines[-max_lines:] if len(lines) > max_lines else lines
+    except:
+        return []
+
+def parse_timestamp(ts_str):
+    """Parse ISO timestamp"""
+    try:
+        return datetime.fromisoformat(ts_str.replace('Z', '+00:00'))
+    except:
+        return None
+
+def window_filter(lines, days):
+    """Filter lines to time window"""
+    cutoff = NOW - timedelta(days=days)
+    result = []
+    for line in lines:
+        try:
+            obj = json.loads(line)
+            ts = parse_timestamp(obj.get('ts', ''))
+            if ts and ts >= cutoff:
+                result.append(obj)
+        except:
+            pass
+    return result
+
+def compute_availability(traces):
+    """Compute API availability from HTTP traces"""
+    if not traces:
+        return 100.0, 0, 0
+    
+    total = len(traces)
+    errors = sum(1 for t in traces if t.get('status', 200) >= 500)
+    success = total - errors
+    availability_pct = (success / total * 100) if total > 0 else 100.0
+    
+    return availability_pct, success, total
+
+def compute_p95_latency(traces):
+    """Compute P95 latency from HTTP traces"""
+    if not traces:
+        return 0.0
+    
+    durations = sorted([t.get('duration_ms', 0) for t in traces])
+    idx = int(len(durations) * 0.95)
+    return durations[min(idx, len(durations) - 1)]
+
+def compute_webhook_success(webhooks):
+    """Compute webhook success rate"""
+    if not webhooks:
+        return 100.0, 0, 0
+    
+    total = len(webhooks)
+    success = sum(1 for w in webhooks if w.get('ok', True) or w.get('status') in (200, '200'))
+    success_pct = (success / total * 100) if total > 0 else 100.0
+    
+    return success_pct, success, total
+
+def compute_error_budget(actual_pct, target_pct, window_days):
+    """
+    Compute error budget remaining and burn rate
+    
+    Error budget = allowed failure rate over the window
+    For 99.9% availability: allowed 0.1% errors = 0.1% of requests can fail
+    """
+    if actual_pct >= target_pct:
+        return {
+            'remaining_pct': 100.0,
+            'consumed_pct': 0.0,
+            'burn_rate_pct_per_day': 0.0,
+            'status': 'OK'
+        }
+    
+    allowed_failure_pct = 100.0 - target_pct
+    actual_failure_pct = 100.0 - actual_pct
+    consumed_pct = (actual_failure_pct / allowed_failure_pct * 100) if allowed_failure_pct > 0 else 0
+    remaining_pct = max(0, 100 - consumed_pct)
+    burn_rate_pct_per_day = consumed_pct / window_days
+    
+    if burn_rate_pct_per_day > ERROR_BUDGET_BURN_ALERT_PCT_PER_DAY:
+        status = 'CRITICAL'
+    elif consumed_pct > 50:
+        status = 'WARNING'
+    else:
+        status = 'OK'
+    
+    return {
+        'remaining_pct': round(remaining_pct, 2),
+        'consumed_pct': round(consumed_pct, 2),
+        'burn_rate_pct_per_day': round(burn_rate_pct_per_day, 2),
+        'status': status
+    }
+
+def main():
+    # Read traces
+    traces = window_filter(read_ndjson_lines('logs/http_traces.ndjson'), WINDOW_DAYS)
+    webhooks = window_filter(read_ndjson_lines('logs/stripe_webhooks.ndjson'), WINDOW_DAYS)
+    
+    # Compute SLOs
+    availability_pct, avail_success, avail_total = compute_availability(traces)
+    p95_latency_ms = compute_p95_latency(traces)
+    webhook_success_pct, webhook_success, webhook_total = compute_webhook_success(webhooks)
+    
+    # Error budgets
+    avail_budget = compute_error_budget(availability_pct, SLO_TARGETS['availability_pct'], WINDOW_DAYS)
+    webhook_budget = compute_error_budget(webhook_success_pct, SLO_TARGETS['webhook_success_pct'], WINDOW_DAYS)
+    
+    # P95 latency status
+    p95_status = 'OK' if p95_latency_ms <= SLO_TARGETS['p95_latency_ms'] else 'BREACH'
+    
+    # Overall SLO status
+    breaches = []
+    if availability_pct < SLO_TARGETS['availability_pct']:
+        breaches.append('availability')
+    if p95_latency_ms > SLO_TARGETS['p95_latency_ms']:
+        breaches.append('p95_latency')
+    if webhook_success_pct < SLO_TARGETS['webhook_success_pct']:
+        breaches.append('webhook_success')
+    
+    overall_status = 'BREACH' if breaches else 'OK'
+    
+    # Build report
+    report = {
+        'ts': NOW.isoformat().replace('+00:00', 'Z'),
+        'window_days': WINDOW_DAYS,
+        'overall_status': overall_status,
+        'breaches': breaches,
+        'slos': {
+            'availability': {
+                'actual_pct': round(availability_pct, 3),
+                'target_pct': SLO_TARGETS['availability_pct'],
+                'status': 'OK' if availability_pct >= SLO_TARGETS['availability_pct'] else 'BREACH',
+                'success_requests': avail_success,
+                'total_requests': avail_total,
+                'error_budget': avail_budget
+            },
+            'p95_latency': {
+                'actual_ms': round(p95_latency_ms, 2),
+                'target_ms': SLO_TARGETS['p95_latency_ms'],
+                'status': p95_status,
+                'sample_count': len(traces)
+            },
+            'webhook_success': {
+                'actual_pct': round(webhook_success_pct, 3),
+                'target_pct': SLO_TARGETS['webhook_success_pct'],
+                'status': 'OK' if webhook_success_pct >= SLO_TARGETS['webhook_success_pct'] else 'BREACH',
+                'success_webhooks': webhook_success,
+                'total_webhooks': webhook_total,
+                'error_budget': webhook_budget
             }
-        
-        # Extract latencies and success counts
-        latencies = [e.get('lat_ms', 0) for e in events if 'lat_ms' in e]
-        successful = sum(1 for e in events if e.get('ok', False))
-        total = len(events)
-        
-        # Calculate P95 latency
-        if latencies:
-            sorted_latencies = sorted(latencies)
-            p95_index = int(0.95 * len(sorted_latencies))
-            p95_ms = sorted_latencies[p95_index] if p95_index < len(sorted_latencies) else sorted_latencies[-1]
-        else:
-            p95_ms = 0
-        
-        # Calculate success rate
-        success_rate = successful / total if total > 0 else 1.0
-        
-        # Check for SLO breaches
-        latency_breach = p95_ms > SLO_P95_MS
-        success_breach = success_rate < SLO_SUCCESS_RATE
-        breach = latency_breach or success_breach
-        
-        # Build report
-        report = {
-            "ts": time.time(),
-            "ts_iso": datetime.utcnow().isoformat() + "Z",
-            "p95_ms": round(p95_ms, 2),
-            "success_rate": round(success_rate, 3),
-            "breach": breach,
-            "thresholds": {
-                "p95_ms": SLO_P95_MS,
-                "success_rate": SLO_SUCCESS_RATE
-            },
-            "breach_details": {
-                "latency": latency_breach,
-                "success": success_breach
-            },
-            "sample_size": total
+        }
+    }
+    
+    # Write report
+    os.makedirs('logs', exist_ok=True)
+    with open('logs/slo_report.json', 'w') as f:
+        json.dump(report, f, indent=2)
+    
+    # Write alert if breach or high burn rate
+    if overall_status == 'BREACH' or avail_budget['status'] in ('WARNING', 'CRITICAL') or webhook_budget['status'] in ('WARNING', 'CRITICAL'):
+        alert = {
+            'ts': NOW.isoformat().replace('+00:00', 'Z'),
+            'event': 'slo_alert',
+            'severity': 'CRITICAL' if overall_status == 'BREACH' else 'WARNING',
+            'breaches': breaches,
+            'availability_error_budget': avail_budget,
+            'webhook_error_budget': webhook_budget,
+            'p95_latency_ms': round(p95_latency_ms, 2)
         }
         
-        # Save report
-        os.makedirs('logs', exist_ok=True)
-        with open('logs/slo_report.json', 'w') as f:
-            json.dump(report, f, indent=2)
-        
-        # Also append to NDJSON
-        with open('logs/slo_report.ndjson', 'a') as f:
-            f.write(json.dumps({
-                "ts": report['ts_iso'],
-                "p95_ms": report['p95_ms'],
-                "success_rate": report['success_rate'],
-                "breach": breach
-            }) + '\n')
-        
-        # Send alert if breach
-        if breach:
-            alert_message = f"SLO Breach: "
-            if latency_breach:
-                alert_message += f"P95 latency {p95_ms:.0f}ms > {SLO_P95_MS}ms. "
-            if success_breach:
-                alert_message += f"Success rate {success_rate:.1%} < {SLO_SUCCESS_RATE:.1%}."
-            
-            # Log alert
-            with open('logs/slo_alerts.ndjson', 'a') as f:
-                f.write(json.dumps({
-                    "ts": report['ts_iso'],
-                    "message": alert_message
-                }) + '\n')
-        
-        return {"ok": True, **report}
+        with open('logs/production_alerts.ndjson', 'a') as f:
+            f.write(json.dumps(alert) + '\n')
     
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
+    # Print summary
+    print(json.dumps(report, indent=2))
 
-if __name__ == "__main__":
-    result = evaluate_slo()
-    print(json.dumps(result, indent=2))
+if __name__ == '__main__':
+    main()

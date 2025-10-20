@@ -11,3 +11,7 @@
 {"event": "slo_tick", "ts": "2025-10-20T21:07:04.054725Z", "p95": 0, "p99": 0, "err_rate": 0, "burn": 0.0, "alert": "OK"}
 {"event": "slo_tick", "ts": "2025-10-20T21:21:37.767371Z", "p95": 0, "p99": 0, "err_rate": 0, "burn": 0.0, "alert": "OK"}
 {"event": "slo_tick", "ts": "2025-10-20T21:35:52.519835Z", "p95": 0, "p99": 0, "err_rate": 0, "burn": 0.0, "alert": "OK"}
+{"event": "slo_tick", "ts": "2025-10-20T21:51:13.238142Z", "p95": 0, "p99": 0, "err_rate": 0, "burn": 0.0, "alert": "OK"}
+{"event": "slo_tick", "ts": "2025-10-20T21:56:14.096840Z", "p95": 0, "p99": 0, "err_rate": 0, "burn": 0.0, "alert": "OK"}
+{"event": "slo_tick", "ts": "2025-10-20T21:58:31.590528Z", "p95": 0, "p99": 0, "err_rate": 0, "burn": 0.0, "alert": "OK"}
+{"event": "slo_tick", "ts": "2025-10-20T22:10:17.606084Z", "p95": 0, "p99": 0, "err_rate": 0, "burn": 0.0, "alert": "OK"}

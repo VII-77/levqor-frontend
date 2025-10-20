@@ -22,3 +22,12 @@
 {"ts": 1760996152.3611484, "ts_iso": "2025-10-20T21:35:52.361149Z", "attempt": 1, "wait_seconds": 0.565, "target": "/api/health"}
 {"ts": 1760996152.3716416, "ts_iso": "2025-10-20T21:35:52.371642Z", "attempt": 2, "wait_seconds": 1.182, "target": "/api/health"}
 {"ts": 1760996152.3978665, "ts_iso": "2025-10-20T21:35:52.397869Z", "attempt": 3, "wait_seconds": 1.454, "target": "/api/health"}
+{"ts": 1760997373.993553, "ts_iso": "2025-10-20T21:56:13.993553Z", "attempt": 1, "wait_seconds": 0.576, "target": "/api/health"}
+{"ts": 1760997374.0039735, "ts_iso": "2025-10-20T21:56:14.003976Z", "attempt": 2, "wait_seconds": 0.627, "target": "/api/health"}
+{"ts": 1760997374.0143688, "ts_iso": "2025-10-20T21:56:14.014370Z", "attempt": 3, "wait_seconds": 1.388, "target": "/api/health"}
+{"ts": 1760997511.458873, "ts_iso": "2025-10-20T21:58:31.458874Z", "attempt": 1, "wait_seconds": 0.396, "target": "/api/health"}
+{"ts": 1760997511.4738376, "ts_iso": "2025-10-20T21:58:31.473840Z", "attempt": 2, "wait_seconds": 1.191, "target": "/api/health"}
+{"ts": 1760997511.484316, "ts_iso": "2025-10-20T21:58:31.484318Z", "attempt": 3, "wait_seconds": 1.37, "target": "/api/health"}
+{"ts": 1760998217.5178728, "ts_iso": "2025-10-20T22:10:17.517873Z", "attempt": 1, "wait_seconds": 0.576, "target": "/api/health"}
+{"ts": 1760998217.5283914, "ts_iso": "2025-10-20T22:10:17.528392Z", "attempt": 2, "wait_seconds": 1.14, "target": "/api/health"}
+{"ts": 1760998217.5388458, "ts_iso": "2025-10-20T22:10:17.538847Z", "attempt": 3, "wait_seconds": 1.672, "target": "/api/health"}

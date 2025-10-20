@@ -29,6 +29,49 @@
         }
         .header h1 { font-size: 2em; margin-bottom: 10px; }
         .header p { opacity: 0.9; }
+        .key-box {
+            background: rgba(255,255,255,0.15);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .key-label {
+            font-size: 12px;
+            opacity: 0.8;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .key-value {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            font-weight: bold;
+            word-break: break-all;
+            flex: 1;
+            background: rgba(0,0,0,0.2);
+            padding: 8px 12px;
+            border-radius: 4px;
+            user-select: all;
+        }
+        .copy-btn {
+            background: rgba(255,255,255,0.3);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .copy-btn:hover {
+            background: rgba(255,255,255,0.5);
+        }
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -156,6 +199,13 @@
         <div class="header">
             <h1>🤖 EchoPilot Ops Dashboard</h1>
             <p>Real-time system monitoring and control</p>
+            <div class="key-box">
+                <div style="flex: 1;">
+                    <div class="key-label">🔑 Your Dashboard Key</div>
+                    <div class="key-value" id="dashboardKeyDisplay">CHMDlYY5TNE0NIB7qul7KYRa9a4BSbID-4WqpoE_DaE</div>
+                </div>
+                <button class="copy-btn" onclick="copyDashKey()">📋 Copy</button>
+            </div>
         </div>
 
         <div style="padding: 20px 30px 0;">
@@ -442,6 +492,30 @@
             document.getElementById('log').innerHTML = '';
             log('Log cleared', 'info');
         }
+
+        function copyDashKey() {
+            const keyText = document.getElementById('dashboardKeyDisplay').textContent;
+            navigator.clipboard.writeText(keyText).then(() => {
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = '✅ Copied!';
+                btn.style.background = 'rgba(76, 175, 80, 0.5)';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = '';
+                }, 2000);
+            }).catch(err => {
+                alert('Failed to copy: ' + err);
+            });
+        }
+
+        // Auto-populate dashboard key on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            const dashKeyInput = document.getElementById('dashKey');
+            const displayedKey = document.getElementById('dashboardKeyDisplay').textContent;
+            dashKeyInput.value = displayedKey;
+            log('🔑 Dashboard key auto-loaded', 'success');
+        });
 
         async function apiCall(endpoint, method = 'GET', body = null) {
             const dashKey = document.getElementById('dashKey').value;

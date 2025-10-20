@@ -176,6 +176,14 @@ def calculate_next_run_times():
         'selfheal': selfheal_next.isoformat() + 'Z'
     }
 
+def run_production_alerts():
+    """Run production alerts monitoring"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/production_alerts.py'], check=False, timeout=30)
+    except Exception as e:
+        log_event('production_alerts_error', {'error': str(e)})
+
 def run_scheduled_tasks():
     """Check and run scheduled tasks"""
     
@@ -241,6 +249,12 @@ def run_scheduled_tasks():
            (datetime.utcnow() - last_run['ops_brain']).total_seconds() >= (12 * 3600):
             call_api('POST', '/api/brain/decide', 'ai_ops_brain')
             mark_run('ops_brain')
+    
+    # 9) Production Alerts - Every 5 minutes
+    if 'production_alerts' not in last_run or \
+       (datetime.utcnow() - last_run['production_alerts']).total_seconds() >= (5 * 60):
+        run_production_alerts()
+        mark_run('production_alerts')
 
 def write_pid():
     """Write PID to file with fsync"""
@@ -275,6 +289,7 @@ def main():
     print(f"   Audit Pack: Weekly (Monday 00:30 UTC)", flush=True)
     print(f"   Replica Sync: Every 2 hours", flush=True)
     print(f"   AI Ops Brain: Every 12 hours", flush=True)
+    print(f"   Production Alerts: Every 5 minutes", flush=True)
     print(f"   Logs: {log_file}", flush=True)
     print(f"   PID: {pid_file}", flush=True)
     print(flush=True)

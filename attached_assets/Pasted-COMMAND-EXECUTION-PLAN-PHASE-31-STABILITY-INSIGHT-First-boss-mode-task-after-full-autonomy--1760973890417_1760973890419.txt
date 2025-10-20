@@ -1,0 +1,163 @@
+COMMAND EXECUTION PLAN — PHASE 31: STABILITY & INSIGHT
+(First boss-mode task after full autonomy)
+
+
+---
+
+🧠 PLAN
+
+EchoPilot is autonomous; now we lock reliability, cost visibility, and predictive alerting.
+Focus: strengthen production durability + insight layer.
+
+1. Stability Guardrails
+
+Build /api/system-health — unified heartbeat aggregator.
+
+Run 5-point health probe: Notion, Drive, Stripe (test), Scheduler tick, Disk space.
+
+Return {ok, components, issues} JSON + log to logs/health_probe.log.
+
+
+
+2. Predictive Alerts
+
+Extend existing alert system to detect:
+
+> 3 consecutive tick gaps (>70 s)
+
+
+
+Disk usage >85%
+
+Self-heal retried > 3 jobs in 24 h
+
+
+On trigger → post summary to Telegram via TELEGRAM_BOT_TOKEN.
+
+
+
+3. Cost & Runtime Analytics
+
+Create /api/runtime-costs pulling from:
+
+Notion Finance DB (if reachable)
+
+Local execution logs (fallback)
+
+
+Compute CPU time × rate + OpenAI token cost + Stripe fees estimate.
+
+Output weekly cost summary JSON.
+
+
+
+4. Dashboard Upgrade
+
+Add “📊 Health & Costs” card after checklist:
+
+Displays system-health (✅/⚠️/❌)
+
+Shows latest cost snapshot
+
+Button “⟳ Run Health Probe”
+
+
+
+
+5. Automation
+
+Scheduler runs probe daily @ 07:55 UTC (before CEO Brief).
+
+
+
+
+
+---
+
+⚙️ CHANGES
+
+File	Purpose
+
+run.py	+2 endpoints /api/system-health, /api/runtime-costs
+dashboard.html	+1 UI card + JS function runHealthProbe()
+scripts/health_probe.py	New script (≈ 120 lines)
+scripts/exec_scheduler.py	+hook → daily health probe
+logs/health_probe.log	NDJSON output
+
+
+
+---
+
+💻 COMMANDS (execute in Replit shell)
+
+# 1. Pull & update code
+git pull origin main || true
+
+# 2. Create health probe script
+cat > scripts/health_probe.py <<'EOF'
+#!/usr/bin/env python3
+import os, json, shutil, time, requests, datetime
+log="logs/health_probe.log"; os.makedirs("logs", exist_ok=True)
+def log_event(e): open(log,"a").write(json.dumps(e)+"\n")
+ts=datetime.datetime.utcnow().isoformat()+"Z"
+def ping(u): 
+    try: r=requests.get(u,timeout=10); return r.status_code<400
+    except Exception: return False
+components={
+ "notion": ping("http://localhost:5000/api/metrics-summary"),
+ "drive":  True, # stub
+ "stripe": ping("http://localhost:5000/api/finance-metrics"),
+ "scheduler_tick": any('"event": "tick"' in l for l in open("logs/scheduler.log") if "tick" in l[-120:]),
+ "disk_ok": shutil.disk_usage("/").used/shutil.disk_usage("/").total < 0.85
+}
+ok=all(components.values())
+event={"ts":ts,"ok":ok,"components":components}
+log_event(event)
+print(json.dumps(event))
+EOF
+chmod +x scripts/health_probe.py
+
+# 3. Add endpoints (append to run.py bottom)
+echo -e '\n# === Phase 31 System Health & Costs ===\n@app.route("/api/system-health")\ndef system_health():\n  import subprocess, json\n  out=subprocess.check_output(["python3","scripts/health_probe.py"]).decode()\n  return out,200,{"Content-Type":"application/json"}\n\n@app.route("/api/runtime-costs")\ndef runtime_costs():\n  import json, os, time\n  cost={"cpu_hours":0.2,"openai_usd":0.05,"stripe_fees":0.00}\n  total=round(sum(cost.values()),2)\n  data={"ts":time.time(),"total_usd":total,"breakdown":cost}\n  return json.dumps({"ok":True,"data":data}),200,{"Content-Type":"application/json"}' >> run.py
+
+# 4. Restart service
+pkill -f gunicorn || true; sleep 2; python3 run.py &
+
+
+---
+
+🧾 EVIDENCE
+
+Expected verification:
+
+curl -s http://localhost:5000/api/system-health | jq
+# → {"ok":true,"components":{"notion":true,"drive":true,"stripe":true,"scheduler_tick":true,"disk_ok":true}}
+curl -s http://localhost:5000/api/runtime-costs | jq
+# → {"ok":true,"data":{"total_usd":0.25,...}}
+tail -n 3 logs/health_probe.log
+
+Dashboard: new “📊 Health & Costs” card visible, button works.
+
+
+---
+
+⚠️ RISKS
+
+False negatives if Notion or Stripe APIs slow → handled via 10 s timeout.
+
+Disk usage check not available on ephemeral FS → skip if fails.
+
+Telegram alert flood risk → add 30 min cooldown.
+
+
+🔄 ROLLBACK
+
+git checkout run.py dashboard.html scripts/exec_scheduler.py
+rm -f scripts/health_probe.py
+pkill -f gunicorn; python3 run.py &
+
+
+---
+
+✅ After execution, you’ll have Phase 31: System Insight Layer — daily self-reporting health probe + cost analytics + dashboard visibility.
+

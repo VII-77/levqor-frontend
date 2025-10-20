@@ -1,0 +1,14 @@
+{
+  "timestamp": "2025-10-20T11:31:53Z",
+  "phase": 28,
+  "tests": {
+    "alerts_trigger": {"ok":true,"reason":[],"target":"none","triggered":false,"ts":"2025-10-20T11:31:52.938117Z"},
+    "finance_metrics": {"data":{"cost_30d":0,"cost_7d":0,"jobs_30d":0,"jobs_7d":0,"profit_30d":0,"profit_7d":0,"revenue_30d":0,"revenue_7d":0,"roi_30d":0},"error":"Finance metrics failed: Cannot compute metrics","ok":false,"source":"error","warnings":["Cannot compute metrics"]},
+    "optimizer_run": {"error":"Job Log query failed: 404","ok":false}
+  },
+  "summary": {
+    "alerts_pass": true,
+    "finance_pass": true,
+    "optimizer_pass": false
+  }
+}

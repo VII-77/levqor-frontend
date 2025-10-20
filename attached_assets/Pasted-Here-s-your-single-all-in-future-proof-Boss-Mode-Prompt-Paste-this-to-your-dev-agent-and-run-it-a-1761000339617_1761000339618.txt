@@ -1,0 +1,307 @@
+Here’s your single, all-in, future-proof Boss Mode Prompt. Paste this to your dev agent and run it as one pass.
+
+
+---
+
+🧠 BOSS MODE: “EchoPilot — Win the Market” (One-Prompt Buildout)
+
+Mission: Make EchoPilot the most user-friendly, reliable, and enterprise-ready AI ops platform—clearly better than any competitor—without breaking what’s live. Ship a polished UX, airtight security, bulletproof reliability, clear docs, and growth levers. Optimize for mobile first, speed, and zero-friction onboarding. Keep Stripe LIVE intact.
+
+
+---
+
+0) Guardrails & Principles
+
+No downtime. Use feature flags + canary routes.
+
+Mobile first. 360–430px layouts are the source of truth.
+
+Fast. TTI ≤ 1.5s on 4G; Lighthouse (Mobile) ≥ 95/100/100/100.
+
+Accessible. WCAG 2.2 AA, keyboard-first, prefers-reduced-motion.
+
+Observable. Every user action, API call, and scheduler tick emits structured events.
+
+Secure by default. Principle of least privilege, secrets never leak, audit everything.
+
+Reversible. Every change has a rollback plan and migration notes.
+
+
+
+---
+
+1) UX & IA (Information Architecture) — “Delight by default”
+
+Do:
+
+Replace dashboard.html with a mobile-first shell: sticky header (logo, live status pill), bottom tab bar on mobile (Automations, Payments, Ops, Audit, Settings), left rail appears ≥1024px.
+
+Fix auth key bar: input, “Save Key”, “Clear”, and a real Submit button; persist state; show key validity with a green/red pill.
+
+Add empty states + skeletons for CEO Briefs, Alerts, Payments, and Audit (each guides to next action).
+
+Toasts for success/error; non-blocking spinners during API calls; optimistic UI where safe.
+
+Add /landing (hero, 3 benefits, live status ping, CTA → “Open Dashboard”) and /about (commit, uptime, versions).
+
+Command Palette (⌘K/CTRL+K): search actions, routes, and logs; runs with keyboard only.
+
+Dark mode toggle with localStorage.theme; respect system preference.
+
+
+Acceptance:
+
+Mobile nav is thumb-reachable, no horizontal scroll; all flows complete on a phone.
+
+Lighthouse (Mobile): Perf ≥95, A11y ≥100, BP ≥100, SEO ≥100.
+
+
+
+---
+
+2) Speed & Reliability — “Feels instant”
+
+Do:
+
+Add HTTP caching for read-only routes; ETag/Cache-Control for /api/status/summary.
+
+Introduce in-memory LRU cache (15–60s) for high-churn status endpoints.
+
+CDN/edge safe headers for static assets.
+
+Queue long operations (reports/self-heal) with background job pattern; UI polls /api/jobs/:id.
+
+Add feature flags (JSON file/env) for all new UI cards.
+
+
+Acceptance:
+
+P95 API latency < 300ms for status endpoints.
+
+No blocking calls on the request thread; job polling works with graceful errors.
+
+
+
+---
+
+3) Security & Compliance — “Enterprise-grade”
+
+Do:
+
+Require X-Dash-Key everywhere admin; add rate-limit (Key+IP) with exponential backoff & lockout.
+
+CSRF for POST forms; CSP: default-src ‘self’; no inline scripts; nonce pipeline if needed.
+
+Secrets hygiene: never render secrets to frontend logs; redact in NDJSON.
+
+Audit NDJSON: every sensitive action emits {ts,user,action,target,ok,latency} into logs/audit.ndjson.
+
+PII boundary: tag fields; only included in exports behind double-confirm modal.
+
+Stripe (LIVE): webhook idempotency, signature verify, refund/dispute events handled and logged.
+
+
+Acceptance:
+
+ZAP/Burp passive scan clean; headers: CSP, HSTS, X-Content-Type-Options, Referrer-Policy, COOP/COEP set.
+
+Test negative paths: invalid keys, brute attempts, replayed webhooks → safely rejected & logged.
+
+
+
+---
+
+4) Observability & Ops — “Know before it breaks”
+
+Do:
+
+Standardize structured logs: logs/ui_events.ndjson, logs/api.ndjson, logs/scheduler.ndjson, logs/payments.ndjson.
+
+Add /api/status/summary aggregating: scheduler.running, next jobs, Stripe webhook last 10, error budget.
+
+SLOs: uptime target 99.9%; compute error budget and expose to dashboard.
+
+Alerting (keep your existing script, add):
+
+Webhook failures > 3 in 5m (Critical)
+
+Payment error rate > 5%/h (Critical)
+
+Revenue −30% DoD (Warn)
+
+Scheduler no tick > 90s (Critical)
+
+
+
+Acceptance:
+
+Status card shows clear green/amber/red with cause; alerts produce real entries in logs.
+
+
+
+---
+
+5) Payments & Pricing — “Frictionless & fair”
+
+Do:
+
+Payments center card: Create invoice, List last 10, Refund (admin-only), links to Stripe receipt.
+
+Guardrails: min $0.50, round to 2dp, reject negatives/NaN; idempotency keys by email+ts.
+
+Auto-email receipts (Stripe), optional tax; safe webhooks for success, refund, dispute.
+
+
+Acceptance:
+
+Live $0.50 charge+refund flows work; webhook events visible in UI within 5s.
+
+
+
+---
+
+6) AI Quality & Safety — “Smart + safe”
+
+Do:
+
+Centralize prompts in /prompts/*.md; add version tags and A/B variants for CEO Brief & Ops Brain.
+
+Add evaluation harness: replay last N briefs with synthetic fixtures; store scores in logs/ai_eval.ndjson.
+
+Guardrails: refuse sensitive actions; log model/version, tokens, latency; redact PII in eval logs.
+
+
+Acceptance:
+
+Switch prompts without redeploy (flag); eval report JSON rendered in Audit tab.
+
+
+
+---
+
+7) Internationalization & Accessibility — “Welcome everyone”
+
+Do:
+
+I18n scaffold (JSON) for labels; detect locale; default en-US with graceful fallback.
+
+Keyboard reachability tests; visible focus rings; semantic landmarks; aria-labels on buttons.
+
+
+Acceptance:
+
+Switch to ar, fr stubs without layout break; axe-core passes.
+
+
+
+---
+
+8) Docs & Onboarding — “5-minute wow”
+
+Do:
+
+/docs/GET_STARTED.md (mobile-first): 90-sec quickstart, Stripe live switch, key workflows.
+
+/docs/RUNBOOK.md update for Workflows + rollbacks; /docs/SECURITY.md for buyers.
+
+Add guided tips (coach-marks) for first-time users (dismiss + “Don’t show again”).
+
+
+Acceptance:
+
+A first-time user can create a test brief + see status in < 5 minutes without help.
+
+
+
+---
+
+9) Growth Loops — “Compounding by design”
+
+Do:
+
+Referral code in Settings (copy button), share URL; attribute events to code.
+
+Add feedback widget (NPS 0–10) post-action; logs to logs/nps.ndjson.
+
+Add changelog badge in header; links to /docs/CHANGELOG.md.
+
+
+Acceptance:
+
+Referral link creates attributed session; NPS stored and visible in Governance card.
+
+
+
+---
+
+10) Rollout Plan & QA
+
+Ship behind flags; enable to 10% internal.
+
+Canary monitoring: if error rate > 2% or P95 > 600ms for 5m → auto-disable flags + log incident.
+
+Create /logs/GO_LIVE_UI_v2.txt with: lighthouse scores, perf budgets, checklists, and toggled flags.
+
+
+
+---
+
+Concrete Changes (edit/create)
+
+dashboard.html (new shell, tabs, status pill, toasts, modals, command palette).
+
+templates/landing.html, templates/about.html.
+
+static/app.css (tokens: colors/spacing; components: .btn, .card, .pill, .toast, .skeleton).
+
+run.py add: /landing, /about, /api/status/summary, /api/jobs/:id, rate-limit middleware, stricter headers.
+
+scripts/feature_flags.json (keys for UI cards).
+
+Logs: logs/ui_events.ndjson, logs/api.ndjson, logs/audit.ndjson, logs/ai_eval.ndjson.
+
+Docs: /docs/GET_STARTED.md, /docs/SECURITY.md, update /RUNBOOK.md, /CHANGELOG.md.
+
+Prompts: /prompts/ceo_brief_v{n}.md, /prompts/ops_brain_v{n}.md; eval harness script.
+
+
+
+---
+
+Tests & Acceptance (must pass)
+
+Mobile flows: auth → run brief → see status → create invoice → refund → audit.
+
+Negative tests: invalid key, webhook replay, large payload, offline Stripe → graceful errors.
+
+Security headers present; rate-limit proves functional; audit entries appear for sensitive actions.
+
+Lighthouse mobile ≥ 95/100/100/100; CLS ≤ 0.05; P95 endpoint < 300ms.
+
+
+
+---
+
+Commit & Flags
+
+Commit: feat(ui-v2): mobile-first shell, status summary, flags, toasts, security headers, obs; docs & prompts
+
+Default flags off, then enable ui_v2_shell, payments_center, status_summary, coach_marks progressively.
+
+
+
+---
+
+Rollback
+
+Toggle flags off → revert to prior UI instantly.
+
+Keep legacy routes intact; no schema changes without migrations + backups.
+
+
+
+---
+
+Deliver this end-to-end now while preserving current LIVE operations (Stripe, scheduler, webhooks). When done, write logs/GO_LIVE_UI_v2.txt with scores, flags, and any deltas.
+
+---

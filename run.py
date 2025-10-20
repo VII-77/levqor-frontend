@@ -747,6 +747,7 @@ def pulse_route():
         return jsonify({"ok": False, "error": str(e)}), 500
 
 @app.route('/dashboard')
+@app.route('/dashboard.html')
 def dashboard():
     """Serve ops dashboard"""
     return send_from_directory('.', 'dashboard.html')

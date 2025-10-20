@@ -1,0 +1,67 @@
+Open my Echopilotai Replit and do all of this in one go:
+1. Create dashboard.html at repo root with a simple, clean UI (buttons + log area) that calls these endpoints WITHOUT any tokens:
+GET /health → show JSON
+GET /api/supervisor-status → show supervisor summary (no token needed - backend handles it)
+POST /api/pulse → confirm created (no token needed - backend handles it)
+POST /api/create-test-job → create a small mp3 test job
+GET /api/job-log-latest → show latest job's QA, duration, finance fields
+POST /api/flip-paid with {page_id: "..."} → set Payment Status=Paid
+2. In my Flask app (run.py), add/confirm these routes with proper try/except and JSON responses:
+/health (public - no auth)
+/api/supervisor-status (reads /supervisor internally using HEALTH_TOKEN from env)
+/api/pulse (calls /pulse internally using HEALTH_TOKEN from env)
+/api/create-test-job (writes to Notion Automation Queue using https://filesamples.com/samples/audio/mp3/sample1.mp3)
+/api/job-log-latest (reads 🎙️ EchoPilot Job Log with retry for Notion sync lag)
+/api/flip-paid (updates Payment Status in Job Log)
+/dashboard (serves dashboard.html)
+3. Use env vars already present: HEALTH_TOKEN (server-side only!), JOB_LOG_DB_ID, AUTOMATION_QUEUE_DB_ID. Leave Stripe untouched.
+4. In dashboard.html, add a simple fetch wrapper that:
+   - Prints request/response to #log area
+   - Disables buttons during requests
+   - Shows errors clearly
+   - NO environment variables or secrets in the frontend
+5. Do not break existing code. Keep all bot/processor.py logic intact. The new routes are helpers only.
+6. Test each route works by making real calls from the dashboard.
+7. Commit changes with message: 'Add ops dashboard + secure API routes'
+When done, show me:
+- Exact file paths created/modified
+- Confirmation that dashboard is at /dashboard
+- Test results for each API endpoint
+🎯 What This Changes:
+Before (Insecure):
+// Frontend exposes secret!
+fetch(`/supervisor?token=${SECRET_TOKEN}`)
+After (Secure):
+// Frontend calls proxy, backend handles auth
+fetch('/api/supervisor-status')
+# Backend (run.py)
+@app.route('/api/supervisor-status')
+def supervisor_status():
+    token = os.getenv('HEALTH_TOKEN')  # Server-side only!
+    response = requests.get(f'http://localhost:5000/supervisor?token={token}')
+    return jsonify(response.json())
+📌 After Replit AI Finishes:
+Open: https://echopilotai.replit.app/dashboard
+
+Click buttons in order:
+
+Check Health ✅
+Supervisor Status ✅
+Send Pulse ✅
+Create Test Job ✅
+(wait 60-90s for Notion sync)
+Refresh Jobs ✅
+Flip to Paid ✅
+If errors occur: Copy the on-screen error + last 10 lines of console
+
+✅ This Secure Approach:
+✅ Keeps HEALTH_TOKEN server-side only
+✅ Frontend never sees secrets
+✅ Same functionality, better security
+✅ Backend acts as authentication proxy
+✅ Works with existing Replit infrastructure
+Copy the CORRECTED prompt above and paste it into Replit AI! 🚀
+
+43 seconds of work
+
+Scroll to lat

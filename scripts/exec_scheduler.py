@@ -214,6 +214,33 @@ def run_scheduled_tasks():
             mark_run('predictive_alerts')
         except Exception:
             pass
+    
+    # ==================== ENTERPRISE EXPANSION TASKS (Phase 33-40) ====================
+    
+    # 5) Pricing AI Optimization - Daily at 03:00 UTC
+    if is_time_match(3, 0) and should_run('pricing_ai'):
+        call_api('POST', '/api/pricing/optimize', 'pricing_ai_optimization')
+        mark_run('pricing_ai')
+    
+    # 6) Weekly Audit Pack - Mondays at 00:30 UTC
+    now = datetime.utcnow()
+    if now.weekday() == 0 and is_time_match(0, 30) and should_run('weekly_audit'):
+        call_api('GET', '/api/audit/report', 'weekly_audit_report')
+        mark_run('weekly_audit')
+    
+    # 7) Replica Sync - Every 2 hours
+    if should_run('replica_sync'):
+        if 'replica_sync' not in last_run or \
+           (datetime.utcnow() - last_run['replica_sync']).total_seconds() >= (2 * 3600):
+            call_api('POST', '/api/regions/sync', 'replica_sync')
+            mark_run('replica_sync')
+    
+    # 8) AI Ops Brain - Every 12 hours
+    if should_run('ops_brain'):
+        if 'ops_brain' not in last_run or \
+           (datetime.utcnow() - last_run['ops_brain']).total_seconds() >= (12 * 3600):
+            call_api('POST', '/api/brain/decide', 'ai_ops_brain')
+            mark_run('ops_brain')
 
 def write_pid():
     """Write PID to file with fsync"""
@@ -244,6 +271,10 @@ def main():
     print(f"   CEO Brief: {SCHED_BRIEF_UTC} UTC", flush=True)
     print(f"   Daily Report: {SCHED_REPORT_UTC} UTC", flush=True)
     print(f"   Self-Heal: Every {SCHED_SELFHEAL_EVERY_HOURS} hours", flush=True)
+    print(f"   Pricing AI: Daily at 03:00 UTC", flush=True)
+    print(f"   Audit Pack: Weekly (Monday 00:30 UTC)", flush=True)
+    print(f"   Replica Sync: Every 2 hours", flush=True)
+    print(f"   AI Ops Brain: Every 12 hours", flush=True)
     print(f"   Logs: {log_file}", flush=True)
     print(f"   PID: {pid_file}", flush=True)
     print(flush=True)

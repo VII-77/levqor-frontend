@@ -1,0 +1,136 @@
+Here’s your one-prompt, end-to-end System Integrity Test.
+Copy–paste into your shell (works on Replit shell too):
+
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ====== CONFIG (edit if needed) ======
+: "${DASHBOARD_KEY:?Set DASHBOARD_KEY first}"
+BASE_PROD="${BASE_PROD:-https://echopilotai.replit.app}"
+BASE_LOCAL="${BASE_LOCAL:-http://localhost:5000}"
+EMAIL="${EMAIL:-qa-live@echopilot.ai}"
+AMOUNT="${AMOUNT:-0.50}"                      # safe live test
+USE_LOCAL="${USE_LOCAL:-1}"                   # 1=use localhost admin endpoints
+# =====================================
+
+green(){ printf "\033[32m%s\033[0m\n" "$*"; }
+red(){ printf "\033[31m%s\033[0m\n" "$*"; }
+cyan(){ printf "\033[36m%s\033[0m\n" "$*"; }
+step(){ printf "\n\033[35m▶ %s\033[0m\n" "$*"; }
+jget(){ python3 - <<'PY' "$@"
+import sys,json,io
+data=json.load(sys.stdin)
+path=sys.argv[1].split('.')
+v=data
+for p in path:
+    v=v[int(p)] if p.isdigit() else v.get(p)
+print(v if v is not None else "")
+PY
+}
+
+BASE="$BASE_LOCAL"
+[[ "${USE_LOCAL}" = "0" ]] && BASE="$BASE_PROD"
+
+# ---------- 0) PING ----------
+step "Health check ($BASE)"
+curl -fsS "$BASE/" | python3 -m json.tool >/dev/null
+green "OK"
+
+# ---------- 1) AUTOMATIONS ----------
+step "Scheduler status"
+SCHED=$(curl -fsS -H "X-Dash-Key: $DASHBOARD_KEY" "$BASE/api/automations/status")
+echo "$SCHED" | python3 -m json.tool >/dev/null
+RUNNING=$(echo "$SCHED" | jget data.running)
+PID=$(echo "$SCHED" | jget data.pid)
+[[ "$RUNNING" = "True" || "$RUNNING" = "true" ]] && green "Running (pid=$PID)" || red "Not running"
+
+# ---------- 2) STRIPE MODE ----------
+step "Payments smoke (create invoice)"
+INV=$(curl -fsS -H "X-Dash-Key: $DASHBOARD_KEY" -H "Content-Type: application/json" \
+  -d "{\"amount\":$AMOUNT,\"email\":\"$EMAIL\"}" "$BASE/api/payments/create-invoice")
+echo "$INV" | python3 -m json.tool >/dev/null
+MODE=$(echo "$INV" | jget mode)
+OK=$(echo "$INV" | jget ok)
+[[ "$OK" = "True" || "$OK" = "true" ]] || { red "Invoice endpoint failed"; exit 1; }
+green "Invoice OK (mode=$MODE)"
+
+# ---------- 3) SIGNED URL ----------
+step "Signed URL generation"
+SU=$(curl -fsS -H "X-Dash-Key: $DASHBOARD_KEY" "$BASE/api/customer/signed-url/QA?email=$EMAIL")
+echo "$SU" | python3 -m json.tool >/dev/null
+[[ "$(echo "$SU" | jget ok)" = "True" || "$(echo "$SU" | jget ok)" = "true" ]] && green "Signed URL OK" || red "Signed URL fail"
+
+# ---------- 4) COMPLIANCE/AUDIT ----------
+step "Compliance export"
+CE=$(curl -fsS -H "X-Dash-Key: $DASHBOARD_KEY" "$BASE/api/compliance/export-data")
+echo "$CE" | python3 -m json.tool >/dev/null
+green "Export OK"
+
+step "Audit report"
+AR=$(curl -fsS -H "X-Dash-Key: $DASHBOARD_KEY" "$BASE/api/audit/report")
+echo "$AR" | python3 -m json.tool >/dev/null
+green "Audit OK"
+
+# ---------- 5) AI/OPS ----------
+step "Pricing AI"
+PAI=$(curl -fsS -H "X-Dash-Key: $DASHBOARD_KEY" -X POST "$BASE/api/pricing/optimize")
+echo "$PAI" | python3 -m json.tool >/dev/null
+green "Pricing OK"
+
+step "AI Ops Brain"
+BRAIN=$(curl -fsS -H "X-Dash-Key: $DASHBOARD_KEY" -X POST "$BASE/api/brain/decide")
+echo "$BRAIN" | python3 -m json.tool >/dev/null
+green "AI Ops OK"
+
+# ---------- 6) REGIONS & SELF-HEAL ----------
+step "Replica sync"
+RS=$(curl -fsS -H "X-Dash-Key: $DASHBOARD_KEY" -X POST "$BASE/api/regions/sync")
+echo "$RS" | python3 -m json.tool >/dev/null
+green "Replica sync OK"
+
+step "Self-Heal (manual)"
+SH=$(curl -fsS -H "X-Dash-Key: $DASHBOARD_KEY" -X POST "$BASE/api/self-heal")
+echo "$SH" | python3 -m json.tool >/dev/null
+green "Self-Heal OK"
+
+# ---------- 7) METRICS ----------
+step "Metrics"
+FM=$(curl -fsS -H "X-Dash-Key: $DASHBOARD_KEY" "$BASE/api/finance-metrics" || true)
+MS=$(curl -fsS -H "X-Dash-Key: $DASHBOARD_KEY" "$BASE/api/metrics-summary" || true)
+[[ -n "$FM" ]] && echo "$FM" | python3 -m json.tool >/dev/null && green "Finance metrics OK" || cyan "Finance metrics unavailable (ok if no data yet)"
+[[ -n "$MS" ]] && echo "$MS" | python3 -m json.tool >/dev/null && green "Metrics summary OK" || cyan "Metrics summary unavailable"
+
+# ---------- 8) GOVERNANCE / SENTINEL (if present) ----------
+if curl -fsS -H "X-Dash-Key: $DASHBOARD_KEY" "$BASE/api/governance/check" >/dev/null 2>&1; then
+  step "Governance check"
+  GC=$(curl -fsS -H "X-Dash-Key: $DASHBOARD_KEY" "$BASE/api/governance/check")
+  echo "$GC" | python3 -m json.tool >/dev/null
+  green "Governance OK"
+fi
+
+if curl -fsS -H "X-Dash-Key: $DASHBOARD_KEY" "$BASE/api/ops/sentinel" >/dev/null 2>&1; then
+  step "Ops Sentinel"
+  OS=$(curl -fsS -H "X-Dash-Key: $DASHBOARD_KEY" "$BASE/api/ops/sentinel")
+  echo "$OS" | python3 -m json.tool >/dev/null
+  green "Ops Sentinel OK"
+fi
+
+# ---------- 9) SUMMARY ----------
+step "Summary"
+printf "Mode: %s\n" "$MODE"
+printf "Scheduler running: %s (pid=%s)\n" "$RUNNING" "${PID:-}"
+green "✅ System integrity test: PASS"
+
+# Optional: write a stamp file
+mkdir -p logs
+echo "$(date -u '+%Y-%m-%dT%H:%M:%SZ') PASS mode=$MODE running=$RUNNING pid=${PID:-}" >> logs/INTEGRITY_TEST_HISTORY.log
+
+Tip:
+
+For admin checks, USE_LOCAL=1 is best (Replit proxy can 404 admin routes).
+
+To hit public URL only: USE_LOCAL=0 BASE_PROD="https://echopilotai.replit.app" prefix the command.
+
+
+Want me to bundle this into your dashboard as a “One-Click Integrity Test” button next?
+

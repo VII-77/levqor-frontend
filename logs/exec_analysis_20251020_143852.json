@@ -1,0 +1,67 @@
+{
+  "kpis": {
+    "jobs_7d": 0,
+    "revenue_7d": 0,
+    "avg_qa_7d": 0.0,
+    "roi_7d": 0,
+    "margin_pct_7d": 0
+  },
+  "anomalies": [
+    {
+      "type": "finance",
+      "severity": "high",
+      "signal": "Finance metrics failed: Cannot compute metrics",
+      "evidence": [
+        "Cost, revenue, and profit metrics are all zero.",
+        "Error: Finance metrics failed: Cannot compute metrics"
+      ],
+      "suggested_fix": "Investigate finance module for errors."
+    },
+    {
+      "type": "ops",
+      "severity": "high",
+      "signal": "Job Log entry not found after full backoff",
+      "evidence": [
+        "Multiple failures in release captain due to Job Log entry not found.",
+        "Notion sync lag noted in e2e validation."
+      ],
+      "suggested_fix": "Check Notion integration and job processing."
+    },
+    {
+      "type": "quality",
+      "severity": "med",
+      "signal": "QA below threshold",
+      "evidence": [
+        "QA score of 85% noted but below 95% threshold.",
+        "Unpaid job with QA < 95."
+      ],
+      "suggested_fix": "Review QA processes and improve job quality."
+    }
+  ],
+  "actions": [
+    {
+      "owner": "finance",
+      "priority": 1,
+      "task": "Investigate finance module for errors.",
+      "eta_hours": 2
+    },
+    {
+      "owner": "ops",
+      "priority": 1,
+      "task": "Check Notion integration and job processing.",
+      "eta_hours": 2
+    },
+    {
+      "owner": "quality",
+      "priority": 1,
+      "task": "Review QA processes and improve job quality.",
+      "eta_hours": 2
+    }
+  ],
+  "notes": [
+    "Finance metrics are not computable.",
+    "Multiple job log entry failures.",
+    "QA scores are below acceptable thresholds."
+  ],
+  "confidence": 0.0
+}

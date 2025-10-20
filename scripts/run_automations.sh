@@ -46,9 +46,23 @@ start_scheduler() {
         echo ""
     fi
     
-    # Start scheduler daemon
+    # Start scheduler daemon (using nohup for Replit compatibility)
     echo "⏰ Starting scheduler daemon..."
-    python3 scripts/daemonize.py
+    nohup python3 -u scripts/exec_scheduler.py >> logs/scheduler.out 2>&1 &
+    SCHEDULER_PID=$!
+    
+    # Give it a moment to start
+    sleep 2
+    
+    # Verify it's running
+    if ps -p "$SCHEDULER_PID" > /dev/null 2>&1; then
+        echo "✅ Scheduler daemonized (PID: $SCHEDULER_PID)"
+        echo "   Logs: logs/scheduler.out"
+        echo "$SCHEDULER_PID" > logs/scheduler.pid
+    else
+        echo "❌ Failed to start scheduler"
+        exit 1
+    fi
     
     # Verify it started
     sleep 2

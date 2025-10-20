@@ -12,6 +12,7 @@ import json
 import signal
 import requests
 import atexit
+import threading
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -139,7 +140,7 @@ def parse_time(time_str):
     try:
         parts = time_str.split(':')
         return int(parts[0]), int(parts[1])
-    except:
+    except Exception:
         return 0, 0
 
 def is_time_match(target_hour, target_minute):
@@ -233,10 +234,17 @@ def main():
     print(f"   PID: {pid_file}", flush=True)
     print(flush=True)
     
-    # Initial self-heal run on startup
+    # Initial self-heal run on startup (in background thread to avoid blocking)
+    def startup_self_heal():
+        """Run startup self-heal in background"""
+        if DASHBOARD_KEY:
+            call_api('POST', '/api/self-heal', 'self_heal_startup')
+            mark_run('self_heal')
+    
+    # Start self-heal in background thread so it doesn't block main loop
     if DASHBOARD_KEY:
-        call_api('POST', '/api/self-heal', 'self_heal_startup')
-        mark_run('self_heal')
+        heal_thread = threading.Thread(target=startup_self_heal, daemon=True)
+        heal_thread.start()
     
     # Main loop with heartbeat
     tick_count = 0

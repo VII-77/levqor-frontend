@@ -14,3 +14,35 @@
    Logs: logs/scheduler.log
    PID: logs/scheduler.pid
 
+{"ts": "2025-10-20T14:32:35.358446Z", "event": "startup", "ok": true, "pid": 4677, "config": {"brief_time": "08:00", "report_time": "09:00", "selfheal_hours": 6, "base_url": "http://localhost:5000"}}
+🤖 EchoPilot Executive Scheduler Started (PID: 4677)
+   CEO Brief: 08:00 UTC
+   Daily Report: 09:00 UTC
+   Self-Heal: Every 6 hours
+   Logs: logs/scheduler.log
+   PID: logs/scheduler.pid
+
+{"ts": "2025-10-20T14:34:44.630263Z", "event": "startup", "ok": true, "pid": 4863, "config": {"brief_time": "08:00", "report_time": "09:00", "selfheal_hours": 6, "base_url": "http://localhost:5000"}}
+🤖 EchoPilot Executive Scheduler Started (PID: 4863)
+   CEO Brief: 08:00 UTC
+   Daily Report: 09:00 UTC
+   Self-Heal: Every 6 hours
+   Logs: logs/scheduler.log
+   PID: logs/scheduler.pid
+
+{"ts": "2025-10-20T14:36:31.278284Z", "event": "startup", "ok": true, "pid": 4994, "config": {"brief_time": "08:00", "report_time": "09:00", "selfheal_hours": 6, "base_url": "http://localhost:5000"}}
+🤖 EchoPilot Executive Scheduler Started (PID: 4994)
+   CEO Brief: 08:00 UTC
+   Daily Report: 09:00 UTC
+   Self-Heal: Every 6 hours
+   Logs: logs/scheduler.log
+   PID: logs/scheduler.pid
+
+{"ts": "2025-10-20T14:38:28.771373Z", "event": "startup", "ok": true, "pid": 5256, "config": {"brief_time": "08:00", "report_time": "09:00", "selfheal_hours": 6, "base_url": "http://localhost:5000"}}
+🤖 EchoPilot Executive Scheduler Started (PID: 5256)
+   CEO Brief: 08:00 UTC
+   Daily Report: 09:00 UTC
+   Self-Heal: Every 6 hours
+   Logs: logs/scheduler.log
+   PID: logs/scheduler.pid
+

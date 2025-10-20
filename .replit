@@ -20,6 +20,10 @@ author = "agent"
 task = "workflow.run"
 args = "EchoPilot Bot"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Scheduler"
+
 [[workflows.workflow]]
 name = "EchoPilot Bot"
 author = "agent"
@@ -32,6 +36,17 @@ outputType = "webview"
 task = "shell.exec"
 args = "gunicorn -w 1 -k gthread -t 120 --bind 0.0.0.0:5000 run:app"
 waitForPort = 5000
+
+[[workflows.workflow]]
+name = "Scheduler"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python3 -u scripts/exec_scheduler.py"
+
+[workflows.workflow.metadata]
+outputType = "console"
 
 [deployment]
 deploymentTarget = "vm"

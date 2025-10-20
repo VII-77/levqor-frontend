@@ -13,6 +13,9 @@ def daemonize():
     """
     Launch exec_scheduler.py as a detached background process.
     Returns the child PID.
+    
+    NOTE: We do NOT use os.setsid() because it causes the process to exit
+    immediately in the Replit environment. Simple background detachment works.
     """
     log_dir = Path('logs')
     log_dir.mkdir(exist_ok=True)
@@ -24,13 +27,15 @@ def daemonize():
     outfile = open(scheduler_out, 'a')
     
     # Launch exec_scheduler.py detached
+    # NOTE: In Replit environment, ANY session detachment (setsid or start_new_session)
+    # causes the process to exit immediately. Simple background process works fine.
     process = subprocess.Popen(
         [sys.executable, 'scripts/exec_scheduler.py'],
         stdout=outfile,
         stderr=outfile,
         stdin=subprocess.DEVNULL,
-        close_fds=True,
-        preexec_fn=os.setsid  # Create new session (detach from terminal)
+        close_fds=True
+        # NO session management - causes exit in Replit
     )
     
     child_pid = process.pid

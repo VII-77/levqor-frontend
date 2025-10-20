@@ -1,8 +1,8 @@
 {
-  "ts": "2025-10-20T18:05:07.801026Z",
+  "ts": "2025-10-20T18:29:00.565134Z",
   "period_hours": 24,
-  "events_analyzed": 91,
-  "severity": "medium",
+  "events_analyzed": 120,
+  "severity": "high",
   "top_errors": {},
   "recommendations": [
     "System operating normally - no critical issues",

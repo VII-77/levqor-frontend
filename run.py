@@ -52,6 +52,91 @@ def add_security_headers(response):
 
 app.after_request(add_security_headers)
 
+# Rate limiting for public endpoints (5 req/min/IP)
+from collections import defaultdict
+from datetime import datetime, timedelta
+
+rate_limit_store = defaultdict(list)
+
+def rate_limit(max_requests=5, window_minutes=1):
+    """Simple in-memory rate limiter"""
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            client_ip = request.remote_addr or 'unknown'
+            now = datetime.utcnow()
+            cutoff = now - timedelta(minutes=window_minutes)
+            
+            # Clean old entries
+            rate_limit_store[client_ip] = [
+                ts for ts in rate_limit_store[client_ip] if ts > cutoff
+            ]
+            
+            # Check limit
+            if len(rate_limit_store[client_ip]) >= max_requests:
+                return jsonify({
+                    "ok": False,
+                    "error": f"Rate limit exceeded. Maximum {max_requests} requests per {window_minutes} minute(s)",
+                    "data": None
+                }), 429
+            
+            # Record this request
+            rate_limit_store[client_ip].append(now)
+            
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+# SMTP Email System (safe fallback if not configured)
+def send_email(to, subject, html_body):
+    """Send email via SMTP with safe fallback"""
+    import smtplib
+    from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart
+    from pathlib import Path
+    
+    # Log file
+    log_file = Path('logs/customer_email.log')
+    log_file.parent.mkdir(exist_ok=True)
+    
+    def log_email(msg):
+        with open(log_file, 'a') as f:
+            ts = datetime.utcnow().isoformat() + 'Z'
+            f.write(f"[{ts}] {msg}\n")
+    
+    # Check if SMTP is configured
+    smtp_host = os.getenv('SMTP_HOST', '').strip()
+    smtp_port = os.getenv('SMTP_PORT', '587').strip()
+    smtp_user = os.getenv('SMTP_USER', '').strip()
+    smtp_pass = os.getenv('SMTP_PASS', '').strip()
+    smtp_from = os.getenv('SMTP_FROM', smtp_user).strip()
+    
+    if not (smtp_host and smtp_user and smtp_pass):
+        # No SMTP configured - log only
+        log_email(f"[NO-SEND] To: {to}, Subject: {subject} (SMTP not configured)")
+        return {"ok": True, "message": "Email logged (SMTP not configured)"}
+    
+    try:
+        # Create message
+        msg = MIMEMultipart('alternative')
+        msg['From'] = smtp_from
+        msg['To'] = to
+        msg['Subject'] = subject
+        msg.attach(MIMEText(html_body, 'html'))
+        
+        # Send via SMTP
+        with smtplib.SMTP(smtp_host, int(smtp_port)) as server:
+            server.starttls()
+            server.login(smtp_user, smtp_pass)
+            server.send_message(msg)
+        
+        log_email(f"[SENT] To: {to}, Subject: {subject}")
+        return {"ok": True, "message": "Email sent successfully"}
+        
+    except Exception as e:
+        log_email(f"[FAILED] To: {to}, Subject: {subject}, Error: {str(e)}")
+        return {"ok": False, "error": str(e)}
+
 # Edge routing configuration for Railway fallback
 EDGE_ENABLE = os.getenv("EDGE_ENABLE", "false").lower() == "true"
 EDGE_BASE_URL = os.getenv("EDGE_BASE_URL", "")
@@ -105,9 +190,25 @@ def health_check():
 
 @app.route('/health')
 def health():
-    """Alternative health endpoint"""
-    from bot.metrics import log_health_check
-    log_health_check("ok")
+    """Alternative health endpoint - non-blocking"""
+    import threading
+    import datetime
+    from pathlib import Path
+    
+    # Spawn background logging (best-effort, non-blocking)
+    def background_log():
+        try:
+            log_file = Path('logs/health.ndjson')
+            log_file.parent.mkdir(exist_ok=True)
+            with open(log_file, 'a') as f:
+                ts = datetime.datetime.utcnow().isoformat() + 'Z'
+                f.write(f'{{"ts":"{ts}","status":"ok"}}\n')
+        except:
+            pass  # Silent fail if logging unavailable
+    
+    threading.Thread(target=background_log, daemon=True).start()
+    
+    # Return immediately
     return jsonify({"status": "ok"})
 
 @app.get("/supervisor")
@@ -894,15 +995,36 @@ def api_public_create_job():
                 f.write(f"[{ts}] {msg}\n")
         
         if 'file' not in request.files:
-            return jsonify({"ok": False, "error": "No file uploaded"}), 400
+            return jsonify({"ok": False, "error": "No file uploaded", "data": None}), 400
         
         file = request.files['file']
         if file.filename == '':
-            return jsonify({"ok": False, "error": "Empty filename"}), 400
+            return jsonify({"ok": False, "error": "Empty filename", "data": None}), 400
+        
+        # Validate file type
+        filename = secure_filename(file.filename)
+        if not (filename.lower().endswith('.mp3') or filename.lower().endswith('.wav')):
+            return jsonify({
+                "ok": False, 
+                "error": "Only .mp3 and .wav files are supported",
+                "data": None
+            }), 400
+        
+        # Check file size (50MB max)
+        file.seek(0, 2)  # Seek to end
+        file_size = file.tell()
+        file.seek(0)  # Reset to beginning
+        
+        MAX_SIZE = 50 * 1024 * 1024  # 50MB
+        if file_size > MAX_SIZE:
+            return jsonify({
+                "ok": False,
+                "error": f"File too large. Maximum size is 50MB, got {file_size / 1024 / 1024:.1f}MB",
+                "data": None
+            }), 413
         
         # Generate correlation ID
         correlation_id = str(uuid.uuid4())[:8]
-        filename = secure_filename(file.filename)
         
         # Get email and subscribe preference from form
         email = request.form.get('email', '')
@@ -1208,6 +1330,7 @@ def api_public_job_history(email):
         return jsonify({"ok": False, "error": str(e)}), 500
 
 @app.route('/api/public/send-email', methods=['POST'])
+@rate_limit(max_requests=5, window_minutes=1)
 def api_public_send_email():
     """Customer Portal: Send job completion email"""
     import datetime
@@ -1287,6 +1410,7 @@ def api_public_send_email():
         return jsonify({"ok": False, "error": str(e)}), 500
 
 @app.route('/api/public/support', methods=['POST'])
+@rate_limit(max_requests=5, window_minutes=1)
 def api_public_support():
     """Customer Portal: Log support requests"""
     import datetime

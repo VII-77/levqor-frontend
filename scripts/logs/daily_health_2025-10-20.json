@@ -1,0 +1,13 @@
+{
+  "timestamp": "2025-10-20T08:50:52Z",
+  "checks": {
+    "health": {"status":"ok"},
+
+    "supervisor": {"data":{"drive":"ok","edge":"replit","notion":"ok","openai":"ok","ts":"2025-10-20T08:50:54.623654Z"},"error":null,"ok":true},
+
+    "pulse": {"data":{"id":"2926155c-cf54-818d-8305-d727ad8f3ce9","message":"Governance pulse created"},"error":null,"ok":true},
+
+    "job_log": {"data":{"attempt":1,"duration_sec":null,"gross_usd":null,"job_name":"[SYNTHETIC TEST] 2025-10-16 15:15:10Z","margin_pct":null,"page_id":"28e6155c-cf54-8100-a584-fc7dce6028a6","payment_link":null,"payment_status":null,"profit_usd":null,"qa_score":85},"error":null,"ok":true}
+
+  }
+}

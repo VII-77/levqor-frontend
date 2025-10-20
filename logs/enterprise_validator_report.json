@@ -1,0 +1,48 @@
+{
+  "ts": "2025-10-20T18:10:27.926892Z",
+  "status": "WARN",
+  "checks": {
+    "api_status": {
+      "status": "PASS",
+      "details": "API server file exists"
+    },
+    "scheduler": {
+      "status": "PASS",
+      "details": "Scheduler running"
+    },
+    "logs_integrity": {
+      "status": "PASS",
+      "details": "18 NDJSON log files found"
+    },
+    "rbac_users": {
+      "status": "PASS",
+      "details": "Admin users configured"
+    },
+    "finops_spend": {
+      "status": "PASS",
+      "details": "Spend within limits"
+    },
+    "security_scan": {
+      "status": "WARN",
+      "details": "Security issues detected"
+    },
+    "dr_backup": {
+      "status": "WARN",
+      "details": "No DR backups"
+    },
+    "optimizer": {
+      "status": "WARN",
+      "details": "Optimizer not run"
+    },
+    "governance_ai": {
+      "status": "WARN",
+      "details": "No governance report"
+    }
+  },
+  "summary": {
+    "total_checks": 9,
+    "passed": 5,
+    "warnings": 4,
+    "failures": 0
+  }
+}

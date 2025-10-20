@@ -1,0 +1,51 @@
+<!-- Phase 79 & 80: Cost Guardrails + Autoscale Combined Card -->
+<div class="card bg-gradient-to-br from-purple-900 to-purple-800 text-white p-6 rounded-2xl shadow-xl mt-4 border border-purple-700">
+  <div class="flex items-center mb-4">
+    <div class="text-3xl mr-3">💰</div>
+    <div>
+      <h3 class="text-xl font-bold">Cost & Scale Management</h3>
+      <p class="text-sm opacity-80">Spend caps, throttling & autoscaling</p>
+    </div>
+  </div>
+  
+  <div class="grid grid-cols-2 gap-2 mb-4">
+    <button class="bg-purple-700 hover:bg-purple-600 px-3 py-2 rounded-lg font-medium transition-colors text-sm"
+            onclick="loadCostStatus()">
+      💵 Cost Status
+    </button>
+    <button class="bg-indigo-700 hover:bg-indigo-600 px-3 py-2 rounded-lg font-medium transition-colors text-sm"
+            onclick="loadScaleStatus()">
+      ⚖️ Scale Status
+    </button>
+  </div>
+  
+  <pre id="costScaleOut" class="text-xs bg-black bg-opacity-50 p-3 rounded-lg overflow-auto max-h-96 font-mono"></pre>
+</div>
+
+<script>
+async function loadCostStatus() {
+  try {
+    const dashKey = window.dashKey || localStorage.getItem('DASHBOARD_KEY') || '';
+    const response = await fetch('/api/costs/status', {
+      headers: {'X-Dash-Key': dashKey}
+    });
+    const data = await response.json();
+    document.getElementById('costScaleOut').textContent = JSON.stringify(data, null, 2);
+  } catch (error) {
+    document.getElementById('costScaleOut').textContent = 'Error: ' + error.message;
+  }
+}
+
+async function loadScaleStatus() {
+  try {
+    const dashKey = window.dashKey || localStorage.getItem('DASHBOARD_KEY') || '';
+    const response = await fetch('/api/scale/status', {
+      headers: {'X-Dash-Key': dashKey}
+    });
+    const data = await response.json();
+    document.getElementById('costScaleOut').textContent = JSON.stringify(data, null, 2);
+  } catch (error) {
+    document.getElementById('costScaleOut').textContent = 'Error: ' + error.message;
+  }
+}
+</script>

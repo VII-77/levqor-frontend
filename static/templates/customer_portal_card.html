@@ -1,0 +1,86 @@
+<!-- Phase 78: Customer Portal Admin Card -->
+<div class="card bg-gradient-to-br from-blue-900 to-blue-800 text-white p-6 rounded-2xl shadow-xl mt-4 border border-blue-700">
+  <div class="flex items-center mb-4">
+    <div class="text-3xl mr-3">👤</div>
+    <div>
+      <h3 class="text-xl font-bold">Customer Portal Admin</h3>
+      <p class="text-sm opacity-80">Lookup receipts & generate signed links</p>
+    </div>
+  </div>
+  
+  <div class="mb-4">
+    <label class="block text-sm font-medium mb-2">Customer Email</label>
+    <input type="email" 
+           id="portalEmail" 
+           placeholder="customer@example.com"
+           class="w-full px-3 py-2 bg-black bg-opacity-30 border border-blue-600 rounded-lg text-white placeholder-gray-400">
+  </div>
+  
+  <div class="space-y-2 mb-4">
+    <button class="w-full bg-blue-700 hover:bg-blue-600 px-4 py-2 rounded-lg font-medium transition-colors"
+            onclick="lookupReceipts()">
+      🔍 Lookup Receipts
+    </button>
+    <button class="w-full bg-indigo-700 hover:bg-indigo-600 px-4 py-2 rounded-lg font-medium transition-colors"
+            onclick="raiseTestIncident()">
+      🚨 Test Incident Alert
+    </button>
+  </div>
+  
+  <pre id="portalOut" class="text-xs bg-black bg-opacity-50 p-3 rounded-lg overflow-auto max-h-96 font-mono"></pre>
+</div>
+
+<script>
+async function lookupReceipts() {
+  try {
+    const email = document.getElementById('portalEmail').value;
+    if (!email) {
+      alert('Please enter customer email');
+      return;
+    }
+    
+    const dashKey = window.dashKey || localStorage.getItem('DASHBOARD_KEY') || '';
+    const response = await fetch(`/api/portal/receipts?email=${encodeURIComponent(email)}`, {
+      headers: {'X-Dash-Key': dashKey}
+    });
+    const data = await response.json();
+    
+    document.getElementById('portalOut').textContent = JSON.stringify(data, null, 2);
+    
+    // Show clickable links
+    if (data.ok && data.receipts) {
+      let output = 'RECEIPTS FOUND:\n\n';
+      data.receipts.forEach(r => {
+        output += `${r.description} - $${r.amount_usd}\n`;
+        output += `Download: ${r.download_url}\n`;
+        output += `Expires: ${r.expires_iso}\n\n`;
+      });
+      document.getElementById('portalOut').textContent = output + '\nFull Data:\n' + JSON.stringify(data, null, 2);
+    }
+  } catch (error) {
+    document.getElementById('portalOut').textContent = 'Error: ' + error.message;
+  }
+}
+
+async function raiseTestIncident() {
+  try {
+    const dashKey = window.dashKey || localStorage.getItem('DASHBOARD_KEY') || '';
+    const response = await fetch('/api/incidents/raise', {
+      method: 'POST',
+      headers: {
+        'X-Dash-Key': dashKey,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        severity: 'INFO',
+        msg: 'Test incident from dashboard',
+        source: 'customer_portal_card'
+      })
+    });
+    const data = await response.json();
+    document.getElementById('portalOut').textContent = JSON.stringify(data, null, 2);
+  } catch (error) {
+    document.getElementById('portalOut').textContent = 'Error: ' + error.message;
+  }
+}
+</script>

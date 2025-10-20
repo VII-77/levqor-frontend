@@ -1,0 +1,89 @@
+<!-- Phase 76: SLO & Error Budget Card -->
+<div class="card bg-gradient-to-br from-emerald-900 to-emerald-800 text-white p-6 rounded-2xl shadow-xl mt-4 border border-emerald-700">
+  <div class="flex items-center mb-4">
+    <div class="text-3xl mr-3">🎯</div>
+    <div>
+      <h3 class="text-xl font-bold">SLO & Error Budget</h3>
+      <p class="text-sm opacity-80">P95/P99 latency & burn rate tracking</p>
+    </div>
+  </div>
+  
+  <div class="space-y-2 mb-4">
+    <button class="w-full bg-emerald-700 hover:bg-emerald-600 px-4 py-2 rounded-lg font-medium transition-colors"
+            onclick="loadSLOBudget()">
+      📊 Refresh SLO Status
+    </button>
+    <button class="w-full bg-yellow-700 hover:bg-yellow-600 px-4 py-2 rounded-lg font-medium transition-colors"
+            onclick="rebaselineSLO()">
+      🔄 Reset Baseline
+    </button>
+  </div>
+  
+  <div id="sloStatus" class="mb-4 p-3 rounded-lg bg-black bg-opacity-30">
+    <div class="text-sm opacity-70">Click "Refresh SLO Status" to load metrics</div>
+  </div>
+  
+  <pre id="sloOut" class="text-xs bg-black bg-opacity-50 p-3 rounded-lg overflow-auto max-h-96 font-mono"></pre>
+</div>
+
+<script>
+async function loadSLOBudget() {
+  try {
+    const dashKey = window.dashKey || localStorage.getItem('DASHBOARD_KEY') || '';
+    const response = await fetch('/api/slo/budget', {
+      headers: {'X-Dash-Key': dashKey}
+    });
+    const data = await response.json();
+    
+    // Show status with color coding
+    const status = document.getElementById('sloStatus');
+    const burnAlert = data.data?.burn_alert || 'UNKNOWN';
+    let color = 'bg-green-600';
+    let emoji = '✅';
+    
+    if (burnAlert === 'CRITICAL') {
+      color = 'bg-red-600';
+      emoji = '🚨';
+    } else if (burnAlert === 'WARNING') {
+      color = 'bg-yellow-600';
+      emoji = '⚠️';
+    } else if (burnAlert === 'WATCH') {
+      color = 'bg-orange-600';
+      emoji = '👀';
+    }
+    
+    status.innerHTML = `
+      <div class="${color} p-3 rounded-lg">
+        <div class="flex items-center justify-between">
+          <span class="text-lg font-bold">${emoji} ${burnAlert}</span>
+          <span class="text-sm">Error Budget: ${data.data?.remaining_budget_pct || 0}%</span>
+        </div>
+        <div class="mt-2 text-sm">
+          P95: ${data.data?.p95_ms || 0}ms | P99: ${data.data?.p99_ms || 0}ms
+        </div>
+      </div>
+    `;
+    
+    document.getElementById('sloOut').textContent = JSON.stringify(data, null, 2);
+  } catch (error) {
+    document.getElementById('sloOut').textContent = 'Error: ' + error.message;
+  }
+}
+
+async function rebaselineSLO() {
+  try {
+    const dashKey = window.dashKey || localStorage.getItem('DASHBOARD_KEY') || '';
+    const response = await fetch('/api/slo/rebaseline', {
+      method: 'POST',
+      headers: {'X-Dash-Key': dashKey}
+    });
+    const data = await response.json();
+    document.getElementById('sloOut').textContent = JSON.stringify(data, null, 2);
+    
+    // Reload status
+    setTimeout(loadSLOBudget, 1000);
+  } catch (error) {
+    document.getElementById('sloOut').textContent = 'Error: ' + error.message;
+  }
+}
+</script>

@@ -179,6 +179,11 @@ def calculate_next_run_times():
 def run_scheduled_tasks():
     """Check and run scheduled tasks"""
     
+    # 0) Health Probe at 07:55 UTC daily (before CEO Brief)
+    if is_time_match(7, 55) and should_run('health_probe'):
+        call_api('GET', '/api/system-health', 'health_probe')
+        mark_run('health_probe')
+    
     # 1) CEO Brief at SCHED_BRIEF_UTC
     brief_hour, brief_minute = parse_time(SCHED_BRIEF_UTC)
     if is_time_match(brief_hour, brief_minute) and should_run('ceo_brief'):
@@ -200,6 +205,15 @@ def run_scheduled_tasks():
            (datetime.utcnow() - last_run['self_heal']).total_seconds() >= (SCHED_SELFHEAL_EVERY_HOURS * 3600):
             call_api('POST', '/api/self-heal', 'self_heal')
             mark_run('self_heal')
+    
+    # 4) Predictive Alerts (check every hour)
+    if is_time_match(datetime.utcnow().hour, 0) and should_run('predictive_alerts'):
+        try:
+            import subprocess
+            subprocess.run(['python3', 'scripts/predictive_alerts.py'], timeout=15)
+            mark_run('predictive_alerts')
+        except Exception:
+            pass
 
 def write_pid():
     """Write PID to file with fsync"""

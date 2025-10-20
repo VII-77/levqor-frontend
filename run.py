@@ -4554,6 +4554,375 @@ def api_scale_apply():
         return jsonify({"ok": False, "error": str(e)}), 500
 
 
+# ================================
+# PHASES 81-100: ENTERPRISE EXPANSION
+# ================================
+
+@app.route('/api/rbac/init', methods=['POST'])
+@require_dashboard_key
+def api_rbac_init():
+    """Initialize RBAC system (Phase 81)"""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/rbac_system.py'],
+            capture_output=True, text=True, timeout=10
+        )
+        return jsonify(json.loads(result.stdout) if result.returncode == 0 else {"ok": False, "error": result.stderr}), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/rbac/users', methods=['GET'])
+@require_dashboard_key
+def api_rbac_users():
+    """Get RBAC users (Phase 81)"""
+    try:
+        import json as j
+        if os.path.exists('data/rbac_users.json'):
+            with open('data/rbac_users.json', 'r') as f:
+                return jsonify({"ok": True, "users": j.load(f)}), 200
+        return jsonify({"ok": True, "users": {}}), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/auth/token', methods=['POST'])
+@require_dashboard_key
+def api_auth_token():
+    """Generate JWT token (Phase 82)"""
+    try:
+        data = request.get_json() or {}
+        email = data.get('email', 'user@example.com')
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/customer_auth.py'],
+            capture_output=True, text=True, timeout=10
+        )
+        return jsonify(json.loads(result.stdout) if result.returncode == 0 else {"ok": False}), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/dr/backup', methods=['POST'])
+@require_dashboard_key
+def api_dr_backup():
+    """Create DR backup (Phase 83)"""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/dr_backups.py'],
+            capture_output=True, text=True, timeout=60
+        )
+        return jsonify(json.loads(result.stdout) if result.returncode == 0 else {"ok": False, "error": result.stderr}), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/model/route', methods=['POST'])
+@require_dashboard_key
+def api_model_route():
+    """Get model routing recommendation (Phase 84)"""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/model_router.py'],
+            capture_output=True, text=True, timeout=10
+        )
+        return jsonify(json.loads(result.stdout) if result.returncode == 0 else {"ok": False}), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/finops/report', methods=['GET'])
+@require_dashboard_key
+def api_finops_report():
+    """Get FinOps report (Phase 85)"""
+    try:
+        if os.path.exists('logs/finops_report.json'):
+            with open('logs/finops_report.json', 'r') as f:
+                return jsonify(json.load(f)), 200
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/finops_reports.py'],
+            capture_output=True, text=True, timeout=30
+        )
+        return jsonify(json.loads(result.stdout) if result.returncode == 0 else {"ok": False}), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/warehouse/sync', methods=['POST'])
+@require_dashboard_key
+def api_warehouse_sync():
+    """Sync to data warehouse (Phase 86)"""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/warehouse_sync.py'],
+            capture_output=True, text=True, timeout=60
+        )
+        return jsonify(json.loads(result.stdout) if result.returncode == 0 else {"ok": False, "error": result.stderr}), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/analytics/hub', methods=['GET'])
+@require_dashboard_key
+def api_analytics_hub():
+    """Get analytics hub data (Phase 87)"""
+    try:
+        if os.path.exists('logs/analytics_hub.json'):
+            with open('logs/analytics_hub.json', 'r') as f:
+                return jsonify(json.load(f)), 200
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/analytics_hub.py'],
+            capture_output=True, text=True, timeout=30
+        )
+        return jsonify(json.loads(result.stdout) if result.returncode == 0 else {"ok": False}), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/maintenance/predict', methods=['GET'])
+@require_dashboard_key
+def api_predictive_maintenance():
+    """Get predictive maintenance forecast (Phase 88)"""
+    try:
+        if os.path.exists('logs/predictive_maintenance.json'):
+            with open('logs/predictive_maintenance.json', 'r') as f:
+                return jsonify(json.load(f)), 200
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/predictive_maintenance.py'],
+            capture_output=True, text=True, timeout=30
+        )
+        return jsonify(json.loads(result.stdout) if result.returncode == 0 else {"ok": False}), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/compliance/check', methods=['GET'])
+@require_dashboard_key
+def api_compliance_v2():
+    """Check compliance status (Phase 89)"""
+    try:
+        if os.path.exists('logs/compliance_v2.json'):
+            with open('logs/compliance_v2.json', 'r') as f:
+                return jsonify(json.load(f)), 200
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/compliance_suite_v2.py'],
+            capture_output=True, text=True, timeout=30
+        )
+        return jsonify(json.loads(result.stdout) if result.returncode == 0 else {"ok": False}), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/governance/advice', methods=['GET'])
+@require_dashboard_key
+def api_governance_ai():
+    """Get AI governance recommendations (Phase 90)"""
+    try:
+        if os.path.exists('logs/governance_ai.json'):
+            with open('logs/governance_ai.json', 'r') as f:
+                return jsonify(json.load(f)), 200
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/governance_ai.py'],
+            capture_output=True, text=True, timeout=30
+        )
+        return jsonify(json.loads(result.stdout) if result.returncode == 0 else {"ok": False}), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/tenant/stats', methods=['GET'])
+@require_dashboard_key
+def api_tenant_stats():
+    """Get multi-tenant stats (Phase 91)"""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/multitenant_core.py'],
+            capture_output=True, text=True, timeout=10
+        )
+        return jsonify(json.loads(result.stdout) if result.returncode == 0 else {"ok": False}), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/tenant/billing/<tenant_id>', methods=['GET'])
+@require_dashboard_key
+def api_tenant_billing(tenant_id):
+    """Get tenant billing (Phase 92)"""
+    try:
+        if os.path.exists(f'logs/tenant_billing_{tenant_id}.json'):
+            with open(f'logs/tenant_billing_{tenant_id}.json', 'r') as f:
+                return jsonify(json.load(f)), 200
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/tenant_billing.py'],
+            capture_output=True, text=True, timeout=30
+        )
+        return jsonify(json.loads(result.stdout) if result.returncode == 0 else {"ok": False}), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/anomaly/detect', methods=['GET'])
+@require_dashboard_key
+def api_anomaly_detection():
+    """Detect anomalies (Phase 93)"""
+    try:
+        if os.path.exists('logs/anomaly_detection.json'):
+            with open('logs/anomaly_detection.json', 'r') as f:
+                return jsonify(json.load(f)), 200
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/anomaly_detection.py'],
+            capture_output=True, text=True, timeout=30
+        )
+        return jsonify(json.loads(result.stdout) if result.returncode == 0 else {"ok": False}), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/security/scan', methods=['POST'])
+@require_dashboard_key
+def api_security_scan():
+    """Run security scan (Phase 95)"""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/security_scan.py'],
+            capture_output=True, text=True, timeout=60
+        )
+        return jsonify(json.loads(result.stdout) if result.returncode == 0 else {"ok": False, "error": result.stderr}), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/privacy/consent', methods=['POST'])
+@require_dashboard_key
+def api_privacy_consent():
+    """Record privacy consent (Phase 96)"""
+    try:
+        import subprocess
+        data = request.get_json() or {}
+        result = subprocess.run(
+            ['python3', 'scripts/privacy_consent.py'],
+            capture_output=True, text=True, timeout=10
+        )
+        return jsonify(json.loads(result.stdout) if result.returncode == 0 else {"ok": False}), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/training/audit', methods=['GET'])
+@require_dashboard_key
+def api_training_audit():
+    """Get AI training audit (Phase 97)"""
+    try:
+        if os.path.exists('logs/training_audit.json'):
+            with open('logs/training_audit.json', 'r') as f:
+                return jsonify(json.load(f)), 200
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/training_audit.py'],
+            capture_output=True, text=True, timeout=10
+        )
+        return jsonify(json.loads(result.stdout) if result.returncode == 0 else {"ok": False}), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/optimizer/run', methods=['POST'])
+@require_dashboard_key
+def api_adaptive_optimizer():
+    """Run adaptive optimizer (Phase 98)"""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/adaptive_optimizer.py'],
+            capture_output=True, text=True, timeout=30
+        )
+        return jsonify(json.loads(result.stdout) if result.returncode == 0 else {"ok": False, "error": result.stderr}), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/self-heal/run', methods=['POST'])
+@require_dashboard_key
+def api_self_heal_v2():
+    """Run self-heal v2 (Phase 99)"""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/self_heal_v2.py'],
+            capture_output=True, text=True, timeout=30
+        )
+        return jsonify(json.loads(result.stdout) if result.returncode == 0 else {"ok": False, "error": result.stderr}), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/learning/status', methods=['GET'])
+@require_dashboard_key
+def api_continuous_learning():
+    """Get continuous learning status (Phase 100)"""
+    try:
+        if os.path.exists('logs/continuous_learning.json'):
+            with open('logs/continuous_learning.json', 'r') as f:
+                return jsonify(json.load(f)), 200
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/continuous_learning.py'],
+            capture_output=True, text=True, timeout=30
+        )
+        return jsonify(json.loads(result.stdout) if result.returncode == 0 else {"ok": False}), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/validate/enterprise', methods=['GET'])
+@require_dashboard_key
+def api_enterprise_validator():
+    """Run enterprise validation (Phase 100B)"""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/enterprise_validator.py'],
+            capture_output=True, text=True, timeout=60
+        )
+        data = json.loads(result.stdout) if result.returncode == 0 else {"ok": False, "error": result.stderr}
+        return jsonify(data), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/reports/enterprise', methods=['GET'])
+@require_dashboard_key
+def api_enterprise_report():
+    """Get enterprise ready report (Phase 100C)"""
+    try:
+        if os.path.exists('logs/enterprise_ready_report.json'):
+            with open('logs/enterprise_ready_report.json', 'r') as f:
+                return jsonify(json.load(f)), 200
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/final_enterprise_report.py'],
+            capture_output=True, text=True, timeout=60
+        )
+        data = json.loads(result.stdout) if result.returncode == 0 else {"ok": False, "error": result.stderr}
+        return jsonify(data), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/reports/enterprise/html', methods=['GET'])
+def api_enterprise_report_html():
+    """View enterprise report HTML (Public)"""
+    try:
+        if os.path.exists('docs/ENTERPRISE_READY_REPORT.html'):
+            with open('docs/ENTERPRISE_READY_REPORT.html', 'r') as f:
+                return f.read(), 200, {'Content-Type': 'text/html'}
+        return "<h1>Report not yet generated</h1>", 404
+    except Exception as e:
+        return f"<h1>Error: {str(e)}</h1>", 500
+
+@app.route('/api/validation/html', methods=['GET'])
+def api_validation_report_html():
+    """View validation report HTML (Public)"""
+    try:
+        if os.path.exists('logs/enterprise_validator_report.html'):
+            with open('logs/enterprise_validator_report.html', 'r') as f:
+                return f.read(), 200, {'Content-Type': 'text/html'}
+        return "<h1>Validation report not yet generated</h1>", 404
+    except Exception as e:
+        return f"<h1>Error: {str(e)}</h1>", 500
+
+
 def run_bot():
     """Run the bot in a separate thread"""
     bot = EchoPilotBot()

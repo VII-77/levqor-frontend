@@ -360,6 +360,128 @@ def run_autoscale_workers():
     except Exception as e:
         log_event('autoscale_workers_error', {'error': str(e)})
 
+# ==================== PHASE 81-100 RUN FUNCTIONS ====================
+
+def run_dr_backups():
+    """Create DR backups"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/dr_backups.py'], check=False, timeout=60)
+    except Exception as e:
+        log_event('dr_backups_error', {'error': str(e)})
+
+def run_finops_reports():
+    """Generate FinOps reports"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/finops_reports.py'], check=False, timeout=30)
+    except Exception as e:
+        log_event('finops_reports_error', {'error': str(e)})
+
+def run_warehouse_sync():
+    """Sync to data warehouse"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/warehouse_sync.py'], check=False, timeout=60)
+    except Exception as e:
+        log_event('warehouse_sync_error', {'error': str(e)})
+
+def run_analytics_hub():
+    """Run analytics hub"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/analytics_hub.py'], check=False, timeout=30)
+    except Exception as e:
+        log_event('analytics_hub_error', {'error': str(e)})
+
+def run_predictive_maint():
+    """Run predictive maintenance"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/predictive_maintenance.py'], check=False, timeout=30)
+    except Exception as e:
+        log_event('predictive_maint_error', {'error': str(e)})
+
+def run_compliance_v2():
+    """Check compliance status"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/compliance_suite_v2.py'], check=False, timeout=30)
+    except Exception as e:
+        log_event('compliance_v2_error', {'error': str(e)})
+
+def run_governance_ai():
+    """Get governance AI recommendations"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/governance_ai.py'], check=False, timeout=30)
+    except Exception as e:
+        log_event('governance_ai_error', {'error': str(e)})
+
+def run_anomaly_detect():
+    """Detect anomalies"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/anomaly_detection.py'], check=False, timeout=30)
+    except Exception as e:
+        log_event('anomaly_detect_error', {'error': str(e)})
+
+def run_security_scan():
+    """Run security scan"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/security_scan.py'], check=False, timeout=60)
+    except Exception as e:
+        log_event('security_scan_error', {'error': str(e)})
+
+def run_training_audit():
+    """Run AI training audit"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/training_audit.py'], check=False, timeout=30)
+    except Exception as e:
+        log_event('training_audit_error', {'error': str(e)})
+
+def run_adaptive_optimizer():
+    """Run adaptive optimizer"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/adaptive_optimizer.py'], check=False, timeout=30)
+    except Exception as e:
+        log_event('adaptive_optimizer_error', {'error': str(e)})
+
+def run_self_heal_v2():
+    """Run self-heal v2"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/self_heal_v2.py'], check=False, timeout=30)
+    except Exception as e:
+        log_event('self_heal_v2_error', {'error': str(e)})
+
+def run_continuous_learning():
+    """Run continuous learning engine"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/continuous_learning.py'], check=False, timeout=30)
+    except Exception as e:
+        log_event('continuous_learning_error', {'error': str(e)})
+
+def run_enterprise_validator():
+    """Run enterprise validation"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/enterprise_validator.py'], check=False, timeout=60)
+    except Exception as e:
+        log_event('enterprise_validator_error', {'error': str(e)})
+
+def run_enterprise_report():
+    """Generate enterprise report"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/final_enterprise_report.py'], check=False, timeout=60)
+    except Exception as e:
+        log_event('enterprise_report_error', {'error': str(e)})
+
 def run_scheduled_tasks():
     """Check and run scheduled tasks"""
     
@@ -565,6 +687,90 @@ def run_scheduled_tasks():
        (datetime.utcnow() - last_run['autoscale_workers']).total_seconds() >= (10 * 60):
         run_autoscale_workers()
         mark_run('autoscale_workers')
+    
+    # ==================== PHASES 81-100: ENTERPRISE EXPANSION FINALE ====================
+    
+    # 32) DR Backups - Daily at 02:30 UTC (Phase 83)
+    if is_time_match(2, 30) and should_run('dr_backups'):
+        run_dr_backups()
+        mark_run('dr_backups')
+    
+    # 33) FinOps Reports - Daily at 04:00 UTC (Phase 85)
+    if is_time_match(4, 0) and should_run('finops_reports'):
+        run_finops_reports()
+        mark_run('finops_reports')
+    
+    # 34) Warehouse Sync - Every 6 hours (Phase 86)
+    if 'warehouse_sync' not in last_run or \
+       (datetime.utcnow() - last_run['warehouse_sync']).total_seconds() >= (6 * 3600):
+        run_warehouse_sync()
+        mark_run('warehouse_sync')
+    
+    # 35) Analytics Hub - Every hour (Phase 87)
+    if is_time_match(datetime.utcnow().hour, 0) and should_run('analytics_hub'):
+        run_analytics_hub()
+        mark_run('analytics_hub')
+    
+    # 36) Predictive Maintenance - Every 2 hours (Phase 88)
+    if 'predictive_maint' not in last_run or \
+       (datetime.utcnow() - last_run['predictive_maint']).total_seconds() >= (2 * 3600):
+        run_predictive_maint()
+        mark_run('predictive_maint')
+    
+    # 37) Compliance V2 - Daily at 05:00 UTC (Phase 89)
+    if is_time_match(5, 0) and should_run('compliance_v2'):
+        run_compliance_v2()
+        mark_run('compliance_v2')
+    
+    # 38) Governance AI - Every 3 hours (Phase 90)
+    if 'governance_ai' not in last_run or \
+       (datetime.utcnow() - last_run['governance_ai']).total_seconds() >= (3 * 3600):
+        run_governance_ai()
+        mark_run('governance_ai')
+    
+    # 39) Anomaly Detection - Every 30 minutes (Phase 93)
+    if 'anomaly_detect' not in last_run or \
+       (datetime.utcnow() - last_run['anomaly_detect']).total_seconds() >= (30 * 60):
+        run_anomaly_detect()
+        mark_run('anomaly_detect')
+    
+    # 40) Security Scan - Daily at 06:00 UTC (Phase 95)
+    if is_time_match(6, 0) and should_run('security_scan'):
+        run_security_scan()
+        mark_run('security_scan')
+    
+    # 41) Training Audit - Weekly (Monday 02:00 UTC) (Phase 97)
+    if now.weekday() == 0 and is_time_match(2, 0) and should_run('training_audit'):
+        run_training_audit()
+        mark_run('training_audit')
+    
+    # 42) Adaptive Optimizer - Every 4 hours (Phase 98)
+    if 'adaptive_optimizer' not in last_run or \
+       (datetime.utcnow() - last_run['adaptive_optimizer']).total_seconds() >= (4 * 3600):
+        run_adaptive_optimizer()
+        mark_run('adaptive_optimizer')
+    
+    # 43) Self-Heal V2 - Every 6 hours (Phase 99)
+    if 'self_heal_v2' not in last_run or \
+       (datetime.utcnow() - last_run['self_heal_v2']).total_seconds() >= (6 * 3600):
+        run_self_heal_v2()
+        mark_run('self_heal_v2')
+    
+    # 44) Continuous Learning - Every 12 hours (Phase 100)
+    if 'continuous_learning' not in last_run or \
+       (datetime.utcnow() - last_run['continuous_learning']).total_seconds() >= (12 * 3600):
+        run_continuous_learning()
+        mark_run('continuous_learning')
+    
+    # 45) Enterprise Validator - Every hour (Phase 100B)
+    if is_time_match(datetime.utcnow().hour, 0) and should_run('enterprise_validator'):
+        run_enterprise_validator()
+        mark_run('enterprise_validator')
+    
+    # 46) Enterprise Report - Daily at 08:00 UTC (Phase 100C)
+    if is_time_match(8, 0) and should_run('enterprise_report'):
+        run_enterprise_report()
+        mark_run('enterprise_report')
 
 def write_pid():
     """Write PID to file with fsync"""

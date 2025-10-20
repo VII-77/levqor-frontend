@@ -288,9 +288,9 @@ def no_cache(resp):
     resp.headers["Expires"] = "0"
     return resp
 
-@app.route('/')
+@app.route('/health')
 def health_check():
-    """Health check endpoint for deployment"""
+    """Health check endpoint for deployment (moved from / to avoid conflict with landing page)"""
     commit_hash, branch_name, _ = git_utils.get_git_info()
     return jsonify({
         "status": "healthy",

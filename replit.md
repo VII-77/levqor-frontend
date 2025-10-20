@@ -6,7 +6,7 @@ EchoPilot is a comprehensive **enterprise-ready AI automation platform** designe
 
 The platform now includes **enterprise features**: finance & revenue tracking, 30-day forecasting, partner marketplace API, multi-language/multi-currency localization, legal compliance documentation (GDPR/CCPA), and advanced monitoring with self-healing capabilities. The system is deployed on Replit Reserved VM at **https://echopilotai.replit.app** and is ready for production use pending legal document review.
 
-**Current Status (Oct 2025):** 90% enterprise-ready, 100% core features operational, ~16,500 lines of production code, 27 API endpoints, 13 autonomous scheduled tasks.
+**Current Status (Oct 2025):** 95% enterprise-ready, 100% core features operational, ~17,000 lines of production code, 31 API endpoints, 14 autonomous scheduled tasks.
 
 ## User Preferences
 
@@ -169,6 +169,13 @@ The scheduler runs as a dedicated Replit Workflow called "Scheduler" alongside t
 - **Revenue Intelligence:** Every 30 minutes (AI-powered revenue trend analysis with GPT-4o-mini)
 - **Finance Reconciler:** Every 6 hours (Stripe-Notion payment matching)
 - **Auto-Governance:** Every hour (KPI monitoring and health aggregation)
+
+### Post-Live Hardening (Phases 51-55)
+
+- **Observability Snapshot:** Every hour (real-time system metrics, API health, governance status)
+- **SMTP Email System:** On-demand (receipts, alerts, notifications - dry-run safe)
+- **Fraud Guard:** On-demand (velocity limits, amount caps, prepaid blocking)
+- **Customer Portal:** On-demand (signed link generation with HMAC security)
 
 ### Implementation
 

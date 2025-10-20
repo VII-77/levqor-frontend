@@ -183,6 +183,14 @@
             <button onclick="runOptimizer()">🧠 Run Optimizer</button>
         </div>
 
+        <div class="button-grid">
+            <h3 style="grid-column: 1/-1; margin: 15px 0 5px 0; font-size: 16px; color: #667eea;">👔 CEO Brief (Phase 29)</h3>
+            <button onclick="ingestSignals()">📥 Ingest Now</button>
+            <button onclick="generateBrief()">📊 Generate Brief</button>
+            <button onclick="emailBrief()">📧 Email Brief</button>
+            <button onclick="getLastBrief()">📄 Last Brief</button>
+        </div>
+
         <div class="metrics-section">
             <div class="metrics-header">
                 <h2>📊 Metrics Visualization</h2>
@@ -407,6 +415,69 @@
                     `   Margin: ${data.margin_pct}%\n` +
                     `   Reason: ${data.reason}`,
                     changed ? 'warning' : 'success');
+            }
+        }
+
+        // Phase 29: CEO Brief functions
+        async function ingestSignals() {
+            log('Ingesting signals from all sources...', 'warning');
+            const data = await apiCall('/api/exec/ingest', 'POST');
+            if (data && data.ok) {
+                const signals = data.data?.signals || {};
+                const signalCount = Object.keys(signals).length;
+                log(`\n📥 INGEST COMPLETE:\n` +
+                    `   Signals collected: ${signalCount}\n` +
+                    `   Saved to: ${data.saved_to}`,
+                    'success');
+            }
+        }
+
+        async function generateBrief() {
+            log('Generating CEO Brief (ingest + analyze + brief)...', 'warning');
+            log('This may take 10-20 seconds (GPT-4o-mini processing)...', 'info');
+            const data = await apiCall('/api/exec/brief', 'POST');
+            if (data && data.ok) {
+                const brief = data.data;
+                log(`\n📊 BRIEF GENERATED:\n` +
+                    `   Headline: ${brief.headline}\n` +
+                    `   Top Risks: ${brief.top_risks?.length || 0}\n` +
+                    `   Actions (24h): ${brief.actions_next_24h?.length || 0}\n` +
+                    `   Actions (7d): ${brief.actions_next_7d?.length || 0}\n` +
+                    `   JSON: ${data.json_path}\n` +
+                    `   HTML: ${data.html_path}`,
+                    brief.top_risks?.length > 0 ? 'warning' : 'success');
+            }
+        }
+
+        async function emailBrief() {
+            log('Sending latest brief via email...', 'info');
+            const data = await apiCall('/api/exec/email', 'POST');
+            if (data && data.ok) {
+                if (data.sent) {
+                    log(`\n📧 EMAIL SENT:\n` +
+                        `   To: ${data.to}\n` +
+                        `   Status: Delivered`,
+                        'success');
+                } else {
+                    log(`\n📝 EMAIL LOGGED:\n` +
+                        `   SMTP not configured\n` +
+                        `   Logged to: ${data.logged_to}`,
+                        'warning');
+                }
+            }
+        }
+
+        async function getLastBrief() {
+            log('Fetching latest CEO Brief...', 'info');
+            const data = await apiCall('/api/exec/report-latest', 'GET');
+            if (data && data.ok) {
+                const brief = data.data;
+                log(`\n📄 LATEST BRIEF:\n` +
+                    `   Headline: ${brief.headline}\n` +
+                    `   Summary:\n${brief.summary}\n` +
+                    `   KPIs: Jobs=${brief.kpis?.jobs_7d}, QA=${brief.kpis?.avg_qa_7d}%, ROI=${brief.kpis?.roi_7d}x\n` +
+                    `   Timestamp: ${brief.ts}`,
+                    'success');
             }
         }
 

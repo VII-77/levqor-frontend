@@ -270,6 +270,31 @@ def health_check():
         "message": "Bot is running and polling Notion every 60 seconds"
     })
 
+@app.get("/healthz/strict")
+def strict_health():
+    """Strict health check - returns 500 when SLO error budget > 80% (Finalization)"""
+    try:
+        import json
+        path = "logs/slo_guard.ndjson"
+        if not os.path.exists(path):
+            return jsonify({"ok": False, "slo": "grey", "msg": "no SLO log"}), 503
+        
+        with open(path) as f:
+            lines = f.readlines()
+        
+        if not lines:
+            return jsonify({"ok": False, "slo": "grey", "msg": "no SLO data"}), 503
+        
+        last = json.loads(lines[-1])
+        used = last.get("error_budget_used", 0)
+        
+        if used < 0.8:
+            return jsonify({"ok": True, "slo": "green", "error_budget_used": used}), 200
+        
+        return jsonify({"ok": False, "slo": "red", "error_budget_used": used, "msg": "SLO budget exceeded"}), 500
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
 @app.route('/health')
 def health():
     """Alternative health endpoint - non-blocking"""

@@ -1,0 +1,96 @@
+{
+  "timestamp": "2025-10-20T21:39:39.453857Z",
+  "checks": [
+    {
+      "name": "Critical scripts",
+      "status": "PASS",
+      "details": "8/8 present"
+    },
+    {
+      "name": "Key files exist",
+      "status": "PASS",
+      "details": "4/4"
+    },
+    {
+      "name": "Scheduler PID file",
+      "status": "PASS",
+      "details": "PID: 2548"
+    },
+    {
+      "name": "Uptime monitoring             ",
+      "status": "PASS",
+      "details": "5 entries"
+    },
+    {
+      "name": "SLO tracking                  ",
+      "status": "FAIL",
+      "details": "File not found"
+    },
+    {
+      "name": "Governance                    ",
+      "status": "PASS",
+      "details": "5 entries"
+    },
+    {
+      "name": "Predictive AI                 ",
+      "status": "PASS",
+      "details": "5 entries"
+    },
+    {
+      "name": "Scheduler activity            ",
+      "status": "PASS",
+      "details": "563 entries"
+    },
+    {
+      "name": "DR drill reports",
+      "status": "PASS",
+      "details": "1 reports found"
+    },
+    {
+      "name": "Secret: AI_INTEGRATIONS_OPENAI_API_KEY",
+      "status": "PASS",
+      "details": "\u2713"
+    },
+    {
+      "name": "Secret: TELEGRAM_BOT_TOKEN            ",
+      "status": "PASS",
+      "details": "\u2713"
+    },
+    {
+      "name": "Secret: TELEGRAM_CHAT_ID              ",
+      "status": "PASS",
+      "details": "\u2713"
+    },
+    {
+      "name": "Secret: STRIPE_SECRET_KEY             ",
+      "status": "PASS",
+      "details": "\u2713"
+    },
+    {
+      "name": "Secret: AUTOMATION_QUEUE_DB_ID        ",
+      "status": "PASS",
+      "details": "\u2713"
+    },
+    {
+      "name": "Secret: AUTOMATION_LOG_DB_ID          ",
+      "status": "PASS",
+      "details": "\u2713"
+    },
+    {
+      "name": "RBAC implementation",
+      "status": "PASS",
+      "details": "Decorator found"
+    },
+    {
+      "name": "/healthz/strict endpoint",
+      "status": "PASS",
+      "details": "Strict health check"
+    },
+    {
+      "name": "Makefile commands",
+      "status": "PASS",
+      "details": "5/5 commands"
+    }
+  ],
+  "overall": false
+}

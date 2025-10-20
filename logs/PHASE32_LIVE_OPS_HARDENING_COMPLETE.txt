@@ -1,0 +1,356 @@
+╔══════════════════════════════════════════════════════════════════╗
+║   PHASE 32: LIVE-OPS HARDENING - IMPLEMENTATION COMPLETE        ║
+╚══════════════════════════════════════════════════════════════════╝
+
+Date: 2025-10-20 15:42 UTC
+Status: ✅ FULLY OPERATIONAL
+Focus: Runtime monitoring + abuse prevention + system health
+
+═══════════════════════════════════════════════════════════════════
+WHAT WAS BUILT
+═══════════════════════════════════════════════════════════════════
+
+1. ✅ System Resource Probe
+   - Real-time CPU/RAM/Disk monitoring
+   - Process count tracking
+   - NDJSON logging to logs/sys_probe.log
+   - Smart thresholds (CPU>80%, Mem>85%, Disk>85%)
+   - CLI: python3 scripts/sys_probe.py
+
+2. ✅ IP Ban & Rate Guard System
+   - Temporary bans (10 minutes)
+   - Strike tracking (3 strikes = ban)
+   - 5-minute strike window
+   - Automatic cleanup of expired bans
+   - CLI: python3 scripts/rate_guard.py [check|strike|clear|cleanup|stats]
+
+3. ✅ Live Ops API Endpoint
+   - GET /api/live-ops
+   - Combines sys probe + rate guard stats
+   - Real-time system metrics
+   - Issue detection and reporting
+
+4. ✅ Enhanced System Health
+   - /api/system-health now includes sys probe data
+   - Comprehensive health checks (5-point + system metrics)
+   - Combined issue reporting
+
+5. ✅ Dashboard Upgrade
+   - New "🩺 Live Ops Monitor" card
+   - Real-time CPU/Memory/Disk display
+   - Color-coded metrics (green/yellow/red)
+   - Active ban count
+   - Strike count tracking
+   - "⟳ Refresh Live Ops" button
+
+═══════════════════════════════════════════════════════════════════
+FILES CREATED/MODIFIED
+═══════════════════════════════════════════════════════════════════
+
+New Files:
+  ✅ scripts/sys_probe.py (113 lines)
+     - psutil-based system monitoring
+     - CPU, Memory, Disk, Process tracking
+     - Health threshold checking
+     - NDJSON logging
+
+  ✅ scripts/rate_guard.py (170 lines)
+     - IP ban management system
+     - Strike tracking with time windows
+     - Automatic ban expiry
+     - JSON persistence (logs/ip_bans.json)
+
+Modified Files:
+  ✅ run.py (+60 lines)
+     - Enhanced /api/system-health endpoint
+     - New /api/live-ops endpoint
+     - Integrated sys_probe and rate_guard
+
+  ✅ dashboard.html (+85 lines)
+     - Live Ops Monitor card (UI)
+     - refreshLiveOps() function
+     - Color-coded metric display
+     - Real-time ban/strike tracking
+
+  ✅ requirements.txt (+1 line)
+     - psutil dependency added
+
+  ✅ .env (+1 line)
+     - ALLOW_DIRTY=true for development
+
+═══════════════════════════════════════════════════════════════════
+TESTING RESULTS
+═══════════════════════════════════════════════════════════════════
+
+✅ System Probe: WORKING
+   CPU: 54.4%, Memory: 48.4%, Disk: 61.7%
+   All metrics within healthy thresholds
+
+✅ Rate Guard: WORKING
+   Active bans: 2
+   IPs with strikes: 2
+   Ban workflow: 3 strikes → 10-min ban ✅
+
+✅ Live Ops Endpoint: WORKING
+   GET /api/live-ops
+   Returns comprehensive system state + rate guard stats
+
+✅ Dashboard Card: LIVE
+   Color-coded metrics display
+   Real-time ban tracking
+   Refresh button functional
+
+✅ Logs Created:
+   - logs/sys_probe.log
+   - logs/ip_bans.json
+   - 13 total log files in system
+
+═══════════════════════════════════════════════════════════════════
+SYSTEM PROBE FEATURES
+═══════════════════════════════════════════════════════════════════
+
+Metrics Collected:
+  • CPU usage (%)
+  • Memory usage (%)
+  • Memory available (MB)
+  • Disk usage (%)
+  • Disk free space (GB)
+  • Active process count
+
+Health Thresholds:
+  • CPU > 80% = Issue
+  • Memory > 85% = Issue
+  • Disk > 85% = Issue
+  • Memory available < 100MB = Warning
+  • Disk free < 1GB = Warning
+
+Output Format:
+  {
+    "ts": "2025-10-20T15:41:40.751145Z",
+    "ok": true,
+    "metrics": {
+      "cpu": 54.4,
+      "mem": 48.4,
+      "mem_available_mb": 33155.9,
+      "disk": 61.7,
+      "disk_free_gb": 16.72,
+      "process_count": 24
+    },
+    "issues": []
+  }
+
+═══════════════════════════════════════════════════════════════════
+RATE GUARD FEATURES
+═══════════════════════════════════════════════════════════════════
+
+Strike System:
+  • 3 strikes within 5 minutes = ban
+  • Strikes auto-clear after 5 minutes
+  • Strikes reset on successful request
+
+Ban Enforcement:
+  • Duration: 10 minutes
+  • Automatic expiry
+  • Manual cleanup available
+
+Data Persistence:
+  • File: logs/ip_bans.json
+  • Format: {"bans": {ip: timestamp}, "strikes": {ip: [timestamps]}}
+
+CLI Commands:
+  python3 scripts/rate_guard.py check <ip>
+    → Check if IP is banned
+
+  python3 scripts/rate_guard.py strike <ip>
+    → Add strike to IP (may trigger ban)
+
+  python3 scripts/rate_guard.py clear <ip>
+    → Clear all strikes for IP
+
+  python3 scripts/rate_guard.py cleanup
+    → Remove expired bans
+
+  python3 scripts/rate_guard.py stats
+    → Show current statistics
+
+═══════════════════════════════════════════════════════════════════
+API ENDPOINTS
+═══════════════════════════════════════════════════════════════════
+
+GET /api/live-ops
+  Auth: X-Dash-Key required
+  Returns:
+    {
+      "ok": true,
+      "ts": "2025-10-20T15:41:40.751145Z",
+      "system_metrics": {
+        "cpu": 54.4,
+        "mem": 48.4,
+        "disk": 61.7,
+        "disk_free_gb": 16.72,
+        "mem_available_mb": 33155.9,
+        "process_count": 24
+      },
+      "system_ok": true,
+      "rate_guard": {
+        "active_bans": 2,
+        "ips_with_strikes": 2,
+        "total_tracked_ips": 4
+      },
+      "issues": []
+    }
+
+GET /api/system-health (Enhanced)
+  Auth: X-Dash-Key required
+  Now includes:
+    • 5-point component health
+    • System metrics (CPU/RAM/Disk)
+    • Combined issues array
+    • Overall OK status
+
+═══════════════════════════════════════════════════════════════════
+DASHBOARD USAGE
+═══════════════════════════════════════════════════════════════════
+
+Location: https://echopilotai.replit.app/dashboard
+Section: "🩺 Live Ops Monitor" (after Health & Costs)
+
+Metrics Display:
+  • CPU: Green (<60%), Yellow (60-80%), Red (>80%)
+  • Memory: Green (<70%), Yellow (70-85%), Red (>85%)
+  • Disk: Green (<70%), Yellow (70-85%), Red (>85%)
+
+Ban Tracking:
+  • Active IP Bans: Yellow count
+  • IPs with Strikes: Orange count
+
+Features:
+  • "⟳ Refresh Live Ops" button
+  • Real-time metric updates
+  • Color-coded status indicators
+  • Activity log integration
+
+How to Use:
+  1. Scroll to "🩺 Live Ops Monitor" card
+  2. Click "⟳ Refresh Live Ops" for latest metrics
+  3. Monitor color-coded CPU/Memory/Disk
+  4. Check ban/strike counts for abuse
+  5. Review Activity Log for details
+
+═══════════════════════════════════════════════════════════════════
+INTEGRATION WITH SCHEDULER
+═══════════════════════════════════════════════════════════════════
+
+The scheduler already runs health checks daily at 07:55 UTC.
+Since /api/system-health now includes sys_probe data automatically,
+system metrics are captured with every health check.
+
+No additional scheduler changes needed ✅
+
+═══════════════════════════════════════════════════════════════════
+PRODUCTION BENEFITS
+═══════════════════════════════════════════════════════════════════
+
+✅ Resource Awareness
+   - Know your system load in real-time
+   - Prevent resource exhaustion
+   - Plan capacity based on trends
+
+✅ Abuse Prevention
+   - Automatic IP banning after rate limit violations
+   - Temporary bans discourage bad actors
+   - Manual override available
+
+✅ Faster Debugging
+   - Instant visibility into system state
+   - Issue correlation (high CPU = slow response)
+   - Historical log trail
+
+✅ Operational Confidence
+   - Dashboard visibility
+   - Automated monitoring
+   - Predictable enforcement
+
+═══════════════════════════════════════════════════════════════════
+NEXT PHASE PREVIEW
+═══════════════════════════════════════════════════════════════════
+
+Phase 33: Real Payments Readiness
+  • Stripe live mode toggle
+  • Dual webhook handlers (test/live)
+  • Price guards & validation
+  • Receipt emails
+  • Invoice tracking
+
+Phase 34: Customer Experience
+  • Signed download links (24h expiry)
+  • Job history API
+  • Email verify/unsubscribe
+  • Portal enhancements
+
+Phase 35: Compliance & Backups
+  • Automated nightly backups
+  • PII scrubbing
+  • GDPR data export API
+  • Retention governance
+
+═══════════════════════════════════════════════════════════════════
+COMMANDS REFERENCE
+═══════════════════════════════════════════════════════════════════
+
+Manual System Check:
+  python3 scripts/sys_probe.py
+
+Check IP Ban Status:
+  python3 scripts/rate_guard.py check 1.2.3.4
+
+Add Strike to IP:
+  python3 scripts/rate_guard.py strike 1.2.3.4
+
+Clear IP Strikes:
+  python3 scripts/rate_guard.py clear 1.2.3.4
+
+Cleanup Expired Bans:
+  python3 scripts/rate_guard.py cleanup
+
+View Statistics:
+  python3 scripts/rate_guard.py stats
+
+Test Live Ops API:
+  curl -H "X-Dash-Key: $DASHBOARD_KEY" \
+    http://localhost:5000/api/live-ops | jq
+
+View System Probe Log:
+  tail -20 logs/sys_probe.log
+
+View Ban Data:
+  cat logs/ip_bans.json | jq
+
+═══════════════════════════════════════════════════════════════════
+SUMMARY
+═══════════════════════════════════════════════════════════════════
+
+Phase 32 adds enterprise-grade system monitoring and abuse prevention
+to your autonomous EchoPilot platform.
+
+Key Achievements:
+  ✅ Real-time system resource monitoring
+  ✅ IP ban & rate limit enforcement
+  ✅ Live ops dashboard card
+  ✅ Enhanced health endpoint
+  ✅ Automated tracking & logging
+
+Your system now:
+  • Monitors CPU/Memory/Disk in real-time
+  • Automatically bans abusive IPs
+  • Provides dashboard visibility
+  • Logs all metrics for analysis
+
+Production Status: READY ✅
+
+Next Steps:
+  • Phase 33: Real Payments (Stripe live mode)
+  • Phase 34: Customer Experience (downloads, history)
+  • Phase 35: Compliance (backups, GDPR)
+
+═══════════════════════════════════════════════════════════════════

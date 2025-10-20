@@ -10,8 +10,28 @@ from bot import git_utils
 from functools import wraps
 import time
 from collections import defaultdict
+from pathlib import Path
 
 app = Flask(__name__)
+
+# ===== Feature Flags System (Boss Mode Phase 9) =====
+FEATURE_FLAGS_PATH = Path(__file__).parent / "scripts" / "feature_flags.json"
+
+def load_feature_flags():
+    """Load feature flags from JSON file"""
+    try:
+        if FEATURE_FLAGS_PATH.exists():
+            with open(FEATURE_FLAGS_PATH, 'r') as f:
+                data = json.load(f)
+                return data.get('flags', {})
+    except Exception as e:
+        print(f"Warning: Could not load feature flags: {e}")
+    return {}
+
+def is_feature_enabled(feature_name):
+    """Check if a feature flag is enabled"""
+    flags = load_feature_flags()
+    return flags.get(feature_name, {}).get('enabled', False)
 
 # Phase 51: Observability metrics storage
 metrics_storage = {
@@ -749,8 +769,27 @@ def pulse_route():
 @app.route('/dashboard')
 @app.route('/dashboard.html')
 def dashboard():
-    """Serve ops dashboard"""
+    """Serve ops dashboard - v2 if enabled, else v1"""
+    if is_feature_enabled('ui_v2_shell'):
+        return send_from_directory('.', 'dashboard_v2.html')
+    else:
+        return send_from_directory('.', 'dashboard.html')
+
+@app.route('/dashboard/v2')
+def dashboard_v2():
+    """Serve new mobile-first dashboard (Boss Mode UI)"""
+    return send_from_directory('.', 'dashboard_v2.html')
+
+@app.route('/dashboard/v1')
+def dashboard_v1():
+    """Serve legacy dashboard (fallback)"""
     return send_from_directory('.', 'dashboard.html')
+
+@app.route('/api/feature-flags')
+def api_feature_flags():
+    """Get current feature flags (public endpoint for UI)"""
+    flags = load_feature_flags()
+    return jsonify({"ok": True, "flags": flags})
 
 @app.route('/api/supervisor-status')
 @require_dashboard_key

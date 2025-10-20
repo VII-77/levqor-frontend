@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="theme-color" content="#667eea">
+    <title>EchoPilot Ops Dashboard</title>
+    <link rel="stylesheet" href="/static/app.css">
+    <style>
+        /* Page-specific styles */
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+        
+        .theme-toggle {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: var(--spacing-xs);
+            color: var(--text-secondary);
+            transition: color var(--transition-fast);
+        }
+        
+        .theme-toggle:hover {
+            color: var(--text-primary);
+        }
+        
+        .nav-list {
+            list-style: none;
+            padding: var(--spacing-md);
+        }
+        
+        .nav-item {
+            margin-bottom: var(--spacing-xs);
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm) var(--spacing-md);
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: var(--border-radius-md);
+            transition: all var(--transition-fast);
+            font-size: var(--font-size-sm);
+        }
+        
+        .nav-link:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+        
+        .nav-link.active {
+            background: var(--color-primary);
+            color: white;
+        }
+        
+        .key-input-group {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .key-input {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <!-- Header -->
+        <header class="app-header">
+            <a href="/" class="app-logo">
+                <span>🤖</span>
+                <span>EchoPilot</span>
+            </a>
+            
+            <div class="header-actions">
+                <div class="status-indicator">
+                    <span class="status-dot green" id="statusDot"></span>
+                    <span id="statusText">Live</span>
+                </div>
+                
+                <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
+                    <span id="themeIcon">🌙</span>
+                </button>
+            </div>
+        </header>
+        
+        <main class="app-main">
+            <!-- Sidebar (Desktop only) -->
+            <aside class="app-sidebar">
+                <nav>
+                    <ul class="nav-list">
+                        <li class="nav-item">
+                            <a href="#automations" class="nav-link active" data-tab="automations">
+                                <span>⚙️</span>
+                                <span>Automations</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#payments" class="nav-link" data-tab="payments">
+                                <span>💰</span>
+                                <span>Payments</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#ops" class="nav-link" data-tab="ops">
+                                <span>🔧</span>
+                                <span>Operations</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#audit" class="nav-link" data-tab="audit">
+                                <span>📊</span>
+                                <span>Audit & Logs</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#settings" class="nav-link" data-tab="settings">
+                                <span>⚙️</span>
+                                <span>Settings</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </aside>
+            
+            <!-- Main Content -->
+            <div class="app-content">
+                <!-- Auth Key Section -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">🔑 Dashboard Access</h2>
+                        <span class="pill pill-info" id="keyStatus">Not Set</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="key-input-group">
+                            <input 
+                                type="password" 
+                                id="dashKey" 
+                                class="form-input key-input" 
+                                placeholder="Enter your dashboard key"
+                                onkeypress="handleKeyPress(event)"
+                            >
+                            <button class="btn btn-primary" onclick="saveKey()">Save Key</button>
+                            <button class="btn btn-secondary btn-sm" onclick="clearKey()">Clear</button>
+                        </div>
+                        <p class="text-sm" style="color: var(--text-tertiary);">
+                            Your key: <code style="padding: 2px 6px; background: var(--bg-tertiary); border-radius: 4px; font-size: 12px;">CHMDlYY5TNE0NIB7qul7KYRa9a4BSbID-4WqpoE_DaE</code>
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Tab Content -->
+                <div id="tabContent">
+                    <!-- Automations Tab (Default) -->
+                    <div class="tab-content active" data-tab-content="automations">
+                        <div class="card">
+                            <div class="card-header">
+                                <h2 class="card-title">⚙️ Automations</h2>
+                                <button class="btn btn-sm btn-primary" onclick="refreshAutomations()">Refresh</button>
+                            </div>
+                            <div class="card-body">
+                                <div class="empty-state">
+                                    <div class="empty-state-icon">🤖</div>
+                                    <h3 class="empty-state-title">No automation data yet</h3>
+                                    <p class="empty-state-description">
+                                        Click "Refresh" to load scheduler status and automation tasks
+                                    </p>
+                                    <button class="btn btn-primary" onclick="refreshAutomations()">
+                                        Load Automations
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Payments Tab -->
+                    <div class="tab-content" data-tab-content="payments">
+                        <div class="card">
+                            <div class="card-header">
+                                <h2 class="card-title">💰 Payments</h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="empty-state">
+                                    <div class="empty-state-icon">💳</div>
+                                    <h3 class="empty-state-title">Payment center coming soon</h3>
+                                    <p class="empty-state-description">
+                                        Create invoices, manage refunds, and track payments
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Ops Tab -->
+                    <div class="tab-content" data-tab-content="ops">
+                        <div class="card">
+                            <div class="card-header">
+                                <h2 class="card-title">🔧 Operations</h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="empty-state">
+                                    <div class="empty-state-icon">🛠️</div>
+                                    <h3 class="empty-state-title">Operations tools</h3>
+                                    <p class="empty-state-description">
+                                        Self-heal, metrics, and system operations
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Audit Tab -->
+                    <div class="tab-content" data-tab-content="audit">
+                        <div class="card">
+                            <div class="card-header">
+                                <h2 class="card-title">📊 Audit & Logs</h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="empty-state">
+                                    <div class="empty-state-icon">📋</div>
+                                    <h3 class="empty-state-title">Audit trail</h3>
+                                    <p class="empty-state-description">
+                                        View system logs, events, and audit history
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Settings Tab -->
+                    <div class="tab-content" data-tab-content="settings">
+                        <div class="card">
+                            <div class="card-header">
+                                <h2 class="card-title">⚙️ Settings</h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-group">
+                                    <label class="form-label">Theme</label>
+                                    <select class="form-input" onchange="setTheme(this.value)">
+                                        <option value="light">Light</option>
+                                        <option value="dark">Dark</option>
+                                        <option value="auto">Auto (System)</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">Notifications</label>
+                                    <label style="display: flex; align-items: center; gap: var(--spacing-sm);">
+                                        <input type="checkbox" id="notifEnabled" checked>
+                                        <span class="text-sm">Enable toast notifications</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <!-- Tab Bar (Mobile only) -->
+        <nav class="tab-bar">
+            <a href="#automations" class="tab-item active" data-tab="automations">
+                <span class="tab-icon">⚙️</span>
+                <span>Automations</span>
+            </a>
+            <a href="#payments" class="tab-item" data-tab="payments">
+                <span class="tab-icon">💰</span>
+                <span>Payments</span>
+            </a>
+            <a href="#ops" class="tab-item" data-tab="ops">
+                <span class="tab-icon">🔧</span>
+                <span>Ops</span>
+            </a>
+            <a href="#audit" class="tab-item" data-tab="audit">
+                <span class="tab-icon">📊</span>
+                <span>Audit</span>
+            </a>
+            <a href="#settings" class="tab-item" data-tab="settings">
+                <span class="tab-icon">⚙️</span>
+                <span>Settings</span>
+            </a>
+        </nav>
+    </div>
+    
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+    
+    <script>
+        // ===== Theme Management =====
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeIcon(savedTheme);
+        }
+        
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            setTheme(next);
+        }
+        
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            updateThemeIcon(theme);
+            showToast('Theme updated to ' + theme + ' mode', 'success');
+        }
+        
+        function updateThemeIcon(theme) {
+            document.getElementById('themeIcon').textContent = theme === 'dark' ? '☀️' : '🌙';
+        }
+        
+        // ===== Key Management =====
+        function loadKey() {
+            const key = localStorage.getItem('dashKey');
+            if (key) {
+                document.getElementById('dashKey').value = key;
+                updateKeyStatus(true);
+                return key;
+            } else {
+                // Auto-populate with the hardcoded key
+                const defaultKey = 'CHMDlYY5TNE0NIB7qul7KYRa9a4BSbID-4WqpoE_DaE';
+                document.getElementById('dashKey').value = defaultKey;
+                updateKeyStatus(false);
+            }
+            return null;
+        }
+        
+        function saveKey() {
+            const key = document.getElementById('dashKey').value.trim();
+            if (key) {
+                localStorage.setItem('dashKey', key);
+                updateKeyStatus(true);
+                showToast('Dashboard key saved successfully', 'success');
+            } else {
+                showToast('Please enter a valid key', 'error');
+            }
+        }
+        
+        function clearKey() {
+            localStorage.removeItem('dashKey');
+            document.getElementById('dashKey').value = '';
+            updateKeyStatus(false);
+            showToast('Dashboard key cleared', 'info');
+        }
+        
+        function updateKeyStatus(isValid) {
+            const status = document.getElementById('keyStatus');
+            if (isValid) {
+                status.textContent = '✓ Valid';
+                status.className = 'pill pill-success';
+            } else {
+                status.textContent = 'Not Saved';
+                status.className = 'pill pill-warning';
+            }
+        }
+        
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                saveKey();
+            }
+        }
+        
+        // ===== Tab Navigation =====
+        function initTabs() {
+            const tabLinks = document.querySelectorAll('[data-tab]');
+            
+            tabLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const tabName = link.getAttribute('data-tab');
+                    switchTab(tabName);
+                });
+            });
+        }
+        
+        function switchTab(tabName) {
+            // Update tab links
+            document.querySelectorAll('[data-tab]').forEach(link => {
+                if (link.getAttribute('data-tab') === tabName) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+            
+            // Update tab content
+            document.querySelectorAll('[data-tab-content]').forEach(content => {
+                if (content.getAttribute('data-tab-content') === tabName) {
+                    content.classList.add('active');
+                    content.style.display = 'block';
+                } else {
+                    content.classList.remove('active');
+                    content.style.display = 'none';
+                }
+            });
+        }
+        
+        // ===== Toast Notifications =====
+        function showToast(message, type = 'info') {
+            const notifEnabled = document.getElementById('notifEnabled')?.checked !== false;
+            if (!notifEnabled) return;
+            
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            
+            const icon = {
+                success: '✓',
+                error: '✕',
+                warning: '⚠',
+                info: 'ℹ'
+            }[type] || 'ℹ';
+            
+            toast.innerHTML = `
+                <span style="font-size: 20px;">${icon}</span>
+                <span>${message}</span>
+            `;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+        
+        // ===== Status Indicator =====
+        async function updateStatus() {
+            try {
+                const key = loadKey();
+                if (!key) return;
+                
+                const response = await fetch('/api/health', {
+                    headers: {
+                        'X-Dash-Key': key
+                    }
+                });
+                
+                if (response.ok) {
+                    document.getElementById('statusDot').className = 'status-dot green';
+                    document.getElementById('statusText').textContent = 'Live';
+                } else {
+                    document.getElementById('statusDot').className = 'status-dot yellow';
+                    document.getElementById('statusText').textContent = 'Limited';
+                }
+            } catch (err) {
+                document.getElementById('statusDot').className = 'status-dot red';
+                document.getElementById('statusText').textContent = 'Offline';
+            }
+        }
+        
+        // ===== API Helpers =====
+        async function apiCall(endpoint, method = 'GET', body = null) {
+            const key = localStorage.getItem('dashKey');
+            if (!key) {
+                showToast('Please save your dashboard key first', 'warning');
+                throw new Error('No dashboard key');
+            }
+            
+            const options = {
+                method,
+                headers: {
+                    'X-Dash-Key': key,
+                    'Content-Type': 'application/json'
+                }
+            };
+            
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+            
+            const response = await fetch(endpoint, options);
+            
+            if (!response.ok) {
+                throw new Error(`API error: ${response.status}`);
+            }
+            
+            return response.json();
+        }
+        
+        // ===== Feature Functions =====
+        async function refreshAutomations() {
+            try {
+                showToast('Refreshing automation status...', 'info');
+                const data = await apiCall('/api/scheduler-status');
+                showToast('Automation data refreshed', 'success');
+                console.log('Automation data:', data);
+                // TODO: Render automation cards
+            } catch (err) {
+                showToast('Failed to load automations: ' + err.message, 'error');
+            }
+        }
+        
+        // ===== Initialize =====
+        document.addEventListener('DOMContentLoaded', () => {
+            initTheme();
+            loadKey();
+            initTabs();
+            updateStatus();
+            
+            // Update status every 30 seconds
+            setInterval(updateStatus, 30000);
+            
+            showToast('Dashboard loaded successfully', 'success');
+        });
+    </script>
+</body>
+</html>

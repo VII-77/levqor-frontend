@@ -1,0 +1,57 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "updated": "2025-10-20T22:50:00Z",
+    "description": "Feature flags for EchoPilot UI v2 rollout"
+  },
+  "flags": {
+    "ui_v2_shell": {
+      "enabled": false,
+      "description": "Mobile-first UI shell with tabs and navigation",
+      "rollout_pct": 0,
+      "canary_enabled": false
+    },
+    "dark_mode": {
+      "enabled": false,
+      "description": "Dark mode toggle and theme support",
+      "rollout_pct": 0,
+      "canary_enabled": false
+    },
+    "status_summary": {
+      "enabled": false,
+      "description": "Real-time status summary card",
+      "rollout_pct": 0,
+      "canary_enabled": false
+    },
+    "payments_center": {
+      "enabled": false,
+      "description": "Payment center with invoices and refunds",
+      "rollout_pct": 0,
+      "canary_enabled": false
+    },
+    "command_palette": {
+      "enabled": false,
+      "description": "⌘K command palette for keyboard navigation",
+      "rollout_pct": 0,
+      "canary_enabled": false
+    },
+    "coach_marks": {
+      "enabled": false,
+      "description": "First-time user onboarding tips",
+      "rollout_pct": 0,
+      "canary_enabled": false
+    },
+    "referrals": {
+      "enabled": false,
+      "description": "Referral code system and attribution",
+      "rollout_pct": 0,
+      "canary_enabled": false
+    },
+    "nps_widget": {
+      "enabled": false,
+      "description": "NPS feedback widget after actions",
+      "rollout_pct": 0,
+      "canary_enabled": false
+    }
+  }
+}

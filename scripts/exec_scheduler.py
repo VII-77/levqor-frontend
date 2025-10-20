@@ -184,6 +184,38 @@ def run_production_alerts():
     except Exception as e:
         log_event('production_alerts_error', {'error': str(e)})
 
+def run_ops_sentinel():
+    """Run ops sentinel system watchdog"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/ops_sentinel.py'], check=False, timeout=30)
+    except Exception as e:
+        log_event('ops_sentinel_error', {'error': str(e)})
+
+def run_revenue_intelligence():
+    """Run revenue intelligence analysis"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/revenue_intelligence.py'], check=False, timeout=60)
+    except Exception as e:
+        log_event('revenue_intelligence_error', {'error': str(e)})
+
+def run_finance_reconcile():
+    """Run finance reconciliation"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/finance_reconciler.py'], check=False, timeout=60)
+    except Exception as e:
+        log_event('finance_reconcile_error', {'error': str(e)})
+
+def run_auto_governance():
+    """Run auto-governance checks"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/auto_governance.py'], check=False, timeout=30)
+    except Exception as e:
+        log_event('auto_governance_error', {'error': str(e)})
+
 def run_scheduled_tasks():
     """Check and run scheduled tasks"""
     
@@ -255,6 +287,31 @@ def run_scheduled_tasks():
        (datetime.utcnow() - last_run['production_alerts']).total_seconds() >= (5 * 60):
         run_production_alerts()
         mark_run('production_alerts')
+    
+    # ==================== PHASES 41-50: AUTONOMOUS ENTERPRISE ====================
+    
+    # 10) Ops Sentinel - Every 3 minutes
+    if 'ops_sentinel' not in last_run or \
+       (datetime.utcnow() - last_run['ops_sentinel']).total_seconds() >= (3 * 60):
+        run_ops_sentinel()
+        mark_run('ops_sentinel')
+    
+    # 11) Revenue Intelligence - Every 30 minutes
+    if 'revenue_intelligence' not in last_run or \
+       (datetime.utcnow() - last_run['revenue_intelligence']).total_seconds() >= (30 * 60):
+        run_revenue_intelligence()
+        mark_run('revenue_intelligence')
+    
+    # 12) Finance Reconciliation - Every 6 hours
+    if 'finance_reconcile' not in last_run or \
+       (datetime.utcnow() - last_run['finance_reconcile']).total_seconds() >= (6 * 3600):
+        run_finance_reconcile()
+        mark_run('finance_reconcile')
+    
+    # 13) Auto-Governance - Every hour
+    if is_time_match(datetime.utcnow().hour, 0) and should_run('auto_governance'):
+        run_auto_governance()
+        mark_run('auto_governance')
 
 def write_pid():
     """Write PID to file with fsync"""
@@ -290,6 +347,11 @@ def main():
     print(f"   Replica Sync: Every 2 hours", flush=True)
     print(f"   AI Ops Brain: Every 12 hours", flush=True)
     print(f"   Production Alerts: Every 5 minutes", flush=True)
+    print(f"   --- Phases 41-50: Autonomous Enterprise ---", flush=True)
+    print(f"   Ops Sentinel: Every 3 minutes", flush=True)
+    print(f"   Revenue Intelligence: Every 30 minutes", flush=True)
+    print(f"   Finance Reconcile: Every 6 hours", flush=True)
+    print(f"   Auto-Governance: Every hour", flush=True)
     print(f"   Logs: {log_file}", flush=True)
     print(f"   PID: {pid_file}", flush=True)
     print(flush=True)

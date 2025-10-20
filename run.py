@@ -3586,6 +3586,121 @@ def sync_regions():
         return jsonify({"ok": False, "error": str(e)}), 500
 
 
+@app.route('/api/payments/list', methods=['GET'])
+@require_dashboard_key
+def api_list_payments():
+    """List recent Stripe payments (Phase 41)"""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/payments_center.py'],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        
+        if result.returncode == 0:
+            import json
+            data = json.loads(result.stdout)
+            return jsonify(data), 200
+        else:
+            return jsonify({"ok": False, "error": result.stderr}), 500
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/ops/sentinel', methods=['GET'])
+@require_dashboard_key
+def api_ops_sentinel():
+    """Get system health from Ops Sentinel (Phase 44)"""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/ops_sentinel.py'],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        
+        if result.returncode == 0:
+            import json
+            data = json.loads(result.stdout)
+            return jsonify(data), 200
+        else:
+            return jsonify({"ok": False, "error": result.stderr}), 500
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/revenue/intelligence', methods=['POST'])
+@require_dashboard_key
+def api_revenue_intelligence():
+    """Run revenue intelligence analysis (Phase 42)"""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/revenue_intelligence.py'],
+            capture_output=True,
+            text=True,
+            timeout=60
+        )
+        
+        if result.returncode == 0:
+            import json
+            data = json.loads(result.stdout)
+            return jsonify(data), 200
+        else:
+            return jsonify({"ok": False, "error": result.stderr}), 500
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/finance/reconcile', methods=['POST'])
+@require_dashboard_key
+def api_finance_reconcile():
+    """Run finance reconciliation (Phase 47)"""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/finance_reconciler.py'],
+            capture_output=True,
+            text=True,
+            timeout=60
+        )
+        
+        if result.returncode == 0:
+            import json
+            data = json.loads(result.stdout)
+            return jsonify(data), 200
+        else:
+            return jsonify({"ok": False, "error": result.stderr}), 500
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/governance/check', methods=['GET'])
+@require_dashboard_key
+def api_governance_check():
+    """Run governance KPI check (Phase 50)"""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/auto_governance.py'],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        
+        if result.returncode == 0:
+            import json
+            data = json.loads(result.stdout)
+            return jsonify(data), 200
+        else:
+            return jsonify({"ok": False, "error": result.stderr}), 500
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
 @app.route('/api/brain/decide', methods=['POST'])
 @require_dashboard_key
 def run_ops_brain():

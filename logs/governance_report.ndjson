@@ -1,0 +1,1 @@
+{"ts": "2025-10-20T17:08:10.833396Z", "event": "governance_check", "status": "healthy", "checks": {"revenue": "unknown", "uptime": "ok", "alerts": 0, "compliance": "ok", "performance": "ok"}, "warnings": []}

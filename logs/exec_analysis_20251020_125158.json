@@ -1,0 +1,79 @@
+{
+  "kpis": {
+    "jobs_7d": 0,
+    "revenue_7d": 0,
+    "avg_qa_7d": 0.0,
+    "roi_7d": 0,
+    "margin_pct_7d": 0
+  },
+  "anomalies": [
+    {
+      "type": "finance",
+      "severity": "high",
+      "signal": "Finance metrics failed: Cannot compute metrics",
+      "evidence": [
+        "Error: Finance metrics failed: Cannot compute metrics"
+      ],
+      "suggested_fix": "Investigate finance metrics computation failure."
+    },
+    {
+      "type": "ops",
+      "severity": "high",
+      "signal": "Job Log entry not found after full backoff",
+      "evidence": [
+        "Job Log entry not found after full backoff (Notion lag or processing failed)"
+      ],
+      "suggested_fix": "Check Notion integration and processing pipeline."
+    },
+    {
+      "type": "quality",
+      "severity": "med",
+      "signal": "QA 85% < 95",
+      "evidence": [
+        "QA 85% < 95 (clean payload sample1.mp3, dry-finance mode)"
+      ],
+      "suggested_fix": "Review QA processes to improve quality."
+    },
+    {
+      "type": "ops",
+      "severity": "med",
+      "signal": "Notion sync lag",
+      "evidence": [
+        "Notion sync lag (retry)"
+      ],
+      "suggested_fix": "Optimize Notion sync process."
+    }
+  ],
+  "actions": [
+    {
+      "owner": "finance",
+      "priority": 1,
+      "task": "Investigate finance metrics computation failure.",
+      "eta_hours": 2
+    },
+    {
+      "owner": "ops",
+      "priority": 1,
+      "task": "Check Notion integration and processing pipeline.",
+      "eta_hours": 2
+    },
+    {
+      "owner": "quality",
+      "priority": 1,
+      "task": "Review QA processes to improve quality.",
+      "eta_hours": 2
+    },
+    {
+      "owner": "ops",
+      "priority": 1,
+      "task": "Optimize Notion sync process.",
+      "eta_hours": 2
+    }
+  ],
+  "notes": [
+    "Finance metrics are not computable.",
+    "Multiple job log failures due to Notion lag.",
+    "QA scores are below acceptable thresholds."
+  ],
+  "confidence": 0.0
+}

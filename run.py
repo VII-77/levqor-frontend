@@ -3084,40 +3084,52 @@ def exec_schedule_daily():
 def automations_start():
     """
     POST /api/automations/start
-    Starts the background scheduler via scripts/run_automations.sh
+    Starts the background scheduler via scripts/run_automations.sh start
     """
     from pathlib import Path
     import subprocess
+    import json
     
     try:
         script_path = Path('scripts/run_automations.sh')
         if not script_path.exists():
             return jsonify({"ok": False, "error": "run_automations.sh not found"}), 404
         
-        # Run supervisor script
-        result = subprocess.Popen(
-            ['bash', str(script_path)],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            start_new_session=True
+        # Call supervisor script with 'start' command
+        result = subprocess.run(
+            ['bash', str(script_path), 'start'],
+            capture_output=True,
+            text=True,
+            timeout=30
         )
         
-        # Read PID from file after a moment
-        import time
-        time.sleep(2)
-        
+        # Read PID from file
         pid = None
         pid_file = Path('logs/scheduler.pid')
         if pid_file.exists():
-            pid = int(pid_file.read_text().strip())
+            try:
+                pid = int(pid_file.read_text().strip())
+            except:
+                pass
         
-        return jsonify({
-            "ok": True,
-            "status": "Scheduler started",
-            "pid": pid,
-            "error": None
-        }), 200
+        # Check if started successfully
+        if result.returncode == 0:
+            return jsonify({
+                "ok": True,
+                "status": "Scheduler started",
+                "pid": pid,
+                "error": None
+            }), 200
+        else:
+            return jsonify({
+                "ok": False,
+                "status": "Failed to start scheduler",
+                "pid": None,
+                "error": result.stderr or result.stdout
+            }), 500
     
+    except subprocess.TimeoutExpired:
+        return jsonify({"ok": False, "error": "Start command timed out"}), 500
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
@@ -3127,30 +3139,39 @@ def automations_start():
 def automations_stop():
     """
     POST /api/automations/stop
-    Stops the background scheduler by killing the process
+    Stops the background scheduler via scripts/run_automations.sh stop
     """
     import subprocess
     from pathlib import Path
     
     try:
-        # Try pkill first
+        script_path = Path('scripts/run_automations.sh')
+        if not script_path.exists():
+            return jsonify({"ok": False, "error": "run_automations.sh not found"}), 404
+        
+        # Call supervisor script with 'stop' command
         result = subprocess.run(
-            ['pkill', '-f', 'exec_scheduler.py'],
+            ['bash', str(script_path), 'stop'],
             capture_output=True,
-            text=True
+            text=True,
+            timeout=30
         )
         
-        # Remove PID file
-        pid_file = Path('logs/scheduler.pid')
-        if pid_file.exists():
-            pid_file.unlink()
-        
-        return jsonify({
-            "ok": True,
-            "status": "Scheduler stopped",
-            "error": None
-        }), 200
+        if result.returncode == 0:
+            return jsonify({
+                "ok": True,
+                "status": "Scheduler stopped",
+                "error": None
+            }), 200
+        else:
+            return jsonify({
+                "ok": False,
+                "status": "Failed to stop scheduler",
+                "error": result.stderr or result.stdout
+            }), 500
     
+    except subprocess.TimeoutExpired:
+        return jsonify({"ok": False, "error": "Stop command timed out"}), 500
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
@@ -3160,59 +3181,44 @@ def automations_stop():
 def automations_status():
     """
     GET /api/automations/status
-    Returns scheduler status by scanning processes
+    Returns scheduler status via scripts/run_automations.sh status
     """
     import subprocess
     from pathlib import Path
+    import json
     
     try:
-        # Check if process is running
+        script_path = Path('scripts/run_automations.sh')
+        if not script_path.exists():
+            return jsonify({"ok": False, "data": None, "error": "run_automations.sh not found"}), 404
+        
+        # Call supervisor script with 'status' command
         result = subprocess.run(
-            ['pgrep', '-f', 'exec_scheduler.py'],
+            ['bash', str(script_path), 'status'],
             capture_output=True,
-            text=True
+            text=True,
+            timeout=10
         )
         
-        running = result.returncode == 0
-        pid = None
-        
-        if running:
-            pids = result.stdout.strip().split('\n')
-            if pids and pids[0]:
-                pid = int(pids[0])
-        
-        # Check PID file
-        pid_file = Path('logs/scheduler.pid')
-        pid_from_file = None
-        if pid_file.exists():
-            try:
-                pid_from_file = int(pid_file.read_text().strip())
-            except:
-                pass
-        
-        # Get last scheduler log entry
-        scheduler_log = Path('logs/scheduler.log')
-        last_log = None
-        if scheduler_log.exists():
-            lines = scheduler_log.read_text().strip().split('\n')
-            if lines:
-                try:
-                    import json
-                    last_log = json.loads(lines[-1])
-                except:
-                    pass
-        
-        return jsonify({
-            "ok": True,
-            "data": {
-                "running": running,
-                "pid": pid or pid_from_file,
-                "last_activity": last_log.get('ts') if last_log else None,
-                "last_task": last_log.get('task') if last_log else None
-            },
-            "error": None
-        }), 200
+        if result.returncode == 0 and result.stdout.strip():
+            # Parse JSON from supervisor script
+            status_data = json.loads(result.stdout)
+            return jsonify({
+                "ok": True,
+                "data": status_data,
+                "error": None
+            }), 200
+        else:
+            return jsonify({
+                "ok": False,
+                "data": None,
+                "error": result.stderr or "Failed to get status"
+            }), 500
     
+    except subprocess.TimeoutExpired:
+        return jsonify({"ok": False, "data": None, "error": "Status command timed out"}), 500
+    except json.JSONDecodeError as e:
+        return jsonify({"ok": False, "data": None, "error": f"Invalid JSON from supervisor: {str(e)}"}), 500
     except Exception as e:
         return jsonify({"ok": False, "data": None, "error": str(e)}), 500
 

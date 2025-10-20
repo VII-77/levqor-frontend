@@ -196,6 +196,13 @@
             <button onclick="startAutomations()">▶️ Start Scheduler</button>
             <button onclick="stopAutomations()">⏹️ Stop Scheduler</button>
             <button onclick="checkAutomationsStatus()">🔍 Check Status</button>
+            <div style="grid-column: 1/-1; margin: 5px 0; display: flex; align-items: center; gap: 10px;">
+                <label style="font-size: 14px; color: #667eea;">
+                    <input type="checkbox" id="autoRefreshStatus" onchange="toggleAutoRefresh()" style="margin-right: 5px;">
+                    Auto-refresh status (every 10s)
+                </label>
+                <span id="statusDisplay" style="font-size: 14px; color: #888;"></span>
+            </div>
         </div>
 
         <div class="metrics-section">
@@ -489,6 +496,8 @@
         }
 
         // Automations Scheduler functions
+        let autoRefreshInterval = null;
+
         async function startAutomations() {
             log('Starting background scheduler...', 'warning');
             const data = await apiCall('/api/automations/start', 'POST');
@@ -498,6 +507,8 @@
                     `   PID: ${data.pid || 'N/A'}\n` +
                     `   Schedule: CEO Brief (08:00 UTC), Report (09:00 UTC), Self-Heal (6h)`,
                     'success');
+                // Refresh status after starting
+                setTimeout(() => updateStatusDisplay(true), 2000);
             }
         }
 
@@ -508,21 +519,77 @@
                 log(`\n⏹️ SCHEDULER STOPPED:\n` +
                     `   Status: ${data.status}`,
                     'success');
+                // Refresh status after stopping
+                setTimeout(() => updateStatusDisplay(true), 2000);
             }
         }
 
         async function checkAutomationsStatus() {
             log('Checking scheduler status...', 'info');
-            const data = await apiCall('/api/automations/status', 'GET');
-            if (data && data.ok) {
-                const status = data.data;
-                const statusType = status.running ? 'success' : 'warning';
-                log(`\n🔍 SCHEDULER STATUS:\n` +
-                    `   Running: ${status.running ? 'YES ✅' : 'NO ❌'}\n` +
-                    `   PID: ${status.pid || 'N/A'}\n` +
-                    `   Last Activity: ${status.last_activity || 'N/A'}\n` +
-                    `   Last Task: ${status.last_task || 'N/A'}`,
-                    statusType);
+            await updateStatusDisplay(true);
+        }
+
+        async function updateStatusDisplay(showInLog = false) {
+            const dashKey = document.getElementById('dashKey').value;
+            if (!dashKey) return;
+
+            try {
+                const response = await fetch('/api/automations/status', {
+                    method: 'GET',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-Dash-Key': dashKey
+                    }
+                });
+                const data = await response.json();
+
+                if (data && data.ok) {
+                    const status = data.data;
+                    const statusDisplay = document.getElementById('statusDisplay');
+                    
+                    // Update status display
+                    const statusText = status.running 
+                        ? `✅ Running (PID: ${status.pid || 'N/A'})` 
+                        : '❌ Stopped';
+                    statusDisplay.textContent = statusText;
+                    statusDisplay.style.color = status.running ? '#27ae60' : '#e74c3c';
+
+                    // Log if requested
+                    if (showInLog) {
+                        const statusType = status.running ? 'success' : 'warning';
+                        log(`\n🔍 SCHEDULER STATUS:\n` +
+                            `   Running: ${status.running ? 'YES ✅' : 'NO ❌'}\n` +
+                            `   PID: ${status.pid || 'N/A'}\n` +
+                            `   Last Activity: ${status.last_activity || 'N/A'}`,
+                            statusType);
+                    }
+                }
+            } catch (error) {
+                // Silent fail for auto-refresh
+                if (showInLog) {
+                    log(`❌ Failed to get status: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        function toggleAutoRefresh() {
+            const checkbox = document.getElementById('autoRefreshStatus');
+            
+            if (checkbox.checked) {
+                // Start auto-refresh every 10 seconds
+                updateStatusDisplay(false); // Initial check
+                autoRefreshInterval = setInterval(() => {
+                    updateStatusDisplay(false);
+                }, 10000);
+                log('✅ Auto-refresh enabled (10s interval)', 'success');
+            } else {
+                // Stop auto-refresh
+                if (autoRefreshInterval) {
+                    clearInterval(autoRefreshInterval);
+                    autoRefreshInterval = null;
+                }
+                document.getElementById('statusDisplay').textContent = '';
+                log('⏹️ Auto-refresh disabled', 'info');
             }
         }
 

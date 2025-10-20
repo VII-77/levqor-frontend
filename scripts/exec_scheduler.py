@@ -2,6 +2,7 @@
 """
 EchoPilot Executive Scheduler
 Runs automated tasks on schedule without cron.
+Hardened with persistent daemon mode, signal handling, and heartbeat ticks.
 """
 
 import os
@@ -10,6 +11,7 @@ import time
 import json
 import signal
 import requests
+import atexit
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -27,29 +29,51 @@ last_run = {}
 # Logging
 log_file = Path('logs/scheduler.log')
 log_file.parent.mkdir(exist_ok=True)
+pid_file = Path('logs/scheduler.pid')
 
 running = True
+my_pid = os.getpid()
+
+def cleanup_pid_file():
+    """Remove PID file if it matches our PID"""
+    try:
+        if pid_file.exists():
+            current_pid = int(pid_file.read_text().strip())
+            if current_pid == my_pid:
+                pid_file.unlink()
+                log_event('cleanup', {'removed_pid': my_pid})
+    except Exception as e:
+        print(f"Warning: Failed to clean PID file: {e}", file=sys.stderr, flush=True)
 
 def signal_handler(signum, frame):
-    """Handle SIGTERM for graceful shutdown"""
+    """Handle SIGTERM/SIGINT for graceful shutdown"""
     global running
-    log_event('shutdown', {'signal': signum})
+    log_event('shutdown', {'signal': signum, 'pid': my_pid})
     running = False
+    cleanup_pid_file()
     sys.exit(0)
 
 signal.signal(signal.SIGTERM, signal_handler)
 signal.signal(signal.SIGINT, signal_handler)
+atexit.register(cleanup_pid_file)
 
-def log_event(task, data):
-    """Log NDJSON to logs/scheduler.log"""
+def log_event(event, data=None):
+    """Log NDJSON to logs/scheduler.log and stdout"""
     entry = {
         'ts': datetime.utcnow().isoformat() + 'Z',
-        'task': task,
-        **data
+        'event': event,
     }
+    if data:
+        entry.update(data)
+    
+    # Write to log file
     with open(log_file, 'a') as f:
         f.write(json.dumps(entry) + '\n')
-    print(f"[{entry['ts']}] {task}: {data.get('ok', data.get('status', 'N/A'))}")
+        f.flush()
+        os.fsync(f.fileno())
+    
+    # Print to stdout
+    print(json.dumps(entry), flush=True)
 
 def should_run(task_name):
     """Check if task should run based on debounce"""
@@ -123,6 +147,34 @@ def is_time_match(target_hour, target_minute):
     now = datetime.utcnow()
     return now.hour == target_hour and now.minute == target_minute
 
+def calculate_next_run_times():
+    """Calculate next run times for all scheduled tasks"""
+    now = datetime.utcnow()
+    
+    # CEO Brief
+    brief_hour, brief_minute = parse_time(SCHED_BRIEF_UTC)
+    brief_next = now.replace(hour=brief_hour, minute=brief_minute, second=0, microsecond=0)
+    if brief_next <= now:
+        brief_next += timedelta(days=1)
+    
+    # Daily Report
+    report_hour, report_minute = parse_time(SCHED_REPORT_UTC)
+    report_next = now.replace(hour=report_hour, minute=report_minute, second=0, microsecond=0)
+    if report_next <= now:
+        report_next += timedelta(days=1)
+    
+    # Self-Heal (next 6-hour interval)
+    if 'self_heal' in last_run:
+        selfheal_next = last_run['self_heal'] + timedelta(hours=SCHED_SELFHEAL_EVERY_HOURS)
+    else:
+        selfheal_next = now + timedelta(hours=SCHED_SELFHEAL_EVERY_HOURS)
+    
+    return {
+        'brief': brief_next.isoformat() + 'Z',
+        'report': report_next.isoformat() + 'Z',
+        'selfheal': selfheal_next.isoformat() + 'Z'
+    }
+
 def run_scheduled_tasks():
     """Check and run scheduled tasks"""
     
@@ -148,10 +200,23 @@ def run_scheduled_tasks():
             call_api('POST', '/api/self-heal', 'self_heal')
             mark_run('self_heal')
 
+def write_pid():
+    """Write PID to file with fsync"""
+    pid_file.write_text(str(my_pid))
+    # Ensure it's written to disk
+    with open(pid_file, 'r') as f:
+        os.fsync(f.fileno())
+
 def main():
-    """Main scheduler loop"""
+    """Main scheduler loop with persistence"""
+    global running
+    
+    # Write PID file
+    write_pid()
+    
     log_event('startup', {
         'ok': True,
+        'pid': my_pid,
         'config': {
             'brief_time': SCHED_BRIEF_UTC,
             'report_time': SCHED_REPORT_UTC,
@@ -160,32 +225,48 @@ def main():
         }
     })
     
-    print(f"🤖 EchoPilot Executive Scheduler Started")
-    print(f"   CEO Brief: {SCHED_BRIEF_UTC} UTC")
-    print(f"   Daily Report: {SCHED_REPORT_UTC} UTC")
-    print(f"   Self-Heal: Every {SCHED_SELFHEAL_EVERY_HOURS} hours")
-    print(f"   Logs: {log_file}")
-    print(f"   Press Ctrl+C to stop")
-    print()
+    print(f"🤖 EchoPilot Executive Scheduler Started (PID: {my_pid})", flush=True)
+    print(f"   CEO Brief: {SCHED_BRIEF_UTC} UTC", flush=True)
+    print(f"   Daily Report: {SCHED_REPORT_UTC} UTC", flush=True)
+    print(f"   Self-Heal: Every {SCHED_SELFHEAL_EVERY_HOURS} hours", flush=True)
+    print(f"   Logs: {log_file}", flush=True)
+    print(f"   PID: {pid_file}", flush=True)
+    print(flush=True)
     
     # Initial self-heal run on startup
     if DASHBOARD_KEY:
         call_api('POST', '/api/self-heal', 'self_heal_startup')
         mark_run('self_heal')
     
-    while running:
+    # Main loop with heartbeat
+    tick_count = 0
+    while True:
         try:
+            # Run scheduled tasks
             run_scheduled_tasks()
-            time.sleep(60)  # Check every minute
+            
+            # Heartbeat tick every minute
+            tick_count += 1
+            next_runs = calculate_next_run_times()
+            log_event('tick', {
+                'tick': tick_count,
+                'next': next_runs
+            })
+            
+            # Sleep for 60 seconds
+            time.sleep(60)
+            
         except KeyboardInterrupt:
             log_event('shutdown', {'ok': True, 'reason': 'KeyboardInterrupt'})
             break
         except Exception as e:
-            log_event('error', {'ok': False, 'error': str(e)})
+            log_event('error', {'ok': False, 'error': str(e), 'tick': tick_count})
+            # Keep running despite errors
             time.sleep(60)
     
-    log_event('stopped', {'ok': True})
-    print("✅ Scheduler stopped")
+    cleanup_pid_file()
+    log_event('stopped', {'ok': True, 'ticks': tick_count})
+    print("✅ Scheduler stopped", flush=True)
 
 if __name__ == '__main__':
     main()

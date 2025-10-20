@@ -3,3 +3,4 @@
 {"ts": "2025-10-20T17:12:55.897444Z", "event": "ops_sentinel", "status": "healthy", "cpu_percent": 57.7, "mem_percent": 59.7, "disk_percent": 72.0, "latency_sec": 0.039192914962768555, "warnings": []}
 {"ts": "2025-10-20T17:18:30.372474Z", "event": "ops_sentinel", "status": "healthy", "cpu_percent": 29.9, "mem_percent": 15.6, "disk_percent": 61.3, "latency_sec": 0.024233579635620117, "warnings": []}
 {"ts": "2025-10-20T17:20:54.754476Z", "event": "ops_sentinel", "status": "healthy", "cpu_percent": 19.0, "mem_percent": 17.2, "disk_percent": 61.3, "latency_sec": 0.027185678482055664, "warnings": []}
+{"ts": "2025-10-20T17:23:58.751770Z", "event": "ops_sentinel", "status": "healthy", "cpu_percent": 17.6, "mem_percent": 17.7, "disk_percent": 61.4, "latency_sec": 0.0412135124206543, "warnings": []}

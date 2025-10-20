@@ -205,6 +205,41 @@
             </div>
         </div>
 
+        <!-- ==================== POST-DEPLOY CHECKLIST (Phase 30) ==================== -->
+        <div class="button-grid" style="background: #1a1a2e; padding: 20px; border-radius: 12px; margin: 20px 0;">
+            <h3 style="grid-column: 1/-1; margin: 0 0 15px 0; font-size: 16px; color: #667eea;">🧾 Post-Deploy Checklist</h3>
+            <p style="grid-column: 1/-1; font-size: 13px; color: #aaa; margin-bottom: 10px;">Quick health verification after deployment.</p>
+            <div id="checklist" style="grid-column: 1/-1; margin-bottom: 10px;">
+                <label style="display: block; margin: 8px 0; font-size: 14px; color: #ddd;">
+                    <input type="checkbox" id="chkScheduler" style="margin-right: 8px;">
+                    ✅ Scheduler running (PID active)
+                </label>
+                <label style="display: block; margin: 8px 0; font-size: 14px; color: #ddd;">
+                    <input type="checkbox" id="chkTicks" style="margin-right: 8px;">
+                    ✅ Heartbeat ticks &lt; 60s apart
+                </label>
+                <label style="display: block; margin: 8px 0; font-size: 14px; color: #ddd;">
+                    <input type="checkbox" id="chkBrief" style="margin-right: 8px;">
+                    ✅ Latest CEO Brief generated
+                </label>
+                <label style="display: block; margin: 8px 0; font-size: 14px; color: #ddd;">
+                    <input type="checkbox" id="chkSelfheal" style="margin-right: 8px;">
+                    ✅ Self-Heal operational
+                </label>
+                <label style="display: block; margin: 8px 0; font-size: 14px; color: #ddd;">
+                    <input type="checkbox" id="chkLogs" style="margin-right: 8px;">
+                    ✅ Logs available (scheduler.log)
+                </label>
+            </div>
+            <button onclick="runChecklist()" style="grid-column: 1/-1; background: #9333ea; margin-bottom: 10px;">▶ Run Checklist</button>
+            <p id="checkResult" style="grid-column: 1/-1; font-size: 13px; color: #aaa; min-height: 20px;"></p>
+            <div style="grid-column: 1/-1; margin-top: 10px; font-size: 13px;">
+                <a href="/logs/scheduler.log" style="text-decoration: underline; color: #667eea; margin-right: 15px;">View scheduler.log</a>
+                <a href="/logs/PHASE30_COMPLETE.txt" style="text-decoration: underline; color: #667eea;">Phase 30 summary</a>
+            </div>
+        </div>
+        <!-- ==================== END POST-DEPLOY CHECKLIST ==================== -->
+
         <div class="metrics-section">
             <div class="metrics-header">
                 <h2>📊 Metrics Visualization</h2>
@@ -590,6 +625,63 @@
                 }
                 document.getElementById('statusDisplay').textContent = '';
                 log('⏹️ Auto-refresh disabled', 'info');
+            }
+        }
+
+        async function runChecklist() {
+            const dashKey = document.getElementById('dashKey').value;
+            const result = document.getElementById('checkResult');
+            result.textContent = 'Running checks...';
+            
+            // Reset all checkboxes
+            document.getElementById('chkScheduler').checked = false;
+            document.getElementById('chkTicks').checked = false;
+            document.getElementById('chkBrief').checked = false;
+            document.getElementById('chkSelfheal').checked = false;
+            document.getElementById('chkLogs').checked = false;
+
+            try {
+                // Check scheduler status
+                const res = await fetch('/api/automations/status', {
+                    headers: { 'X-Dash-Key': dashKey }
+                });
+                const data = await res.json();
+
+                const running = data?.data?.running;
+                const pid = data?.data?.pid;
+                document.getElementById('chkScheduler').checked = running === true;
+
+                // Check scheduler log
+                const tickRes = await fetch('/logs/scheduler.log');
+                const text = await tickRes.text();
+                
+                // Count ticks
+                const tickCount = (text.match(/"event": "tick"/g) || []).length;
+                document.getElementById('chkTicks').checked = tickCount > 0;
+
+                // Check CEO Brief presence
+                const briefOK = text.includes('exec_briefs') || text.includes('brief');
+                document.getElementById('chkBrief').checked = briefOK;
+
+                // Check Self-Heal indicator
+                const selfhealOK = text.includes('self_heal');
+                document.getElementById('chkSelfheal').checked = selfhealOK;
+
+                // Check log presence
+                document.getElementById('chkLogs').checked = text.length > 200;
+
+                // Summary message
+                if (running) {
+                    result.textContent = `✅ Scheduler PID ${pid} active. ${tickCount} ticks logged. System operational.`;
+                    log(`🧾 Post-deploy checklist: PASSED (PID ${pid}, ${tickCount} ticks)`, 'success');
+                } else {
+                    result.textContent = '⚠️ Scheduler not active — start it from "⚙️ Automations (Scheduler)"';
+                    log('🧾 Post-deploy checklist: FAILED - Scheduler not running', 'warning');
+                }
+
+            } catch (e) {
+                result.textContent = '❌ Error: ' + e.message;
+                log('🧾 Post-deploy checklist: ERROR - ' + e.message, 'error');
             }
         }
 

@@ -3429,6 +3429,7 @@ def unsubscribe_email():
 def export_user_data():
     """Export compliance data (Phase 35)"""
     import subprocess
+    import json
     
     try:
         result = subprocess.run(
@@ -3453,6 +3454,7 @@ def export_user_data():
 def optimize_pricing():
     """Run adaptive pricing AI (Phase 36)"""
     import subprocess
+    import json
     
     try:
         result = subprocess.run(
@@ -3477,6 +3479,7 @@ def optimize_pricing():
 def generate_referral():
     """Generate new referral code (Phase 37)"""
     import subprocess
+    import json
     
     try:
         result = subprocess.run(
@@ -3501,6 +3504,7 @@ def generate_referral():
 def run_audit_report():
     """Generate SOC-lite audit report (Phase 38)"""
     import subprocess
+    import json
     
     try:
         result = subprocess.run(
@@ -3548,6 +3552,7 @@ def sync_regions():
 def run_ops_brain():
     """Run AI Ops Brain for autonomous decisions (Phase 40)"""
     import subprocess
+    import json
     
     try:
         result = subprocess.run(

@@ -1,7 +1,7 @@
 {
-  "root_hash": "4e59eb52bfd8d4b88418bf2eeb22f2c7995c7924e95565f5515b9a9a0eda7738",
-  "entry_count": 668,
-  "ts": "2025-10-20T16:04:35.839869Z",
+  "root_hash": "bb1bce21a22f274a7e18612296cb9b2b354bdcd5299e40d6d57da13a8d14b14a",
+  "entry_count": 698,
+  "ts": "2025-10-20T16:22:10.468353Z",
   "audit_version": "1.0",
   "compliance": [
     "SOC-lite",

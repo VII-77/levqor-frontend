@@ -13,7 +13,7 @@
             padding: 20px;
         }
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
             background: white;
             border-radius: 12px;
@@ -29,6 +29,8 @@
         .header h1 { font-size: 2.5em; margin-bottom: 10px; }
         .header p { opacity: 0.9; font-size: 1.1em; }
         .content { padding: 40px; }
+        .section { margin-bottom: 40px; }
+        .section-title { font-size: 1.5em; margin-bottom: 20px; color: #333; border-bottom: 2px solid #667eea; padding-bottom: 10px; }
         .upload-area {
             border: 3px dashed #667eea;
             border-radius: 12px;
@@ -93,7 +95,7 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             display: inline-block;
             text-decoration: none;
-            margin-top: 20px;
+            margin: 10px 5px;
         }
         .btn:hover {
             transform: translateY(-2px);
@@ -104,19 +106,60 @@
             cursor: not-allowed;
             transform: none;
         }
-        .spinner {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid #f3f3f3;
-            border-top: 2px solid #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-left: 10px;
+        .btn-success { background: linear-gradient(135deg, #27ae60 0%, #1e8449 100%); }
+        .btn-secondary { background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%); }
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .history-table th, .history-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .history-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+        .history-table tr:hover {
+            background: #f8f9ff;
+        }
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 20px 0;
+            cursor: pointer;
+        }
+        .checkbox-label input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        .support-form {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+        .support-form input, .support-form textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+        .support-form input:focus, .support-form textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .support-form textarea {
+            resize: vertical;
+            min-height: 100px;
         }
         .log {
             margin-top: 20px;
@@ -134,6 +177,17 @@
         .log-success { color: #4ec9b0; }
         .log-error { color: #f48771; }
         .log-info { color: #9cdcfe; }
+        .hidden { display: none !important; }
+        .email-input {
+            margin: 20px 0;
+        }
+        .email-input input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -144,46 +198,92 @@
         </div>
 
         <div class="content">
-            <div class="upload-area" id="uploadArea">
-                <div class="upload-icon">☁️</div>
-                <div class="upload-text">Drag & drop your audio file here</div>
-                <div class="upload-hint">or click to browse (MP3, WAV supported)</div>
-                <input type="file" id="fileInput" accept=".mp3,.wav">
+            <!-- Upload Section -->
+            <div class="section" id="uploadSection">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">☁️</div>
+                    <div class="upload-text">Drag & drop your audio file here</div>
+                    <div class="upload-hint">or click to browse (MP3, WAV supported)</div>
+                    <input type="file" id="fileInput" accept=".mp3,.wav">
+                </div>
+
+                <div class="email-input">
+                    <input type="email" id="emailInput" placeholder="Your email (for notifications)" />
+                </div>
+
+                <label class="checkbox-label">
+                    <input type="checkbox" id="subscribeCheckbox" checked />
+                    <span>Send me email updates when job is complete</span>
+                </label>
+
+                <div class="progress-bar" id="progressBar" style="display:none;">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+
+                <div class="status-box" id="statusBox">
+                    <h3 style="margin-bottom: 20px;">Job Status</h3>
+                    <div class="status-item">
+                        <span class="status-label">Correlation ID:</span>
+                        <span class="status-value" id="correlationId">-</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Status:</span>
+                        <span class="status-value" id="jobStatus">-</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">QA Score:</span>
+                        <span class="status-value" id="qaScore">-</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Duration:</span>
+                        <span class="status-value" id="duration">-</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Cost:</span>
+                        <span class="status-value" id="cost">-</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Payment:</span>
+                        <span class="status-value" id="paymentStatus">-</span>
+                    </div>
+                    
+                    <div id="actionButtons" style="text-align: center; margin-top: 20px;">
+                        <a href="#" class="btn hidden" id="payNowBtn">💳 Pay Now</a>
+                        <a href="#" class="btn btn-success hidden" id="downloadBtn">📥 Download Results</a>
+                    </div>
+                </div>
             </div>
 
-            <div class="progress-bar" id="progressBar" style="display:none;">
-                <div class="progress-fill" id="progressFill"></div>
+            <!-- Job History Section -->
+            <div class="section" id="historySection">
+                <h2 class="section-title">📊 Job History</h2>
+                <p style="margin-bottom: 15px; color: #666;">Your recent jobs will appear here.</p>
+                <table class="history-table" id="historyTable">
+                    <thead>
+                        <tr>
+                            <th>Job Name</th>
+                            <th>QA Score</th>
+                            <th>Cost</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyBody">
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: #999;">No jobs yet. Upload a file to get started!</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
 
-            <div class="status-box" id="statusBox">
-                <h3 style="margin-bottom: 20px;">Job Status</h3>
-                <div class="status-item">
-                    <span class="status-label">Correlation ID:</span>
-                    <span class="status-value" id="correlationId">-</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">Status:</span>
-                    <span class="status-value" id="jobStatus">-</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">QA Score:</span>
-                    <span class="status-value" id="qaScore">-</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">Duration:</span>
-                    <span class="status-value" id="duration">-</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">Cost:</span>
-                    <span class="status-value" id="cost">-</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">Payment:</span>
-                    <span class="status-value" id="paymentStatus">-</span>
-                </div>
-                
-                <div id="paymentArea" style="display:none; text-align: center;">
-                    <a href="#" class="btn" id="payNowBtn">💳 Pay Now</a>
+            <!-- Support Section -->
+            <div class="section" id="supportSection">
+                <h2 class="section-title">💬 Help & Support</h2>
+                <div class="support-form">
+                    <input type="text" id="supportName" placeholder="Your name" />
+                    <input type="email" id="supportEmail" placeholder="Your email" />
+                    <textarea id="supportMessage" placeholder="How can we help you?"></textarea>
+                    <button class="btn" id="supportSubmit">Send Message</button>
                 </div>
             </div>
 
@@ -194,6 +294,7 @@
     <script>
         let currentCorrelationId = null;
         let statusCheckInterval = null;
+        let userEmail = null;
 
         function log(message, type = 'info') {
             const logDiv = document.getElementById('log');
@@ -221,13 +322,50 @@
             document.getElementById('statusBox').classList.add('show');
         }
 
+        async function loadJobHistory() {
+            const email = document.getElementById('emailInput').value;
+            if (!email || !email.includes('@')) return;
+
+            try {
+                const response = await fetch(`/api/public/job-history/${encodeURIComponent(email)}`);
+                const data = await response.json();
+
+                if (data.ok && data.data && data.data.length > 0) {
+                    const tbody = document.getElementById('historyBody');
+                    tbody.innerHTML = '';
+                    
+                    data.data.forEach(job => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${job.job_name || 'N/A'}</td>
+                            <td>${job.qa_score ? job.qa_score + '%' : 'N/A'}</td>
+                            <td>${job.gross_usd ? '$' + job.gross_usd.toFixed(2) : 'N/A'}</td>
+                            <td>${job.status || 'N/A'}</td>
+                            <td>${job.created_time ? new Date(job.created_time).toLocaleDateString() : 'N/A'}</td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                }
+            } catch (error) {
+                log(`⚠️ Could not load job history: ${error.message}`, 'error');
+            }
+        }
+
         async function uploadFile(file) {
+            userEmail = document.getElementById('emailInput').value;
+            if (!userEmail || !userEmail.includes('@')) {
+                log('❌ Please enter a valid email address', 'error');
+                return;
+            }
+
             log(`Uploading ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)...`, 'info');
             showProgress();
             setProgress(10);
 
             const formData = new FormData();
             formData.append('file', file);
+            formData.append('email', userEmail);
+            formData.append('subscribe', document.getElementById('subscribeCheckbox').checked);
 
             try {
                 setProgress(30);
@@ -246,6 +384,7 @@
                     setProgress(100);
                     showStatus();
                     startStatusPolling();
+                    setTimeout(loadJobHistory, 2000);
                 } else {
                     log(`❌ Upload failed: ${data.error}`, 'error');
                     hideProgress();
@@ -268,7 +407,7 @@
                     
                     document.getElementById('jobStatus').textContent = job.status || 'Processing';
                     document.getElementById('jobStatus').className = 'status-value ' + 
-                        (job.status === 'Completed' ? 'success' : 'pending');
+                        (job.status === 'Done' ? 'success' : 'pending');
                     
                     if (job.qa_score !== null) {
                         document.getElementById('qaScore').textContent = job.qa_score + '%';
@@ -291,17 +430,25 @@
                     }
 
                     if (job.payment_link && job.payment_status !== 'Paid') {
-                        document.getElementById('paymentArea').style.display = 'block';
+                        document.getElementById('payNowBtn').classList.remove('hidden');
                         document.getElementById('payNowBtn').href = job.payment_link;
                         log('💳 Payment link ready', 'info');
                     }
 
-                    if (job.payment_status === 'Paid' && job.status === 'Completed') {
+                    if (job.payment_status === 'Paid') {
+                        document.getElementById('payNowBtn').classList.add('hidden');
+                        if (job.download_url) {
+                            document.getElementById('downloadBtn').classList.remove('hidden');
+                            document.getElementById('downloadBtn').href = job.download_url;
+                            log('📥 Download ready!', 'success');
+                        }
+                    }
+
+                    if (job.payment_status === 'Paid' && job.status === 'Done') {
                         log('🎉 Job complete and paid!', 'success');
                         stopStatusPolling();
+                        loadJobHistory();
                     }
-                } else if (response.status === 404) {
-                    log('⏳ Job not processed yet, waiting...', 'info');
                 }
             } catch (error) {
                 log(`⚠️ Status check error: ${error.message}`, 'error');
@@ -319,6 +466,37 @@
                 statusCheckInterval = null;
             }
         }
+
+        document.getElementById('supportSubmit').addEventListener('click', async () => {
+            const name = document.getElementById('supportName').value;
+            const email = document.getElementById('supportEmail').value;
+            const message = document.getElementById('supportMessage').value;
+
+            if (!name || !email || !message) {
+                log('❌ Please fill in all support form fields', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/public/support', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, message })
+                });
+
+                const data = await response.json();
+                if (data.ok) {
+                    log('✅ Support request sent! We\'ll get back to you soon.', 'success');
+                    document.getElementById('supportName').value = '';
+                    document.getElementById('supportEmail').value = '';
+                    document.getElementById('supportMessage').value = '';
+                } else {
+                    log(`❌ Support request failed: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, 'error');
+            }
+        });
 
         const uploadArea = document.getElementById('uploadArea');
         const fileInput = document.getElementById('fileInput');
@@ -352,7 +530,9 @@
             }
         });
 
-        log('🚀 Portal ready - upload your audio file to begin', 'success');
+        document.getElementById('emailInput').addEventListener('blur', loadJobHistory);
+
+        log('🚀 Portal ready - enter your email and upload your audio file to begin', 'success');
     </script>
 </body>
 </html>

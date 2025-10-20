@@ -1,0 +1,88 @@
+Open my Echopilotai Replit and implement Phase 26 in one go:
+
+🎯 OBJECTIVE:
+Upgrade the customer portal to provide a complete post-payment experience — email notifications, downloadable results, job history, and admin tools — without enabling live Stripe yet.
+
+──────────────────────────────
+1️⃣  FILES TO CREATE / UPDATE
+──────────────────────────────
+A. portal.html  
+   - Add new “Download Results” button (visible when Payment Status = Paid).  
+   - Add new “Job History” section listing the customer’s last 5 jobs (QA score, cost, status).  
+   - Add new “Subscribe for Updates” checkbox → triggers email notifications.  
+   - Add “Help / Support” link that opens a small contact form (name + message).
+
+B. run.py (+ ~300 lines)
+   Add / confirm the following endpoints:
+
+   ✅ /api/public/create-job (already exists — no change)  
+   ✅ /api/public/job-status/<cid> (add returned fields: drive_link + download_url)  
+   ✅ /api/public/checkout/<cid> (keep Stripe TEST mode only)  
+   ✅ /api/public/after-payment (already verifies webhook signature)  
+   NEW:
+   • /api/public/job-history/<email>  
+       → returns last 5 jobs from Job Log filtered by Owner Email  
+   • /api/public/send-email  
+       → sends job completion email (using Replit’s built-in sendmail or SMTP relay)  
+   • /api/public/support  
+       → logs support requests to Notion Partners DB or Support DB  
+   • /api/public/download/<cid>  
+       → returns signed download URL (if file stored in Drive or /tmp)
+
+C. bot/processor.py  
+   - On successful job completion, upload output file to Drive if enabled.  
+   - Save Drive URL to Job Log field “Drive Link”.  
+   - Call /send-email automatically if job’s Owner Email exists.
+
+D. new template: templates/email_job_complete.html  
+   → Simple HTML email template: “Your EchoPilot job is ready — QA: {{qa_score}}%, Duration: {{duration_min}} min, Download: {{download_url}}”
+
+E. logs/customer_email.log  
+   → Log every email send with timestamp, recipient, subject, status.
+
+──────────────────────────────
+2️⃣  LOGIC / WORKFLOW
+──────────────────────────────
+1. Customer uploads audio → creates Notion Automation Queue entry.  
+2. Bot processes job → creates Job Log entry with QA + duration.  
+3. Stripe payment (webhook test mode) updates Payment Status = Paid.  
+4. Processor detects Paid status → uploads output to Drive → emails customer.  
+5. Portal polls job status until Paid, then shows “Download Results”.  
+6. Customer can view recent jobs in Job History and contact support.
+
+──────────────────────────────
+3️⃣  SECURITY REQUIREMENTS
+──────────────────────────────
+- Keep STRIPE_SECRET_KEY in test mode only.  
+- Never expose API keys in JS.  
+- Verify webhook signatures (server-side).  
+- Sanitize email inputs (allow only valid RFC addresses).  
+- Rate-limit /send-email and /support to max 5 req / min per IP.  
+- Continue using DASHBOARD_KEY for internal endpoints only.  
+
+──────────────────────────────
+4️⃣  TEST PROCEDURE (REPLIT AI SHOULD RUN AFTER BUILD)
+──────────────────────────────
+1. Upload `sample1.mp3` via portal.  
+2. Wait ~60 s for processing.  
+3. Click “Pay Now” → use Stripe test card 4242 4242 4242 4242.  
+4. Confirm Job Log → Payment Status = Paid.  
+5. Verify email sent (log entry in customer_email.log).  
+6. Verify Download link working (opens signed URL or Drive file).  
+7. Refresh → Job History shows new entry.  
+8. Test /support form → verify Notion entry created.  
+
+──────────────────────────────
+5️⃣  COMMIT MESSAGE
+──────────────────────────────
+'Phase 26 – Customer Experience & Monetization Layer Added (Email + Download + History + Support)'
+
+──────────────────────────────
+6️⃣  POST-DEPLOY VERIFICATION
+──────────────────────────────
+Open:
+   https://echopilotai.replit.app/portal
+Confirm:
+   - Upload → Process → Pay → Email → Download flow works end-to-end.
+   - Logs updated: customer_portal.log, customer_email.log.
+   - QA ≥ 80 % and gross_usd > $0.50 (test mode checkout OK).

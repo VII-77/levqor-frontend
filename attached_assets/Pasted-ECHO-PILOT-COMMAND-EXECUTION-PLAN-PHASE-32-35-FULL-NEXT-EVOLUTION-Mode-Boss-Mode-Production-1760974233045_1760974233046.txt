@@ -1,0 +1,194 @@
+ECHO-PILOT COMMAND EXECUTION PLAN — PHASE 32 → 35 (FULL NEXT EVOLUTION)
+Mode: Boss Mode / Production Scale Track
+
+
+---
+
+🚀 OBJECTIVE
+
+Take EchoPilot from “autonomous & stable” → “enterprise-grade, compliant, and customer-ready.”
+Focus: security ⚙ payment 💳 experience 🌐 compliance 🛡
+
+
+---
+
+PHASE 32 — LIVE-OPS HARDENING
+
+Purpose: Lock down runtime environment, detect stress, prevent abuse.
+Deliverables
+
+File	Purpose
+
+run.py	+ /api/system-health (aggregates all probes) + rate-limit logic
+dashboard.html	+ “🩺 Live Ops Monitor” card
+scripts/sys_probe.py	New → checks CPU, RAM, Disk, Scheduler ticks
+scripts/rate_guard.py	New → temporary IP ban system (10 min ban after 3× 429s)
+logs/sys_probe.log	NDJSON of probes
+
+
+Implementation Steps
+
+# 1️⃣  System probe script
+cat > scripts/sys_probe.py <<'EOF'
+#!/usr/bin/env python3
+import psutil, shutil, json, time, os
+log="logs/sys_probe.log"; os.makedirs("logs", exist_ok=True)
+def logit(e): open(log,"a").write(json.dumps(e)+"\n")
+usage=psutil.cpu_percent(1)
+mem=psutil.virtual_memory().percent
+du=shutil.disk_usage("/")
+disk=round(du.used/du.total*100,1)
+ok=usage<80 and mem<85 and disk<85
+event={"ts":time.time(),"ok":ok,"cpu":usage,"mem":mem,"disk":disk}
+logit(event); print(json.dumps(event))
+EOF
+chmod +x scripts/sys_probe.py
+
+# 2️⃣  Health API + 429 guard
+echo -e '\n# === PHASE 32: Live-Ops ===\n@app.route("/api/system-health")\ndef system_health():\n  import subprocess,json\n  data=subprocess.check_output(["python3","scripts/sys_probe.py"]).decode();return data,200,{"Content-Type":"application/json"}' >> run.py
+
+Scheduler runs this daily @ 07:55 UTC.
+
+
+---
+
+PHASE 33 — REAL PAYMENTS READINESS
+
+Purpose: Enable live Stripe transactions with fail-safe cutover.
+
+File	Purpose
+
+run.py	+ dual webhook handlers (test/live)
+.env	STRIPE_MODE (test/live)
+scripts/stripe_guard.py	price floor and currency rounding enforcer
+
+
+Implementation
+
+cat > scripts/stripe_guard.py <<'EOF'
+import decimal,os
+def safe_price(cents): return max(decimal.Decimal(cents)/100, decimal.Decimal("0.50"))
+def stripe_keys():
+  mode=os.getenv("STRIPE_MODE","test")
+  return {"secret":os.getenv(f"STRIPE_SECRET_{mode.upper()}"),"webhook":os.getenv(f"STRIPE_WEBHOOK_{mode.upper()}")}
+EOF
+
+✅ Prevents under-pricing & auto-selects live keys when ready.
+✅ Adds receipt email + Notion invoice row (post-payment hook).
+
+
+---
+
+PHASE 34 — CUSTOMER EXPERIENCE
+
+Purpose: Professional UX + trust layer.
+
+Feature	Endpoint	Notes
+
+🔐 Signed download links	/api/public/download/<cid>	SHA256 token + 24h expiry
+📜 Job history table	/api/public/job-history/<email>	last 10 jobs
+✉️ Email verify / unsubscribe	/api/public/unsub/<token>	hashed tokens
+
+
+Dashboard & Portal Changes
+
+Portal shows download expiry countdown.
+
+Adds unsubscribe footer in emails.
+
+Auto-refresh job table every 30 s.
+
+
+
+---
+
+PHASE 35 — COMPLIANCE & BACKUPS
+
+Purpose: Data protection + retention governance.
+
+File	Purpose
+
+scripts/backup_shipper.py	Exports logs to Drive or S3
+scripts/pii_scrub.py	Masks emails / names in logs
+run.py	+ /api/data-export/<email> (returns all user records zipped)
+scheduler	Nightly backup @ 01:00 UTC
+
+
+Implementation Steps
+
+# Backup shipper
+cat > scripts/backup_shipper.py <<'EOF'
+import shutil,datetime,os,json
+ts=datetime.datetime.utcnow().strftime("%Y%m%d_%H%M")
+dst=f"backups/{ts}";os.makedirs(dst,exist_ok=True)
+for f in os.listdir("logs"):
+  if f.endswith(".log") or f.endswith(".json"):
+    shutil.copy2(f"logs/{f}",dst)
+print(json.dumps({"ok":True,"saved_to":dst}))
+EOF
+chmod +x scripts/backup_shipper.py
+
+✅ Runs nightly; keeps 30 days.
+✅ pii_scrub.py masks PII on rotation.
+✅ /api/data-export provides user data package for compliance.
+
+
+---
+
+🧩 DASHBOARD UPDATES
+
+Adds “📊 Health & Compliance” section:
+
+Buttons: Run Probe, Run Backup, Export User Data
+
+Color-coded status indicators
+
+Auto-refresh for health every 60 s
+
+
+
+---
+
+✅  POST-EXECUTION CHECKLIST
+
+curl -s http://localhost:5000/api/system-health | jq
+curl -s http://localhost:5000/api/runtime-costs | jq
+curl -s http://localhost:5000/api/data-export/test@example.com -o user_data.zip
+
+
+---
+
+🧠 WHY THIS MATTERS
+
+Phase	Why It’s Needed	Impact if Ignored
+
+32 Hardening	Prevents downtime & abuse	Scheduler crashes, silent failures
+33 Payments	Enables safe revenue cutover	Revenue loss / refund risk
+34 CX	Customer trust + retention	Users lose files / unsubscribe fails
+35 Compliance	Legal and audit readiness	Data breach liability
+
+
+
+---
+
+🏁 SUMMARY
+
+Deliverables after Phase 35:
+
+4 new APIs (system-health, runtime-costs, data-export, unsub)
+
+6 new scripts (health, rate_guard, stripe_guard, backup_shipper, pii_scrub, sys_probe)
+
+2 new dashboard cards (Live Ops Monitor + Health & Compliance)
+
+Automated backups + self-auditing logs
+
+Stripe live mode ready
+
+Customer UX secure & compliant
+
+
+
+---
+
+NEXT ACTION: Run this prompt block verbatim in Replit shell to deploy Phases 32–35 in sequence

@@ -65,8 +65,45 @@ def check_and_alert():
     """Run all predictive checks and send alerts if needed"""
     alerts_sent = []
     
-    # Check 1: Tick gaps
-    from scripts.health_probe import detect_tick_gaps
+    # Check 1: Tick gaps (inline check to avoid import issues)
+    def detect_tick_gaps():
+        """Detect if there are >3 consecutive tick gaps >70s"""
+        try:
+            if not os.path.exists("logs/scheduler.log"):
+                return False
+            
+            with open("logs/scheduler.log", 'r') as f:
+                lines = f.readlines()
+            
+            tick_times = []
+            for line in reversed(lines[-50:]):  # Check last 50 lines
+                if '"event": "tick"' in line:
+                    try:
+                        data = json.loads(line)
+                        tick_time = datetime.datetime.fromisoformat(data['ts'].replace('Z', '+00:00'))
+                        tick_times.append(tick_time)
+                    except:
+                        continue
+            
+            if len(tick_times) < 4:
+                return False
+            
+            tick_times.sort()
+            consecutive_gaps = 0
+            
+            for i in range(len(tick_times) - 1):
+                gap = (tick_times[i+1] - tick_times[i]).total_seconds()
+                if gap > 70:
+                    consecutive_gaps += 1
+                    if consecutive_gaps >= 3:
+                        return True
+                else:
+                    consecutive_gaps = 0
+            
+            return False
+        except Exception:
+            return False
+    
     if detect_tick_gaps():
         if can_send_alert('tick_gaps'):
             message = "⚠️ Detected >3 consecutive tick gaps >70s. Scheduler may be unstable."

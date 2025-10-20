@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EchoPilot Customer Portal</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .header p { opacity: 0.9; font-size: 1.1em; }
+        .content { padding: 40px; }
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 12px;
+            padding: 60px 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f8f9ff;
+        }
+        .upload-area:hover { border-color: #764ba2; background: #f0f2ff; }
+        .upload-area.dragover { border-color: #764ba2; background: #e8ebff; transform: scale(1.02); }
+        .upload-icon { font-size: 64px; margin-bottom: 20px; }
+        .upload-text { font-size: 18px; color: #666; margin-bottom: 10px; }
+        .upload-hint { font-size: 14px; color: #999; }
+        #fileInput { display: none; }
+        .status-box {
+            display: none;
+            margin-top: 30px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+        .status-box.show { display: block; }
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .status-item:last-child { border-bottom: none; }
+        .status-label { font-weight: 600; color: #333; }
+        .status-value { color: #666; }
+        .status-value.success { color: #27ae60; font-weight: 600; }
+        .status-value.pending { color: #f39c12; font-weight: 600; }
+        .status-value.error { color: #e74c3c; font-weight: 600; }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: inline-block;
+            text-decoration: none;
+            margin-top: 20px;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .log {
+            margin-top: 20px;
+            padding: 15px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .log-entry { margin-bottom: 8px; }
+        .log-time { color: #858585; }
+        .log-success { color: #4ec9b0; }
+        .log-error { color: #f48771; }
+        .log-info { color: #9cdcfe; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎙️ EchoPilot Portal</h1>
+            <p>Upload your audio, get AI processing with quality guarantee</p>
+        </div>
+
+        <div class="content">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">☁️</div>
+                <div class="upload-text">Drag & drop your audio file here</div>
+                <div class="upload-hint">or click to browse (MP3, WAV supported)</div>
+                <input type="file" id="fileInput" accept=".mp3,.wav">
+            </div>
+
+            <div class="progress-bar" id="progressBar" style="display:none;">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+
+            <div class="status-box" id="statusBox">
+                <h3 style="margin-bottom: 20px;">Job Status</h3>
+                <div class="status-item">
+                    <span class="status-label">Correlation ID:</span>
+                    <span class="status-value" id="correlationId">-</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Status:</span>
+                    <span class="status-value" id="jobStatus">-</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">QA Score:</span>
+                    <span class="status-value" id="qaScore">-</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Duration:</span>
+                    <span class="status-value" id="duration">-</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Cost:</span>
+                    <span class="status-value" id="cost">-</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Payment:</span>
+                    <span class="status-value" id="paymentStatus">-</span>
+                </div>
+                
+                <div id="paymentArea" style="display:none; text-align: center;">
+                    <a href="#" class="btn" id="payNowBtn">💳 Pay Now</a>
+                </div>
+            </div>
+
+            <div class="log" id="log"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentCorrelationId = null;
+        let statusCheckInterval = null;
+
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `<span class="log-time">[${time}]</span> <span class="log-${type}">${message}</span>`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function setProgress(percent) {
+            document.getElementById('progressFill').style.width = percent + '%';
+        }
+
+        function showProgress() {
+            document.getElementById('progressBar').style.display = 'block';
+        }
+
+        function hideProgress() {
+            document.getElementById('progressBar').style.display = 'none';
+        }
+
+        function showStatus() {
+            document.getElementById('statusBox').classList.add('show');
+        }
+
+        async function uploadFile(file) {
+            log(`Uploading ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)...`, 'info');
+            showProgress();
+            setProgress(10);
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                setProgress(30);
+                const response = await fetch('/api/public/create-job', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                setProgress(60);
+                const data = await response.json();
+
+                if (data.ok) {
+                    currentCorrelationId = data.data.correlation_id;
+                    document.getElementById('correlationId').textContent = currentCorrelationId;
+                    log(`✅ Job created: ${currentCorrelationId}`, 'success');
+                    setProgress(100);
+                    showStatus();
+                    startStatusPolling();
+                } else {
+                    log(`❌ Upload failed: ${data.error}`, 'error');
+                    hideProgress();
+                }
+            } catch (error) {
+                log(`❌ Upload error: ${error.message}`, 'error');
+                hideProgress();
+            }
+        }
+
+        async function checkJobStatus() {
+            if (!currentCorrelationId) return;
+
+            try {
+                const response = await fetch(`/api/public/job-status/${currentCorrelationId}`);
+                const data = await response.json();
+
+                if (data.ok && data.data) {
+                    const job = data.data;
+                    
+                    document.getElementById('jobStatus').textContent = job.status || 'Processing';
+                    document.getElementById('jobStatus').className = 'status-value ' + 
+                        (job.status === 'Completed' ? 'success' : 'pending');
+                    
+                    if (job.qa_score !== null) {
+                        document.getElementById('qaScore').textContent = job.qa_score + '%';
+                        document.getElementById('qaScore').className = 'status-value ' + 
+                            (job.qa_score >= 80 ? 'success' : 'error');
+                    }
+                    
+                    if (job.duration_min !== null) {
+                        document.getElementById('duration').textContent = job.duration_min.toFixed(1) + ' min';
+                    }
+                    
+                    if (job.gross_usd !== null) {
+                        document.getElementById('cost').textContent = '$' + job.gross_usd.toFixed(2);
+                    }
+                    
+                    if (job.payment_status) {
+                        document.getElementById('paymentStatus').textContent = job.payment_status;
+                        document.getElementById('paymentStatus').className = 'status-value ' + 
+                            (job.payment_status === 'Paid' ? 'success' : 'pending');
+                    }
+
+                    if (job.payment_link && job.payment_status !== 'Paid') {
+                        document.getElementById('paymentArea').style.display = 'block';
+                        document.getElementById('payNowBtn').href = job.payment_link;
+                        log('💳 Payment link ready', 'info');
+                    }
+
+                    if (job.payment_status === 'Paid' && job.status === 'Completed') {
+                        log('🎉 Job complete and paid!', 'success');
+                        stopStatusPolling();
+                    }
+                } else if (response.status === 404) {
+                    log('⏳ Job not processed yet, waiting...', 'info');
+                }
+            } catch (error) {
+                log(`⚠️ Status check error: ${error.message}`, 'error');
+            }
+        }
+
+        function startStatusPolling() {
+            checkJobStatus();
+            statusCheckInterval = setInterval(checkJobStatus, 5000);
+        }
+
+        function stopStatusPolling() {
+            if (statusCheckInterval) {
+                clearInterval(statusCheckInterval);
+                statusCheckInterval = null;
+            }
+        }
+
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && (file.type === 'audio/mpeg' || file.type === 'audio/wav')) {
+                uploadFile(file);
+            } else {
+                log('❌ Please upload MP3 or WAV files only', 'error');
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                uploadFile(file);
+            }
+        });
+
+        log('🚀 Portal ready - upload your audio file to begin', 'success');
+    </script>
+</body>
+</html>

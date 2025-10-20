@@ -870,6 +870,287 @@ def api_release_captain():
             "error": str(e)
         }), 500
 
+@app.route('/portal')
+def portal():
+    """Serve customer portal"""
+    return send_from_directory('.', 'portal.html')
+
+@app.route('/api/public/create-job', methods=['POST'])
+def api_public_create_job():
+    """Customer Portal: Create new job from uploaded file"""
+    import uuid
+    import datetime
+    from werkzeug.utils import secure_filename
+    from pathlib import Path
+    
+    try:
+        # Log to customer portal log
+        log_file = Path('logs/customer_portal.log')
+        log_file.parent.mkdir(exist_ok=True)
+        
+        def log_portal(msg):
+            with open(log_file, 'a') as f:
+                ts = datetime.datetime.utcnow().isoformat() + 'Z'
+                f.write(f"[{ts}] {msg}\n")
+        
+        if 'file' not in request.files:
+            return jsonify({"ok": False, "error": "No file uploaded"}), 400
+        
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({"ok": False, "error": "Empty filename"}), 400
+        
+        # Generate correlation ID
+        correlation_id = str(uuid.uuid4())[:8]
+        filename = secure_filename(file.filename)
+        
+        # Save file to tmp
+        tmp_dir = Path('tmp')
+        tmp_dir.mkdir(exist_ok=True)
+        file_path = tmp_dir / f"{correlation_id}_{filename}"
+        file.save(str(file_path))
+        
+        log_portal(f"File uploaded: {filename} ({file_path.stat().st_size} bytes), CID: {correlation_id}")
+        
+        # Create Notion Automation Queue entry
+        from bot.notion_api import NotionClientWrapper
+        from bot import config
+        
+        if not config.AUTOMATION_QUEUE_DB_ID:
+            return jsonify({"ok": False, "error": "Automation Queue not configured"}), 500
+        
+        notion = NotionClientWrapper()
+        properties = {
+            "Task Name": {
+                "title": [{"text": {"content": f"Customer Upload {correlation_id}"}}]
+            },
+            "Description": {
+                "rich_text": [{"text": {"content": f"File: {filename}\nCorrelation ID: {correlation_id}\nPath: {file_path}"}}]
+            },
+            "Trigger": {
+                "checkbox": True
+            },
+            "Status": {
+                "select": {"name": "Pending"}
+            }
+        }
+        
+        result = notion.create_page(config.AUTOMATION_QUEUE_DB_ID, properties)
+        log_portal(f"Notion entry created: {result.get('id')}, CID: {correlation_id}")
+        
+        return jsonify({
+            "ok": True,
+            "data": {
+                "correlation_id": correlation_id,
+                "filename": filename,
+                "size_bytes": file_path.stat().st_size,
+                "message": "Job created and queued for processing"
+            }
+        }), 200
+        
+    except Exception as e:
+        log_portal(f"Create job error: {str(e)}")
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/public/job-status/<correlation_id>')
+def api_public_job_status(correlation_id):
+    """Customer Portal: Get job status by correlation ID"""
+    try:
+        from bot.notion_api import NotionClientWrapper
+        from bot import config
+        
+        if not config.JOB_LOG_DB_ID:
+            return jsonify({"ok": False, "error": "Job Log not configured"}), 500
+        
+        notion = NotionClientWrapper()
+        
+        # Search Job Log by correlation ID (in Job Name or Notes)
+        results = notion.query_database(
+            config.JOB_LOG_DB_ID,
+            filter_criteria={
+                "or": [
+                    {
+                        "property": "Job Name",
+                        "title": {
+                            "contains": correlation_id
+                        }
+                    },
+                    {
+                        "property": "Notes",
+                        "rich_text": {
+                            "contains": correlation_id
+                        }
+                    }
+                ]
+            }
+        )
+        
+        if not results:
+            return jsonify({"ok": False, "error": "Job not found (still processing or not yet created)"}), 404
+        
+        job = results[0]
+        props = job.get('properties', {})
+        
+        def get_prop(name, prop_type='number'):
+            try:
+                if prop_type == 'number':
+                    return props.get(name, {}).get('number')
+                elif prop_type == 'title':
+                    title_arr = props.get(name, {}).get('title', [])
+                    return title_arr[0].get('text', {}).get('content', '') if title_arr else ''
+                elif prop_type == 'select':
+                    return props.get(name, {}).get('select', {}).get('name')
+                elif prop_type == 'url':
+                    return props.get(name, {}).get('url')
+            except:
+                return None
+        
+        return jsonify({
+            "ok": True,
+            "data": {
+                "correlation_id": correlation_id,
+                "job_name": get_prop('Job Name', 'title'),
+                "status": get_prop('Status', 'select') or 'Processing',
+                "qa_score": get_prop('QA Score'),
+                "duration_sec": get_prop('Duration Sec'),
+                "duration_min": get_prop('Duration Min'),
+                "gross_usd": get_prop('Gross USD'),
+                "payment_status": get_prop('Payment Status', 'select'),
+                "payment_link": get_prop('Payment Link', 'url')
+            }
+        }), 200
+        
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/public/checkout/<correlation_id>')
+def api_public_checkout(correlation_id):
+    """Customer Portal: Create Stripe Checkout Session"""
+    try:
+        import stripe
+        from bot import config
+        
+        stripe_key = os.getenv('STRIPE_SECRET_KEY', '')
+        if not stripe_key:
+            return jsonify({"ok": False, "error": "Stripe not configured"}), 500
+        
+        stripe.api_key = stripe_key
+        
+        # Get job details from Job Log
+        from bot.notion_api import NotionClientWrapper
+        notion = NotionClientWrapper()
+        
+        results = notion.query_database(
+            config.JOB_LOG_DB_ID,
+            filter_criteria={
+                "property": "Job Name",
+                "title": {
+                    "contains": correlation_id
+                }
+            }
+        )
+        
+        if not results:
+            return jsonify({"ok": False, "error": "Job not found"}), 404
+        
+        job = results[0]
+        props = job.get('properties', {})
+        gross_usd = props.get('Gross USD', {}).get('number') or 10.0
+        job_name = props.get('Job Name', {}).get('title', [{}])[0].get('text', {}).get('content', 'AI Processing Job')
+        
+        # Create Stripe Checkout Session
+        domain = os.getenv('REPLIT_DOMAINS', 'localhost').split(',')[0]
+        if not domain.startswith('http'):
+            domain = f'https://{domain}'
+        
+        session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'usd',
+                    'product_data': {
+                        'name': job_name,
+                        'description': f'EchoPilot AI Processing (ID: {correlation_id})'
+                    },
+                    'unit_amount': int(gross_usd * 100)
+                },
+                'quantity': 1
+            }],
+            mode='payment',
+            success_url=f'{domain}/portal?success=true&cid={correlation_id}',
+            cancel_url=f'{domain}/portal?canceled=true&cid={correlation_id}',
+            metadata={
+                'correlation_id': correlation_id,
+                'job_id': job.get('id')
+            }
+        )
+        
+        # Update Job Log with payment link
+        notion.update_page(job.get('id'), {
+            "Payment Link": {"url": session.url}
+        })
+        
+        return jsonify({
+            "ok": True,
+            "data": {
+                "checkout_url": session.url,
+                "session_id": session.id,
+                "amount_usd": gross_usd
+            }
+        }), 200
+        
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/public/after-payment', methods=['POST'])
+def api_public_after_payment():
+    """Customer Portal: Stripe webhook handler for payment completion"""
+    try:
+        import stripe
+        from bot import config
+        
+        stripe_key = os.getenv('STRIPE_SECRET_KEY', '')
+        webhook_secret = os.getenv('STRIPE_WEBHOOK_SECRET', '')
+        
+        if not stripe_key or not webhook_secret:
+            return jsonify({"ok": False, "error": "Stripe not configured"}), 500
+        
+        stripe.api_key = stripe_key
+        
+        payload = request.data
+        sig_header = request.headers.get('Stripe-Signature')
+        
+        try:
+            event = stripe.Webhook.construct_event(
+                payload, sig_header, webhook_secret
+            )
+        except ValueError:
+            return jsonify({"ok": False, "error": "Invalid payload"}), 400
+        except stripe.error.SignatureVerificationError:
+            return jsonify({"ok": False, "error": "Invalid signature"}), 400
+        
+        # Handle checkout.session.completed event
+        if event['type'] == 'checkout.session.completed':
+            session = event['data']['object']
+            correlation_id = session.get('metadata', {}).get('correlation_id')
+            job_id = session.get('metadata', {}).get('job_id')
+            
+            if job_id:
+                # Update Job Log payment status
+                from bot.notion_api import NotionClientWrapper
+                notion = NotionClientWrapper()
+                notion.update_page(job_id, {
+                    "Payment Status": {"select": {"name": "Paid"}}
+                })
+                
+                print(f"[Payment Webhook] Job {correlation_id} marked as Paid")
+        
+        return jsonify({"ok": True}), 200
+        
+    except Exception as e:
+        print(f"[Payment Webhook] Error: {e}")
+        return jsonify({"ok": False, "error": str(e)}), 500
+
 @app.route('/api/preflight-audit')
 def api_preflight_audit():
     """Phase 25 Pre-Flight Audit - comprehensive production readiness check"""

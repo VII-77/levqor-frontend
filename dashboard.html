@@ -173,8 +173,14 @@
             <button onclick="flipToPaid()">💰 Flip to Paid</button>
             <button onclick="getMetricsSummary()">📈 Metrics Summary</button>
             <button onclick="runFullValidation()">🔍 Run Full Validation</button>
+        </div>
+
+        <div class="button-grid">
+            <h3 style="grid-column: 1/-1; margin: 15px 0 5px 0; font-size: 16px; color: #667eea;">⚙️ Operations Tools (Phase 27 & 28)</h3>
             <button onclick="runSelfHeal()">🔧 Self-Heal</button>
             <button onclick="getFinanceMetrics()">💰 Finance Metrics</button>
+            <button onclick="triggerAlerts()">🚨 Alert Check</button>
+            <button onclick="runOptimizer()">🧠 Run Optimizer</button>
         </div>
 
         <div class="metrics-section">
@@ -372,6 +378,35 @@
                     `   Jobs (7d): ${m.jobs_7d} | (30d): ${m.jobs_30d}\n` +
                     (data.warnings.length ? `   Warnings: ${data.warnings.join('; ')}` : ''),
                     'success');
+            }
+        }
+
+        async function triggerAlerts() {
+            log('Running alert check...', 'warning');
+            const data = await apiCall('/api/alerts/trigger', 'POST');
+            if (data && data.ok) {
+                const alertType = data.triggered ? 'warning' : 'success';
+                log(`\n🚨 ALERT CHECK:\n` +
+                    `   Triggered: ${data.triggered}\n` +
+                    `   Target: ${data.target}\n` +
+                    `   Reasons: ${data.reason.length > 0 ? data.reason.join('; ') : 'None'}\n` +
+                    `   Timestamp: ${data.ts}`,
+                    alertType);
+            }
+        }
+
+        async function runOptimizer() {
+            log('Running adaptive optimizer...', 'warning');
+            const data = await apiCall('/api/optimizer/run', 'POST');
+            if (data && data.ok) {
+                const changed = data.old_rate !== data.new_rate;
+                log(`\n🧠 OPTIMIZER RESULTS:\n` +
+                    `   Old Rate: $${data.old_rate}/min\n` +
+                    `   New Rate: $${data.new_rate}/min\n` +
+                    `   Avg QA: ${data.avg_qa}%\n` +
+                    `   Margin: ${data.margin_pct}%\n` +
+                    `   Reason: ${data.reason}`,
+                    changed ? 'warning' : 'success');
             }
         }
 

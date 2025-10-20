@@ -2246,6 +2246,283 @@ def growth_subscribe():
         return jsonify({"ok": False, "error": str(e)}), 500
 
 
+# ============================================================================
+# PHASE 28: AUTONOMOUS OPS EXPANSION
+# ============================================================================
+
+def send_telegram(message):
+    """
+    Send Telegram message via Bot API.
+    Returns {"ok": True/False, "details": str}
+    """
+    token = os.getenv('TELEGRAM_BOT_TOKEN', '').strip()
+    chat_id = os.getenv('TELEGRAM_CHAT_ID', '').strip()
+    
+    if not (token and chat_id):
+        return {"ok": False, "details": "Telegram not configured"}
+    
+    try:
+        url = f"https://api.telegram.org/bot{token}/sendMessage"
+        payload = {
+            "chat_id": chat_id,
+            "text": message,
+            "parse_mode": "HTML"
+        }
+        response = requests.post(url, json=payload, timeout=10)
+        
+        if response.status_code == 200:
+            return {"ok": True, "details": "Sent successfully"}
+        else:
+            return {"ok": False, "details": f"HTTP {response.status_code}: {response.text[:100]}"}
+    
+    except Exception as e:
+        return {"ok": False, "details": str(e)}
+
+
+@app.route('/api/alerts/trigger', methods=['POST'])
+@require_dashboard_key
+def trigger_alerts():
+    """
+    Alerting system: check self-heal + finance metrics, send alerts if thresholds exceeded.
+    Requires X-Dash-Key header.
+    """
+    from pathlib import Path
+    from datetime import datetime, timedelta
+    
+    log_file = Path('logs/alerts.log')
+    log_file.parent.mkdir(exist_ok=True)
+    
+    def log_alert(data):
+        with open(log_file, 'a') as f:
+            import json
+            f.write(json.dumps({"ts": datetime.utcnow().isoformat() + 'Z', **data}) + '\n')
+    
+    try:
+        triggered = False
+        reasons = []
+        target = "none"
+        
+        # 1) Check self-heal log for retry count in last 24h
+        retry_count_24h = 0
+        try:
+            if log_file.exists():
+                cutoff = datetime.utcnow() - timedelta(hours=24)
+                with open('logs/self_heal.log', 'r') as f:
+                    for line in f:
+                        try:
+                            entry = json.loads(line.strip())
+                            entry_ts = datetime.fromisoformat(entry.get('ts', '').replace('Z', '+00:00'))
+                            if entry_ts > cutoff and entry.get('action') == 'retry_queued':
+                                retry_count_24h += 1
+                        except:
+                            pass
+        except:
+            pass
+        
+        if retry_count_24h > 3:
+            triggered = True
+            reasons.append(f"Self-heal retries: {retry_count_24h} in 24h (threshold: 3)")
+        
+        # 2) Check finance metrics for QA and profit
+        try:
+            metrics_resp = requests.get(
+                'http://localhost:5000/api/finance-metrics',
+                headers={'X-Dash-Key': os.getenv('DASHBOARD_KEY', '')},
+                timeout=5
+            )
+            
+            if metrics_resp.status_code == 200:
+                finance_data = metrics_resp.json()
+                if finance_data.get('ok'):
+                    data = finance_data.get('data', {})
+                    profit_7d = data.get('profit_7d', 0)
+                    
+                    if profit_7d < 0:
+                        triggered = True
+                        reasons.append(f"Negative profit_7d: ${profit_7d:.2f}")
+        except:
+            pass
+        
+        # 3) Check metrics-summary for avg_qa_7d
+        try:
+            summary_resp = requests.get(
+                'http://localhost:5000/api/metrics-summary',
+                headers={'X-Dash-Key': os.getenv('DASHBOARD_KEY', '')},
+                timeout=5
+            )
+            
+            if summary_resp.status_code == 200:
+                summary_data = summary_resp.json()
+                if summary_data.get('ok'):
+                    avg_qa_7d = summary_data.get('data', {}).get('avg_qa_7d', 100)
+                    
+                    if avg_qa_7d < 75:
+                        triggered = True
+                        reasons.append(f"Low QA: {avg_qa_7d:.1f}% (threshold: 75%)")
+        except:
+            pass
+        
+        # 4) Send alert if triggered
+        if triggered:
+            alert_message = f"🚨 <b>EchoPilot Alert</b>\n\n" + "\n".join([f"• {r}" for r in reasons])
+            
+            telegram_result = send_telegram(alert_message)
+            if telegram_result["ok"]:
+                target = "telegram"
+            else:
+                target = "log"
+                log_alert({"alert": "triggered", "reasons": reasons, "telegram_fail": telegram_result["details"]})
+        
+        # Always log the check
+        log_alert({
+            "alert": "checked",
+            "triggered": triggered,
+            "reasons": reasons,
+            "target": target
+        })
+        
+        return jsonify({
+            "ok": True,
+            "triggered": triggered,
+            "reason": reasons,
+            "target": target,
+            "ts": datetime.utcnow().isoformat() + 'Z'
+        }), 200
+    
+    except Exception as e:
+        log_alert({"alert": "error", "error": str(e)})
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@app.route('/api/optimizer/run', methods=['POST'])
+@require_dashboard_key
+def run_optimizer():
+    """
+    Adaptive tuning engine: adjust DEFAULT_RATE_USD_PER_MIN based on QA/margin.
+    Requires X-Dash-Key header.
+    """
+    from pathlib import Path
+    from bot import config
+    import json
+    
+    log_file = Path('logs/optimizer.log')
+    log_file.parent.mkdir(exist_ok=True)
+    runtime_config = Path('.env_runtime.json')
+    
+    def log_optimizer(data):
+        with open(log_file, 'a') as f:
+            f.write(json.dumps({"ts": datetime.utcnow().isoformat() + 'Z', **data}) + '\n')
+    
+    try:
+        # 1) Read last 20 jobs from Job Log
+        token = os.getenv('REPLIT_CONNECTORS_HOSTNAME')
+        job_log_id = config.JOB_LOG_DB_ID
+        
+        url = f"https://{token}/notion/v1/databases/{job_log_id}/query"
+        payload = {
+            "page_size": 20,
+            "sorts": [{"timestamp": "created_time", "direction": "descending"}]
+        }
+        response = requests.post(url, json=payload, timeout=10)
+        
+        if response.status_code != 200:
+            return jsonify({"ok": False, "error": f"Job Log query failed: {response.status_code}"}), 500
+        
+        data = response.json()
+        results = data.get('results', [])
+        
+        if not results:
+            return jsonify({"ok": False, "error": "No jobs found in Job Log"}), 404
+        
+        # 2) Compute avg QA and margin
+        total_qa = 0
+        total_revenue = 0
+        total_cost = 0
+        job_count = 0
+        
+        for page in results:
+            props = page.get('properties', {})
+            
+            qa_score = None
+            if 'QA Score' in props and props['QA Score'].get('number') is not None:
+                qa_score = props['QA Score']['number']
+            
+            gross_usd = 0
+            if 'Gross USD' in props and props['Gross USD'].get('number') is not None:
+                gross_usd = props['Gross USD']['number']
+            
+            profit_usd = 0
+            if 'Profit USD' in props and props['Profit USD'].get('number') is not None:
+                profit_usd = props['Profit USD']['number']
+            
+            if qa_score is not None:
+                total_qa += qa_score
+                job_count += 1
+            
+            total_revenue += gross_usd
+            total_cost += (gross_usd - profit_usd)
+        
+        if job_count == 0:
+            return jsonify({"ok": False, "error": "No jobs with QA scores"}), 404
+        
+        avg_qa = total_qa / job_count
+        margin_pct = ((total_revenue - total_cost) / total_revenue * 100) if total_revenue > 0 else 0
+        
+        # 3) Get current rate
+        old_rate = float(os.getenv('DEFAULT_RATE_USD_PER_MIN', '0.15'))
+        
+        # Load from runtime config if exists
+        if runtime_config.exists():
+            try:
+                with open(runtime_config, 'r') as f:
+                    runtime_data = json.load(f)
+                    old_rate = float(runtime_data.get('DEFAULT_RATE_USD_PER_MIN', old_rate))
+            except:
+                pass
+        
+        # 4) Adjust rate by ±5%
+        new_rate = old_rate
+        reason = "No change"
+        
+        if avg_qa >= 95 and margin_pct > 25:
+            new_rate = old_rate * 1.05
+            reason = f"Increase: QA={avg_qa:.1f}%, margin={margin_pct:.1f}%"
+        elif avg_qa < 80 or margin_pct < 10:
+            new_rate = old_rate * 0.95
+            reason = f"Decrease: QA={avg_qa:.1f}%, margin={margin_pct:.1f}%"
+        
+        # 5) Save to runtime config
+        with open(runtime_config, 'w') as f:
+            json.dump({
+                "DEFAULT_RATE_USD_PER_MIN": round(new_rate, 4),
+                "updated_at": datetime.utcnow().isoformat() + 'Z'
+            }, f, indent=2)
+        
+        # 6) Log change
+        log_optimizer({
+            "action": "adjust_rate",
+            "old_rate": round(old_rate, 4),
+            "new_rate": round(new_rate, 4),
+            "avg_qa": round(avg_qa, 2),
+            "margin_pct": round(margin_pct, 2),
+            "reason": reason
+        })
+        
+        return jsonify({
+            "ok": True,
+            "old_rate": round(old_rate, 4),
+            "new_rate": round(new_rate, 4),
+            "avg_qa": round(avg_qa, 2),
+            "margin_pct": round(margin_pct, 2),
+            "reason": reason,
+            "ts": datetime.utcnow().isoformat() + 'Z'
+        }), 200
+    
+    except Exception as e:
+        log_optimizer({"action": "error", "error": str(e)})
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
 def run_bot():
     """Run the bot in a separate thread"""
     bot = EchoPilotBot()

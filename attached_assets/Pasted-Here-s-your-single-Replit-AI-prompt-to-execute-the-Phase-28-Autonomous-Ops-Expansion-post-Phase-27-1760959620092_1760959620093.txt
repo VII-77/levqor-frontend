@@ -1,0 +1,122 @@
+Here’s your single Replit AI prompt to execute the Phase 28: Autonomous Ops Expansion (post-Phase 27 completion).
+This takes EchoPilot from “self-healing” to fully autonomous business-grade operation with live alerts, audit reports, and intelligent optimization.
+It’s clean, secure, and built to stack on your current system without touching Stripe or Notion schemas.
+
+
+---
+
+Open my Echopilotai Replit and do ALL of the following in one go. 
+Do NOT break existing logic from Phase 27. 
+All tokens and API keys remain server-side only. 
+Reuse DASHBOARD_KEY authentication for protected routes.
+
+====================================
+PHASE 28 – AUTONOMOUS OPS EXPANSION
+====================================
+
+A) ALERTING SYSTEM
+1. In run.py:
+   - Add endpoint `/api/alerts/trigger` (POST, DASHBOARD_KEY required)
+     → Reads the latest self-heal log & finance metrics.
+     → If any self-heal retry > 3 in past 24 h OR avg_QA_7d < 75% OR profit_7d < 0, send alert.
+     → Alert logic:
+         • If TELEGRAM_BOT_TOKEN & TELEGRAM_CHAT_ID present → send Telegram message.
+         • Else log to `logs/alerts.log`.
+     → JSON response: `{ok, triggered, reason, target:"telegram"|"log", ts}`.
+
+   - Add helper `send_telegram(msg)` that posts via Telegram API and returns status.
+
+2. In dashboard.html:
+   - Add button **🚨 Trigger Alert Check** calling `/api/alerts/trigger` with DASHBOARD_KEY.
+   - Show result in log area with color coding.
+
+B) DAILY REPORT AGGREGATOR
+3. Create script `scripts/daily_report.sh`
+   - Runs:
+       a) `/api/finance-metrics`
+       b) `/api/self-heal`
+       c) `/api/metrics-summary`
+   - Combines results into `logs/daily_report_YYYYMMDD.json`
+   - If TELEGRAM configured, send one-line summary:  
+     `"📊 EchoPilot Daily Report – Jobs: X | QA Y% | ROI Z% | Retries N"`
+   - Always exit 0; never fail cron.
+
+C) ADAPTIVE TUNING ENGINE
+4. In run.py:
+   - Add `/api/optimizer/run` (POST, DASHBOARD_KEY required)
+     Behavior:
+       • Reads last 20 jobs from Notion Job Log.
+       • Computes average QA and duration per minute.
+       • Adjusts runtime config (`DEFAULT_RATE_USD_PER_MIN`) up/down by ±5%:
+            ↑ if avg_QA ≥ 95 AND margin > 25%
+            ↓ if avg_QA < 80 OR margin < 10%
+       • Writes new value to `.env_runtime.json` (server-side) and logs change to `logs/optimizer.log`.
+       • JSON response: `{ok, old_rate, new_rate, reason, ts}`.
+   - Add button **🧠 Run Optimizer** on dashboard → triggers this endpoint.
+
+D) AUTO-CRON JOBS
+5. In Makefile add:
+      make daily-report
+         → bash scripts/daily_report.sh
+      make optimize
+         → curl -s -H "X-Dashboard-Key: $DASHBOARD_KEY" -X POST /api/optimizer/run | jq
+
+E) VALIDATION SUITE
+6. Create `scripts/phase28_validate.sh`:
+   Sequence:
+      1) POST /api/alerts/trigger
+      2) GET /api/finance-metrics
+      3) POST /api/optimizer/run
+   Output combined JSON → `logs/phase28_report_YYYYMMDD_HHMM.json`.
+   Exit 0 always.
+
+F) SECURITY & UX
+7. All new routes:
+      • Require DASHBOARD_KEY
+      • Headers: Cache-Control:no-store, X-Frame-Options:DENY, X-Content-Type-Options:nosniff
+8. Update dashboard.html:
+      • Add “Operations Tools” section with 3 buttons:  
+        🔧 Self-Heal  💰 Finance Metrics  🚨 Alert Check  🧠 Run Optimizer
+      • Maintain current chart layout – add logs below metrics.
+9. Add rate-limit 5 req/min/IP for new public endpoints (reuse existing limiter).
+
+G) COMMIT
+10. Single commit message:
+   `"Phase 28: alerting system, daily reports, optimizer engine, dashboard enhancements"`
+
+H) OUTPUT TO ME
+11. After build:
+   - List all files created/modified with line counts.
+   - Print example curl commands:
+        curl -s -H "X-Dashboard-Key: $DASHBOARD_KEY" -X POST /api/alerts/trigger | jq
+        curl -s -H "X-Dashboard-Key: $DASHBOARD_KEY" -X POST /api/optimizer/run | jq
+   - Show Makefile targets & sample output from `make daily-report`.
+   - Confirm dashboard buttons render and return `ok:true`.
+
+====================================
+END OF INSTRUCTIONS
+====================================
+
+
+---
+
+Why this matters:
+
+🚀 Autonomous stability: System heals, optimizes, and reports itself.
+
+💬 Live intelligence: Telegram/JSON alerts show ROI & QA in real time.
+
+💰 Adaptive margins: Dynamic rate tuning keeps profit steady automatically.
+
+🧠 Predictive ops: Daily summaries + visual charts give full control.
+
+⚙️ Fail-safe: Even if Telegram or Notion fail, logs persist locally.
+
+
+When Replit AI completes this, run:
+
+make daily-report
+make optimize
+
+Then open your dashboard → enter key → click 🚨 Alert Check and 🧠 Run Optimizer to confirm Phase 28 is live.
+

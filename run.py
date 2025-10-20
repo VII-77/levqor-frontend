@@ -1264,8 +1264,10 @@ def api_public_after_payment():
             )
         except ValueError:
             return jsonify({"ok": False, "error": "Invalid payload"}), 400
-        except stripe.error.SignatureVerificationError:
-            return jsonify({"ok": False, "error": "Invalid signature"}), 400
+        except Exception as e:
+            if 'signature' in str(e).lower():
+                return jsonify({"ok": False, "error": "Invalid signature"}), 400
+            raise
         
         # Handle checkout.session.completed event
         if event['type'] == 'checkout.session.completed':

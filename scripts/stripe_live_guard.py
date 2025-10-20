@@ -91,7 +91,7 @@ def create_invoice(amount_usd, email, description="EchoPilot Job"):
             "amount_usd": safe_amount
         }
         
-    except stripe.error.StripeError as e:
+    except Exception as e:
         return {
             "ok": False,
             "error": str(e),

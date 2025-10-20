@@ -1,0 +1,49 @@
+Open my EchopilotAI Replit and do ALL of this in one pass to finalize Phase 30 with Workflow-based persistence + proof:
+
+1) Migrate scheduler to Replit Workflow (primary path)
+  - Create a workflow named "Scheduler" that runs:
+      python3 scripts/exec_scheduler.py
+    • It must run in the project root, foreground, restart on crash, and persist logs.
+    • Confirm logs/scheduler.log receives a startup line and minute "tick" heartbeats.
+
+2) Keep CLI controls as fallback (do not remove)
+  - Retain scripts/run_automations.sh (start/stop/status) and the /api/automations/* endpoints.
+  - If workflows are unavailable, those controls must still work manually.
+
+3) Hardening checks (fix if missing)
+  - scripts/exec_scheduler.py:
+      • Writes PID to logs/scheduler.pid on start, removes it on clean exit.
+      • SIGTERM/SIGINT handlers log {"event":"shutdown"} then exit(0).
+      • Main loop: every 60s write NDJSON {"event":"tick","next":{brief,report,selfheal}} to logs/scheduler.log.
+      • On startup, retention runs once (log start/done).
+      • All exceptions caught and logged; loop never dies silently.
+  - dashboard.html (⚙️ Automations):
+      • Start/Stop/Status buttons call /api/automations/*.
+      • Add "Auto-refresh status" toggle (every 10s) showing running, PID, last_activity.
+
+4) Verification (execute and include results in your final output)
+  A. Start the Scheduler via Workflow UI programmatically (if supported) or document the exact steps; ALSO start via API as fallback:
+     curl -s -H "X-Dash-Key: $DASHBOARD_KEY" -X POST http://localhost:5000/api/automations/start | python3 -m json.tool
+  B. Wait ~70s; then show:
+     - /api/automations/status JSON
+     - Last 10 lines of logs/scheduler.log (must include ≥1 "tick")
+  C. Manual autonomy cycle (prove core ops still work):
+     DASHBOARD_KEY=$DASHBOARD_KEY make run-brief
+     DASHBOARD_KEY=$DASHBOARD_KEY make run-selfheal
+     curl -s -H "X-Dash-Key: $DASHBOARD_KEY" http://localhost:5000/api/metrics-summary | python3 -m json.tool
+  D. Stop + Start again to prove clean lifecycle:
+     curl -s -H "X-Dash-Key: $DASHBOARD_KEY" -X POST http://localhost:5000/api/automations/stop | python3 -m json.tool
+     curl -s -H "X-Dash-Key: $DASHBOARD_KEY" -X POST http://localhost:5000/api/automations/start | python3 -m json.tool
+
+5) Deliverables (return these verbatim)
+  - STATUS JSON (from /api/automations/status) showing running:true and a PID.
+  - Last 10 lines of logs/scheduler.log (must include at least one {"event":"tick"} line).
+  - Paths of the latest CEO brief JSON/HTML.
+  - One-line summary of self-heal result.
+  - Confirmation that dashboard auto-refresh shows live status updates.
+
+6) Commit
+  Commit message:
+  "Phase 30 final: Workflow-based persistent scheduler + dashboard auto-refresh + API controls (start/stop/status) + heartbeat proof"
+
+```0

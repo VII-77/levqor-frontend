@@ -945,9 +945,6 @@ def api_public_create_job():
         if email:
             properties["Owner Email"] = {"email": email}
         
-        if subscribe:
-            properties["Notes"] = {"rich_text": [{"text": {"content": f"Subscribe: Yes, Email: {email}"}}]}
-        
         result = notion.create_page(config.AUTOMATION_QUEUE_DB_ID, properties)
         log_portal(f"Notion entry created: {result.get('id')}, CID: {correlation_id}")
         

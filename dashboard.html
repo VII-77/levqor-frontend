@@ -210,8 +210,9 @@
 
         <div style="padding: 20px 30px 0;">
             <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #333;">Dashboard Access Key:</label>
-            <input type="password" id="dashKey" placeholder="Enter DASHBOARD_KEY" 
-                   style="width: 100%; padding: 12px; border: 2px solid #667eea; border-radius: 8px; font-size: 14px; margin-bottom: 15px;">
+            <input type="password" id="dashKey" placeholder="Enter DASHBOARD_KEY (press Enter to verify)" 
+                   style="width: 100%; padding: 12px; border: 2px solid #667eea; border-radius: 8px; font-size: 14px; margin-bottom: 15px;"
+                   onkeypress="handleDashKeyEnter(event)">
         </div>
 
         <div class="grid">
@@ -509,12 +510,26 @@
             });
         }
 
+        // Handle Enter key press on dashboard key input
+        function handleDashKeyEnter(event) {
+            if (event.key === 'Enter' || event.keyCode === 13) {
+                event.preventDefault();
+                const dashKey = document.getElementById('dashKey').value;
+                if (dashKey) {
+                    log('🔑 Dashboard key entered, verifying...', 'info');
+                    checkAutomationsStatus();
+                } else {
+                    log('⚠️ Please enter a dashboard key', 'warning');
+                }
+            }
+        }
+
         // Auto-populate dashboard key on page load
         window.addEventListener('DOMContentLoaded', () => {
             const dashKeyInput = document.getElementById('dashKey');
             const displayedKey = document.getElementById('dashboardKeyDisplay').textContent;
             dashKeyInput.value = displayedKey;
-            log('🔑 Dashboard key auto-loaded', 'success');
+            log('🔑 Dashboard key auto-loaded - Press Enter to verify or click any button', 'success');
         });
 
         async function apiCall(endpoint, method = 'GET', body = null) {

@@ -144,12 +144,13 @@ def main():
             print(f"❌ QA {initial_qa}% < 80: NEEDS REVIEW")
             qa_status = "Needs Review"
             # Update Job Log with QA Status if field exists
-            try:
-                n.update_page(job_page_id, {
-                    "Notes": {"rich_text": [{"text": {"content": f"QA Status: Needs Review (score: {initial_qa}%)"}}]}
-                })
-            except:
-                pass
+            if job_page_id:
+                try:
+                    n.update_page(job_page_id, {
+                        "Notes": {"rich_text": [{"text": {"content": f"QA Status: Needs Review (score: {initial_qa}%)"}}]}
+                    })
+                except:
+                    pass
         print()
     
     # Step 4: Finance guardrails (auto-close when QA ≥ 95)

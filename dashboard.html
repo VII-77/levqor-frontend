@@ -240,6 +240,25 @@
         </div>
         <!-- ==================== END POST-DEPLOY CHECKLIST ==================== -->
 
+        <!-- ==================== HEALTH & COSTS (Phase 31) ==================== -->
+        <div class="button-grid" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a7b 100%); padding: 20px; border-radius: 12px; margin: 20px 0;">
+            <h3 style="grid-column: 1/-1; margin: 0 0 15px 0; font-size: 16px; color: #fff;">📊 Health & Costs</h3>
+            <div id="healthStatus" style="grid-column: 1/-1; margin-bottom: 15px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <span style="font-size: 14px; color: #ddd;">System Health:</span>
+                    <span id="healthIndicator" style="font-size: 18px;">⏳</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 14px; color: #ddd;">Weekly Costs:</span>
+                    <span id="costIndicator" style="font-size: 16px; color: #4ade80; font-weight: bold;">$0.00</span>
+                </div>
+            </div>
+            <button onclick="runHealthProbe()" style="grid-column: 1/2; background: #10b981;">⟳ Run Health Probe</button>
+            <button onclick="getCosts()" style="grid-column: 2/-1; background: #3b82f6;">💰 Refresh Costs</button>
+            <p id="healthResult" style="grid-column: 1/-1; font-size: 12px; color: #ccc; margin-top: 10px; min-height: 20px;"></p>
+        </div>
+        <!-- ==================== END HEALTH & COSTS ==================== -->
+
         <div class="metrics-section">
             <div class="metrics-header">
                 <h2>📊 Metrics Visualization</h2>
@@ -682,6 +701,70 @@
             } catch (e) {
                 result.textContent = '❌ Error: ' + e.message;
                 log('🧾 Post-deploy checklist: ERROR - ' + e.message, 'error');
+            }
+        }
+
+        async function runHealthProbe() {
+            const dashKey = document.getElementById('dashKey').value;
+            const result = document.getElementById('healthResult');
+            const indicator = document.getElementById('healthIndicator');
+            
+            result.textContent = 'Running 5-point health probe...';
+            indicator.textContent = '⏳';
+
+            try {
+                const res = await fetch('/api/system-health', {
+                    headers: { 'X-Dash-Key': dashKey }
+                });
+                const data = await res.json();
+
+                if (data.ok) {
+                    indicator.textContent = '✅';
+                    result.textContent = 'All systems healthy';
+                    log('📊 Health probe: ALL CHECKS PASSED', 'success');
+                } else {
+                    indicator.textContent = '⚠️';
+                    const issues = data.issues?.join(', ') || 'Unknown issues';
+                    result.textContent = `Issues detected: ${issues}`;
+                    log(`📊 Health probe: ISSUES - ${issues}`, 'warning');
+                }
+
+                // Log component details
+                if (data.components) {
+                    log(`Components: ${JSON.stringify(data.components)}`, 'info');
+                }
+
+            } catch (e) {
+                indicator.textContent = '❌';
+                result.textContent = '❌ Error: ' + e.message;
+                log('📊 Health probe: ERROR - ' + e.message, 'error');
+            }
+        }
+
+        async function getCosts() {
+            const dashKey = document.getElementById('dashKey').value;
+            const costIndicator = document.getElementById('costIndicator');
+            const result = document.getElementById('healthResult');
+
+            try {
+                const res = await fetch('/api/runtime-costs', {
+                    headers: { 'X-Dash-Key': dashKey }
+                });
+                const data = await res.json();
+
+                if (data.ok && data.data) {
+                    const total = data.data.total_usd || 0;
+                    costIndicator.textContent = `$${total.toFixed(2)}`;
+                    result.textContent = `Cost breakdown: ${JSON.stringify(data.data.breakdown)}`;
+                    log(`💰 Runtime costs: $${total.toFixed(2)} (${data.data.period})`, 'success');
+                } else {
+                    costIndicator.textContent = '$?.??';
+                    log('💰 Runtime costs: Failed to fetch', 'warning');
+                }
+
+            } catch (e) {
+                costIndicator.textContent = '$?.??';
+                log('💰 Runtime costs: ERROR - ' + e.message, 'error');
             }
         }
 

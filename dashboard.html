@@ -136,6 +136,8 @@
             <button onclick="createTestJob()">🎯 Create Test Job</button>
             <button onclick="getLatestJob()">📋 Refresh Jobs</button>
             <button onclick="flipToPaid()">💰 Flip to Paid</button>
+            <button onclick="getMetricsSummary()">📈 Metrics Summary</button>
+            <button onclick="runFullValidation()">🔍 Run Full Validation</button>
         </div>
 
         <div class="log-container">
@@ -254,6 +256,36 @@
             }
             log(`Updating Payment Status to Paid for ${latestJobPageId}...`, 'warning');
             await apiCall('/api/flip-paid', 'POST', { page_id: latestJobPageId });
+        }
+
+        async function getMetricsSummary() {
+            log('Fetching 7-day metrics from Governance DB...', 'info');
+            const data = await apiCall('/api/metrics-summary', 'GET');
+            if (data && data.ok) {
+                const metrics = data.data;
+                log(`\n📊 7-DAY METRICS SUMMARY:\n` +
+                    `   Jobs: ${metrics.jobs_7d}\n` +
+                    `   Revenue: $${metrics.revenue_7d}\n` +
+                    `   Avg QA: ${metrics.avg_qa_7d}%\n` +
+                    (metrics.note ? `   Note: ${metrics.note}` : ''), 
+                    'success');
+            }
+        }
+
+        async function runFullValidation() {
+            log('Running full E2E validation (dry run, no Stripe)...', 'warning');
+            log('This may take 20-30 seconds...', 'info');
+            const data = await apiCall('/api/release-captain', 'GET');
+            if (data && data.ok) {
+                const validation = data.data;
+                log(`\n🔍 VALIDATION RESULTS:\n` +
+                    `   Status: ${validation.status || 'N/A'}\n` +
+                    `   QA: ${validation.qa?.pass ? '✅ PASS' : '❌ FAIL'}\n` +
+                    `   Finance: ${validation.finance?.pass ? '✅ PASS' : '❌ FAIL'}\n` +
+                    `   Pulse: ${validation.pulse?.pass ? '✅ PASS' : '❌ FAIL'}\n` +
+                    (validation.note ? `   Note: ${validation.note}` : ''), 
+                    validation.status === 'pass' ? 'success' : 'warning');
+            }
         }
 
         log('🚀 Dashboard loaded successfully', 'success');

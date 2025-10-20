@@ -748,6 +748,128 @@ def api_flip_paid():
     except Exception as e:
         return jsonify({"ok": False, "data": None, "error": str(e)}), 500
 
+@app.route('/api/metrics-summary')
+@require_dashboard_key
+def api_metrics_summary():
+    """Get 7-day metrics summary from Governance DB"""
+    try:
+        from bot.notion_api import NotionClientWrapper
+        from bot import config
+        import datetime
+        
+        if not config.NOTION_GOVERNANCE_DB_ID:
+            return jsonify({
+                "ok": True,
+                "data": {
+                    "jobs_7d": 0,
+                    "revenue_7d": 0.0,
+                    "avg_qa_7d": 0.0,
+                    "note": "Governance DB not configured"
+                },
+                "error": None
+            }), 200
+        
+        notion = NotionClientWrapper()
+        seven_days_ago = datetime.datetime.utcnow() - datetime.timedelta(days=7)
+        
+        results = notion.query_database(
+            config.NOTION_GOVERNANCE_DB_ID,
+            filter_criteria={
+                "property": "Created",
+                "date": {
+                    "on_or_after": seven_days_ago.isoformat()
+                }
+            }
+        )
+        
+        jobs_7d = len(results)
+        total_revenue = 0.0
+        total_qa = 0.0
+        qa_count = 0
+        
+        for entry in results:
+            props = entry.get('properties', {})
+            
+            revenue = props.get('Revenue 7d', {}).get('number')
+            if revenue:
+                total_revenue += revenue
+            
+            qa = props.get('Avg QA 7d', {}).get('number')
+            if qa:
+                total_qa += qa
+                qa_count += 1
+        
+        avg_qa_7d = round(total_qa / qa_count, 1) if qa_count > 0 else 0.0
+        
+        return jsonify({
+            "ok": True,
+            "data": {
+                "jobs_7d": jobs_7d,
+                "revenue_7d": round(total_revenue, 2),
+                "avg_qa_7d": avg_qa_7d
+            },
+            "error": None
+        }), 200
+    except Exception as e:
+        return jsonify({
+            "ok": True,
+            "data": {
+                "jobs_7d": 0,
+                "revenue_7d": 0.0,
+                "avg_qa_7d": 0.0,
+                "note": f"Error: {str(e)}"
+            },
+            "error": None
+        }), 200
+
+@app.route('/api/release-captain')
+@require_dashboard_key
+def api_release_captain():
+    """Run full system validation (dry run mode)"""
+    try:
+        import subprocess
+        import json
+        
+        result = subprocess.run(
+            ['python3', 'scripts/release_captain.py', '--dry-run'],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        
+        log_path = 'logs/release_captain.json'
+        validation_data = {}
+        
+        try:
+            with open(log_path, 'r') as f:
+                validation_data = json.load(f)
+        except:
+            validation_data = {
+                "status": "error",
+                "qa": {"pass": False},
+                "finance": {"pass": False},
+                "pulse": {"pass": False},
+                "note": "Log file not found"
+            }
+        
+        return jsonify({
+            "ok": True,
+            "data": validation_data,
+            "error": None
+        }), 200
+    except subprocess.TimeoutExpired:
+        return jsonify({
+            "ok": False,
+            "data": None,
+            "error": "Validation timeout (>30s)"
+        }), 500
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "data": None,
+            "error": str(e)
+        }), 500
+
 
 def run_bot():
     """Run the bot in a separate thread"""

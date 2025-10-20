@@ -1,0 +1,90 @@
+---
+
+🧠 Echopilot Boss Command — Phase 24 (Production Ops Stability Layer)
+
+Open my Echopilotai Replit project and do all of this in one go:
+
+────────────────────────────
+🎯 OBJECTIVE
+────────────────────────────
+Lock in the new secure operations dashboard, confirm full system health, and prepare for Phase 25 (Customer Portal + Live Revenue).
+
+────────────────────────────
+⚙️ STEPS TO PERFORM
+────────────────────────────
+1. Verify that `/dashboard` is active and secured:
+   - Dashboard Key authentication required
+   - HEALTH_TOKEN and other secrets remain server-side
+   - All buttons (Health, Supervisor, Pulse, Job Log, Flip Paid) return `"ok": true`
+
+2. Create `/scripts/health_check.sh` to automate daily diagnostics:
+   - Runs `/health`, `/api/supervisor-status`, `/api/pulse`, `/api/job-log-latest`
+   - Waits 30 s between Notion calls to bypass sync lag
+   - Logs results into `logs/daily_health_$(date +%F).json`
+   - Returns summary line:
+     ```
+     ✅ [DATE] Health OK | QA: <latest_qa>% | Jobs OK | Pulse: created
+     ```
+   - Exit 1 if any endpoint fails (so CI can alert)
+
+3. Add `/api/metrics-summary` route to `run.py`:
+   - Reads Governance DB for jobs_7d, revenue_7d, avg_qa_7d
+   - Returns `{ "ok": true, "data": { "jobs_7d": <int>, "revenue_7d": <float>, "avg_qa_7d": <float> } }`
+   - Add `Metrics Summary` card in `dashboard.html` showing those three fields.
+
+4. Add one more dashboard button:
+   **“Run Full Validation”** → calls `/api/release-captain?dry=true`
+   - Displays JSON result (`status`, `qa`, `finance`, `pulse`)
+   - Purpose: one-click E2E validation without affecting Stripe.
+
+5. Confirm all logs are writing under `/logs`:
+   - `logs/full_cycle.log`
+   - `logs/e2e_validation.json`
+   - `logs/release_captain.json`
+   - `logs/daily_health_*.json`
+
+6. Commit all changes with message:
+
+Add daily health check, metrics summary, and full validation button for Ops Dashboard
+
+────────────────────────────
+🧪 AFTER BUILD VERIFICATION
+────────────────────────────
+After Replit AI completes:
+1. Open https://Echopilotai.replit.app/dashboard  
+2. Enter your Dashboard Key  
+3. Click buttons in this order:
+- Check Health ✅  
+- Supervisor Status ✅  
+- Send Pulse ✅  
+- Refresh Jobs ✅  
+- Metrics Summary ✅  
+- Run Full Validation ✅  
+- Flip Paid ✅  
+4. Wait 60–90 s for Notion sync and confirm:
+- `"ok": true` on all
+- QA ≥ 80 %
+- Pulse created
+- Revenue/ROI visible
+
+────────────────────────────
+🔒 SECURITY REQUIREMENTS
+────────────────────────────
+- All tokens (`HEALTH_TOKEN`, `DASHBOARD_KEY`, `JOB_LOG_DB_ID`, `AUTOMATION_QUEUE_DB_ID`) must stay in Replit Secrets.
+- Frontend must never reference `process.env` or contain any secret values.
+- Every JSON response follows:
+
+{ "ok": true|false, "data": {...}|"null", "error": "<msg or null>" }
+
+────────────────────────────
+✅ EXPECTED OUTCOME
+────────────────────────────
+- Fully operational, secure Ops Dashboard (Phase 24 complete)
+- Automated daily health check logging
+- Real-time metrics summary visible in UI
+- One-click system validation
+- All logs unified under `/logs/`
+- Production stability verified and ready for Phase 25 launch
+
+
+---

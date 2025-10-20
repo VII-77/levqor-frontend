@@ -1,325 +1,204 @@
-# EchoPilot Platform Runbook
+# EchoPilot Production Runbook
 
-## Quick Reference
-
-**Dashboard:** https://echopilotai.replit.app/dashboard  
-**Status:** Production-ready, autonomous operation  
-**Version:** Enterprise Expansion (Phases 33-40 complete)
+**Last Updated:** October 20, 2025  
+**Platform:** Replit Reserved VM  
+**Environment:** Production
 
 ---
 
-## Table of Contents
+## Quick Start
 
-1. [System Overview](#system-overview)
-2. [Environment Variables](#environment-variables)
-3. [API Endpoints](#api-endpoints)
-4. [Scheduler Tasks](#scheduler-tasks)
-5. [Troubleshooting](#troubleshooting)
-6. [Security](#security)
+### System Health Check
+```bash
+# Overall health
+curl -H "X-Dash-Key: $DASHBOARD_KEY" \
+  http://localhost:5000/api/system-health | jq .
 
----
+# SLO status
+curl -H "X-Dash-Key: $DASHBOARD_KEY" \
+  http://localhost:5000/api/observability/slo | jq .
 
-## System Overview
+# Enterprise validation
+curl -H "X-Dash-Key: $DASHBOARD_KEY" \
+  http://localhost:5000/api/validate/enterprise | jq .
+```
 
-EchoPilot is an enterprise-ready AI automation platform with:
-- Autonomous task processing (60-second polling)
-- Real payment processing (Stripe)
-- Compliance & audit tools (GDPR, SOC-lite)
-- Adaptive AI pricing
-- Referral & growth engine
-- Multi-region data sync
-- AI-powered operational intelligence
-
-**Architecture:** Flask (Gunicorn) + Notion + OpenAI + Stripe  
-**Deployment:** Replit Reserved VM  
-**Monitoring:** Auto-healing, predictive alerts, health probes
+### Monitoring Dashboards
+- **Enterprise Report:** https://echopilotai.replit.app/api/reports/enterprise/html
+- **Validation:** https://echopilotai.replit.app/api/validation/html  
+- **Prometheus Metrics:** https://echopilotai.replit.app/metrics
 
 ---
 
-## Environment Variables
+## Observability (Phase 51)
 
-### Core (Required)
-- `DASHBOARD_KEY` - Dashboard authentication key
-- `AI_INTEGRATIONS_OPENAI_API_KEY` - OpenAI API key
-- `AI_INTEGRATIONS_OPENAI_BASE_URL` - Custom OpenAI base URL
-- `AUTOMATION_QUEUE_DB_ID` - Notion queue database ID
-- `AUTOMATION_LOG_DB_ID` - Notion log database ID
-- `JOB_LOG_DB_ID` - Notion job log database ID
+### Metrics & Tracing
+**HTTP Tracing:** All requests logged to `logs/http_traces.ndjson`  
+**Prometheus Metrics:** Available at `GET /metrics` (no auth)  
+**SLO Monitoring:** Every 15 minutes via `slo_guard.py`
 
-### Payments (Phase 33)
-- `STRIPE_MODE` - "test" or "live" (default: test)
-- `STRIPE_SECRET_KEY` - Stripe test mode secret key
-- `STRIPE_SECRET_LIVE` - Stripe live mode secret key (optional)
-- `STRIPE_WEBHOOK_SECRET` - Stripe webhook signing secret
+### SLO Targets
+- **API Availability:** 99.9%
+- **P95 Latency:** < 400ms
+- **Webhook Success:** 99%
 
-### Pricing & Operations
-- `DEFAULT_RATE_USD_PER_MIN` - Base pricing rate (default: 5.0)
-- `SESSION_SECRET` - HMAC signing secret for URLs
+See `docs/SLOS.md` for complete SLO documentation.
 
-### Multi-Region (Phase 39)
-- `RAILWAY_FALLBACK_PATH` - Optional replica sync destination
+### Key Commands
+```bash
+# View Prometheus metrics
+curl http://localhost:5000/metrics
 
-### Scheduler
-- `SCHED_BRIEF_UTC` - CEO brief time (default: 08:00)
-- `SCHED_REPORT_UTC` - Daily report time (default: 09:00)
-- `SCHED_SELFHEAL_EVERY_HOURS` - Self-heal interval (default: 6)
+# Get SLO report
+curl -H "X-Dash-Key: $DASHBOARD_KEY" \
+  http://localhost:5000/api/observability/slo | jq .
 
----
+# Get latency metrics (p50/p95/p99 24h)
+curl -H "X-Dash-Key: $DASHBOARD_KEY" \
+  http://localhost:5000/api/observability/latency | jq .
 
-## API Endpoints
-
-### Phase 33: Payments
-- **POST /api/payments/create-invoice**
-  - Body: `{"amount": float, "email": string}`
-  - Auth: X-Dash-Key required
-  - Returns: Stripe checkout URL
-  - Test: `curl -H "X-Dash-Key:$KEY" -d '{"amount":5.0}' /api/payments/create-invoice`
-
-### Phase 34: Customer Experience
-- **GET /api/customer/signed-url/<client_id>**
-  - Auth: X-Dash-Key required
-  - Returns: Signed download URL (24h expiry)
-  
-- **POST /api/customer/unsubscribe**
-  - Body: `{"email": string}`
-  - Returns: Success confirmation
-
-### Phase 35: Compliance
-- **GET /api/compliance/export-data**
-  - Auth: X-Dash-Key required
-  - Returns: GDPR export manifest with SHA256 hashes
-
-### Phase 36: Pricing AI
-- **POST /api/pricing/optimize**
-  - Auth: X-Dash-Key required
-  - Returns: Pricing recommendation based on QA scores & margins
-
-### Phase 37: Growth
-- **POST /api/growth/referral/new**
-  - Auth: X-Dash-Key required
-  - Returns: New referral code (EP-XXXXXX) with share URL
-
-### Phase 38: Audit
-- **GET /api/audit/report**
-  - Auth: X-Dash-Key required
-  - Returns: SOC-lite audit report with hash chain
-
-### Phase 39: Multi-Region
-- **POST /api/regions/sync**
-  - Auth: X-Dash-Key required
-  - Returns: Replica sync status (files copied)
-
-### Phase 40: AI Ops
-- **POST /api/brain/decide**
-  - Auth: X-Dash-Key required
-  - Returns: AI-generated operational recommendations (GPT-4o-mini)
-
-### Legacy Endpoints
-- **GET /api/system-health** - 5-point health check
-- **POST /api/self-heal** - Retry failed jobs
-- **POST /api/exec/brief** - Generate CEO brief
-- **GET /api/finance-metrics** - Revenue & cost metrics
-- **GET /api/live-ops** - CPU/Memory/Disk + rate limiting stats
+# Manual SLO check
+python3 scripts/slo_guard.py | jq .
+```
 
 ---
 
-## Scheduler Tasks
+## Production Alerts
 
-Automated tasks run via `scripts/exec_scheduler.py`:
+**Frequency:** Every 5 minutes  
+**Script:** `scripts/production_alerts.py`  
+**Logs:** `logs/production_alerts.ndjson`
 
-| Task | Schedule | Endpoint/Script |
-|------|----------|----------------|
-| Heartbeat | Every 60 seconds | Internal tick |
-| Health Probe | Daily 07:55 UTC | /api/system-health |
-| CEO Brief | Daily 08:00 UTC | /api/exec/brief |
-| Daily Report | Daily 09:00 UTC | /api/finance-metrics + /api/metrics-summary |
-| Self-Heal | Every 6 hours | /api/self-heal |
-| Predictive Alerts | Every hour | scripts/predictive_alerts.py |
-| **Pricing AI** | **Daily 03:00 UTC** | **/api/pricing/optimize** |
-| **Weekly Audit** | **Monday 00:30 UTC** | **/api/audit/report** |
-| **Replica Sync** | **Every 2 hours** | **/api/regions/sync** |
-| **AI Ops Brain** | **Every 12 hours** | **/api/brain/decide** |
+**Monitors:**
+- Webhook failures (>3 in 5min = CRITICAL)
+- Payment error rate (>5% in 1h = CRITICAL)
+- Revenue dip (>30% DoD = WARNING)
+- SLO breaches and error budget burn
 
-**Control:**
-- View status: Dashboard → "Automations Scheduler"
-- Manual start: Dashboard → "▶️ Start Scheduler"
-- Manual stop: Dashboard → "⏹️ Stop Scheduler"
+```bash
+# Run alerts manually
+python3 scripts/production_alerts.py | jq .
+
+# View recent alerts
+tail -20 logs/production_alerts.ndjson | jq .
+```
 
 ---
 
-## Troubleshooting
+## Incident Response
 
-### Payments (Phase 33)
+### 1. High Error Rate
+```bash
+# Check recent errors
+grep '"status":5' logs/http_traces.ndjson | tail -30 | jq .
 
-**Issue:** Invoice creation fails  
-**Fix:**
-1. Verify `STRIPE_SECRET_KEY` is set
-2. Check Stripe mode: `echo $STRIPE_MODE` (should be "test")
-3. Test with minimum amount: `{"amount": 0.50}`
-4. View logs: `grep stripe logs/stripe_webhook.log`
+# Check system resources
+curl http://localhost:5000/metrics | grep -E "(cpu|mem|disk)_percent"
 
-**Issue:** Negative amounts not rejected  
-**Fix:** Ensure `scripts/stripe_live_guard.py` has ValueError check in `safe_price()`
+# Review incidents
+curl -H "X-Dash-Key: $DASHBOARD_KEY" \
+  http://localhost:5000/api/incidents/summary | jq .
+```
 
-### Customer Experience (Phase 34)
+### 2. High Latency
+```bash
+# Get latency breakdown
+curl -H "X-Dash-Key: $DASHBOARD_KEY" \
+  http://localhost:5000/api/observability/latency | jq .
 
-**Issue:** Signed URLs fail verification  
-**Fix:**
-1. Check `SESSION_SECRET` is consistent
-2. Verify URL not expired (24h limit)
-3. Test: `curl /api/customer/signed-url/test_123 -H "X-Dash-Key:$KEY"`
+# Find slow requests
+jq 'select(.duration_ms > 1000)' logs/http_traces.ndjson | tail -20
 
-**Issue:** Unsubscribe not logging  
-**Fix:** Check `logs/unsubscribes.log` permissions (should be writable)
+# Check autoscale status
+curl -H "X-Dash-Key: $DASHBOARD_KEY" \
+  http://localhost:5000/api/scale/status | jq .
+```
 
-### Compliance (Phase 35)
+### 3. Payment Issues
+```bash
+# Recent payment events
+curl -H "X-Dash-Key: $DASHBOARD_KEY" \
+  "http://localhost:5000/api/payments/events?limit=20" | jq .
 
-**Issue:** Export fails  
-**Fix:**
-1. Verify `backups/` directory exists
-2. Check logs exist: `ls logs/*.log`
-3. Manual run: `python3 scripts/data_export.py`
+# Webhook failures
+grep '"ok":false' logs/stripe_webhooks.ndjson | tail -20 | jq .
 
-### Pricing AI (Phase 36)
-
-**Issue:** No pricing recommendations  
-**Fix:**
-1. Ensure job logs exist (requires historical data)
-2. Check `DEFAULT_RATE_USD_PER_MIN` is set
-3. Manual test: `python3 scripts/pricing_ai.py`
-
-### Referral Engine (Phase 37)
-
-**Issue:** Invalid code format  
-**Fix:** Codes must match `EP-[A-F0-9]{6}` pattern (check UUID generation)
-
-### Audit Pack (Phase 38)
-
-**Issue:** Hash chain fails  
-**Fix:**
-1. Verify `backups/audit/` directory exists
-2. Check log file permissions
-3. Manual run: `python3 scripts/audit_pack.py`
-
-### Multi-Region Sync (Phase 39)
-
-**Issue:** Replica sync fails  
-**Fix:**
-1. Check destination path: `echo $RAILWAY_FALLBACK_PATH` (default: backups/replica)
-2. Verify write permissions
-3. Manual sync: `python3 scripts/replica_sync.py`
-
-### AI Ops Brain (Phase 40)
-
-**Issue:** No recommendations generated  
-**Fix:**
-1. Verify `AI_INTEGRATIONS_OPENAI_API_KEY` is set
-2. Check operational summaries exist: `ls logs/*COMPLETE*.txt`
-3. Test API: `curl -X POST /api/brain/decide -H "X-Dash-Key:$KEY"`
-
----
-
-## Security
-
-### Authentication
-- All admin endpoints require `X-Dash-Key` header
-- Public endpoints: `/api/customer/unsubscribe` only
-- CSRF protection on POST requests
-
-### Secrets Management
-- Never log `DASHBOARD_KEY`, `STRIPE_SECRET_KEY`, or `SESSION_SECRET`
-- Rotate `SESSION_SECRET` every 90 days for signed URLs
-- Use separate Stripe keys for test/live modes
-
-### Compliance
-- GDPR: Use `/api/compliance/export-data` for data subject requests
-- Audit trail: Weekly automated reports to `backups/audit/`
-- Unsubscribe: Logged to `logs/unsubscribes.log`
-
-### Rate Limiting
-- IP-based: 3 strikes in 5 minutes = 10-minute ban
-- Check bans: `python3 scripts/rate_guard.py stats`
-- Clear specific IP: `python3 scripts/rate_guard.py clear <ip>`
+# Cost status
+curl -H "X-Dash-Key: $DASHBOARD_KEY" \
+  http://localhost:5000/api/costs/status | jq .
+```
 
 ---
 
 ## Maintenance
 
-### Daily
-- Review dashboard health indicators
-- Check scheduler status (should be running)
-- Monitor cost metrics (target: <$1/day)
+### Workflows
+```bash
+# Check scheduler
+tail -f logs/scheduler.log | grep -E "(alerts_run_slo|production_alerts)"
 
-### Weekly
-- Review AI Ops Brain recommendations (`logs/ops_brain_*.json`)
-- Validate audit reports (`backups/audit/`)
-- Check replica sync status
+# Restart workflows (if needed)
+# Use Replit UI to restart "EchoPilot Bot" and "Scheduler"
+```
 
-### Monthly
-- Review pricing AI suggestions
-- Analyze referral code usage (`logs/referrals.log`)
-- Update `RUNBOOK.md` with new learnings
+### Logs
+```bash
+# HTTP traces
+tail -f logs/http_traces.ndjson | jq .
 
----
+# Production alerts
+tail -f logs/production_alerts.ndjson | jq .
 
-## Support
+# SLO reports
+cat logs/slo_report.json | jq .
 
-**Logs Location:** `logs/`  
-**Backups Location:** `backups/`  
-**Scripts Location:** `scripts/`  
-**Dashboard:** https://echopilotai.replit.app/dashboard
-
-**Common Log Files:**
-- `logs/scheduler.log` - Automated task execution
-- `logs/health_probe.log` - System health checks
-- `logs/sys_probe.log` - CPU/Memory/Disk metrics
-- `logs/stripe_webhook.log` - Payment webhooks
-- `logs/ops_brain_*.json` - AI recommendations
-
+# Scheduler
+tail -f logs/scheduler.log
+```
 
 ---
 
-## Production Deployment Notes
+## Emergency Procedures
 
-**Deployment Date:** October 20, 2025  
-**Release Version:** v33-40-release  
-**Status:** Production-ready, TEST mode active
+### SLO Breach
+1. Check error budget status
+2. Review recent changes/deployments
+3. See `docs/SLOS.md` for detailed remediation
 
-### Stripe Configuration
+### System Overload
+1. Check CPU/memory/disk in `/metrics`
+2. Scale workers if needed
+3. Enable cost guardrails if spending spike
 
-**Current Mode:** TEST  
-**Live Mode Setup:** To enable live payments:
-1. Set `STRIPE_MODE=live` in secrets
-2. Configure `STRIPE_SECRET_LIVE` with live secret key
-3. Update `STRIPE_WEBHOOK_SECRET` for live webhook signing
-4. Configure Stripe webhook endpoint: `https://echopilotai.replit.app/api/payments/webhook`
-5. Send test event from Stripe Dashboard
-6. Verify logs: `logs/stripe_webhook.log`
+### Data Loss
+1. Check latest DR backup: `ls -lh backups/dr/`
+2. Contact support for restore assistance
+3. Review backup logs
 
-**Rollback:** Set `STRIPE_MODE=test` to revert to test mode instantly (30 seconds)
+---
 
-### Webhook Endpoint
+## Regular Operations
 
-**URL:** https://echopilotai.replit.app/api/payments/webhook  
-**Method:** POST  
-**Events:** payment_intent.succeeded, checkout.session.completed  
-**Verification:** HMAC-SHA256 signature using STRIPE_WEBHOOK_SECRET
+### Daily Checks
+- Review enterprise report (auto-generated)
+- Check SLO status
+- Review production alerts log
 
-### Scheduled Tasks Verification
+### Weekly Checks
+- Review error budget consumption
+- Check DR backup success
+- Review cost trends
 
-All Phase 33-40 automated tasks confirmed active:
-- Pricing AI: Daily 03:00 UTC → `/api/pricing/optimize`
-- Weekly Audit: Monday 00:30 UTC → `/api/audit/report`
-- Replica Sync: Every 2 hours → `/api/regions/sync`
-- AI Ops Brain: Every 12 hours → `/api/brain/decide`
+### Monthly Checks
+- Full SLO review
+- Error budget policy adjustments
+- Capacity planning
 
-### Go-Live Checklist
+---
 
-- [x] Git tag created: v33-40-release
-- [x] All 8 phases validated (gate files present)
-- [x] Security audit passed
-- [x] Smoke tests passed
-- [ ] Stripe switched to LIVE mode (manual)
-- [ ] Webhook configured in Stripe Dashboard (manual)
-- [ ] Production smoke tests executed
+## References
 
+- **SLO Documentation:** `docs/SLOS.md`
+- **Post-Launch Checklist:** `POST_LAUNCH_CHECKLIST.md`
+- **Production Ops:** `PRODUCTION_OPS_DEPLOYED.md`
+- **Phase 81-100 Summary:** `PHASES_81_100_SUMMARY.md`

@@ -1,166 +1,278 @@
-# 🧠 EchoPilot AI — Phase 30 RUNBOOK (Final Production Edition)
+# EchoPilot Platform Runbook
 
-## 1️⃣ Purpose
-Document the operational workflow, controls, recovery procedures, and health checks for the fully autonomous EchoPilot system (Phases 27–30).  
-This runbook ensures zero downtime, quick diagnostics, and consistent operator actions.
+## Quick Reference
 
----
-
-## 2️⃣ System Overview
-**Core Components**
-| Component | Function | Mode |
-|------------|-----------|------|
-| Scheduler Workflow | Executes CEO Brief, Daily Report, Self-Heal, Retention | Autonomous (Replit Workflow) |
-| Web Server | Customer Portal + API Endpoints | Foreground |
-| Dashboard | Operator Interface with auto-refresh | Web UI |
-| Makefile / CLI | Manual control fallback | Local execution |
-| Logging | NDJSON structured logs under `/logs` | Persistent |
+**Dashboard:** https://echopilotai.replit.app/dashboard  
+**Status:** Production-ready, autonomous operation  
+**Version:** Enterprise Expansion (Phases 33-40 complete)
 
 ---
 
-## 3️⃣ Environment Configuration
-All environment variables set in Replit Secrets:
+## Table of Contents
 
-| Variable | Purpose |
-|-----------|----------|
-| `DASHBOARD_KEY` | Auth for /api/automations/\* |
-| `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` / `SMTP_FROM` | Live email delivery |
-| `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | Payments (live mode) |
-| `SCHED_BRIEF_UTC` = 08:00 | Daily CEO Brief |
-| `SCHED_REPORT_UTC` = 09:00 | Daily Report |
-| `SCHED_SELFHEAL_EVERY_HOURS` = 6 | Self-Heal interval |
+1. [System Overview](#system-overview)
+2. [Environment Variables](#environment-variables)
+3. [API Endpoints](#api-endpoints)
+4. [Scheduler Tasks](#scheduler-tasks)
+5. [Troubleshooting](#troubleshooting)
+6. [Security](#security)
 
 ---
 
-## 4️⃣ Start / Stop / Status Commands
+## System Overview
 
-### 🟢 Start Scheduler
-```bash
-bash scripts/run_automations.sh start
-# or via API
-curl -s -H "X-Dash-Key: $DASHBOARD_KEY" -X POST http://localhost:5000/api/automations/start | python3 -m json.tool
-```
+EchoPilot is an enterprise-ready AI automation platform with:
+- Autonomous task processing (60-second polling)
+- Real payment processing (Stripe)
+- Compliance & audit tools (GDPR, SOC-lite)
+- Adaptive AI pricing
+- Referral & growth engine
+- Multi-region data sync
+- AI-powered operational intelligence
 
-### 🔴 Stop Scheduler
-```bash
-bash scripts/run_automations.sh stop
-# or via API
-curl -s -H "X-Dash-Key: $DASHBOARD_KEY" -X POST http://localhost:5000/api/automations/stop | python3 -m json.tool
-```
-
-### 🔍 Check Status
-```bash
-bash scripts/run_automations.sh status
-curl -s -H "X-Dash-Key: $DASHBOARD_KEY" http://localhost:5000/api/automations/status | python3 -m json.tool
-```
+**Architecture:** Flask (Gunicorn) + Notion + OpenAI + Stripe  
+**Deployment:** Replit Reserved VM  
+**Monitoring:** Auto-healing, predictive alerts, health probes
 
 ---
 
-## 5️⃣ Manual Triggers
+## Environment Variables
 
-```bash
-make run-brief      # Generate CEO Brief now
-make run-selfheal   # Run Self-Heal manually
-make retention      # Cleanup logs (keeps newest 30)
-```
+### Core (Required)
+- `DASHBOARD_KEY` - Dashboard authentication key
+- `AI_INTEGRATIONS_OPENAI_API_KEY` - OpenAI API key
+- `AI_INTEGRATIONS_OPENAI_BASE_URL` - Custom OpenAI base URL
+- `AUTOMATION_QUEUE_DB_ID` - Notion queue database ID
+- `AUTOMATION_LOG_DB_ID` - Notion log database ID
+- `JOB_LOG_DB_ID` - Notion job log database ID
 
----
+### Payments (Phase 33)
+- `STRIPE_MODE` - "test" or "live" (default: test)
+- `STRIPE_SECRET_KEY` - Stripe test mode secret key
+- `STRIPE_SECRET_LIVE` - Stripe live mode secret key (optional)
+- `STRIPE_WEBHOOK_SECRET` - Stripe webhook signing secret
 
-## 6️⃣ Dashboard Usage
+### Pricing & Operations
+- `DEFAULT_RATE_USD_PER_MIN` - Base pricing rate (default: 5.0)
+- `SESSION_SECRET` - HMAC signing secret for URLs
 
-**URL:** https://echopilotai.replit.app/dashboard
+### Multi-Region (Phase 39)
+- `RAILWAY_FALLBACK_PATH` - Optional replica sync destination
 
-**Sections:**
-- 👔 CEO Brief (Phase 29)
-- ⚙️ Automations (Scheduler)
-- 💰 Finance Metrics
-- 📈 Charts
-
-Enable "Auto-refresh status (10 s)" for live PID + activity updates.
-
----
-
-## 7️⃣ Log Locations
-
-| Log File | Description |
-|----------|-------------|
-| `logs/scheduler.log` | Tick events + startup/shutdown audit |
-| `logs/exec_briefs/brief_*.json/.html` | CEO Briefs |
-| `logs/exec_ingest_*.json` | Signal ingestion snapshots |
-| `logs/exec_analysis_*.json` | GPT-4o-mini analyses |
-| `logs/self_heal.log` | Job retry records |
-| `logs/retention.log` | Cleanup activity |
-| `logs/PHASE30_COMPLETE.txt` | Final verification summary |
+### Scheduler
+- `SCHED_BRIEF_UTC` - CEO brief time (default: 08:00)
+- `SCHED_REPORT_UTC` - Daily report time (default: 09:00)
+- `SCHED_SELFHEAL_EVERY_HOURS` - Self-heal interval (default: 6)
 
 ---
 
-## 8️⃣ Health Checks
+## API Endpoints
 
-```bash
-tail -n 20 logs/scheduler.log | grep '"event": "tick"'
-# Expect one tick per minute
-curl -s http://localhost:5000/health | python3 -m json.tool
-```
+### Phase 33: Payments
+- **POST /api/payments/create-invoice**
+  - Body: `{"amount": float, "email": string}`
+  - Auth: X-Dash-Key required
+  - Returns: Stripe checkout URL
+  - Test: `curl -H "X-Dash-Key:$KEY" -d '{"amount":5.0}' /api/payments/create-invoice`
 
-Healthy = `{"status":"healthy"}` and ticks in the last 60 s.
+### Phase 34: Customer Experience
+- **GET /api/customer/signed-url/<client_id>**
+  - Auth: X-Dash-Key required
+  - Returns: Signed download URL (24h expiry)
+  
+- **POST /api/customer/unsubscribe**
+  - Body: `{"email": string}`
+  - Returns: Success confirmation
 
----
+### Phase 35: Compliance
+- **GET /api/compliance/export-data**
+  - Auth: X-Dash-Key required
+  - Returns: GDPR export manifest with SHA256 hashes
 
-## 9️⃣ Troubleshooting
+### Phase 36: Pricing AI
+- **POST /api/pricing/optimize**
+  - Auth: X-Dash-Key required
+  - Returns: Pricing recommendation based on QA scores & margins
 
-| Symptom | Action |
-|---------|--------|
-| Scheduler stopped | `bash scripts/run_automations.sh start` → watch for ticks |
-| No ticks in > 2 min | Check `logs/scheduler.out` + `logs/scheduler.log` |
-| API timeout | Verify Replit Workflow running; restart |
-| Self-Heal 404 | Normal (no failed jobs); verify Notion Job Log |
-| Finance metrics error | Needs real jobs processed |
-| Dashboard not updating | Ensure auto-refresh toggle ON |
-| Email not sending | Configure SMTP_* secrets |
-| Stripe test mode only | Replace keys with live version |
+### Phase 37: Growth
+- **POST /api/growth/referral/new**
+  - Auth: X-Dash-Key required
+  - Returns: New referral code (EP-XXXXXX) with share URL
 
----
+### Phase 38: Audit
+- **GET /api/audit/report**
+  - Auth: X-Dash-Key required
+  - Returns: SOC-lite audit report with hash chain
 
-## 🔄 Recovery Procedure
+### Phase 39: Multi-Region
+- **POST /api/regions/sync**
+  - Auth: X-Dash-Key required
+  - Returns: Replica sync status (files copied)
 
-1. **Stop scheduler** → `bash scripts/run_automations.sh stop`
-2. **Clear pid file** → `rm logs/scheduler.pid`
-3. **Start scheduler** → `bash scripts/run_automations.sh start`
-4. **Confirm tick events** → `tail -f logs/scheduler.log`
+### Phase 40: AI Ops
+- **POST /api/brain/decide**
+  - Auth: X-Dash-Key required
+  - Returns: AI-generated operational recommendations (GPT-4o-mini)
 
----
-
-## 🧩 Workflow Architecture Summary
-
-- **Workflows:** EchoPilot Bot (web) + Scheduler (background)
-- **Runtime:** Replit Reserved VM
-- **Auto-Restart:** Enabled
-- **Logging:** Persistent in /logs
-- **Fallback:** Manual CLI + API
-
----
-
-## 🏁 Commit Command
-
-```bash
-git add -A
-git commit -m "Phase 30 RUNBOOK – final operational manual for autonomous scheduler"
-git push
-```
-
----
-
-## ✅ Status (as of 2025-10-20)
-
-- **Scheduler PID 6942** — Running ✅
-- **Heartbeats** — 1/min ✅
-- **CEO Brief** — 08:00 UTC ✅
-- **Daily Report** — 09:00 UTC ✅
-- **Self-Heal** — Every 6 h ✅
-- **Dashboard Auto-Refresh** — Working ✅
-- **CLI Fallback** — Operational ✅
-- **Production Readiness** — CONFIRMED 🚀
+### Legacy Endpoints
+- **GET /api/system-health** - 5-point health check
+- **POST /api/self-heal** - Retry failed jobs
+- **POST /api/exec/brief** - Generate CEO brief
+- **GET /api/finance-metrics** - Revenue & cost metrics
+- **GET /api/live-ops** - CPU/Memory/Disk + rate limiting stats
 
 ---
 
-**End of RUNBOOK.**
+## Scheduler Tasks
+
+Automated tasks run via `scripts/exec_scheduler.py`:
+
+| Task | Schedule | Endpoint/Script |
+|------|----------|----------------|
+| Heartbeat | Every 60 seconds | Internal tick |
+| Health Probe | Daily 07:55 UTC | /api/system-health |
+| CEO Brief | Daily 08:00 UTC | /api/exec/brief |
+| Daily Report | Daily 09:00 UTC | /api/finance-metrics + /api/metrics-summary |
+| Self-Heal | Every 6 hours | /api/self-heal |
+| Predictive Alerts | Every hour | scripts/predictive_alerts.py |
+| **Pricing AI** | **Daily 03:00 UTC** | **/api/pricing/optimize** |
+| **Weekly Audit** | **Monday 00:30 UTC** | **/api/audit/report** |
+| **Replica Sync** | **Every 2 hours** | **/api/regions/sync** |
+| **AI Ops Brain** | **Every 12 hours** | **/api/brain/decide** |
+
+**Control:**
+- View status: Dashboard → "Automations Scheduler"
+- Manual start: Dashboard → "▶️ Start Scheduler"
+- Manual stop: Dashboard → "⏹️ Stop Scheduler"
+
+---
+
+## Troubleshooting
+
+### Payments (Phase 33)
+
+**Issue:** Invoice creation fails  
+**Fix:**
+1. Verify `STRIPE_SECRET_KEY` is set
+2. Check Stripe mode: `echo $STRIPE_MODE` (should be "test")
+3. Test with minimum amount: `{"amount": 0.50}`
+4. View logs: `grep stripe logs/stripe_webhook.log`
+
+**Issue:** Negative amounts not rejected  
+**Fix:** Ensure `scripts/stripe_live_guard.py` has ValueError check in `safe_price()`
+
+### Customer Experience (Phase 34)
+
+**Issue:** Signed URLs fail verification  
+**Fix:**
+1. Check `SESSION_SECRET` is consistent
+2. Verify URL not expired (24h limit)
+3. Test: `curl /api/customer/signed-url/test_123 -H "X-Dash-Key:$KEY"`
+
+**Issue:** Unsubscribe not logging  
+**Fix:** Check `logs/unsubscribes.log` permissions (should be writable)
+
+### Compliance (Phase 35)
+
+**Issue:** Export fails  
+**Fix:**
+1. Verify `backups/` directory exists
+2. Check logs exist: `ls logs/*.log`
+3. Manual run: `python3 scripts/data_export.py`
+
+### Pricing AI (Phase 36)
+
+**Issue:** No pricing recommendations  
+**Fix:**
+1. Ensure job logs exist (requires historical data)
+2. Check `DEFAULT_RATE_USD_PER_MIN` is set
+3. Manual test: `python3 scripts/pricing_ai.py`
+
+### Referral Engine (Phase 37)
+
+**Issue:** Invalid code format  
+**Fix:** Codes must match `EP-[A-F0-9]{6}` pattern (check UUID generation)
+
+### Audit Pack (Phase 38)
+
+**Issue:** Hash chain fails  
+**Fix:**
+1. Verify `backups/audit/` directory exists
+2. Check log file permissions
+3. Manual run: `python3 scripts/audit_pack.py`
+
+### Multi-Region Sync (Phase 39)
+
+**Issue:** Replica sync fails  
+**Fix:**
+1. Check destination path: `echo $RAILWAY_FALLBACK_PATH` (default: backups/replica)
+2. Verify write permissions
+3. Manual sync: `python3 scripts/replica_sync.py`
+
+### AI Ops Brain (Phase 40)
+
+**Issue:** No recommendations generated  
+**Fix:**
+1. Verify `AI_INTEGRATIONS_OPENAI_API_KEY` is set
+2. Check operational summaries exist: `ls logs/*COMPLETE*.txt`
+3. Test API: `curl -X POST /api/brain/decide -H "X-Dash-Key:$KEY"`
+
+---
+
+## Security
+
+### Authentication
+- All admin endpoints require `X-Dash-Key` header
+- Public endpoints: `/api/customer/unsubscribe` only
+- CSRF protection on POST requests
+
+### Secrets Management
+- Never log `DASHBOARD_KEY`, `STRIPE_SECRET_KEY`, or `SESSION_SECRET`
+- Rotate `SESSION_SECRET` every 90 days for signed URLs
+- Use separate Stripe keys for test/live modes
+
+### Compliance
+- GDPR: Use `/api/compliance/export-data` for data subject requests
+- Audit trail: Weekly automated reports to `backups/audit/`
+- Unsubscribe: Logged to `logs/unsubscribes.log`
+
+### Rate Limiting
+- IP-based: 3 strikes in 5 minutes = 10-minute ban
+- Check bans: `python3 scripts/rate_guard.py stats`
+- Clear specific IP: `python3 scripts/rate_guard.py clear <ip>`
+
+---
+
+## Maintenance
+
+### Daily
+- Review dashboard health indicators
+- Check scheduler status (should be running)
+- Monitor cost metrics (target: <$1/day)
+
+### Weekly
+- Review AI Ops Brain recommendations (`logs/ops_brain_*.json`)
+- Validate audit reports (`backups/audit/`)
+- Check replica sync status
+
+### Monthly
+- Review pricing AI suggestions
+- Analyze referral code usage (`logs/referrals.log`)
+- Update `RUNBOOK.md` with new learnings
+
+---
+
+## Support
+
+**Logs Location:** `logs/`  
+**Backups Location:** `backups/`  
+**Scripts Location:** `scripts/`  
+**Dashboard:** https://echopilotai.replit.app/dashboard
+
+**Common Log Files:**
+- `logs/scheduler.log` - Automated task execution
+- `logs/health_probe.log` - System health checks
+- `logs/sys_probe.log` - CPU/Memory/Disk metrics
+- `logs/stripe_webhook.log` - Payment webhooks
+- `logs/ops_brain_*.json` - AI recommendations
+

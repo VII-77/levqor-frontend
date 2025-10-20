@@ -30,6 +30,10 @@ def safe_price(amount_usd):
     amount = Decimal(str(amount_usd))
     minimum = Decimal("0.50")  # $0.50 minimum
     
+    # Reject negative or zero amounts
+    if amount <= 0:
+        raise ValueError(f"Amount must be positive, got ${amount}")
+    
     # Round to 2 decimal places
     amount = amount.quantize(Decimal("0.01"))
     

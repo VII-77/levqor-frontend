@@ -1,0 +1,1 @@
+{"phase":35,"ok":true,"notes":["GDPR export functional","SHA256 manifests generated"]}

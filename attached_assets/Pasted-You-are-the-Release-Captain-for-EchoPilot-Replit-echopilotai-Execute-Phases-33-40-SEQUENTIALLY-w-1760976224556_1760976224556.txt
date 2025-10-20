@@ -1,0 +1,111 @@
+You are the Release Captain for EchoPilot (Replit: echopilotai). Execute Phases 33–40 SEQUENTIALLY with STRICT PASS/FAIL gates. Make idempotent changes only. If a gate fails, stop, roll back the last change, and emit a concise failure report.
+
+GLOBAL RULES
+- Coding style: reuse existing patterns in run.py, dashboard.html, scripts/.
+- Security: all new admin endpoints require X-Dash-Key == $DASHBOARD_KEY.
+- Logging: NDJSON to logs/, filenames per feature, never leak secrets.
+- Tests: after each phase, run its specified curl/CLI checks; only then proceed.
+- Keep Stripe in TEST unless STRIPE_MODE=live is explicitly set.
+
+PRECHECK (must pass before Phase 33)
+1) Verify env vars present (read-only): DASHBOARD_KEY, DEFAULT_RATE_USD_PER_MIN, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, AI_INTEGRATIONS_OPENAI_API_KEY.
+2) Create or confirm dirs: logs/, backups/, backups/audit/, backups/replica/, logs/exec_briefs/.
+3) Add to runbook if missing: RUNBOOK.md sections for Payments, Compliance, Pricing AI, Growth, Audit, Replica, Ops Brain.
+
+──────────────────────────────── PHASE 33 — Real Payments & Billing Control
+OBJECTIVE: Test-mode Stripe invoicing with price guards + webhook verify. Live toggle via STRIPE_MODE.
+IMPLEMENT:
+- scripts/stripe_live_guard.py: helpers for mode, price floor/rounding, webhook verify.
+- run.py endpoints (protected):
+  POST /api/payments/create-invoice  {minutes:int, email?:string}
+  POST /api/payments/webhook (verifies signature, logs to logs/stripe_webhook.log)
+- Ensure MIN_PRICE >= $0.50 and minutes>0; compute amount=ceil(DEFAULT_RATE_USD_PER_MIN*minutes*100).
+TESTS:
+- curl -H "X-Dash-Key:$DASHBOARD_KEY" -d '{"minutes":5}' /api/payments/create-invoice → ok:true, url contains checkout.stripe.com (test).
+- Negative/zero minutes → 400 JSON error.
+GATE: If both pass, tag logs/phase33_ok.txt then advance.
+
+──────────────────────────────── PHASE 34 — Customer Experience 2.0
+OBJECTIVE: Signed download URLs (24h), unsubscribe.
+IMPLEMENT:
+- scripts/customer_experience.py: HMAC-SHA256 signer using SESSION_SECRET; 24h exp; RFC email validator.
+- run.py:
+  GET /api/customer/signed-url/<cid>?email= → returns {url, exp}
+  POST /api/customer/unsubscribe {email} → logs to logs/unsubscribe.log
+- portal.html: ensure download buttons accept signed links; no secrets client-side.
+TESTS:
+- Create signed URL; verify exp ~24h; tamper query → 403.
+- Unsubscribe POST → ok:true logged.
+GATE: Pass → tag logs/phase34_ok.txt.
+
+──────────────────────────────── PHASE 35 — Compliance & Data Export
+OBJECTIVE: One-click GDPR export + integrity manifest.
+IMPLEMENT:
+- scripts/data_export.py: gather key logs/JSON, compute SHA256 per file, emit backups/export_YYYYMMDD.json.
+- run.py: GET /api/compliance/export-data → {count, manifest_path}.
+TESTS:
+- Call endpoint → count>=1, file exists, each item has sha256.
+GATE: Pass → tag logs/phase35_ok.txt.
+
+──────────────────────────────── PHASE 36 — Adaptive Pricing AI
+OBJECTIVE: Suggest rate adjustment using last 20 jobs (QA, margin).
+IMPLEMENT:
+- scripts/pricing_ai.py: compute mean QA & margin; clamp factor 0.8–1.25; return recommendation {delta_pct,new_rate,reasons}.
+- run.py: POST /api/pricing/optimize.
+- scheduler (scripts/exec_scheduler.py): add daily 03:00 UTC task to log suggestion only (no auto-change).
+TESTS:
+- Endpoint returns ok:true with delta_pct and reasons (degrade gracefully if no data).
+GATE: Pass → tag logs/phase36_ok.txt.
+
+──────────────────────────────── PHASE 37 — Referral & Growth Engine
+OBJECTIVE: Generate/track referral codes.
+IMPLEMENT:
+- scripts/referral_engine.py: code EP-XXXXXX, track counts in logs/growth_referrals.log; share URL.
+- run.py: POST /api/growth/referral/new {channel?} → {code,share_url}.
+- dashboard: add “🚀 Enterprise Expansion Tools” card with “🎯 New Referral”.
+TESTS:
+- Create code → format matches EP-[A-F0-9]{6}, share_url uses public domain.
+GATE: Pass → tag logs/phase37_ok.txt.
+
+──────────────────────────────── PHASE 38 — SOC-lite Audit Pack
+OBJECTIVE: Immutable audit snapshot with hash chain.
+IMPLEMENT:
+- scripts/audit_pack.py: read NDJSON logs, build SHA256 chain → backups/audit/audit_YYYYMMDD.json {root_hash,count}.
+- run.py: GET /api/audit/report → {root_hash,count,path}.
+- scheduler: weekly Mon 00:30 UTC run.
+TESTS:
+- Endpoint returns root_hash (64 hex) and count>0; file exists.
+GATE: Pass → tag logs/phase38_ok.txt.
+
+──────────────────────────────── PHASE 39 — Multi-Region Replica Sync
+OBJECTIVE: Copy critical files to backups/replica (or RAILWAY_FALLBACK_PATH if set).
+IMPLEMENT:
+- scripts/replica_sync.py: copy with overwrite-if-newer; emit logs/replica_sync.log.
+- run.py: POST /api/regions/sync → {files_copied, dest}.
+- scheduler: every 2 hours.
+TESTS:
+- Call sync → files_copied>=1; dest path exists.
+GATE: Pass → tag logs/phase39_ok.txt.
+
+──────────────────────────────── PHASE 40 — AI Ops Brain 2.0
+OBJECTIVE: GPT-4o-mini suggests ops improvements (cost, UX, performance).
+IMPLEMENT:
+- scripts/ai_ops_brain.py: read finance-metrics, metrics-summary, recent logs; prompt model; write logs/ops_brain.log with {priority,action,confidence}.
+- run.py: POST /api/brain/decide → {actions:[...]}.
+- scheduler: every 12 hours.
+TESTS:
+- Endpoint returns ≥3 actions with priority∈{1,2,3} and confidence∈[0,1].
+- Log entry appended.
+GATE: Pass → tag logs/phase40_ok.txt and emit “PHASES 33–40 COMPLETE”.
+
+POSTCHECK
+- Update RUNBOOK.md with new endpoints, scheduler times, and troubleshooting.
+- Dashboard: ensure “Enterprise Expansion Tools” card has 5 buttons:
+  💹 Optimize Pricing, 🎯 New Referral, 🛡️ Run Audit, 🌍 Sync Regions, 🧠 Run AI Ops Brain.
+- Write final summary to logs/PHASE33-40_ENTERPRISE_EXPANSION_COMPLETE.txt.
+
+OUTPUT FORMAT PER PHASE
+- On success: {"phase":N,"ok":true,"notes":[...]}
+- On failure: {"phase":N,"ok":false,"reason":"...", "rollback":"done"}
+
+Begin execution now.

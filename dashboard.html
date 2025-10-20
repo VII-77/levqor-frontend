@@ -305,6 +305,63 @@
         </div>
         <!-- ==================== END ENTERPRISE EXPANSION ==================== -->
 
+        <!-- ==================== PAYMENTS (LIVE MODE) ==================== -->
+        <div class="button-grid" style="background: linear-gradient(135deg, #047857 0%, #059669 100%); padding: 20px; border-radius: 12px; margin: 20px 0;">
+            <h3 style="grid-column: 1/-1; margin: 0 0 15px 0; font-size: 16px; color: #fff;">💳 Payments (LIVE)</h3>
+            
+            <!-- Test Charge Form -->
+            <div style="grid-column: 1/-1; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: end;">
+                    <div>
+                        <label style="font-size: 12px; color: #ddd; display: block; margin-bottom: 5px;">Amount (USD)</label>
+                        <input id="paymentAmount" type="number" step="0.01" value="0.50" min="0.50" 
+                               style="width: 100%; padding: 8px; background: #1f2937; border: 1px solid #374151; color: #fff; border-radius: 4px;">
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; color: #ddd; display: block; margin-bottom: 5px;">Email</label>
+                        <input id="paymentEmail" type="email" value="test@echopilot.ai" 
+                               style="width: 100%; padding: 8px; background: #1f2937; border: 1px solid #374151; color: #fff; border-radius: 4px;">
+                    </div>
+                    <button onclick="createLiveCharge()" style="background: #10b981; padding: 8px 20px; height: fit-content;">
+                        💰 Create LIVE Charge
+                    </button>
+                </div>
+            </div>
+
+            <button onclick="listWebhooks()" style="grid-column: 1/2; background: #3b82f6;">📡 Recent Webhooks</button>
+            <button onclick="showRefundPanel()" style="grid-column: 2/-1; background: #dc2626;">💸 Refund (Admin)</button>
+            
+            <!-- Webhook List -->
+            <div id="webhookList" style="grid-column: 1/-1; max-height: 0; overflow: hidden; transition: max-height 0.3s; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                <div id="webhookContent" style="padding: 15px; font-size: 12px; color: #ddd;"></div>
+            </div>
+            
+            <!-- Refund Panel -->
+            <div id="refundPanel" style="grid-column: 1/-1; max-height: 0; overflow: hidden; transition: max-height 0.3s; background: rgba(220, 38, 38, 0.2); border-radius: 8px; border: 1px solid #dc2626;">
+                <div style="padding: 15px;">
+                    <div style="color: #fca5a5; font-size: 13px; margin-bottom: 10px;">⚠️ Admin Only - Processes via Stripe Dashboard</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: end;">
+                        <div>
+                            <label style="font-size: 12px; color: #ddd; display: block; margin-bottom: 5px;">Session ID</label>
+                            <input id="refundSessionId" type="text" placeholder="cs_live_..." 
+                                   style="width: 100%; padding: 8px; background: #1f2937; border: 1px solid #374151; color: #fff; border-radius: 4px;">
+                        </div>
+                        <div>
+                            <label style="font-size: 12px; color: #ddd; display: block; margin-bottom: 5px;">Amount (leave blank for full)</label>
+                            <input id="refundAmount" type="number" step="0.01" placeholder="Optional" 
+                                   style="width: 100%; padding: 8px; background: #1f2937; border: 1px solid #374151; color: #fff; border-radius: 4px;">
+                        </div>
+                        <button onclick="processRefund()" style="background: #dc2626; padding: 8px 20px; height: fit-content;">
+                            Refund
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <p id="paymentsResult" style="grid-column: 1/-1; font-size: 12px; color: #ccc; margin-top: 10px; min-height: 20px;"></p>
+        </div>
+        <!-- ==================== END PAYMENTS ==================== -->
+
         <div class="metrics-section">
             <div class="metrics-header">
                 <h2>📊 Metrics Visualization</h2>
@@ -1051,6 +1108,86 @@
                     `Model: ${data.model} | Context Files: ${data.context_files}`,
                     'success');
             }
+        }
+
+        // ==================== PAYMENTS FUNCTIONS ====================
+
+        async function createLiveCharge() {
+            const amount = parseFloat(document.getElementById('paymentAmount').value);
+            const email = document.getElementById('paymentEmail').value;
+            
+            if (amount < 0.50) {
+                log('❌ Minimum charge amount is $0.50', 'error');
+                return;
+            }
+            if (!email) {
+                log('❌ Email required', 'error');
+                return;
+            }
+            
+            log(`💰 Creating LIVE charge for \$${amount.toFixed(2)}...`, 'warning');
+            const data = await apiCall('/api/payments/create-invoice', 'POST', { amount, email });
+            if (data && data.ok) {
+                log(`\n✅ LIVE PAYMENT CREATED:\n` +
+                    `   Mode: ${data.mode.toUpperCase()}\n` +
+                    `   Amount: \$${data.amount_usd}\n` +
+                    `   Session: ${data.session_id.substring(0, 30)}...\n` +
+                    `   Checkout URL: ${data.invoice_link.substring(0, 60)}...`,
+                    'success');
+                // Copy URL to result area
+                document.getElementById('paymentsResult').innerHTML = 
+                    `<a href="${data.invoice_link}" target="_blank" style="color: #10b981;">🔗 Open Stripe Checkout</a>`;
+            }
+        }
+
+        async function listWebhooks() {
+            const webhookDiv = document.getElementById('webhookList');
+            const currentHeight = webhookDiv.style.maxHeight;
+            
+            if (currentHeight === '0px' || currentHeight === '') {
+                log('📡 Fetching recent webhook events...', 'info');
+                // Toggle open
+                webhookDiv.style.maxHeight = '400px';
+                document.getElementById('webhookContent').innerHTML = 
+                    '<div style="color: #fbbf24;">ℹ️ Webhook events are logged in Stripe Dashboard → Developers → Webhooks<br><br>' +
+                    'Recent events appear here after payment completions. Check Stripe Dashboard for real-time webhook delivery status.</div>';
+            } else {
+                // Toggle closed
+                webhookDiv.style.maxHeight = '0px';
+            }
+        }
+
+        async function showRefundPanel() {
+            const refundDiv = document.getElementById('refundPanel');
+            const currentHeight = refundDiv.style.maxHeight;
+            
+            if (currentHeight === '0px' || currentHeight === '') {
+                refundDiv.style.maxHeight = '200px';
+                log('💸 Refund panel opened (Admin only)', 'warning');
+            } else {
+                refundDiv.style.maxHeight = '0px';
+            }
+        }
+
+        async function processRefund() {
+            const sessionId = document.getElementById('refundSessionId').value;
+            const amount = document.getElementById('refundAmount').value;
+            
+            if (!sessionId || !sessionId.startsWith('cs_live_')) {
+                log('❌ Valid session ID required (starts with cs_live_)', 'error');
+                return;
+            }
+            
+            log('⚠️ Refund must be processed in Stripe Dashboard:', 'warning');
+            log(`\n1. Open Stripe Dashboard → Payments\n` +
+                `2. Search for session: ${sessionId}\n` +
+                `3. Click "Refund" button\n` +
+                `4. ${amount ? `Enter partial amount: \$${amount}` : 'Refund full amount'}\n` +
+                `5. Webhook will auto-log the refund event`,
+                'info');
+            
+            document.getElementById('paymentsResult').innerHTML = 
+                '<span style="color: #fbbf24;">⚠️ Process refund in Stripe Dashboard (webhook will capture event)</span>';
         }
 
         // Initialize charts on load

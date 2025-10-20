@@ -1,0 +1,54 @@
+{
+  "ok": false,
+  "ts": "2025-10-20T21:25:24.095316+00:00",
+  "checks": [
+    {
+      "name": "scheduler_status",
+      "ok": false,
+      "data": {
+        "pid": null,
+        "last_activity": null
+      }
+    },
+    {
+      "name": "heartbeat_recent",
+      "ok": true,
+      "data": {
+        "last_ts": "2025-10-20T21:24:42.908102+00:00"
+      }
+    },
+    {
+      "name": "ceo_brief_today",
+      "ok": true,
+      "data": {
+        "path": "logs/exec_briefs/brief_20251020_145755.json",
+        "headline": "\u26a0\ufe0f 2 HIGH SEVERITY ALERTS"
+      }
+    },
+    {
+      "name": "self_heal_ok",
+      "ok": true,
+      "data": {
+        "recent_errors": 0
+      }
+    },
+    {
+      "name": "pricing_ai_endpoint",
+      "ok": false,
+      "data": {
+        "rc": 0
+      }
+    },
+    {
+      "name": "audit_report",
+      "ok": false,
+      "data": null
+    },
+    {
+      "name": "compliance_export",
+      "ok": false,
+      "data": null
+    }
+  ],
+  "notes": []
+}

@@ -205,6 +205,15 @@
             </div>
         </div>
 
+        <!-- ==================== OPS CHECK (Phase 101+) ==================== -->
+        <div class="button-grid" style="background: linear-gradient(135deg, #16a085 0%, #1abc9c 100%); padding: 20px; border-radius: 12px; margin: 20px 0;">
+            <h3 style="grid-column: 1/-1; margin: 0 0 10px 0; font-size: 16px; color: white;">🩺 Ops Check (10-second health)</h3>
+            <p style="grid-column: 1/-1; font-size: 13px; color: rgba(255,255,255,0.9); margin-bottom: 10px;">Comprehensive system health verification in under 10 seconds.</p>
+            <button onclick="runOpsCheck()" style="grid-column: 1/-1; background: rgba(255,255,255,0.2); color: white; border: 2px solid rgba(255,255,255,0.3);">▶ Run Ops Check</button>
+            <pre id="opsCheckOut" style="grid-column: 1/-1; max-height: 220px; overflow: auto; background: rgba(0,0,0,0.3); color: white; padding: 15px; border-radius: 8px; font-size: 12px; margin-top: 10px;"></pre>
+        </div>
+        <!-- ==================== END OPS CHECK ==================== -->
+
         <!-- ==================== POST-DEPLOY CHECKLIST (Phase 30) ==================== -->
         <div class="button-grid" style="background: #1a1a2e; padding: 20px; border-radius: 12px; margin: 20px 0;">
             <h3 style="grid-column: 1/-1; margin: 0 0 15px 0; font-size: 16px; color: #667eea;">🧾 Post-Deploy Checklist</h3>
@@ -1188,6 +1197,40 @@
             
             document.getElementById('paymentsResult').innerHTML = 
                 '<span style="color: #fbbf24;">⚠️ Process refund in Stripe Dashboard (webhook will capture event)</span>';
+        }
+
+        // Ops Check (Phase 101+)
+        async function runOpsCheck() {
+            const key = localStorage.getItem('dashKey') || prompt('Enter DASHBOARD_KEY:');
+            if (!key) {
+                log('❌ Dashboard key required', 'error');
+                return;
+            }
+            
+            const out = document.getElementById('opsCheckOut');
+            out.textContent = 'Running comprehensive ops check...';
+            log('🩺 Running Ops Check...', 'info');
+            
+            try {
+                const res = await fetch('/api/ops/check', {
+                    method: 'POST',
+                    headers: { 'X-Dash-Key': key }
+                });
+                const j = await res.json();
+                
+                const checks = j.data?.checks || [];
+                const rows = checks.map(c => 
+                    `${c.ok ? '✅' : '❌'} ${c.name}${c.data ? ' - ' + JSON.stringify(c.data) : ''}`
+                ).join('\n');
+                
+                const summary = j.ok ? 'ALL GREEN ✅' : 'Some issues ❌';
+                out.textContent = `${summary}\n\n${rows}\n\nSaved: logs/ops_check_summary.json`;
+                
+                log(`🩺 Ops Check: ${summary}`, j.ok ? 'success' : 'warning');
+            } catch (e) {
+                out.textContent = 'Error: ' + e;
+                log('❌ Ops Check failed: ' + e, 'error');
+            }
         }
 
         // Initialize charts on load

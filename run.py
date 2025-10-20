@@ -3692,6 +3692,42 @@ def api_ops_sentinel():
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
+@app.route('/api/ops/check', methods=['POST', 'GET'])
+@require_dashboard_key
+def api_ops_check():
+    """Run comprehensive Ops Check (Phase 101+)"""
+    try:
+        import subprocess
+        env = os.environ.copy()
+        env.setdefault("BASE_URL", request.host_url.rstrip("/"))
+        
+        result = subprocess.run(
+            ['python3', 'scripts/ops_check.py'],
+            env=env,
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        
+        try:
+            payload = json.loads(result.stdout or "{}")
+        except:
+            payload = {
+                "ok": False,
+                "error": "bad_output",
+                "stdout": result.stdout[-400:] if result.stdout else "",
+                "stderr": result.stderr[-400:] if result.stderr else ""
+            }
+        
+        return jsonify({
+            "ok": bool(payload.get("ok")),
+            "data": payload,
+            "stderr": result.stderr[-400:] if result.stderr else ""
+        }), 200
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
 @app.route('/api/revenue/intelligence', methods=['POST'])
 @require_dashboard_key
 def api_revenue_intelligence():

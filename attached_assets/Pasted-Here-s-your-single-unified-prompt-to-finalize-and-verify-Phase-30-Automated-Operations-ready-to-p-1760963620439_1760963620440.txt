@@ -1,0 +1,102 @@
+Here’s your single unified prompt to finalize and verify Phase 30 – Automated Operations, ready to paste straight into Replit AI:
+
+
+---
+
+OPEN MY Echopilotai Replit AND DO ALL OF THIS IN ONE GO — FINALIZE PHASE 30 (Autonomous Ops Verification + Self-Test)
+
+Goals
+
+1. Start the new background scheduler.
+
+
+2. Run one full manual cycle (Brief → Self-Heal → Metrics).
+
+
+3. Verify retention cleanup works.
+
+
+4. Produce a compact verification log under logs/phase30_verify_*.txt.
+
+
+
+1️⃣ Execute end-to-end test sequence
+
+# Start scheduler
+DASHBOARD_KEY=$DASHBOARD_KEY make start-automations
+
+# Wait 10 s to ensure daemon is alive
+sleep 10
+
+# Check scheduler status
+curl -s -H "X-Dash-Key: $DASHBOARD_KEY" \
+  https://echopilotai.replit.app/api/automations/status | python3 -m json.tool
+
+# Manual run of core tasks
+DASHBOARD_KEY=$DASHBOARD_KEY make run-brief
+DASHBOARD_KEY=$DASHBOARD_KEY make run-selfheal
+curl -s -H "X-Dash-Key: $DASHBOARD_KEY" \
+  https://echopilotai.replit.app/api/finance-metrics | python3 -m json.tool
+curl -s -H "X-Dash-Key: $DASHBOARD_KEY" \
+  https://echopilotai.replit.app/api/metrics-summary | python3 -m json.tool
+
+# Retention cleanup
+python3 scripts/retention.py
+
+# Collect recent logs for report
+{
+  echo "=== PHASE 30 AUTOMATION VERIFICATION ($(date -u)) ==="
+  echo
+  echo "--- Scheduler Status ---"
+  tail -n 20 logs/scheduler.log 2>/dev/null
+  echo
+  echo "--- Scheduler Output ---"
+  tail -n 20 logs/scheduler.out 2>/dev/null
+  echo
+  echo "--- Retention Log ---"
+  tail -n 10 logs/retention.log 2>/dev/null
+  echo
+  echo "--- Exec Brief ---"
+  ls -1t logs/exec_briefs/brief_*.json 2>/dev/null | head -3
+  echo
+  echo "--- Self-Heal ---"
+  tail -n 5 logs/self_heal.log 2>/dev/null
+} | tee logs/phase30_verify_$(date +%Y%m%d_%H%M%S).txt
+
+2️⃣ Expected Results
+
+Check	Expected Outcome
+
+/api/automations/status	{"ok":true,"data":{"running":true}}
+run-brief	Generates new logs/exec_briefs/brief_*.json + .html
+run-selfheal	Returns {"ok":true} with retried count ≥ 0
+Finance metrics	Valid JSON with revenue_7d, roi_7d
+Retention	“Cleaned 0–X files” message in logs/retention.log
+Verification log	Created under logs/phase30_verify_*.txt
+
+
+3️⃣ Optional Secrets (Tune Schedule Times)
+
+SCHED_BRIEF_UTC=08:00
+SCHED_REPORT_UTC=09:00
+SCHED_SELFHEAL_EVERY_HOURS=6
+
+4️⃣ Commit
+
+git add .
+git commit -m "Phase 30 verification – autonomous ops tested and logs validated"
+git push
+
+✅ End State After execution you’ll have:
+
+Scheduler running 24/7 (no cron needed)
+
+Verified brief, self-heal and finance metrics
+
+Retention cleaning active
+
+Log logs/phase30_verify_*.txt summarizing proof of full autonomous operation
+
+
+Do not touch Stripe or Notion schemas; only validate automation health and log integrity.
+

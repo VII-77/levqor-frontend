@@ -224,6 +224,30 @@ def run_observability():
     except Exception as e:
         log_event('observability_error', {'error': str(e)})
 
+def run_payout_recon():
+    """Run payout reconciliation"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/payout_recon.py'], check=False, timeout=60)
+    except Exception as e:
+        log_event('payout_recon_error', {'error': str(e)})
+
+def run_churn_ai():
+    """Run churn risk analysis"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/churn_ai.py'], check=False, timeout=60)
+    except Exception as e:
+        log_event('churn_ai_error', {'error': str(e)})
+
+def run_slo_guard():
+    """Run SLO compliance check"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/slo_guard.py'], check=False, timeout=30)
+    except Exception as e:
+        log_event('slo_guard_error', {'error': str(e)})
+
 def run_scheduled_tasks():
     """Check and run scheduled tasks"""
     
@@ -325,6 +349,26 @@ def run_scheduled_tasks():
     if is_time_match(datetime.utcnow().hour, 0) and should_run('observability'):
         run_observability()
         mark_run('observability')
+    
+    # ==================== PHASES 56-60: REPORTS & MONITORING ====================
+    
+    # 15) Payout Reconciliation - Every 6 hours (Phase 57)
+    if 'payout_recon' not in last_run or \
+       (datetime.utcnow() - last_run['payout_recon']).total_seconds() >= (6 * 3600):
+        run_payout_recon()
+        mark_run('payout_recon')
+    
+    # 16) Churn AI - Every 2 hours (Phase 58)
+    if 'churn_ai' not in last_run or \
+       (datetime.utcnow() - last_run['churn_ai']).total_seconds() >= (2 * 3600):
+        run_churn_ai()
+        mark_run('churn_ai')
+    
+    # 17) SLO Guard - Every 10 minutes (Phase 59)
+    if 'slo_guard' not in last_run or \
+       (datetime.utcnow() - last_run['slo_guard']).total_seconds() >= (10 * 60):
+        run_slo_guard()
+        mark_run('slo_guard')
 
 def write_pid():
     """Write PID to file with fsync"""
@@ -367,6 +411,10 @@ def main():
     print(f"   Auto-Governance: Every hour", flush=True)
     print(f"   --- Phases 51-55: Post-Live Hardening ---", flush=True)
     print(f"   Observability Snapshot: Every hour", flush=True)
+    print(f"   --- Phases 56-60: Reports & Monitoring ---", flush=True)
+    print(f"   Payout Reconciliation: Every 6 hours", flush=True)
+    print(f"   Churn AI: Every 2 hours", flush=True)
+    print(f"   SLO Guard: Every 10 minutes", flush=True)
     print(f"   Logs: {log_file}", flush=True)
     print(f"   PID: {pid_file}", flush=True)
     print(flush=True)

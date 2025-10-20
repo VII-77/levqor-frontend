@@ -1,0 +1,46 @@
+{
+  "ts": 1760981241.0151227,
+  "ts_iso": "2025-10-20T17:27:21.015123Z",
+  "summary": {
+    "total": 3,
+    "high_risk": 1,
+    "medium_risk": 1,
+    "low_risk": 1,
+    "avg_risk": 0.439
+  },
+  "results": [
+    {
+      "id": "C002",
+      "risk_score": 0.88,
+      "tier": "HIGH",
+      "factors": {
+        "recency": 1.0,
+        "usage": 1.0,
+        "payment": 1.0,
+        "quality": 0.2
+      }
+    },
+    {
+      "id": "C003",
+      "risk_score": 0.395,
+      "tier": "MEDIUM",
+      "factors": {
+        "recency": 0.5,
+        "usage": 0.5,
+        "payment": 0.33,
+        "quality": 0.08
+      }
+    },
+    {
+      "id": "C001",
+      "risk_score": 0.043,
+      "tier": "LOW",
+      "factors": {
+        "recency": 0.1,
+        "usage": 0.0,
+        "payment": 0.0,
+        "quality": 0.05
+      }
+    }
+  ]
+}

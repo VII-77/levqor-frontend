@@ -1,0 +1,11 @@
+{
+  "ts": 1760981240.6882052,
+  "ts_iso": "2025-10-20T17:27:20.688206Z",
+  "summary": {
+    "matched": 0,
+    "amount_mismatch": 0,
+    "missing_in_ledger": 0,
+    "total": 0
+  },
+  "items": []
+}

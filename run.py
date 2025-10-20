@@ -3809,6 +3809,122 @@ def api_send_email():
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
+@app.route('/api/reports/email', methods=['POST'])
+@require_dashboard_key
+def api_reports_email():
+    """Send daily CEO report via email (Phase 56)"""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/reports_emailer.py'],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        
+        if result.returncode == 0:
+            import json
+            data = json.loads(result.stdout)
+            return jsonify(data), 200
+        else:
+            return jsonify({"ok": False, "error": result.stderr}), 500
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/payouts/reconcile', methods=['POST'])
+@require_dashboard_key
+def api_payouts_reconcile():
+    """Run payout reconciliation (Phase 57)"""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/payout_recon.py'],
+            capture_output=True,
+            text=True,
+            timeout=60
+        )
+        
+        if result.returncode == 0:
+            import json
+            data = json.loads(result.stdout)
+            return jsonify(data), 200
+        else:
+            return jsonify({"ok": False, "error": result.stderr}), 500
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/churn/score', methods=['POST'])
+@require_dashboard_key
+def api_churn_score():
+    """Run churn risk analysis (Phase 58)"""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/churn_ai.py'],
+            capture_output=True,
+            text=True,
+            timeout=60
+        )
+        
+        if result.returncode == 0:
+            import json
+            data = json.loads(result.stdout)
+            return jsonify(data), 200
+        else:
+            return jsonify({"ok": False, "error": result.stderr}), 500
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/slo/check', methods=['GET'])
+@require_dashboard_key
+def api_slo_check():
+    """Check SLO compliance (Phase 59)"""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/slo_guard.py'],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        
+        if result.returncode == 0:
+            import json
+            data = json.loads(result.stdout)
+            return jsonify(data), 200
+        else:
+            return jsonify({"ok": False, "error": result.stderr}), 500
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/audit/latest', methods=['GET'])
+@require_dashboard_key
+def api_audit_latest():
+    """Get latest audit report (Phase 60)"""
+    try:
+        from scripts.audit_ui import get_latest_audit
+        result = get_latest_audit()
+        return jsonify(result), 200
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/audit/summary', methods=['GET'])
+@require_dashboard_key
+def api_audit_summary():
+    """Get audit summary (Phase 60)"""
+    try:
+        from scripts.audit_ui import get_audit_summary
+        result = get_audit_summary()
+        return jsonify(result), 200
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
 
 def run_bot():
     """Run the bot in a separate thread"""

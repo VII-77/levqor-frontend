@@ -1,0 +1,130 @@
+############################
+# ECHOPILOT COMMAND EXECUTION PLAN
+# Goal: Validate Phase 25–26 in prod, secure config, and prove E2E revenue flow.
+# Mode: Run top-to-bottom. Replace <> as needed. No secrets in client.
+############################
+
+# 0) QUICK STATUS READ
+# Why: Confirm live build + environment. Impact if skipped: blind testing against stale deploy.
+curl -sS https://Echopilotai.replit.app/portal | head -n 5
+curl -sS https://Echopilotai.replit.app/api/preflight-audit | jq
+
+# 1) SECRETS + CONFIG GUARDRAILS (server shell inside Replit)
+# Why: Prevent data leaks and inconsistent pricing. Impact: revenue loss, compromised ops.
+# Expect these to be set and non-empty:
+echo "
+SESSION_SECRET
+AI_INTEGRATIONS_OPENAI_BASE_URL
+AI_INTEGRATIONS_OPENAI_API_KEY
+JOB_LOG_DB_ID
+AUTOMATION_QUEUE_DB_ID
+STRIPE_SECRET_KEY
+STRIPE_WEBHOOK_SECRET
+NOTION_PARENT_PAGE_ID
+DATABASE_URL
+HEALTH_TOKEN
+DASHBOARD_KEY
+DEFAULT_RATE_USD_PER_MIN
+" | xargs -I{} bash -lc '[[ -n "${!{}:-}" ]] && echo "OK {}" || echo "MISSING {}"'
+
+# Enforce production toggles:
+# ALLOW_DIRTY must be 'false' or unset. Impact if true: unvetted changes reach prod.
+[[ "${ALLOW_DIRTY:-false}" == "false" ]] && echo "OK ALLOW_DIRTY" || echo "FAIL ALLOW_DIRTY=true (fix in Secrets)."
+
+# 2) STRIPE WEBHOOK WIRING (local dev verification OR remote tunnel)
+# Why: Payment state drives Job Log updates and email sends. Impact: paid users shown as unpaid.
+# If testing locally with a tunnel:
+#   stripe listen --forward-to https://Echopilotai.replit.app/api/public/after-payment
+# Confirm endpoint responds 2xx to a test event:
+stripe trigger checkout.session.completed 2>/dev/null || true
+
+# 3) NOTION SCHEMA CHECKS
+# Why: Job History + Emails need Owner Email. Impact: missing history and notifications.
+# Use Notion UI once: add Email property "Owner Email" to Job Log DB.
+# Sanity via API (replace <JOB_LOG_DB_ID>):
+cat > notion_check_owner_email.json <<'JSON'
+{"filter":{"property":"Owner Email","rich_text":{"is_not_empty":true}}}
+JSON
+curl -sS -X POST "https://api.notion.com/v1/databases/$JOB_LOG_DB_ID/query" \
+  -H "Authorization: Bearer $NOTION_TOKEN" \
+  -H "Notion-Version: 2022-06-28" \
+  -H "Content-Type: application/json" \
+  --data @notion_check_owner_email.json | jq '.results | length'
+
+# 4) PUBLIC API CONTRACT TESTS
+# Why: Ensure no secrets in responses. Impact: secret leakage.
+# 4a) Create Job (without payment yet). Expect {"ok":true,"data":{"cid":...}}
+curl -sS -X POST https://Echopilotai.replit.app/api/public/create-job \
+  -F "file=@/path/to/sample.mp3" \
+  -F "email=tester@example.com" | tee create_job.json | jq
+
+CID=$(jq -r '.data.cid' create_job.json)
+
+# 4b) Poll Status. Expect fields: QA, Duration, GrossUSD, PaymentStatus.
+curl -sS https://Echopilotai.replit.app/api/public/job-status/$CID | jq
+
+# 4c) Get Checkout URL. Expect {"ok":true,"data":{"checkout_url":...}}
+curl -sS https://Echopilotai.replit.app/api/public/checkout/$CID | jq
+
+# 4d) After payment, poll until Paid+Processed.
+# If using Stripe test card 4242..., complete checkout manually, then:
+watch -n 5 "curl -sS https://Echopilotai.replit.app/api/public/job-status/$CID | jq"
+
+# 5) PHASE 26 ENDPOINTS
+# Why: Validate customer UX completeness. Impact: support load and churn.
+# 5a) Job history
+curl -sS https://Echopilotai.replit.app/api/public/job-history/tester@example.com | jq
+
+# 5b) Download (will 200 only if processed)
+curl -I https://Echopilotai.replit.app/api/public/download/$CID
+
+# 5c) Support form logging
+curl -sS -X POST https://Echopilotai.replit.app/api/public/support \
+  -H "Content-Type: application/json" \
+  -d '{"name":"QA","email":"tester@example.com","message":"Portal support ping"}' | jq
+
+# 5d) Email send (if SMTP configured)
+curl -sS -X POST https://Echopilotai.replit.app/api/public/send-email \
+  -H "Content-Type: application/json" \
+  -d '{"to":"tester@example.com","cid":"'"$CID"'"}' | jq
+
+# 6) LOGS + PII SANITY
+# Why: Ensure logs have no secrets. Impact: compliance risk.
+grep -nE "api_key|secret|Authorization|stripe_" -R logs/ || echo "OK no obvious secret strings in logs"
+tail -n 100 logs/customer_portal.log | sed -E 's/[A-Za-z0-9_\-]{16,}/[REDACTED]/g' | head
+
+# 7) COST GUARDRAILS
+# Why: Prevent runaway inference cost. Impact: margin erosion.
+# Expect DEFAULT_RATE_USD_PER_MIN set. Verify pricing reflected in status (GrossUSD exists).
+curl -sS https://Echopilotai.replit.app/api/public/job-status/$CID | jq '.data.GrossUSD'
+
+# 8) HEALTH + CRON
+# Why: Ongoing signal of system health. Impact: silent failures.
+curl -sS "https://Echopilotai.replit.app/api/health?token=$HEALTH_TOKEN" | jq
+# If you have a scheduler, hit /api/preflight-audit daily and alert on non-ok.
+
+# 9) SECURITY QUICK WINS
+# Why: Reduce attack surface. Impact: outage or leak.
+# - Verify CORS on public endpoints only (server config review).
+# - Enforce file size/type validation for uploads (.mp3/.wav, size cap).
+# - Rate limit POST /api/public/create-job and /api/public/support.
+# - Ensure Stripe secrets only server-side and never in portal.html.
+
+# 10) DONE CRITERIA
+# - One test job reaches Paid+Processed.
+# - Job History lists it with QA and download link.
+# - Support POST logged to logs/support_requests.log.
+# - Email delivered or queued if SMTP not set.
+# - No secrets in logs. Health endpoints return ok.
+
+############################
+# WHY / BENEFIT / IMPACT SUMMARY
+# 1) Status + preflight: reduces unknowns; if ignored, you test stale code.
+# 2) Secrets guardrails: prevents leaks; if ignored, compliance and trust damage.
+# 3) Stripe webhooks: ensures revenue recognition; if ignored, unpaid-but-processed jobs.
+# 4) Notion Owner Email: enables history + notifications; if ignored, broken UX.
+# 5) Public API tests: catch regressions; if ignored, 500s reach customers.
+# 6) Logs/PII scan: protects secrets; if ignored, data exposure risk.
+# 7) Cost checks: protects margins; if ignored, silent cost creep.
+# 8) Health checks: early failure detection; if ignored, long downtime.
+############################

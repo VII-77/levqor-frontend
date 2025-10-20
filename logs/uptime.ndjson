@@ -127,3 +127,5 @@
 {"ts": "2025-10-20T23:47:28Z", "latency_ms": 5, "ok": true, "code": 200}
 {"ts": "2025-10-20T23:48:29Z", "latency_ms": 5, "ok": true, "code": 200}
 {"ts": "2025-10-20T23:49:22Z", "latency_ms": 4, "ok": true, "code": 200}
+{"ts": "2025-10-20T23:50:22Z", "latency_ms": 15, "ok": true, "code": 200}
+{"ts": "2025-10-20T23:51:22Z", "latency_ms": 3, "ok": true, "code": 200}

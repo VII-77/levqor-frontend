@@ -1,0 +1,166 @@
+# 🧠 EchoPilot AI — Phase 30 RUNBOOK (Final Production Edition)
+
+## 1️⃣ Purpose
+Document the operational workflow, controls, recovery procedures, and health checks for the fully autonomous EchoPilot system (Phases 27–30).  
+This runbook ensures zero downtime, quick diagnostics, and consistent operator actions.
+
+---
+
+## 2️⃣ System Overview
+**Core Components**
+| Component | Function | Mode |
+|------------|-----------|------|
+| Scheduler Workflow | Executes CEO Brief, Daily Report, Self-Heal, Retention | Autonomous (Replit Workflow) |
+| Web Server | Customer Portal + API Endpoints | Foreground |
+| Dashboard | Operator Interface with auto-refresh | Web UI |
+| Makefile / CLI | Manual control fallback | Local execution |
+| Logging | NDJSON structured logs under `/logs` | Persistent |
+
+---
+
+## 3️⃣ Environment Configuration
+All environment variables set in Replit Secrets:
+
+| Variable | Purpose |
+|-----------|----------|
+| `DASHBOARD_KEY` | Auth for /api/automations/\* |
+| `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` / `SMTP_FROM` | Live email delivery |
+| `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | Payments (live mode) |
+| `SCHED_BRIEF_UTC` = 08:00 | Daily CEO Brief |
+| `SCHED_REPORT_UTC` = 09:00 | Daily Report |
+| `SCHED_SELFHEAL_EVERY_HOURS` = 6 | Self-Heal interval |
+
+---
+
+## 4️⃣ Start / Stop / Status Commands
+
+### 🟢 Start Scheduler
+```bash
+bash scripts/run_automations.sh start
+# or via API
+curl -s -H "X-Dash-Key: $DASHBOARD_KEY" -X POST http://localhost:5000/api/automations/start | python3 -m json.tool
+```
+
+### 🔴 Stop Scheduler
+```bash
+bash scripts/run_automations.sh stop
+# or via API
+curl -s -H "X-Dash-Key: $DASHBOARD_KEY" -X POST http://localhost:5000/api/automations/stop | python3 -m json.tool
+```
+
+### 🔍 Check Status
+```bash
+bash scripts/run_automations.sh status
+curl -s -H "X-Dash-Key: $DASHBOARD_KEY" http://localhost:5000/api/automations/status | python3 -m json.tool
+```
+
+---
+
+## 5️⃣ Manual Triggers
+
+```bash
+make run-brief      # Generate CEO Brief now
+make run-selfheal   # Run Self-Heal manually
+make retention      # Cleanup logs (keeps newest 30)
+```
+
+---
+
+## 6️⃣ Dashboard Usage
+
+**URL:** https://echopilotai.replit.app/dashboard
+
+**Sections:**
+- 👔 CEO Brief (Phase 29)
+- ⚙️ Automations (Scheduler)
+- 💰 Finance Metrics
+- 📈 Charts
+
+Enable "Auto-refresh status (10 s)" for live PID + activity updates.
+
+---
+
+## 7️⃣ Log Locations
+
+| Log File | Description |
+|----------|-------------|
+| `logs/scheduler.log` | Tick events + startup/shutdown audit |
+| `logs/exec_briefs/brief_*.json/.html` | CEO Briefs |
+| `logs/exec_ingest_*.json` | Signal ingestion snapshots |
+| `logs/exec_analysis_*.json` | GPT-4o-mini analyses |
+| `logs/self_heal.log` | Job retry records |
+| `logs/retention.log` | Cleanup activity |
+| `logs/PHASE30_COMPLETE.txt` | Final verification summary |
+
+---
+
+## 8️⃣ Health Checks
+
+```bash
+tail -n 20 logs/scheduler.log | grep '"event": "tick"'
+# Expect one tick per minute
+curl -s http://localhost:5000/health | python3 -m json.tool
+```
+
+Healthy = `{"status":"healthy"}` and ticks in the last 60 s.
+
+---
+
+## 9️⃣ Troubleshooting
+
+| Symptom | Action |
+|---------|--------|
+| Scheduler stopped | `bash scripts/run_automations.sh start` → watch for ticks |
+| No ticks in > 2 min | Check `logs/scheduler.out` + `logs/scheduler.log` |
+| API timeout | Verify Replit Workflow running; restart |
+| Self-Heal 404 | Normal (no failed jobs); verify Notion Job Log |
+| Finance metrics error | Needs real jobs processed |
+| Dashboard not updating | Ensure auto-refresh toggle ON |
+| Email not sending | Configure SMTP_* secrets |
+| Stripe test mode only | Replace keys with live version |
+
+---
+
+## 🔄 Recovery Procedure
+
+1. **Stop scheduler** → `bash scripts/run_automations.sh stop`
+2. **Clear pid file** → `rm logs/scheduler.pid`
+3. **Start scheduler** → `bash scripts/run_automations.sh start`
+4. **Confirm tick events** → `tail -f logs/scheduler.log`
+
+---
+
+## 🧩 Workflow Architecture Summary
+
+- **Workflows:** EchoPilot Bot (web) + Scheduler (background)
+- **Runtime:** Replit Reserved VM
+- **Auto-Restart:** Enabled
+- **Logging:** Persistent in /logs
+- **Fallback:** Manual CLI + API
+
+---
+
+## 🏁 Commit Command
+
+```bash
+git add -A
+git commit -m "Phase 30 RUNBOOK – final operational manual for autonomous scheduler"
+git push
+```
+
+---
+
+## ✅ Status (as of 2025-10-20)
+
+- **Scheduler PID 6942** — Running ✅
+- **Heartbeats** — 1/min ✅
+- **CEO Brief** — 08:00 UTC ✅
+- **Daily Report** — 09:00 UTC ✅
+- **Self-Heal** — Every 6 h ✅
+- **Dashboard Auto-Refresh** — Working ✅
+- **CLI Fallback** — Operational ✅
+- **Production Readiness** — CONFIRMED 🚀
+
+---
+
+**End of RUNBOOK.**

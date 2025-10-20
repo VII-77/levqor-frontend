@@ -4290,6 +4290,269 @@ def api_incidents_summarize():
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
+# ==================== PHASES 76-80: SLOs, PAGER, PORTAL, COSTS & SCALE ====================
+
+@app.route('/api/slo/budget', methods=['GET'])
+@require_dashboard_key
+def api_slo_budget():
+    """Get SLO error budget status (Phase 76)"""
+    try:
+        if os.path.exists('logs/slo_budget.json'):
+            with open('logs/slo_budget.json', 'r') as f:
+                data = json.load(f)
+            return jsonify(data), 200
+        else:
+            import subprocess
+            result = subprocess.run(
+                ['python3', 'scripts/slo_budget.py'],
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+            
+            if result.returncode == 0:
+                data = json.loads(result.stdout)
+                return jsonify(data), 200
+            else:
+                return jsonify({"ok": False, "error": result.stderr}), 500
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/slo/rebaseline', methods=['POST'])
+@require_dashboard_key
+def api_slo_rebaseline():
+    """Reset SLO error budget baseline (Phase 76)"""
+    try:
+        # Clear historical data
+        for file in ['logs/slo_budget.ndjson', 'logs/deploy_gate.flag']:
+            if os.path.exists(file):
+                os.remove(file)
+        
+        # Recompute fresh
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/slo_budget.py'],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        
+        if result.returncode == 0:
+            data = json.loads(result.stdout)
+            return jsonify({"ok": True, "message": "SLO baseline reset", "data": data}), 200
+        else:
+            return jsonify({"ok": False, "error": result.stderr}), 500
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/incidents/raise', methods=['POST'])
+@require_dashboard_key
+def api_incidents_raise():
+    """Raise a new incident (Phase 77)"""
+    try:
+        data = request.get_json()
+        severity = data.get('severity', 'INFO')
+        msg = data.get('msg', 'No message')
+        source = data.get('source', 'api')
+        meta = data.get('meta', {})
+        
+        # Import incident pager
+        sys.path.insert(0, 'scripts')
+        from incident_pager import raise_incident
+        
+        result = raise_incident(severity, msg, source, meta)
+        return jsonify(result), 200
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/incidents/summary', methods=['POST'])
+@require_dashboard_key
+def api_incidents_summary():
+    """Get incident summary (Phase 77)"""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/incident_pager.py'],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        
+        if result.returncode == 0:
+            data = json.loads(result.stdout)
+            return jsonify(data), 200
+        else:
+            return jsonify({"ok": False, "error": result.stderr}), 500
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/portal/receipts', methods=['GET'])
+@require_dashboard_key
+def api_portal_receipts():
+    """Get customer receipts (Phase 78)"""
+    try:
+        email = request.args.get('email')
+        if not email:
+            return jsonify({"ok": False, "error": "email parameter required"}), 400
+        
+        # Import customer portal
+        sys.path.insert(0, 'scripts')
+        from customer_portal import get_customer_receipts
+        
+        result = get_customer_receipts(email)
+        return jsonify(result), 200
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/portal/download', methods=['GET'])
+def api_portal_download():
+    """Download receipt with signed token (Phase 78)"""
+    try:
+        email = request.args.get('email')
+        resource_id = request.args.get('id')
+        expires_at = int(request.args.get('expires', 0))
+        token = request.args.get('token')
+        
+        if not all([email, resource_id, expires_at, token]):
+            return jsonify({"ok": False, "error": "Missing required parameters"}), 400
+        
+        # Import customer portal
+        sys.path.insert(0, 'scripts')
+        from customer_portal import verify_download_token
+        
+        ip = request.remote_addr
+        result = verify_download_token(email, resource_id, expires_at, token, ip)
+        
+        if result.get('ok'):
+            # In production, would return actual file
+            return jsonify({
+                "ok": True,
+                "message": "Download authorized",
+                "resource_id": resource_id,
+                "content": "Receipt content here (PDF/HTML)"
+            }), 200
+        else:
+            return jsonify(result), result.get('status', 403)
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/costs/status', methods=['GET'])
+@require_dashboard_key
+def api_costs_status():
+    """Get cost guardrails status (Phase 79)"""
+    try:
+        if os.path.exists('logs/costs.json'):
+            with open('logs/costs.json', 'r') as f:
+                data = json.load(f)
+            return jsonify(data), 200
+        else:
+            import subprocess
+            result = subprocess.run(
+                ['python3', 'scripts/cost_guardrails.py'],
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+            
+            if result.returncode == 0:
+                data = json.loads(result.stdout)
+                return jsonify(data), 200
+            else:
+                return jsonify({"ok": False, "error": result.stderr}), 500
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/costs/set-cap', methods=['POST'])
+@require_dashboard_key
+def api_costs_set_cap():
+    """Set cost cap (Phase 79)"""
+    try:
+        data = request.get_json()
+        scope = data.get('scope', 'daily')
+        key = data.get('key')
+        usd_cap = float(data.get('usd_cap', 0))
+        
+        if usd_cap < 0:
+            return jsonify({"ok": False, "error": "Cap must be positive"}), 400
+        
+        # Import cost guardrails
+        sys.path.insert(0, 'scripts')
+        from cost_guardrails import set_cost_cap
+        
+        result = set_cost_cap(scope, key, usd_cap)
+        return jsonify(result), 200
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/scale/status', methods=['GET'])
+@require_dashboard_key
+def api_scale_status():
+    """Get autoscale status (Phase 80)"""
+    try:
+        if os.path.exists('logs/autoscale.json'):
+            with open('logs/autoscale.json', 'r') as f:
+                data = json.load(f)
+            return jsonify(data), 200
+        else:
+            import subprocess
+            result = subprocess.run(
+                ['python3', 'scripts/autoscale_workers.py'],
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+            
+            if result.returncode == 0:
+                data = json.loads(result.stdout)
+                return jsonify(data), 200
+            else:
+                return jsonify({"ok": False, "error": result.stderr}), 500
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/scale/apply', methods=['POST'])
+@require_dashboard_key
+def api_scale_apply():
+    """Apply autoscale changes (Phase 80)"""
+    try:
+        data = request.get_json() or {}
+        dry_run = data.get('dry_run', True)
+        
+        # Set environment for dry run mode
+        env = os.environ.copy()
+        env['SCALE_DRY_RUN'] = str(dry_run).lower()
+        
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/autoscale_workers.py'],
+            capture_output=True,
+            text=True,
+            timeout=30,
+            env=env
+        )
+        
+        if result.returncode == 0:
+            data = json.loads(result.stdout)
+            return jsonify({
+                "ok": True,
+                "message": "Scaling applied" if not dry_run else "Scaling computed (dry run)",
+                "data": data
+            }), 200
+        else:
+            return jsonify({"ok": False, "error": result.stderr}), 500
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
 
 def run_bot():
     """Run the bot in a separate thread"""

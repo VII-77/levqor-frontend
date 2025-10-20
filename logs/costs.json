@@ -1,0 +1,21 @@
+{
+  "ts": "2025-10-20T17:56:06.834440Z",
+  "period_hours": 24,
+  "total_spent_usd": 0.0,
+  "daily_cap_usd": 25.0,
+  "global_utilization_pct": 0.0,
+  "by_model": {
+    "gpt-4o": {
+      "spent_usd": 0.0,
+      "cap_usd": 15,
+      "utilization_pct": 0.0
+    },
+    "gpt-4o-mini": {
+      "spent_usd": 0.0,
+      "cap_usd": 10,
+      "utilization_pct": 0.0
+    }
+  },
+  "alert_level": "OK",
+  "action": "NONE"
+}

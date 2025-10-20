@@ -328,6 +328,38 @@ def run_ai_incident_summaries():
     except Exception as e:
         log_event('ai_incident_summaries_error', {'error': str(e)})
 
+def run_slo_budget():
+    """Compute SLO budget and error rates"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/slo_budget.py'], check=False, timeout=30)
+    except Exception as e:
+        log_event('slo_budget_error', {'error': str(e)})
+
+def run_incident_pager():
+    """Run incident pager check"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/incident_pager.py'], check=False, timeout=30)
+    except Exception as e:
+        log_event('incident_pager_error', {'error': str(e)})
+
+def run_cost_guardrails():
+    """Check cost guardrails"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/cost_guardrails.py'], check=False, timeout=30)
+    except Exception as e:
+        log_event('cost_guardrails_error', {'error': str(e)})
+
+def run_autoscale_workers():
+    """Run autoscale decision engine"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/autoscale_workers.py'], check=False, timeout=30)
+    except Exception as e:
+        log_event('autoscale_workers_error', {'error': str(e)})
+
 def run_scheduled_tasks():
     """Check and run scheduled tasks"""
     
@@ -508,6 +540,31 @@ def run_scheduled_tasks():
     if is_time_match(7, 45) and should_run('email_reports'):
         run_email_reports()
         mark_run('email_reports')
+    
+    # ==================== PHASES 76-80: SLOs, PAGER, PORTAL, COSTS & SCALE ====================
+    
+    # 28) SLO Budget - Every 15 minutes (Phase 76)
+    if 'slo_budget' not in last_run or \
+       (datetime.utcnow() - last_run['slo_budget']).total_seconds() >= (15 * 60):
+        run_slo_budget()
+        mark_run('slo_budget')
+    
+    # 29) Incident Pager - Every 5 minutes (Phase 77)
+    if 'incident_pager' not in last_run or \
+       (datetime.utcnow() - last_run['incident_pager']).total_seconds() >= (5 * 60):
+        run_incident_pager()
+        mark_run('incident_pager')
+    
+    # 30) Cost Guardrails - Every hour (Phase 79)
+    if is_time_match(datetime.utcnow().hour, 0) and should_run('cost_guardrails'):
+        run_cost_guardrails()
+        mark_run('cost_guardrails')
+    
+    # 31) Autoscale Workers - Every 10 minutes (Phase 80)
+    if 'autoscale_workers' not in last_run or \
+       (datetime.utcnow() - last_run['autoscale_workers']).total_seconds() >= (10 * 60):
+        run_autoscale_workers()
+        mark_run('autoscale_workers')
 
 def write_pid():
     """Write PID to file with fsync"""
@@ -567,6 +624,11 @@ def main():
     print(f"   AI Incident Summaries: Every 30 minutes", flush=True)
     print(f"   Smart Retries Test: Every 6 hours", flush=True)
     print(f"   Email Reports: Daily at 07:45 UTC", flush=True)
+    print(f"   --- Phases 76-80: SLOs, Pager, Portal, Costs & Scale ---", flush=True)
+    print(f"   SLO Budget: Every 15 minutes", flush=True)
+    print(f"   Incident Pager: Every 5 minutes", flush=True)
+    print(f"   Cost Guardrails: Every hour", flush=True)
+    print(f"   Autoscale Workers: Every 10 minutes", flush=True)
     print(f"   Logs: {log_file}", flush=True)
     print(f"   PID: {pid_file}", flush=True)
     print(flush=True)

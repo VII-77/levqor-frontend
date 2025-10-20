@@ -1,0 +1,1 @@
+{"event": "scale_decision", "ts": "2025-10-20T17:56:06.957232Z", "current": 1, "desired": 1, "reason": "low_utilization", "dry_run": true}

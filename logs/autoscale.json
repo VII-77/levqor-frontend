@@ -1,0 +1,19 @@
+{
+  "ts": "2025-10-20T17:56:06.957232Z",
+  "current_workers": 1,
+  "desired_workers": 1,
+  "reason": "low_utilization",
+  "dry_run": true,
+  "metrics": {
+    "queue_depth": 0,
+    "p95_latency_ms": 0,
+    "arrival_rate_per_min": 0
+  },
+  "constraints": {
+    "min": 1,
+    "max": 6,
+    "cooldown_min": 10,
+    "cooldown_remaining_sec": 0,
+    "deploy_gate_active": false
+  }
+}

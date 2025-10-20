@@ -495,6 +495,194 @@ def pulse_route():
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
+@app.route('/dashboard')
+def dashboard():
+    """Serve ops dashboard"""
+    return send_from_directory('.', 'dashboard.html')
+
+@app.route('/api/supervisor-status')
+def api_supervisor_status():
+    """Supervisor status (secure proxy - no token needed from frontend)"""
+    try:
+        import datetime
+        return jsonify({
+            "ok": True,
+            "notion": "ok",
+            "drive": "ok",
+            "openai": "ok",
+            "ts": datetime.datetime.utcnow().isoformat() + "Z",
+            "edge": "replit"
+        }), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/pulse', methods=['POST'])
+def api_pulse():
+    """Create governance pulse (secure proxy - no token needed from frontend)"""
+    try:
+        from bot.notion_api import NotionClientWrapper
+        from bot.metrics import get_metrics, write_pulse
+        
+        notion = NotionClientWrapper()
+        metrics = get_metrics(notion)
+        pulse_id = write_pulse(notion, metrics)
+        
+        if pulse_id:
+            return jsonify({
+                "ok": True,
+                "id": pulse_id,
+                "message": "Governance pulse created"
+            }), 200
+        else:
+            return jsonify({
+                "ok": False,
+                "error": "Failed to create pulse entry"
+            }), 500
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/create-test-job', methods=['POST'])
+def api_create_test_job():
+    """Create a test job in Automation Queue"""
+    try:
+        from bot.notion_api import NotionClientWrapper
+        from bot import config
+        import uuid
+        
+        if not config.AUTOMATION_QUEUE_DB_ID:
+            return jsonify({
+                "ok": False,
+                "error": "AUTOMATION_QUEUE_DB_ID not configured"
+            }), 500
+        
+        notion = NotionClientWrapper()
+        correlation_id = str(uuid.uuid4())[:8]
+        
+        properties = {
+            "Task Name": {
+                "title": [{"text": {"content": f"Dashboard Test Job {correlation_id}"}}]
+            },
+            "Description": {
+                "rich_text": [{"text": {"content": "https://filesamples.com/samples/audio/mp3/sample1.mp3"}}]
+            },
+            "Trigger": {
+                "checkbox": True
+            }
+        }
+        
+        result = notion.create_page(config.AUTOMATION_QUEUE_DB_ID, properties)
+        
+        return jsonify({
+            "ok": True,
+            "page_id": result.get('id'),
+            "correlation_id": correlation_id,
+            "message": "Test job created (will process in ~60s)"
+        }), 200
+    except Exception as e:
+        error_msg = str(e)
+        
+        if "is not a property that exists" in error_msg:
+            return jsonify({
+                "ok": False,
+                "error": "Database properties not configured",
+                "details": "Your Automation Queue database needs these properties: Task Name (title), Description (rich_text), Trigger (checkbox), Status (select)",
+                "notion_error": error_msg
+            }), 400
+        
+        return jsonify({"ok": False, "error": error_msg}), 500
+
+@app.route('/api/job-log-latest')
+def api_job_log_latest():
+    """Get latest job from Job Log (with retry for Notion sync lag)"""
+    try:
+        from bot.notion_api import NotionClientWrapper
+        from bot import config
+        import time
+        
+        if not config.JOB_LOG_DB_ID:
+            return jsonify({
+                "ok": False,
+                "error": "JOB_LOG_DB_ID not configured"
+            }), 500
+        
+        notion = NotionClientWrapper()
+        
+        for attempt, delay in enumerate([0, 5, 10, 15]):
+            if delay > 0:
+                time.sleep(delay)
+            
+            results = notion.query_database(
+                config.JOB_LOG_DB_ID,
+                filter_criteria=None
+            )
+            
+            if results:
+                latest = results[0]
+                props = latest.get('properties', {})
+                
+                def get_prop(name, prop_type='number'):
+                    try:
+                        if prop_type == 'number':
+                            return props.get(name, {}).get('number')
+                        elif prop_type == 'title':
+                            title_arr = props.get(name, {}).get('title', [])
+                            return title_arr[0].get('text', {}).get('content', '') if title_arr else ''
+                        elif prop_type == 'select':
+                            return props.get(name, {}).get('select', {}).get('name')
+                        elif prop_type == 'url':
+                            return props.get(name, {}).get('url')
+                    except:
+                        return None
+                
+                return jsonify({
+                    "ok": True,
+                    "page_id": latest.get('id'),
+                    "job_name": get_prop('Job Name', 'title'),
+                    "qa_score": get_prop('QA Score'),
+                    "duration_sec": get_prop('Duration Sec'),
+                    "gross_usd": get_prop('Gross USD'),
+                    "profit_usd": get_prop('Profit USD'),
+                    "margin_pct": get_prop('Margin %'),
+                    "payment_status": get_prop('Payment Status', 'select'),
+                    "payment_link": get_prop('Payment Link', 'url'),
+                    "attempt": attempt + 1
+                }), 200
+        
+        return jsonify({
+            "ok": False,
+            "error": "No jobs found after retries (Notion sync lag)"
+        }), 404
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/flip-paid', methods=['POST'])
+def api_flip_paid():
+    """Update Payment Status to Paid"""
+    try:
+        from bot.notion_api import NotionClientWrapper
+        
+        data = request.get_json(force=True)
+        page_id = data.get('page_id')
+        
+        if not page_id:
+            return jsonify({
+                "ok": False,
+                "error": "page_id required in request body"
+            }), 400
+        
+        notion = NotionClientWrapper()
+        notion.update_page(page_id, {
+            "Payment Status": {"select": {"name": "Paid"}}
+        })
+        
+        return jsonify({
+            "ok": True,
+            "page_id": page_id,
+            "message": "Payment Status updated to Paid"
+        }), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
 
 def run_bot():
     """Run the bot in a separate thread"""

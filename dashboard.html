@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EchoPilot Ops Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 { font-size: 2em; margin-bottom: 10px; }
+        .header p { opacity: 0.9; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            padding: 30px;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .log-container {
+            padding: 0 30px 30px;
+        }
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .log-header h2 { font-size: 1.2em; }
+        .clear-btn {
+            background: #e74c3c;
+            padding: 8px 16px;
+            font-size: 12px;
+        }
+        #log {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            max-height: 500px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .log-entry {
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #333;
+        }
+        .log-entry:last-child { border-bottom: none; }
+        .log-time {
+            color: #858585;
+            font-size: 11px;
+        }
+        .log-success { color: #4ec9b0; }
+        .log-error { color: #f48771; }
+        .log-info { color: #9cdcfe; }
+        .log-warning { color: #dcdcaa; }
+        .spinner {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 8px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 EchoPilot Ops Dashboard</h1>
+            <p>Real-time system monitoring and control</p>
+        </div>
+
+        <div class="grid">
+            <button onclick="checkHealth()">✅ Check Health</button>
+            <button onclick="getSupervisorStatus()">📊 Supervisor Status</button>
+            <button onclick="sendPulse()">💓 Send Pulse</button>
+            <button onclick="createTestJob()">🎯 Create Test Job</button>
+            <button onclick="getLatestJob()">📋 Refresh Jobs</button>
+            <button onclick="flipToPaid()">💰 Flip to Paid</button>
+        </div>
+
+        <div class="log-container">
+            <div class="log-header">
+                <h2>📝 Activity Log</h2>
+                <button class="clear-btn" onclick="clearLog()">Clear</button>
+            </div>
+            <div id="log"></div>
+        </div>
+    </div>
+
+    <script>
+        let latestJobPageId = null;
+
+        function getTimestamp() {
+            return new Date().toLocaleTimeString();
+        }
+
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            
+            const time = document.createElement('div');
+            time.className = 'log-time';
+            time.textContent = getTimestamp();
+            
+            const content = document.createElement('div');
+            content.className = `log-${type}`;
+            content.textContent = message;
+            
+            entry.appendChild(time);
+            entry.appendChild(content);
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+            log('Log cleared', 'info');
+        }
+
+        async function apiCall(endpoint, method = 'GET', body = null) {
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(btn => btn.disabled = true);
+
+            try {
+                log(`${method} ${endpoint}...`, 'info');
+                
+                const options = {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' }
+                };
+                
+                if (body) {
+                    options.body = JSON.stringify(body);
+                }
+
+                const response = await fetch(endpoint, options);
+                const data = await response.json();
+
+                if (response.ok) {
+                    log(`✅ SUCCESS (${response.status}):\n${JSON.stringify(data, null, 2)}`, 'success');
+                    return data;
+                } else {
+                    log(`❌ ERROR (${response.status}):\n${JSON.stringify(data, null, 2)}`, 'error');
+                    return null;
+                }
+            } catch (error) {
+                log(`❌ FETCH ERROR:\n${error.message}`, 'error');
+                return null;
+            } finally {
+                buttons.forEach(btn => btn.disabled = false);
+            }
+        }
+
+        async function checkHealth() {
+            await apiCall('/health', 'GET');
+        }
+
+        async function getSupervisorStatus() {
+            await apiCall('/api/supervisor-status', 'GET');
+        }
+
+        async function sendPulse() {
+            await apiCall('/api/pulse', 'POST');
+        }
+
+        async function createTestJob() {
+            log('Creating test job with sample1.mp3...', 'warning');
+            await apiCall('/api/create-test-job', 'POST');
+        }
+
+        async function getLatestJob() {
+            log('Fetching latest job (handles Notion sync lag)...', 'warning');
+            const data = await apiCall('/api/job-log-latest', 'GET');
+            if (data && data.page_id) {
+                latestJobPageId = data.page_id;
+                log(`📌 Saved page_id: ${latestJobPageId}`, 'info');
+            }
+        }
+
+        async function flipToPaid() {
+            if (!latestJobPageId) {
+                log('⚠️ No job page_id saved. Click "Refresh Jobs" first!', 'warning');
+                return;
+            }
+            log(`Updating Payment Status to Paid for ${latestJobPageId}...`, 'warning');
+            await apiCall('/api/flip-paid', 'POST', { page_id: latestJobPageId });
+        }
+
+        log('🚀 Dashboard loaded successfully', 'success');
+        log('Click buttons above to interact with EchoPilot APIs', 'info');
+    </script>
+</body>
+</html>

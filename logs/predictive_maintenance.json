@@ -1,0 +1,14 @@
+{
+  "ok": true,
+  "ts": "2025-10-20T18:48:17.878094Z",
+  "overall_health": 0.95,
+  "threshold": 0.8,
+  "needs_maintenance": false,
+  "predictions": [
+    {
+      "component": "logs_directory",
+      "health": 0.9,
+      "action": "Consider log rotation"
+    }
+  ]
+}

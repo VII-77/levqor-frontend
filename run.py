@@ -5235,3 +5235,31 @@ def api_observability_latency():
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
+
+# ==================== PHASE 101: OPERATIONAL DASHBOARD ====================
+
+@app.route('/api/ops/telemetry', methods=['GET'])
+@require_dashboard_key
+def api_ops_telemetry():
+    """Get live telemetry snapshot for Ops Dashboard (Phase 101)"""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/telemetry_collector.py'],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        
+        if result.returncode == 0:
+            telemetry = json.loads(result.stdout)
+            return jsonify(telemetry), 200
+        else:
+            return jsonify({
+                "ok": False,
+                "error": "Telemetry collection failed",
+                "details": result.stderr
+            }), 500
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+

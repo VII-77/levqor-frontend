@@ -1,0 +1,1 @@
+{"ok": true, "ts": "2025-10-20T18:48:17.812987Z", "warehouse_url": "sqlite:///data/warehouse.db", "synced_records": 0, "tables": ["jobs", "costs", "incidents", "slo_metrics"]}

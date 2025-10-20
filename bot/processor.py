@@ -401,6 +401,35 @@ class TaskProcessor:
         except Exception as e:
             print(f"Warning: Could not log to Job Log database: {e}")
         
+        # Send email notification if Owner Email exists
+        owner_email = extract_notion_property(properties, 'Owner Email', 'email')
+        if owner_email:
+            try:
+                import requests
+                correlation_id = task_name.split()[-1] if 'Upload' in task_name else task_id[:8]
+                email_payload = {
+                    'email': owner_email,
+                    'job': {
+                        'job_name': task_name,
+                        'qa_score': qa_score,
+                        'duration_min': round(duration_ms / 60000.0, 2),
+                        'cost': cost,
+                        'correlation_id': correlation_id,
+                        'download_url': f'https://echopilotai.replit.app/api/public/download/{correlation_id}'
+                    }
+                }
+                response = requests.post(
+                    'http://localhost:5000/api/public/send-email',
+                    json=email_payload,
+                    timeout=5
+                )
+                if response.status_code == 200:
+                    print(f"[Email] Sent completion notification to {owner_email}")
+                else:
+                    print(f"[Email] Failed to send to {owner_email}: {response.text}")
+            except Exception as e:
+                print(f"[Email] Error sending notification: {e}")
+        
         return {
             'success': True,
             'task_name': task_name,

@@ -904,13 +904,17 @@ def api_public_create_job():
         correlation_id = str(uuid.uuid4())[:8]
         filename = secure_filename(file.filename)
         
+        # Get email and subscribe preference from form
+        email = request.form.get('email', '')
+        subscribe = request.form.get('subscribe', 'false').lower() == 'true'
+        
         # Save file to tmp
         tmp_dir = Path('tmp')
         tmp_dir.mkdir(exist_ok=True)
         file_path = tmp_dir / f"{correlation_id}_{filename}"
         file.save(str(file_path))
         
-        log_portal(f"File uploaded: {filename} ({file_path.stat().st_size} bytes), CID: {correlation_id}")
+        log_portal(f"File uploaded: {filename} ({file_path.stat().st_size} bytes), CID: {correlation_id}, Email: {email}")
         
         # Create Notion Automation Queue entry
         from bot.notion_api import NotionClientWrapper
@@ -937,6 +941,12 @@ def api_public_create_job():
                 "url": f"file://{file_path}"
             }
         }
+        
+        if email:
+            properties["Owner Email"] = {"email": email}
+        
+        if subscribe:
+            properties["Notes"] = {"rich_text": [{"text": {"content": f"Subscribe: Yes, Email: {email}"}}]}
         
         result = notion.create_page(config.AUTOMATION_QUEUE_DB_ID, properties)
         log_portal(f"Notion entry created: {result.get('id')}, CID: {correlation_id}")
@@ -1008,6 +1018,9 @@ def api_public_job_status(correlation_id):
             except:
                 return None
         
+        drive_link = get_prop('Drive Link', 'url')
+        download_url = drive_link if drive_link else f"/api/public/download/{correlation_id}"
+        
         return jsonify({
             "ok": True,
             "data": {
@@ -1019,7 +1032,10 @@ def api_public_job_status(correlation_id):
                 "duration_min": get_prop('Duration Min'),
                 "gross_usd": get_prop('Gross USD'),
                 "payment_status": get_prop('Payment Status', 'select'),
-                "payment_link": get_prop('Payment Link', 'url')
+                "payment_link": get_prop('Payment Link', 'url'),
+                "drive_link": drive_link,
+                "download_url": download_url,
+                "created_time": job.get('created_time')
             }
         }), 200
         
@@ -1152,6 +1168,188 @@ def api_public_after_payment():
         
     except Exception as e:
         print(f"[Payment Webhook] Error: {e}")
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/public/job-history/<email>')
+def api_public_job_history(email):
+    """Customer Portal: Get last 5 jobs by email"""
+    try:
+        from bot.notion_api import NotionClientWrapper
+        from bot import config
+        
+        if not config.JOB_LOG_DB_ID:
+            return jsonify({"ok": False, "error": "Job Log not configured"}), 500
+        
+        notion = NotionClientWrapper()
+        
+        # Query Job Log for jobs with this Owner Email
+        results = notion.query_database(
+            config.JOB_LOG_DB_ID,
+            filter_criteria={
+                "property": "Owner Email",
+                "email": {
+                    "equals": email
+                }
+            }
+        )
+        
+        # Return last 5 jobs
+        jobs = []
+        for job in results[:5]:
+            props = job.get('properties', {})
+            jobs.append({
+                "job_name": props.get('Job Name', {}).get('title', [{}])[0].get('text', {}).get('content', 'N/A') if props.get('Job Name', {}).get('title') else 'N/A',
+                "qa_score": props.get('QA Score', {}).get('number'),
+                "gross_usd": props.get('Gross USD', {}).get('number'),
+                "status": props.get('Status', {}).get('select', {}).get('name'),
+                "created_time": job.get('created_time')
+            })
+        
+        return jsonify({"ok": True, "data": jobs}), 200
+        
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/public/send-email', methods=['POST'])
+def api_public_send_email():
+    """Customer Portal: Send job completion email"""
+    import datetime
+    import smtplib
+    from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart
+    from pathlib import Path
+    
+    try:
+        data = request.get_json()
+        recipient = data.get('email')
+        job_data = data.get('job', {})
+        
+        if not recipient:
+            return jsonify({"ok": False, "error": "Email required"}), 400
+        
+        # Log email
+        log_file = Path('logs/customer_email.log')
+        log_file.parent.mkdir(exist_ok=True)
+        
+        def log_email(msg):
+            with open(log_file, 'a') as f:
+                ts = datetime.datetime.utcnow().isoformat() + 'Z'
+                f.write(f"[{ts}] {msg}\n")
+        
+        # Load email template
+        template_path = Path('templates/email_job_complete.html')
+        if template_path.exists():
+            with open(template_path, 'r') as f:
+                html_content = f.read()
+            
+            # Replace placeholders
+            html_content = html_content.replace('{{job_name}}', job_data.get('job_name', 'N/A'))
+            html_content = html_content.replace('{{qa_score}}', str(job_data.get('qa_score', 0)))
+            html_content = html_content.replace('{{duration_min}}', str(round(job_data.get('duration_min', 0), 2)))
+            html_content = html_content.replace('{{cost_usd}}', str(round(job_data.get('cost', 0), 2)))
+            html_content = html_content.replace('{{correlation_id}}', job_data.get('correlation_id', 'N/A'))
+            html_content = html_content.replace('{{download_url}}', job_data.get('download_url', '#'))
+        else:
+            html_content = f"""
+            <h1>Your EchoPilot Job is Complete!</h1>
+            <p>Job: {job_data.get('job_name', 'N/A')}</p>
+            <p>QA Score: {job_data.get('qa_score', 0)}%</p>
+            <p>Duration: {round(job_data.get('duration_min', 0), 2)} minutes</p>
+            <p>Cost: ${round(job_data.get('cost', 0), 2)}</p>
+            """
+        
+        # Try to send via Replit's built-in mail or log only
+        try:
+            smtp_user = os.getenv('SMTP_USER')
+            smtp_pass = os.getenv('SMTP_PASS')
+            
+            if smtp_user and smtp_pass:
+                msg = MIMEMultipart('alternative')
+                msg['Subject'] = f"EchoPilot Job Complete - {job_data.get('job_name', 'N/A')}"
+                msg['From'] = smtp_user
+                msg['To'] = recipient
+                
+                msg.attach(MIMEText(html_content, 'html'))
+                
+                with smtplib.SMTP('smtp.gmail.com', 587) as server:
+                    server.starttls()
+                    server.login(smtp_user, smtp_pass)
+                    server.send_message(msg)
+                
+                log_email(f"Email sent to {recipient}, Job: {job_data.get('job_name', 'N/A')}, Status: Success")
+            else:
+                # Log only (SMTP not configured)
+                log_email(f"Email queued for {recipient}, Job: {job_data.get('job_name', 'N/A')}, Status: Logged (SMTP not configured)")
+        except Exception as e:
+            log_email(f"Email failed to {recipient}, Job: {job_data.get('job_name', 'N/A')}, Error: {str(e)}")
+            return jsonify({"ok": False, "error": f"Email send failed: {str(e)}"}), 500
+        
+        return jsonify({"ok": True, "message": "Email sent successfully"}), 200
+        
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/public/support', methods=['POST'])
+def api_public_support():
+    """Customer Portal: Log support requests"""
+    import datetime
+    from pathlib import Path
+    
+    try:
+        data = request.get_json()
+        name = data.get('name')
+        email = data.get('email')
+        message = data.get('message')
+        
+        if not name or not email or not message:
+            return jsonify({"ok": False, "error": "Name, email, and message required"}), 400
+        
+        # Log to file
+        log_file = Path('logs/support_requests.log')
+        log_file.parent.mkdir(exist_ok=True)
+        
+        with open(log_file, 'a') as f:
+            ts = datetime.datetime.utcnow().isoformat() + 'Z'
+            f.write(f"[{ts}] {name} <{email}>: {message}\n")
+        
+        # Optionally log to Notion Partners DB if configured
+        try:
+            from bot.notion_api import NotionClientWrapper
+            partners_db = os.getenv('NOTION_PARTNERS_DB_ID')
+            
+            if partners_db:
+                notion = NotionClientWrapper()
+                properties = {
+                    "Name": {"title": [{"text": {"content": name}}]},
+                    "Email": {"email": email},
+                    "Notes": {"rich_text": [{"text": {"content": message}}]}
+                }
+                notion.create_page(partners_db, properties)
+        except:
+            pass  # Non-blocking if Notion fails
+        
+        return jsonify({"ok": True, "message": "Support request received"}), 200
+        
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/public/download/<correlation_id>')
+def api_public_download(correlation_id):
+    """Customer Portal: Provide download URL for job results"""
+    try:
+        from pathlib import Path
+        
+        # Check tmp directory for file
+        tmp_dir = Path('tmp')
+        files = list(tmp_dir.glob(f"{correlation_id}_*"))
+        
+        if files:
+            # Return file directly
+            return send_from_directory(tmp_dir, files[0].name, as_attachment=True)
+        else:
+            return jsonify({"ok": False, "error": "File not found"}), 404
+        
+    except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
 @app.route('/api/preflight-audit')

@@ -1,0 +1,78 @@
+<!-- Phase 66: Payments Dashboard Card -->
+<div class="card bg-gradient-to-br from-purple-900 to-purple-800 text-white p-6 rounded-2xl shadow-xl mt-4 border border-purple-700">
+  <div class="flex items-center mb-4">
+    <div class="text-3xl mr-3">💳</div>
+    <div>
+      <h3 class="text-xl font-bold">Payments Center</h3>
+      <p class="text-sm opacity-80">Manage invoices, webhooks, and refunds</p>
+    </div>
+  </div>
+  
+  <div class="space-y-2 mb-4">
+    <button class="w-full bg-purple-700 hover:bg-purple-600 px-4 py-2 rounded-lg font-medium transition-colors"
+            onclick="runPaymentInvoice()">
+      🧾 Create Test Invoice
+    </button>
+    <button class="w-full bg-green-700 hover:bg-green-600 px-4 py-2 rounded-lg font-medium transition-colors"
+            onclick="listWebhooks()">
+      📜 View Recent Webhooks
+    </button>
+    <button class="w-full bg-red-700 hover:bg-red-600 px-4 py-2 rounded-lg font-medium transition-colors"
+            onclick="refundLast()">
+      ↩️ Process Refund (Test)
+    </button>
+  </div>
+  
+  <pre id="paymentOut" class="text-xs bg-black bg-opacity-50 p-3 rounded-lg overflow-auto max-h-64 font-mono"></pre>
+</div>
+
+<script>
+async function runPaymentInvoice() {
+  try {
+    const dashKey = window.dashKey || localStorage.getItem('DASHBOARD_KEY') || '';
+    const response = await fetch('/api/payments/create-invoice', {
+      method: 'POST',
+      headers: {
+        'X-Dash-Key': dashKey,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        amount: 0.50,
+        email: 'qa@echopilot.ai',
+        description: 'Test invoice from dashboard'
+      })
+    });
+    const text = await response.text();
+    document.getElementById('paymentOut').textContent = text;
+  } catch (error) {
+    document.getElementById('paymentOut').textContent = 'Error: ' + error.message;
+  }
+}
+
+async function listWebhooks() {
+  try {
+    const dashKey = window.dashKey || localStorage.getItem('DASHBOARD_KEY') || '';
+    const response = await fetch('/api/payments/webhooks', {
+      headers: {'X-Dash-Key': dashKey}
+    });
+    const text = await response.text();
+    document.getElementById('paymentOut').textContent = text;
+  } catch (error) {
+    document.getElementById('paymentOut').textContent = 'Error: ' + error.message;
+  }
+}
+
+async function refundLast() {
+  try {
+    const dashKey = window.dashKey || localStorage.getItem('DASHBOARD_KEY') || '';
+    const response = await fetch('/api/payments/refund-last', {
+      method: 'POST',
+      headers: {'X-Dash-Key': dashKey}
+    });
+    const text = await response.text();
+    document.getElementById('paymentOut').textContent = text;
+  } catch (error) {
+    document.getElementById('paymentOut').textContent = 'Error: ' + error.message;
+  }
+}
+</script>

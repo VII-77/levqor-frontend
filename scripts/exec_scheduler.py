@@ -272,6 +272,30 @@ def run_incident_scan():
     except Exception as e:
         log_event('incident_scan_error', {'error': str(e)})
 
+def run_payment_recon_nightly():
+    """Run nightly payment reconciliation backup"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/payment_recon_nightly.py'], check=False, timeout=30)
+    except Exception as e:
+        log_event('payment_recon_nightly_error', {'error': str(e)})
+
+def run_slo_monitor():
+    """Run SLO monitoring"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/slo_monitor.py'], check=False, timeout=30)
+    except Exception as e:
+        log_event('slo_monitor_error', {'error': str(e)})
+
+def run_daily_backup():
+    """Run daily backup"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/backup_daily.py'], check=False, timeout=60)
+    except Exception as e:
+        log_event('daily_backup_error', {'error': str(e)})
+
 def run_scheduled_tasks():
     """Check and run scheduled tasks"""
     
@@ -411,6 +435,23 @@ def run_scheduled_tasks():
        (datetime.utcnow() - last_run['incident_scan']).total_seconds() >= (5 * 60):
         run_incident_scan()
         mark_run('incident_scan')
+    
+    # ==================== PHASES 66-70: PAYMENTS, MONITORING & BACKUPS ====================
+    
+    # 21) Payment Recon Nightly - Daily at 23:50 UTC (Phase 67)
+    if is_time_match(23, 50) and should_run('payment_recon_nightly'):
+        run_payment_recon_nightly()
+        mark_run('payment_recon_nightly')
+    
+    # 22) SLO Monitor - Every hour (Phase 68)
+    if is_time_match(datetime.utcnow().hour, 0) and should_run('slo_monitor'):
+        run_slo_monitor()
+        mark_run('slo_monitor')
+    
+    # 23) Daily Backup - Daily at 00:30 UTC (Phase 70)
+    if is_time_match(0, 30) and should_run('daily_backup'):
+        run_daily_backup()
+        mark_run('daily_backup')
 
 def write_pid():
     """Write PID to file with fsync"""
@@ -461,6 +502,10 @@ def main():
     print(f"   Support Inbox: Every hour", flush=True)
     print(f"   Cost Tracker: Daily at 01:10 UTC", flush=True)
     print(f"   Incident Scanner: Every 5 minutes", flush=True)
+    print(f"   --- Phases 66-70: Payments, Monitoring & Backups ---", flush=True)
+    print(f"   Payment Recon Nightly: Daily at 23:50 UTC", flush=True)
+    print(f"   SLO Monitor: Every hour", flush=True)
+    print(f"   Daily Backup: Daily at 00:30 UTC", flush=True)
     print(f"   Logs: {log_file}", flush=True)
     print(f"   PID: {pid_file}", flush=True)
     print(flush=True)

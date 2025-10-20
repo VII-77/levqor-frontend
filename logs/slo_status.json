@@ -1,0 +1,12 @@
+{
+  "ts": 1760981949.6802862,
+  "ts_iso": "2025-10-20T17:39:09.680287Z",
+  "status": "PASS",
+  "breach": false,
+  "p95_ms": 0,
+  "success_rate": 1.0,
+  "details": {
+    "ok": false,
+    "breach": false
+  }
+}

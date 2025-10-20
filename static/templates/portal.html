@@ -1,0 +1,71 @@
+<!-- Phase 70: Customer Portal -->
+<div class="card bg-gradient-to-br from-blue-900 to-blue-800 text-white p-6 rounded-2xl shadow-xl mt-4 border border-blue-700">
+  <div class="flex items-center mb-4">
+    <div class="text-3xl mr-3">👤</div>
+    <div>
+      <h3 class="text-xl font-bold">Customer Portal</h3>
+      <p class="text-sm opacity-80">View invoice history and secure access</p>
+    </div>
+  </div>
+  
+  <div class="mb-4">
+    <label class="block text-sm font-medium mb-2">Customer Email:</label>
+    <input id="custEmail" 
+           type="email"
+           placeholder="customer@example.com" 
+           class="w-full text-black p-2 rounded-lg border-2 border-blue-600 focus:border-blue-400 outline-none"/>
+  </div>
+  
+  <div class="space-y-2 mb-4">
+    <button class="w-full bg-blue-700 hover:bg-blue-600 px-4 py-2 rounded-lg font-medium transition-colors"
+            onclick="getInvoices()">
+      📄 View Invoices
+    </button>
+    <button class="w-full bg-indigo-700 hover:bg-indigo-600 px-4 py-2 rounded-lg font-medium transition-colors"
+            onclick="generateSignedURL()">
+      🔐 Generate Signed Access URL
+    </button>
+  </div>
+  
+  <pre id="portalOut" class="text-xs bg-black bg-opacity-50 p-3 rounded-lg overflow-auto max-h-64 font-mono"></pre>
+</div>
+
+<script>
+async function getInvoices() {
+  try {
+    const email = document.getElementById('custEmail').value;
+    if (!email) {
+      document.getElementById('portalOut').textContent = 'Please enter customer email';
+      return;
+    }
+    
+    const dashKey = window.dashKey || localStorage.getItem('DASHBOARD_KEY') || '';
+    const response = await fetch(`/api/customer/invoices/${encodeURIComponent(email)}`, {
+      headers: {'X-Dash-Key': dashKey}
+    });
+    const text = await response.text();
+    document.getElementById('portalOut').textContent = text;
+  } catch (error) {
+    document.getElementById('portalOut').textContent = 'Error: ' + error.message;
+  }
+}
+
+async function generateSignedURL() {
+  try {
+    const email = document.getElementById('custEmail').value;
+    if (!email) {
+      document.getElementById('portalOut').textContent = 'Please enter customer email';
+      return;
+    }
+    
+    const dashKey = window.dashKey || localStorage.getItem('DASHBOARD_KEY') || '';
+    const response = await fetch(`/api/customer/signed-url/${encodeURIComponent(email)}`, {
+      headers: {'X-Dash-Key': dashKey}
+    });
+    const text = await response.text();
+    document.getElementById('portalOut').textContent = text;
+  } catch (error) {
+    document.getElementById('portalOut').textContent = 'Error: ' + error.message;
+  }
+}
+</script>

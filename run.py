@@ -4056,6 +4056,152 @@ def api_incidents_scan():
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
+@app.route('/api/payments/webhooks', methods=['GET'])
+@require_dashboard_key
+def api_payments_webhooks():
+    """List recent payment webhooks (Phase 66)"""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ['tail', '-n', '20', 'logs/stripe_webhook.log'],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        
+        lines = result.stdout.splitlines() if result.returncode == 0 else []
+        return jsonify({"ok": True, "count": len(lines), "lines": lines}), 200
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/payments/refund-last', methods=['POST'])
+@require_dashboard_key
+def api_payments_refund_last():
+    """Process refund (test stub) (Phase 66)"""
+    try:
+        import time
+        
+        # Log refund request (stub for now)
+        refund_entry = {
+            "ts": time.time(),
+            "ts_iso": datetime.utcnow().isoformat() + "Z",
+            "action": "refund_last_called",
+            "note": "Test refund initiated from dashboard"
+        }
+        
+        with open("logs/refunds.log", "a") as f:
+            f.write(json.dumps(refund_entry) + "\n")
+        
+        return jsonify({"ok": True, "message": "Refund logged (test mode)"}), 200
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/customer/invoices/<email>', methods=['GET'])
+@require_dashboard_key
+def api_customer_invoices(email):
+    """Get customer invoices (Phase 70)"""
+    try:
+        # Stub: return mock invoice data
+        invoices = [
+            {
+                "id": "inv_001",
+                "date": "2025-10-15",
+                "amount": 29.99,
+                "status": "paid"
+            },
+            {
+                "id": "inv_002",
+                "date": "2025-10-20",
+                "amount": 49.99,
+                "status": "pending"
+            }
+        ]
+        
+        return jsonify({
+            "ok": True,
+            "email": email,
+            "invoices": invoices
+        }), 200
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/customer/signed-url/<email>', methods=['GET'])
+@require_dashboard_key
+def api_customer_signed_url(email):
+    """Generate signed portal URL (Phase 70)"""
+    try:
+        import hmac
+        import hashlib
+        import time
+        
+        # Generate HMAC-signed URL
+        secret = os.getenv('SESSION_SECRET', 'default-secret-key')
+        timestamp = int(time.time())
+        expires = timestamp + (24 * 3600)  # 24 hours
+        
+        # Create signature
+        message = f"{email}:{expires}"
+        signature = hmac.new(
+            secret.encode(),
+            message.encode(),
+            hashlib.sha256
+        ).hexdigest()
+        
+        # Build signed URL
+        base_url = os.getenv('REPLIT_DOMAINS', 'localhost:5000').split(',')[0]
+        signed_url = f"https://{base_url}/portal?email={email}&expires={expires}&sig={signature}"
+        
+        return jsonify({
+            "ok": True,
+            "email": email,
+            "signed_url": signed_url,
+            "expires": expires,
+            "expires_iso": datetime.fromtimestamp(expires).isoformat() + "Z"
+        }), 200
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/backup/run', methods=['POST'])
+@require_dashboard_key
+def api_backup_run():
+    """Run daily backup (Phase 70)"""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/backup_daily.py'],
+            capture_output=True,
+            text=True,
+            timeout=60
+        )
+        
+        if result.returncode == 0:
+            data = json.loads(result.stdout)
+            return jsonify(data), 200
+        else:
+            return jsonify({"ok": False, "error": result.stderr}), 500
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/slo/status', methods=['GET'])
+@require_dashboard_key
+def api_slo_status():
+    """Get SLO monitoring status (Phase 68)"""
+    try:
+        if os.path.exists('logs/slo_status.json'):
+            with open('logs/slo_status.json', 'r') as f:
+                data = json.load(f)
+            return jsonify(data), 200
+        else:
+            return jsonify({"ok": False, "error": "No SLO status available"}), 404
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
 
 def run_bot():
     """Run the bot in a separate thread"""

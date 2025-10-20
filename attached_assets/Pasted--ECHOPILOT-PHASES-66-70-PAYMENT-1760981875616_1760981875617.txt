@@ -1,0 +1,138 @@
+# ============================================================
+# 🚀 ECHOPILOT PHASES 66–70 — PAYMENTS DASHBOARD, SLO MONITORING,
+#     ALERT LOOP, BACKUPS & CUSTOMER PORTAL
+# ============================================================
+set -euo pipefail
+mkdir -p scripts static/templates backups/daily logs docs
+
+# PHASE 66 — PAYMENTS DASHBOARD CARD
+cat > static/templates/payments_card.html <<'HTML'
+<div class="card bg-gray-900 text-white p-4 rounded-2xl shadow-lg mt-4">
+  <h3 class="text-lg font-bold">💳 Payments Center</h3>
+  <p class="text-sm opacity-70 mb-2">Create invoices, list webhooks, issue refunds</p>
+  <button class="bg-purple-700 hover:bg-purple-600 px-3 py-1 rounded"
+          onclick="runPaymentInvoice()">🧾 Create Test Invoice</button>
+  <button class="bg-green-700 hover:bg-green-600 px-3 py-1 rounded"
+          onclick="listWebhooks()">📜 View Webhooks</button>
+  <button class="bg-red-700 hover:bg-red-600 px-3 py-1 rounded"
+          onclick="refundLast()">↩️ One-Click Refund</button>
+  <pre id="paymentOut" class="text-xs bg-black p-2 mt-2 rounded"></pre>
+</div>
+<script>
+async function runPaymentInvoice(){
+  const r = await fetch('/api/payments/create-invoice',{
+    method:'POST',
+    headers:{'X-Dash-Key':dashKey,'Content-Type':'application/json'},
+    body:JSON.stringify({amount:0.50,email:'qa@echopilot.ai'})
+  }); document.getElementById('paymentOut').textContent = await r.text();
+}
+async function listWebhooks(){
+  const r = await fetch('/api/payments/webhooks',{headers:{'X-Dash-Key':dashKey}});
+  document.getElementById('paymentOut').textContent = await r.text();
+}
+async function refundLast(){
+  const r = await fetch('/api/payments/refund-last',{method:'POST',headers:{'X-Dash-Key':dashKey}});
+  document.getElementById('paymentOut').textContent = await r.text();
+}
+</script>
+HTML
+
+# PHASE 67 — NIGHTLY PAYMENT RECON TASK
+cat > scripts/payment_recon_nightly.py <<'PY'
+import os, json, datetime as dt
+src="logs/payout_recon.json"
+dst=f"backups/payouts_{dt.date.today().isoformat()}.json"
+if os.path.exists(src):
+    os.system(f"cp {src} {dst}")
+out={"ts":dt.datetime.utcnow().isoformat(),"src":src,"dst":dst,"ok":os.path.exists(dst)}
+open("logs/payment_recon_nightly.log","a").write(json.dumps(out)+"\n")
+print(json.dumps(out))
+PY
+
+# PHASE 68 — SLO MONITOR REFINEMENT
+cat > scripts/slo_monitor.py <<'PY'
+import json,time,os
+try: slo=json.load(open("logs/slo_report.json"))
+except: slo={"ok":False}
+status="PASS"
+if slo.get("breach"): status="FAIL"
+out={"ts":time.time(),"status":status,"details":slo}
+open("logs/slo_status.ndjson","a").write(json.dumps(out)+"\n")
+print(json.dumps(out))
+PY
+
+# PHASE 69 — ALERT LOOP (5-MIN)
+awk '1;/# --- PHASE 41–50 AUTOMATIONS ---/&&c==0{
+print "schedule.every(5).minutes.do(lambda: subprocess.run([\"python3\",\"scripts/production_alerts.py\"],check=False))";
+c=1}' scripts/exec_scheduler.py > /tmp/_sch4 && mv /tmp/_sch4 scripts/exec_scheduler.py
+
+# PHASE 70 — BACKUPS + CUSTOMER PORTAL STUB
+cat > scripts/backup_daily.py <<'PY'
+import os, tarfile, datetime as dt
+root=f"backups/daily/{dt.date.today().isoformat()}.tar.gz"
+with tarfile.open(root,"w:gz") as tar:
+    for d in ("logs","backups"): 
+        if os.path.exists(d): tar.add(d)
+print(json.dumps({"ok":True,"archive":root}))
+PY
+
+cat > static/templates/portal.html <<'HTML'
+<div class="card bg-gray-800 text-white p-4 rounded-xl shadow-lg mt-4">
+  <h3 class="text-lg font-bold">👤 Customer Portal</h3>
+  <p class="text-sm opacity-70 mb-2">View invoice history and download files</p>
+  <input id="custEmail" placeholder="you@example.com" class="text-black p-1 rounded w-60"/>
+  <button class="bg-blue-700 hover:bg-blue-600 px-3 py-1 rounded"
+          onclick="getInvoices()">View Invoices</button>
+  <pre id="portalOut" class="text-xs bg-black p-2 mt-2 rounded"></pre>
+</div>
+<script>
+async function getInvoices(){
+  const email=document.getElementById('custEmail').value;
+  const r=await fetch(`/api/customer/signed-url/${encodeURIComponent(email)}`,
+                      {headers:{'X-Dash-Key':dashKey}});
+  document.getElementById('portalOut').textContent=await r.text();
+}
+</script>
+HTML
+
+# ---- WIRE NEW ROUTES ----
+grep -q "PHASES 66–70 ROUTES" run.py 2>/dev/null || cat >> run.py <<'PY'
+
+# ---- PHASES 66–70 ROUTES ----
+from flask import jsonify
+import subprocess, json
+@app.route("/api/payments/webhooks",methods=["GET"])
+def api_webhooks_list():
+    p=subprocess.run(["tail","-n","20","logs/stripe_webhook.log"],capture_output=True,text=True)
+    return jsonify({"ok":True,"lines":p.stdout.splitlines()})
+@app.route("/api/payments/refund-last",methods=["POST"])
+def api_refund_last():
+    # stub: log only
+    open("logs/refunds.log","a").write(json.dumps({"ts":time.time(),"note":"refund_last_called"})+"\n")
+    return jsonify({"ok":True})
+@app.route("/api/backup/run",methods=["POST"])
+def api_backup_run():
+    p=subprocess.run(["python3","scripts/backup_daily.py"],capture_output=True,text=True)
+    try:j=json.loads(p.stdout or "{}")
+    except:j={"ok":False}
+    return jsonify(j)
+PY
+
+# ---- SCHEDULER HOOKS (Nightly Recon, Daily Backup, Hourly SLO)
+awk '1;/# --- PHASE 41–50 AUTOMATIONS ---/&&c==0{
+print "schedule.every().day.at(\"23:50\").do(lambda: subprocess.run([\"python3\",\"scripts/payment_recon_nightly.py\"]))";
+print "schedule.every().day.at(\"00:30\").do(lambda: subprocess.run([\"python3\",\"scripts/backup_daily.py\"]))";
+print "schedule.every().hour.do(lambda: subprocess.run([\"python3\",\"scripts/slo_monitor.py\"]))";
+c=1}' scripts/exec_scheduler.py > /tmp/_sch5 && mv /tmp/_sch5 scripts/exec_scheduler.py
+
+# ---- TEST & VERIFY ----
+python3 scripts/payment_recon_nightly.py
+python3 scripts/slo_monitor.py
+python3 scripts/backup_daily.py
+
+echo "✅ Phases 66–70 installed:"
+echo " - Payments dashboard card added"
+echo " - Nightly recon & daily backups wired"
+echo " - SLO monitor + alert loop every 5 min"
+echo " - Customer portal page created"
+echo "🎯 Scheduler now manages 16 autonomous tasks."

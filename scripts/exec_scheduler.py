@@ -177,10 +177,15 @@ def calculate_next_run_times():
     }
 
 def run_production_alerts():
-    """Run production alerts monitoring"""
+    """Run production alerts monitoring - webhook failures, payment errors, revenue dips"""
     import subprocess
     try:
-        subprocess.run(['python3', 'scripts/production_alerts.py'], check=False, timeout=30)
+        result = subprocess.run(['python3', 'scripts/production_alerts.py'], 
+                              capture_output=True, text=True, check=False, timeout=30)
+        if result.returncode == 0:
+            log_event('production_alerts', {'ok': True, 'status': 'alerts_checked'})
+        else:
+            log_event('production_alerts_error', {'ok': False, 'error': result.stderr})
     except Exception as e:
         log_event('production_alerts_error', {'error': str(e)})
 

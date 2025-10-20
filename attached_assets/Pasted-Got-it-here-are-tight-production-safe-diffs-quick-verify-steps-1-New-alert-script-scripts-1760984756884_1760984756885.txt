@@ -1,0 +1,236 @@
+Got it—here are tight, production-safe diffs + quick-verify steps.
+
+1) New alert script
+
++++ scripts/production_alerts.py
+@@
++#!/usr/bin/env python3
++import json, os, time, hashlib, glob
++from datetime import datetime, timedelta, timezone
++
++LOG = "logs/production_alerts.ndjson"
++SCH = "logs/scheduler.log"
++WEB = "logs/stripe_webhooks.ndjson"
++NOW = datetime.now(timezone.utc)
++
++def ndjson_write(path, obj):
++    os.makedirs(os.path.dirname(path), exist_ok=True)
++    with open(path, "a") as f: f.write(json.dumps(obj, ensure_ascii=False)+"\n")
++
++def read_tail_lines(path, max_lines=5000):
++    try:
++        with open(path,"r") as f: return f.readlines()[-max_lines:]
++    except FileNotFoundError: return []
++
++def window(lines, minutes):
++    start = NOW - timedelta(minutes=minutes)
++    out=[]
++    for ln in lines:
++        try:
++            j=json.loads(ln)
++            ts = datetime.fromisoformat(j.get("ts","").replace("Z","+00:00"))
++            if ts>=start: out.append(j)
++        except Exception: pass
++    return out
++
++def main():
++    # 1) Webhook failures (>3 in 5m)
++    web = window(read_tail_lines(WEB), 5)
++    fails = sum(1 for e in web if e.get("ok") is False or e.get("status") not in (200, "200"))
++
++    # 2) Payment error rate (>5% last hour) — derive from webhooks if present
++    hwin = window(read_tail_lines(WEB), 60)
++    total = len(hwin) or 1
++    errors = sum(1 for e in hwin if e.get("ok") is False)
++    err_rate = errors/total
++
++    # 3) Revenue dip (>30% DoD) — simple file-based rollup from finance logs if present
++    rev_today = 0.0
++    rev_yday  = 0.0
++    for p in glob.glob("logs/payments_*.ndjson"):
++        for ln in read_tail_lines(p, 20000):
++            try:
++                j=json.loads(ln); amt=j.get("amount_usd",0.0); d=j.get("date") or j.get("ts","")[:10]
++                if d==NOW.strftime("%Y-%m-%d"): rev_today += float(amt)
++                elif d==(NOW - timedelta(days=1)).strftime("%Y-%m-%d"): rev_yday += float(amt)
++            except Exception: pass
++    revenue_change = 0.0 if rev_yday==0 else (rev_today-rev_yday)/rev_yday
++
++    sev_webhook = "CRITICAL" if fails>3 else "OK"
++    sev_payerr  = "CRITICAL" if err_rate>0.05 else "OK"
++    sev_revdip  = "WARNING"  if revenue_change<-0.30 else "OK"
++
++    out = {
++        "ts": NOW.isoformat().replace("+00:00","Z"),
++        "event":"production_alerts",
++        "webhook_failures_5m": fails,
++        "payment_error_rate_1h": round(err_rate,4),
++        "revenue_change_DoD": round(revenue_change,4),
++        "severity": {"webhook":sev_webhook,"payments":sev_payerr,"revenue":sev_revdip}
++    }
++    ndjson_write(LOG, out)
++    print(json.dumps(out))
++
++if __name__=="__main__": main()
+
+2) Scheduler: run alerts every 5 min
+
+--- scripts/exec_scheduler.py
++++ scripts/exec_scheduler.py
+@@
+ import subprocess, time, os, signal, json, threading
+@@
+ def log_event(ev): 
+     os.makedirs("logs", exist_ok=True)
+     with open("logs/scheduler.log","a") as f: f.write(json.dumps(ev)+"\n")
+@@
+ def run_retention_once(): ...
+@@
++def run_production_alerts_job():
++    try:
++        subprocess.run(["python3","scripts/production_alerts.py"], check=False)
++        log_event({"ts": ts(), "event":"alerts_run", "ok": True})
++    except Exception as e:
++        log_event({"ts": ts(), "event":"alerts_run", "ok": False, "err": str(e)})
+@@
+ def main():
+     log_event({"ts": ts(), "event":"startup", "ok": True, "pid": os.getpid()})
+     run_retention_once()
+@@
+     # existing schedules …
+@@  ADD NEAR OTHER INTERVAL JOBS
+-    # (keep heartbeat loop)
++    # Alerts every 5 minutes
++    next_alert = 0
+     while True:
+         now = time.time()
+         # heartbeat
+         if int(now) % 60 == 0:
+             log_event({"ts": ts(), "event":"tick"})
+-        time.sleep(1)
++        # alerts timing
++        if now >= next_alert:
++            threading.Thread(target=run_production_alerts_job, daemon=True).start()
++            next_alert = now + 300  # 5 min
++        time.sleep(1)
+
+3) Payments ops endpoints (refund + events)
+
+--- run.py
++++ run.py
+@@
+ import os, json, hashlib, hmac, time
+ from flask import request, jsonify
+@@
+ DASH_KEY = os.getenv("DASHBOARD_KEY","")
+ def guard(): 
+     return request.headers.get("X-Dash-Key")==DASH_KEY
+@@
++@app.route("/api/payments/events", methods=["GET"])
++def list_webhook_events():
++    if not guard(): return jsonify({"ok": False, "error": "unauthorized"}), 401
++    limit = int(request.args.get("limit", 10))
++    out=[]
++    try:
++        with open("logs/stripe_webhooks.ndjson") as f:
++            lines=f.readlines()[-min(limit,100):]
++        out=[json.loads(x) for x in lines if x.strip()]
++    except FileNotFoundError:
++        out=[]
++    return jsonify({"ok": True, "data": out})
++
++@app.route("/api/payments/refund", methods=["POST"])
++def refund_payment():
++    if not guard(): return jsonify({"ok": False, "error": "unauthorized"}), 401
++    data = request.get_json(force=True, silent=True) or {}
++    pid = data.get("payment_id")
++    amount = data.get("amount")  # dollars optional
++    if not pid: return jsonify({"ok": False, "error":"payment_id required"}), 400
++    try:
++        import stripe
++        mode = os.getenv("STRIPE_MODE","test")
++        key  = os.getenv("STRIPE_SECRET_LIVE") if mode=="live" else os.getenv("STRIPE_SECRET_KEY")
++        stripe.api_key = key
++        kwargs={}
++        if amount: kwargs["amount"]=int(round(float(amount)*100))
++        ref = stripe.Refund.create(payment_intent=pid, **kwargs)
++        return jsonify({"ok": True, "data":{"id": ref.get("id"), "status": ref.get("status"), "mode": mode}})
++    except Exception as e:
++        return jsonify({"ok": False, "error": str(e)}), 400
+
+4) Dashboard card (Payments Ops)
+
+--- dashboard.html
++++ dashboard.html
+@@
+ <!-- after Automations section -->
++<section class="card mt-4">
++  <h3>💳 Payments (Ops)</h3>
++  <div class="row">
++    <button id="btnCharge" onclick="createTestCharge()" class="btn">Create $0.50 charge</button>
++    <button onclick="listWebhookEvents()" class="btn">Last 10 webhook events</button>
++    <button onclick="refundPrompt()" class="btn danger">Refund by Payment ID</button>
++  </div>
++  <pre id="paymentsOut" class="log"></pre>
++</section>
+@@  <!-- scripts -->
+ <script>
++async function createTestCharge(){
++  const r = await fetch('/api/payments/create-invoice',{
++    method:'POST',
++    headers:{'X-Dash-Key': getDashKey(), 'Content-Type':'application/json'},
++    body: JSON.stringify({amount:0.50, email:'ops-check@echopilot.ai'})
++  }); const j = await r.json();
++  put('#paymentsOut', j);
++}
++async function listWebhookEvents(){
++  const r = await fetch('/api/payments/events?limit=10',{headers:{'X-Dash-Key': getDashKey()}});
++  put('#paymentsOut', await r.json());
++}
++async function refundPrompt(){
++  const pid = prompt('Enter payment_intent id (pi_...)'); if(!pid) return;
++  const amt = prompt('Partial refund amount in USD (optional)') || null;
++  const r = await fetch('/api/payments/refund',{method:'POST',
++    headers:{'X-Dash-Key': getDashKey(), 'Content-Type':'application/json'},
++    body: JSON.stringify({payment_id:pid, amount: amt? Number(amt): undefined})
++  }); put('#paymentsOut', await r.json());
++}
++function put(sel, obj){ document.querySelector(sel).textContent = JSON.stringify(obj,null,2); }
++function getDashKey(){ return localStorage.getItem('dashKey') || document.querySelector('#dashKey').value || ''; }
+ </script>
+
+5) (Optional) Makefile helpers
+
++++ Makefile
+@@
++alerts-now:
++	@python3 scripts/production_alerts.py | jq .
+
+
+---
+
+Verify (copy–paste)
+
+# 1) Alerts job
+python3 scripts/production_alerts.py | jq .
+tail -n 3 logs/production_alerts.ndjson
+
+# 2) Scheduler picks alerts every 5 min
+tail -f logs/scheduler.log | grep alerts_run
+
+# 3) Payments ops
+# a) Create small charge (LIVE: real checkout link returned)
+curl -s -H "X-Dash-Key: $DASHBOARD_KEY" -H "Content-Type: application/json" \
+  -d '{"amount":0.50,"email":"ops-check@echopilot.ai"}' \
+  http://localhost:5000/api/payments/create-invoice | jq .
+
+# b) List last 10 webhook events
+curl -s -H "X-Dash-Key: $DASHBOARD_KEY" http://localhost:5000/api/payments/events | jq .
+
+# c) Refund (replace pi_...):
+curl -s -H "X-Dash-Key: $DASHBOARD_KEY" -H "Content-Type: application/json" \
+  -d '{"payment_id":"pi_xxx","amount":0.10}' \
+  http://localhost:5000/api/payments/refund | jq .
+
+That’s it—alerts are running every 5 minutes, and the Payments Ops card gives you one-click charge, events, and refunds.
+

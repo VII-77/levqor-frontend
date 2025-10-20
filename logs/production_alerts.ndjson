@@ -1,0 +1,1 @@
+{"ts": "2025-10-20T18:26:45.950499Z", "event": "production_alerts", "webhook_failures_5m": 0, "payment_error_rate_1h": 0.0, "revenue_change_DoD": 0.0, "severity": {"webhook": "OK", "payments": "OK", "revenue": "OK"}}

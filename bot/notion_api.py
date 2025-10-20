@@ -200,6 +200,9 @@ class NotionClientWrapper:
         if job_data.get('margin_percent') is not None:
             properties["Margin %"] = {"number": job_data['margin_percent']}
         
+        if job_data.get('owner_email'):
+            properties["Owner Email"] = {"email": job_data['owner_email']}
+        
         return self.create_page(config.JOB_LOG_DB_ID, properties)
     
     def update_job_payment_status(self, job_id: str, status: str):

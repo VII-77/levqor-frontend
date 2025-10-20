@@ -396,13 +396,20 @@ class TaskProcessor:
             except Exception as e:
                 print(f"[Client] Revenue tracking failed: {e}")
         
+        # Extract owner email from queue entry
+        owner_email = extract_notion_property(properties, 'Owner Email', 'email')
+        
+        # Include owner email in job_data for logging to Job Log
+        if owner_email:
+            job_data['owner_email'] = owner_email
+        
+        # Log to Job Log database
         try:
             self.notion.log_completed_job(job_data)
         except Exception as e:
             print(f"Warning: Could not log to Job Log database: {e}")
         
-        # Send email notification if Owner Email exists
-        owner_email = extract_notion_property(properties, 'Owner Email', 'email')
+        # Send email notification if owner email exists
         if owner_email:
             try:
                 import requests

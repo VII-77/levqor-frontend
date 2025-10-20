@@ -2523,6 +2523,558 @@ def run_optimizer():
         return jsonify({"ok": False, "error": str(e)}), 500
 
 
+# ============================================================================
+# PHASE 29: AI EXECUTIVE MODE
+# ============================================================================
+
+@app.route('/api/exec/report-latest', methods=['GET'])
+@require_dashboard_key
+def exec_report_latest():
+    """
+    GET /api/exec/report-latest
+    Returns the most recent brief from logs/exec_briefs/*.json
+    """
+    from pathlib import Path
+    import json
+    
+    try:
+        briefs_dir = Path('logs/exec_briefs')
+        if not briefs_dir.exists():
+            return jsonify({"ok": False, "error": "No briefs folder found"}), 404
+        
+        # Find latest brief_*.json
+        brief_files = sorted(briefs_dir.glob('brief_*.json'), key=lambda p: p.stat().st_mtime, reverse=True)
+        
+        if not brief_files:
+            return jsonify({"ok": False, "error": "No briefs found"}), 404
+        
+        latest = brief_files[0]
+        with open(latest, 'r') as f:
+            data = json.load(f)
+        
+        return jsonify({"ok": True, "data": data, "error": None}), 200
+    
+    except Exception as e:
+        return jsonify({"ok": False, "data": None, "error": str(e)}), 500
+
+
+@app.route('/api/exec/ingest', methods=['POST'])
+@require_dashboard_key
+def exec_ingest():
+    """
+    POST /api/exec/ingest
+    Aggregates fresh signals into a single payload object from logs and live endpoints.
+    """
+    from pathlib import Path
+    import json
+    from datetime import datetime
+    
+    def log_exec(data):
+        log_file = Path('logs/exec_mode.log')
+        log_file.parent.mkdir(exist_ok=True)
+        with open(log_file, 'a') as f:
+            f.write(json.dumps({"ts": datetime.utcnow().isoformat() + 'Z', "actor": "exec_mode", **data}) + '\n')
+    
+    try:
+        payload = {"ts": datetime.utcnow().isoformat() + 'Z', "signals": {}}
+        
+        # 1) Logs: daily_report (latest only)
+        daily_reports = sorted(Path('logs').glob('daily_report_*.json'), key=lambda p: p.stat().st_mtime, reverse=True)
+        if daily_reports:
+            with open(daily_reports[0], 'r') as f:
+                payload['signals']['daily_report'] = json.load(f)
+        
+        # 2) self_heal.log (last 200 lines)
+        self_heal_log = Path('logs/self_heal.log')
+        if self_heal_log.exists():
+            lines = self_heal_log.read_text().strip().split('\n')[-200:]
+            payload['signals']['self_heal_log'] = [json.loads(line) for line in lines if line.strip()]
+        
+        # 3) alerts.log (last 200 lines)
+        alerts_log = Path('logs/alerts.log')
+        if alerts_log.exists():
+            lines = alerts_log.read_text().strip().split('\n')[-200:]
+            payload['signals']['alerts_log'] = [json.loads(line) for line in lines if line.strip()]
+        
+        # 4) e2e_validation.json (last 50 lines)
+        e2e_log = Path('logs/e2e_validation.json')
+        if e2e_log.exists():
+            lines = e2e_log.read_text().strip().split('\n')[-50:]
+            payload['signals']['e2e_validation'] = [json.loads(line) for line in lines if line.strip()]
+        
+        # 5) release_captain.json (last 50 lines)
+        release_log = Path('logs/release_captain.json')
+        if release_log.exists():
+            lines = release_log.read_text().strip().split('\n')[-50:]
+            payload['signals']['release_captain'] = [json.loads(line) for line in lines if line.strip()]
+        
+        # 6) health.ndjson (last 200 lines)
+        health_log = Path('logs/health.ndjson')
+        if health_log.exists():
+            lines = health_log.read_text().strip().split('\n')[-200:]
+            payload['signals']['health_ndjson'] = [json.loads(line) for line in lines if line.strip()]
+        
+        # 7) Live endpoints: finance-metrics
+        try:
+            from bot import config
+            token = os.getenv('REPLIT_CONNECTORS_HOSTNAME')
+            if hasattr(config, 'JOB_LOG_DB_ID'):
+                url_finance = f"http://localhost:5000/api/finance-metrics"
+                resp_finance = requests.get(url_finance, headers={'X-Dash-Key': os.getenv('DASHBOARD_KEY', '')}, timeout=10)
+                if resp_finance.status_code == 200:
+                    payload['signals']['finance_metrics'] = resp_finance.json()
+        except:
+            pass
+        
+        # 8) Live endpoints: metrics-summary
+        try:
+            url_metrics = f"http://localhost:5000/api/metrics-summary"
+            resp_metrics = requests.get(url_metrics, headers={'X-Dash-Key': os.getenv('DASHBOARD_KEY', '')}, timeout=10)
+            if resp_metrics.status_code == 200:
+                payload['signals']['metrics_summary'] = resp_metrics.json()
+        except:
+            pass
+        
+        # 9) Optional: Last 10 Job Log items
+        try:
+            from bot import config
+            token = os.getenv('REPLIT_CONNECTORS_HOSTNAME')
+            job_log_id = config.JOB_LOG_DB_ID
+            url = f"https://{token}/notion/v1/databases/{job_log_id}/query"
+            resp = requests.post(url, json={"page_size": 10, "sorts": [{"timestamp": "created_time", "direction": "descending"}]}, timeout=10)
+            if resp.status_code == 200:
+                payload['signals']['job_log_recent'] = resp.json().get('results', [])
+        except:
+            pass
+        
+        # Save snapshot
+        ts_filename = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
+        ingest_path = Path(f'logs/exec_ingest_{ts_filename}.json')
+        ingest_path.parent.mkdir(exist_ok=True)
+        with open(ingest_path, 'w') as f:
+            json.dump(payload, f, indent=2)
+        
+        log_exec({"event": "ingest", "ok": True, "path": str(ingest_path)})
+        
+        return jsonify({"ok": True, "data": payload, "error": None, "saved_to": str(ingest_path)}), 200
+    
+    except Exception as e:
+        log_exec({"event": "ingest", "ok": False, "error": str(e)})
+        return jsonify({"ok": False, "data": None, "error": str(e)}), 500
+
+
+@app.route('/api/exec/analyze', methods=['POST'])
+@require_dashboard_key
+def exec_analyze():
+    """
+    POST /api/exec/analyze
+    Run GPT-4o-mini with anomaly detection rules and produce strict JSON output.
+    """
+    from pathlib import Path
+    import json
+    from datetime import datetime
+    import openai
+    
+    def log_exec(data):
+        log_file = Path('logs/exec_mode.log')
+        log_file.parent.mkdir(exist_ok=True)
+        with open(log_file, 'a') as f:
+            f.write(json.dumps({"ts": datetime.utcnow().isoformat() + 'Z', "actor": "exec_mode", **data}) + '\n')
+    
+    try:
+        # Load latest ingest or use provided payload
+        ingest_files = sorted(Path('logs').glob('exec_ingest_*.json'), key=lambda p: p.stat().st_mtime, reverse=True)
+        if not ingest_files:
+            return jsonify({"ok": False, "error": "No ingest data found. Run /api/exec/ingest first."}), 404
+        
+        with open(ingest_files[0], 'r') as f:
+            ingest_data = json.load(f)
+        
+        # Prepare OpenAI client
+        api_key = os.getenv('AI_INTEGRATIONS_OPENAI_API_KEY')
+        base_url = os.getenv('AI_INTEGRATIONS_OPENAI_BASE_URL', 'https://api.openai.com/v1')
+        
+        if not api_key:
+            return jsonify({"ok": False, "error": "OPENAI_API_KEY not configured"}), 500
+        
+        client = openai.OpenAI(api_key=api_key, base_url=base_url)
+        
+        # System prompt with detection rules
+        system_prompt = """You are an AI Executive Assistant analyzing EchoPilot system metrics for anomalies.
+
+DETECTION RULES (flag if ANY condition met):
+
+Quality:
+- 3+ consecutive jobs with QA < 80
+- 7-day avg QA < target (usually 85%)
+
+Finance:
+- 7d ROI < 1.0
+- Margin < 40%
+- Revenue trending down 3+ consecutive days
+- Unpaid jobs with QA ≥ 95% older than 48h
+
+Ops:
+- Processing latency > 2 polling cycles (120s)
+- Repeated Notion read-after-write lag > 90s
+- 5xx error spikes
+- Health endpoint timeouts
+
+Growth:
+- Sign-ups flat for 7+ days
+- No referrals logged
+- Email bounce rate high
+
+OUTPUT STRICT JSON:
+{
+  "kpis": {"jobs_7d":0,"revenue_7d":0,"avg_qa_7d":0,"roi_7d":0,"margin_pct_7d":0},
+  "anomalies": [{"type":"finance|ops|quality|growth","severity":"low|med|high","signal":"<short>","evidence":["..."],"suggested_fix":"<1-liner>"}],
+  "actions": [{"owner":"ops|eng|growth|finance","priority":1,"task":"<do this>","eta_hours":2}],
+  "notes":["short bullets"],
+  "confidence": 0.0
+}
+
+Respond ONLY with valid JSON. No markdown, no explanation."""
+        
+        # Call GPT-4o-mini
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": f"Analyze these signals:\n\n{json.dumps(ingest_data, indent=2)}"}
+            ],
+            temperature=0.2,
+            max_tokens=2000
+        )
+        
+        analysis_text = response.choices[0].message.content.strip()
+        
+        # Parse JSON response
+        try:
+            analysis_json = json.loads(analysis_text)
+        except:
+            # Try to extract JSON from markdown if GPT wrapped it
+            if '```json' in analysis_text:
+                analysis_text = analysis_text.split('```json')[1].split('```')[0].strip()
+                analysis_json = json.loads(analysis_text)
+            else:
+                raise ValueError("GPT returned non-JSON response")
+        
+        # Save analysis
+        ts_filename = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
+        analysis_path = Path(f'logs/exec_analysis_{ts_filename}.json')
+        with open(analysis_path, 'w') as f:
+            json.dump(analysis_json, f, indent=2)
+        
+        log_exec({"event": "analyze", "ok": True, "path": str(analysis_path)})
+        
+        return jsonify({"ok": True, "data": analysis_json, "error": None, "saved_to": str(analysis_path)}), 200
+    
+    except Exception as e:
+        log_exec({"event": "analyze", "ok": False, "error": str(e)})
+        return jsonify({"ok": False, "data": None, "error": str(e)}), 500
+
+
+@app.route('/api/exec/brief', methods=['POST'])
+@require_dashboard_key
+def exec_brief():
+    """
+    POST /api/exec/brief
+    Combines ingest + analyze into a human-readable brief + machine JSON.
+    """
+    from pathlib import Path
+    import json
+    from datetime import datetime
+    
+    def log_exec(data):
+        log_file = Path('logs/exec_mode.log')
+        log_file.parent.mkdir(exist_ok=True)
+        with open(log_file, 'a') as f:
+            f.write(json.dumps({"ts": datetime.utcnow().isoformat() + 'Z', "actor": "exec_mode", **data}) + '\n')
+    
+    try:
+        # 1) Run ingest
+        ingest_resp = exec_ingest()
+        if ingest_resp[1] != 200:
+            return jsonify({"ok": False, "error": "Ingest failed"}), 500
+        ingest_data = ingest_resp[0].get_json()
+        ingest_path = ingest_data.get('saved_to')
+        
+        # 2) Run analyze
+        analyze_resp = exec_analyze()
+        if analyze_resp[1] != 200:
+            return jsonify({"ok": False, "error": "Analyze failed"}), 500
+        analyze_data = analyze_resp[0].get_json()
+        analysis_json = analyze_data.get('data', {})
+        analysis_path = analyze_data.get('saved_to')
+        
+        # 3) Build EXEC_BRIEF
+        kpis = analysis_json.get('kpis', {})
+        anomalies = analysis_json.get('anomalies', [])
+        actions = analysis_json.get('actions', [])
+        
+        # Generate headline
+        if anomalies:
+            high_sev = [a for a in anomalies if a.get('severity') == 'high']
+            if high_sev:
+                headline = f"⚠️ {len(high_sev)} HIGH SEVERITY ALERTS"
+            else:
+                headline = f"⚡ {len(anomalies)} anomalies detected"
+        else:
+            headline = "✅ All systems nominal"
+        
+        # Generate summary
+        summary_lines = []
+        summary_lines.append(f"Jobs (7d): {kpis.get('jobs_7d', 0)} | QA: {kpis.get('avg_qa_7d', 0):.1f}% | ROI: {kpis.get('roi_7d', 0):.1f}x")
+        summary_lines.append(f"Revenue: ${kpis.get('revenue_7d', 0):.2f} | Margin: {kpis.get('margin_pct_7d', 0):.1f}%")
+        
+        if anomalies:
+            summary_lines.append(f"\nTop Risks:")
+            for anom in anomalies[:3]:
+                summary_lines.append(f"  • [{anom.get('severity', 'low').upper()}] {anom.get('signal', 'Unknown')}")
+        
+        summary = '\n'.join(summary_lines)
+        
+        # Actions next 24h / 7d
+        actions_24h = [a for a in actions if a.get('eta_hours', 999) <= 24]
+        actions_7d = [a for a in actions if a.get('eta_hours', 999) > 24]
+        
+        # Top risks
+        top_risks = anomalies[:5]
+        
+        exec_brief = {
+            "ts": datetime.utcnow().isoformat() + 'Z',
+            "headline": headline,
+            "summary": summary,
+            "kpis": kpis,
+            "top_risks": top_risks,
+            "actions_next_24h": actions_24h,
+            "actions_next_7d": actions_7d,
+            "confidence": analysis_json.get('confidence', 0.0),
+            "attachments": {
+                "analysis_json_path": analysis_path,
+                "ingest_json_path": ingest_path
+            }
+        }
+        
+        # 4) Save JSON brief
+        ts_filename = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
+        brief_json_path = Path(f'logs/exec_briefs/brief_{ts_filename}.json')
+        brief_json_path.parent.mkdir(exist_ok=True, parents=True)
+        with open(brief_json_path, 'w') as f:
+            json.dump(exec_brief, f, indent=2)
+        
+        # 5) Generate HTML version
+        html_content = f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>EchoPilot CEO Brief - {datetime.utcnow().strftime('%Y-%m-%d')}</title>
+    <style>
+        body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; background: #f5f5f5; }}
+        .container {{ background: white; border-radius: 8px; padding: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }}
+        .headline {{ font-size: 24px; font-weight: bold; margin-bottom: 20px; color: #333; }}
+        .kpis {{ display: flex; gap: 20px; margin: 20px 0; flex-wrap: wrap; }}
+        .kpi {{ background: #f8f9fa; padding: 15px; border-radius: 6px; flex: 1; min-width: 150px; }}
+        .kpi-label {{ font-size: 12px; color: #666; text-transform: uppercase; }}
+        .kpi-value {{ font-size: 24px; font-weight: bold; color: #007bff; margin-top: 5px; }}
+        .section {{ margin: 30px 0; }}
+        .section-title {{ font-size: 18px; font-weight: bold; margin-bottom: 15px; border-bottom: 2px solid #007bff; padding-bottom: 5px; }}
+        .risk {{ padding: 12px; margin: 10px 0; border-radius: 6px; border-left: 4px solid; }}
+        .risk.high {{ background: #fff3cd; border-color: #dc3545; }}
+        .risk.med {{ background: #d1ecf1; border-color: #ffc107; }}
+        .risk.low {{ background: #d4edda; border-color: #28a745; }}
+        .risk-severity {{ font-weight: bold; text-transform: uppercase; font-size: 12px; }}
+        .action {{ padding: 10px; margin: 8px 0; background: #f8f9fa; border-radius: 6px; }}
+        .action-priority {{ display: inline-block; background: #007bff; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-right: 8px; }}
+        .footer {{ margin-top: 40px; padding-top: 20px; border-top: 1px solid #dee2e6; font-size: 12px; color: #666; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="headline">{exec_brief['headline']}</div>
+        
+        <div class="kpis">
+            <div class="kpi">
+                <div class="kpi-label">Jobs (7d)</div>
+                <div class="kpi-value">{kpis.get('jobs_7d', 0)}</div>
+            </div>
+            <div class="kpi">
+                <div class="kpi-label">Revenue (7d)</div>
+                <div class="kpi-value">${kpis.get('revenue_7d', 0):.2f}</div>
+            </div>
+            <div class="kpi">
+                <div class="kpi-label">Avg QA (7d)</div>
+                <div class="kpi-value">{kpis.get('avg_qa_7d', 0):.1f}%</div>
+            </div>
+            <div class="kpi">
+                <div class="kpi-label">ROI (7d)</div>
+                <div class="kpi-value">{kpis.get('roi_7d', 0):.1f}x</div>
+            </div>
+            <div class="kpi">
+                <div class="kpi-label">Margin (7d)</div>
+                <div class="kpi-value">{kpis.get('margin_pct_7d', 0):.1f}%</div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">Top Risks</div>
+            {"".join([f'<div class="risk {risk.get("severity", "low")}"><span class="risk-severity">{risk.get("severity", "low")}</span>: {risk.get("signal", "Unknown")}<br><small>{risk.get("suggested_fix", "")}</small></div>' for risk in top_risks]) if top_risks else '<p>No risks detected.</p>'}
+        </div>
+        
+        <div class="section">
+            <div class="section-title">Actions: Next 24 Hours</div>
+            {"".join([f'<div class="action"><span class="action-priority">P{action.get("priority", 1)}</span><strong>{action.get("owner", "ops")}</strong>: {action.get("task", "TBD")} <small>({action.get("eta_hours", 0)}h)</small></div>' for action in actions_24h]) if actions_24h else '<p>No immediate actions required.</p>'}
+        </div>
+        
+        <div class="section">
+            <div class="section-title">Actions: Next 7 Days</div>
+            {"".join([f'<div class="action"><span class="action-priority">P{action.get("priority", 1)}</span><strong>{action.get("owner", "ops")}</strong>: {action.get("task", "TBD")} <small>({action.get("eta_hours", 0)}h)</small></div>' for action in actions_7d]) if actions_7d else '<p>No weekly actions planned.</p>'}
+        </div>
+        
+        <div class="footer">
+            Generated by AI Executive Mode · {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC<br>
+            Analysis: <code>{analysis_path}</code>
+        </div>
+    </div>
+</body>
+</html>"""
+        
+        brief_html_path = Path(f'logs/exec_briefs/brief_{ts_filename}.html')
+        with open(brief_html_path, 'w') as f:
+            f.write(html_content)
+        
+        log_exec({"event": "brief", "ok": True, "json_path": str(brief_json_path), "html_path": str(brief_html_path)})
+        
+        return jsonify({
+            "ok": True,
+            "data": exec_brief,
+            "error": None,
+            "json_path": str(brief_json_path),
+            "html_path": str(brief_html_path)
+        }), 200
+    
+    except Exception as e:
+        log_exec({"event": "brief", "ok": False, "error": str(e)})
+        return jsonify({"ok": False, "data": None, "error": str(e)}), 500
+
+
+@app.route('/api/exec/email', methods=['POST'])
+@require_dashboard_key
+def exec_email():
+    """
+    POST /api/exec/email
+    Sends latest brief via SMTP if configured; otherwise logs to exec_emails.log.
+    """
+    from pathlib import Path
+    import json
+    from datetime import datetime
+    import smtplib
+    from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart
+    
+    def log_exec(data):
+        log_file = Path('logs/exec_mode.log')
+        log_file.parent.mkdir(exist_ok=True)
+        with open(log_file, 'a') as f:
+            f.write(json.dumps({"ts": datetime.utcnow().isoformat() + 'Z', "actor": "exec_mode", **data}) + '\n')
+    
+    try:
+        # Load latest brief
+        brief_files = sorted(Path('logs/exec_briefs').glob('brief_*.json'), key=lambda p: p.stat().st_mtime, reverse=True)
+        if not brief_files:
+            return jsonify({"ok": False, "error": "No brief found. Run /api/exec/brief first."}), 404
+        
+        with open(brief_files[0], 'r') as f:
+            brief = json.load(f)
+        
+        # Load HTML version
+        ts_part = brief_files[0].stem.replace('brief_', '')
+        html_path = Path(f'logs/exec_briefs/brief_{ts_part}.html')
+        
+        if not html_path.exists():
+            return jsonify({"ok": False, "error": "HTML brief not found"}), 404
+        
+        with open(html_path, 'r') as f:
+            html_content = f.read()
+        
+        # Check SMTP config
+        smtp_user = os.getenv('SMTP_USER')
+        smtp_pass = os.getenv('SMTP_PASS')
+        alert_to = os.getenv('ALERT_TO')
+        
+        if not smtp_user or not smtp_pass:
+            # Fallback to log
+            email_log = Path('logs/exec_emails.log')
+            with open(email_log, 'a') as f:
+                f.write(json.dumps({
+                    "ts": datetime.utcnow().isoformat() + 'Z',
+                    "to": alert_to or "not_configured",
+                    "subject": f"EchoPilot CEO Brief — {datetime.utcnow().strftime('%Y-%m-%d')}",
+                    "brief_headline": brief.get('headline'),
+                    "html_path": str(html_path)
+                }) + '\n')
+            
+            log_exec({"event": "email", "ok": True, "sent": False, "logged_to": str(email_log)})
+            return jsonify({"ok": True, "sent": False, "logged_to": str(email_log), "error": None}), 200
+        
+        # Send via SMTP
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = f"EchoPilot CEO Brief — {datetime.utcnow().strftime('%Y-%m-%d')}"
+        msg['From'] = smtp_user
+        msg['To'] = alert_to
+        
+        msg.attach(MIMEText(html_content, 'html'))
+        
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+            server.login(smtp_user, smtp_pass)
+            server.send_message(msg)
+        
+        log_exec({"event": "email", "ok": True, "sent": True, "to": alert_to})
+        return jsonify({"ok": True, "sent": True, "to": alert_to, "error": None}), 200
+    
+    except Exception as e:
+        log_exec({"event": "email", "ok": False, "error": str(e)})
+        return jsonify({"ok": False, "sent": False, "error": str(e)}), 500
+
+
+@app.route('/api/exec/schedule-daily', methods=['POST'])
+@require_dashboard_key
+def exec_schedule_daily():
+    """
+    POST /api/exec/schedule-daily
+    Spawns detached subprocess to run scripts/exec_brief.sh immediately.
+    """
+    from pathlib import Path
+    import json
+    from datetime import datetime
+    import subprocess
+    
+    def log_exec(data):
+        log_file = Path('logs/exec_mode.log')
+        log_file.parent.mkdir(exist_ok=True)
+        with open(log_file, 'a') as f:
+            f.write(json.dumps({"ts": datetime.utcnow().isoformat() + 'Z', "actor": "exec_mode", **data}) + '\n')
+    
+    try:
+        script_path = Path('scripts/exec_brief.sh')
+        if not script_path.exists():
+            return jsonify({"ok": False, "error": "exec_brief.sh not found"}), 404
+        
+        # Run script in background
+        subprocess.Popen(['bash', str(script_path), 'http://localhost:5000'], 
+                        stdout=subprocess.DEVNULL, 
+                        stderr=subprocess.DEVNULL,
+                        start_new_session=True)
+        
+        log_exec({"event": "schedule_daily", "ok": True, "script": str(script_path)})
+        return jsonify({"ok": True, "status": "Script launched", "error": None}), 200
+    
+    except Exception as e:
+        log_exec({"event": "schedule_daily", "ok": False, "error": str(e)})
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
 def run_bot():
     """Run the bot in a separate thread"""
     bot = EchoPilotBot()

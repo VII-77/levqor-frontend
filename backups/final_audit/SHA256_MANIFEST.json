@@ -1,0 +1,12 @@
+{
+  "export_timestamp": "2025-10-20T18:41:47.410276Z",
+  "files": {
+    "gdpr_compliance.json": "a87acbe18adc2a4798fa9e0d10d059274d4f3ee165b685863ded8eb1381a2287",
+    "soc_lite_audit.json": "2a8e9d9ebf8391f1cb59627221b422e5ca846518a682e707e3d27e377c7c1373",
+    "finance_audit.json": "b0e0af72caa0a569c0d5b6f96cfe80477e8fb4023d48cebb77604ea28747bf38"
+  },
+  "verification": {
+    "instructions": "Verify file integrity by recomputing SHA256 hashes",
+    "command": "sha256sum backups/final_audit/*.json"
+  }
+}

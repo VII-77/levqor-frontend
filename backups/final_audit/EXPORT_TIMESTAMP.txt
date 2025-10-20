@@ -1,0 +1,4 @@
+Compliance Export Timestamp: 2025-10-20T18:41:47.410276Z
+Exported by: EchoPilot Final Audit System
+Files: 3 (GDPR, SOC-lite, Finance)
+Manifest: SHA256_MANIFEST.json

@@ -1,0 +1,21 @@
+{
+  "export_timestamp": "2025-10-20T18:41:47.417923Z",
+  "data_protection": {
+    "encryption": "AES-256 for sensitive fields",
+    "access_control": "X-Dash-Key authentication",
+    "data_retention": "Configurable via retention policy",
+    "right_to_erasure": "Supported via /api/compliance/export-data"
+  },
+  "privacy_policy": "See docs/privacy_policy.md",
+  "cookie_policy": "See docs/cookie_policy.md",
+  "data_processing": {
+    "processors": [
+      "OpenAI API",
+      "Notion API",
+      "Google APIs",
+      "Stripe"
+    ],
+    "purpose": "AI task automation and enterprise management",
+    "legal_basis": "Legitimate business interest"
+  }
+}

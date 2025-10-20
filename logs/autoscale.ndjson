@@ -7,3 +7,4 @@
 {"event": "scale_decision", "ts": "2025-10-20T18:25:25.218619Z", "current": 1, "desired": 1, "reason": "low_utilization", "dry_run": true}
 {"event": "scale_decision", "ts": "2025-10-20T18:29:00.944326Z", "current": 1, "desired": 1, "reason": "low_utilization", "dry_run": true}
 {"event": "scale_decision", "ts": "2025-10-20T18:35:42.459803Z", "current": 1, "desired": 1, "reason": "low_utilization", "dry_run": true}
+{"event": "scale_decision", "ts": "2025-10-20T18:39:08.968001Z", "current": 1, "desired": 1, "reason": "low_utilization", "dry_run": true}

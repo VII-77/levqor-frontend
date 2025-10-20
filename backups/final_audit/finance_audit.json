@@ -1,0 +1,22 @@
+{
+  "export_timestamp": "2025-10-20T18:41:47.423336Z",
+  "revenue_tracking": {
+    "stripe_integration": "Live mode active",
+    "webhook_logging": "All payment events logged",
+    "reconciliation": "Automated nightly reconciliation"
+  },
+  "cost_management": {
+    "guardrails": "Active cost limits per model",
+    "tracking": "Real-time cost monitoring",
+    "budgets": "Per-tenant usage tracking"
+  },
+  "financial_reporting": {
+    "p_and_l": "Automated P&L generation",
+    "forecasting": "30-day ML-based forecasting",
+    "valuation": "Company valuation models"
+  },
+  "audit_trail": {
+    "all_transactions": "Logged to logs/finance.ndjson",
+    "integrity": "SHA256 manifests for all logs"
+  }
+}

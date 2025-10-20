@@ -1,0 +1,24 @@
+{
+  "export_timestamp": "2025-10-20T18:41:47.420678Z",
+  "security_controls": {
+    "authentication": "API key-based (X-Dash-Key)",
+    "authorization": "RBAC system (admin/user/viewer roles)",
+    "encryption": "TLS in transit, AES-256 at rest",
+    "logging": "Comprehensive NDJSON audit trail",
+    "monitoring": "SLO tracking, production alerts, threat detection",
+    "incident_response": "Automated incident detection and paging"
+  },
+  "availability": {
+    "slo_target": "99.9%",
+    "backup_frequency": "Daily DR backups at 02:30 UTC",
+    "disaster_recovery": "Automated backup and restore procedures"
+  },
+  "processing_integrity": {
+    "qa_system": "80% quality threshold with AI evaluation",
+    "data_validation": "Schema enforcement and integrity scanning"
+  },
+  "confidentiality": {
+    "secrets_management": "Environment variables, never logged",
+    "pii_handling": "Encrypted in logs, access-controlled APIs"
+  }
+}

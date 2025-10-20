@@ -1,0 +1,148 @@
+Here’s a single-paste prompt for Replit AI to automate your Phase 27–29 ops (daily CEO brief + self-heal + reports) securely:
+
+
+---
+
+OPEN MY Echopilotai REPLIT AND IMPLEMENT AUTOMATED EXEC OPS IN ONE GO
+
+Objectives
+
+Run daily CEO Brief (Phase 29) at 08:00 UTC.
+
+Run Self-Heal (Phase 27) every 6 hours.
+
+Run Daily Report (Phase 28) at 09:00 UTC.
+
+Add retention cleanup (keep last 30 briefs/logs).
+
+Zero secrets in frontend; all server-side with DASHBOARD_KEY.
+
+
+1) Add background scheduler (no cron) Create scripts/exec_scheduler.py:
+
+Daemon loop (checks once per minute).
+
+Reads schedule from env (with sane defaults):
+
+SCHED_BRIEF_UTC=08:00
+
+SCHED_REPORT_UTC=09:00
+
+SCHED_SELFHEAL_EVERY_HOURS=6
+
+
+Calls (server-side HTTP with header X-Dash-Key: $DASHBOARD_KEY):
+
+POST /api/exec/brief
+
+POST /api/self-heal
+
+GET  /api/finance-metrics + GET /api/metrics-summary to warm cache
+
+
+Debounce: don’t run same task twice within 55 minutes.
+
+Logs NDJSON to logs/scheduler.log ({"ts","task","ok","paths","error"}).
+
+Safe exit on SIGTERM.
+
+
+2) Add retention cleanup Create scripts/retention.py:
+
+Keep newest 30 files for each pattern:
+
+logs/exec_briefs/brief_*.json
+
+logs/exec_briefs/brief_*.html
+
+logs/exec_ingest_*.json
+
+logs/exec_analysis_*.json
+
+logs/daily_report_*.json
+
+
+Delete older files; log actions to logs/retention.log.
+
+
+3) Wire a supervisor launcher Create scripts/run_automations.sh (executable):
+
+#!/usr/bin/env bash
+set -euo pipefail
+export PYTHONUNBUFFERED=1
+# 1) one-off cleanup
+python3 scripts/retention.py || true
+# 2) kick today’s brief immediately (non-blocking email)
+curl -s -H "X-Dash-Key: ${DASHBOARD_KEY}" -X POST http://localhost:5000/api/exec/brief >/dev/null || true
+# 3) start scheduler in background
+nohup python3 scripts/exec_scheduler.py >> logs/scheduler.out 2>&1 &
+echo "Scheduler PID: $!"
+
+4) Makefile shortcuts Create/update Makefile:
+
+.PHONY: start-automations stop-automations run-brief run-selfheal daily-report retention
+start-automations:
+	@bash scripts/run_automations.sh
+stop-automations:
+	@pkill -f exec_scheduler.py || true
+run-brief:
+	@curl -s -H "X-Dash-Key: $$DASHBOARD_KEY" -X POST http://localhost:5000/api/exec/brief | python3 -m json.tool
+run-selfheal:
+	@curl -s -H "X-Dash-Key: $$DASHBOARD_KEY" -X POST http://localhost:5000/api/self-heal | python3 -m json.tool
+daily-report:
+	@make -s run-brief >/dev/null || true
+	@python3 scripts/retention.py || true
+retention:
+	@python3 scripts/retention.py
+
+5) Dashboard toggle (server-side only)
+
+In run.py, add endpoints (protected by DASHBOARD_KEY):
+
+POST /api/automations/start → runs scripts/run_automations.sh (subprocess), returns PID.
+
+POST /api/automations/stop → kills scheduler process (pkill), returns status.
+
+GET  /api/automations/status → returns {"running": true|false, "pid": <int|null>} by scanning processes.
+
+
+In dashboard.html, add a small “⚙️ Automations” card with 3 buttons (Start / Stop / Status) calling those routes. No secrets in the frontend.
+
+
+6) Config & safety
+
+Use existing secrets: DASHBOARD_KEY (required), AI_INTEGRATIONS_OPENAI_API_KEY, AI_INTEGRATIONS_OPENAI_BASE_URL (optional), ALERT_TO (optional for email already wired).
+
+Add env defaults in code if not set (times above).
+
+Timeouts: 30s per HTTP call. Retries: 2 with 2s backoff.
+
+Never expose tokens to the frontend.
+
+Uniform JSON responses everywhere.
+
+
+7) Tests to run and paste results Run:
+
+make start-automations
+curl -s -H "X-Dash-Key: $$DASHBOARD_KEY" http://localhost:5000/api/automations/status | python3 -m json.tool
+make run-selfheal
+make run-brief
+python3 scripts/retention.py && tail -3 logs/retention.log 2>/dev/null || true
+tail -5 logs/scheduler.log 2>/dev/null || true
+
+Show me:
+
+Automations status JSON
+
+Self-Heal JSON
+
+Brief JSON paths (from response)
+
+Last lines of scheduler.log and retention.log
+
+
+8) Commit git add . && git commit -m "Phase 27–29 automation: scheduler + retention + dashboard toggles" && git push
+
+**Do not break any existing routes or Stripe. Keep all ops endpoints protected and backward compatible.**
+

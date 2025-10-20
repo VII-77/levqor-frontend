@@ -3373,6 +3373,200 @@ def runtime_costs():
         }), 500
 
 
+# ==================== PHASE 33-40: ENTERPRISE EXPANSION ====================
+
+@app.route('/api/payments/create-invoice', methods=['POST'])
+@require_dashboard_key
+def create_payment_invoice():
+    """Create Stripe invoice (Phase 33)"""
+    import subprocess
+    import json
+    
+    try:
+        data = request.get_json() or {}
+        amount = data.get('amount', 1.0)
+        email = data.get('email', 'customer@example.com')
+        description = data.get('description', 'EchoPilot Job')
+        
+        # Use stripe_live_guard.py
+        from scripts.stripe_live_guard import create_invoice
+        result = create_invoice(amount, email, description)
+        
+        return jsonify(result), 200 if result.get('ok') else 500
+        
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@app.route('/api/customer/signed-url/<client_id>', methods=['GET'])
+@require_dashboard_key
+def get_signed_url(client_id):
+    """Generate signed download URL (Phase 34)"""
+    try:
+        from scripts.customer_experience import signed_url
+        url = signed_url(client_id)
+        return jsonify({"ok": True, "url": url}), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@app.route('/api/customer/unsubscribe', methods=['POST'])
+def unsubscribe_email():
+    """Unsubscribe email (Phase 34)"""
+    try:
+        data = request.get_json() or {}
+        email = data.get('email')
+        
+        from scripts.customer_experience import unsubscribe
+        result = unsubscribe(email)
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@app.route('/api/compliance/export-data', methods=['GET'])
+@require_dashboard_key
+def export_user_data():
+    """Export compliance data (Phase 35)"""
+    import subprocess
+    
+    try:
+        result = subprocess.run(
+            ['python3', 'scripts/data_export.py'],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        
+        if result.returncode == 0:
+            data = json.loads(result.stdout)
+            return jsonify(data), 200
+        else:
+            return jsonify({"ok": False, "error": result.stderr}), 500
+            
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@app.route('/api/pricing/optimize', methods=['POST'])
+@require_dashboard_key
+def optimize_pricing():
+    """Run adaptive pricing AI (Phase 36)"""
+    import subprocess
+    
+    try:
+        result = subprocess.run(
+            ['python3', 'scripts/pricing_ai.py'],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        
+        if result.returncode == 0:
+            data = json.loads(result.stdout)
+            return jsonify({"ok": True, "data": data}), 200
+        else:
+            return jsonify({"ok": False, "error": result.stderr}), 500
+            
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@app.route('/api/growth/referral/new', methods=['POST'])
+@require_dashboard_key
+def generate_referral():
+    """Generate new referral code (Phase 37)"""
+    import subprocess
+    
+    try:
+        result = subprocess.run(
+            ['python3', 'scripts/referral_engine.py'],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        
+        if result.returncode == 0:
+            data = json.loads(result.stdout)
+            return jsonify({"ok": True, "data": data}), 200
+        else:
+            return jsonify({"ok": False, "error": result.stderr}), 500
+            
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@app.route('/api/audit/report', methods=['GET'])
+@require_dashboard_key
+def run_audit_report():
+    """Generate SOC-lite audit report (Phase 38)"""
+    import subprocess
+    
+    try:
+        result = subprocess.run(
+            ['python3', 'scripts/audit_pack.py'],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        
+        if result.returncode == 0:
+            data = json.loads(result.stdout)
+            return jsonify(data), 200
+        else:
+            return jsonify({"ok": False, "error": result.stderr}), 500
+            
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@app.route('/api/regions/sync', methods=['POST'])
+@require_dashboard_key
+def sync_regions():
+    """Sync data across regions (Phase 39)"""
+    import subprocess
+    
+    try:
+        result = subprocess.run(
+            ['python3', 'scripts/replica_sync.py'],
+            capture_output=True,
+            text=True,
+            timeout=60
+        )
+        
+        if result.returncode == 0:
+            return jsonify({"ok": True, "message": result.stdout}), 200
+        else:
+            return jsonify({"ok": False, "error": result.stderr}), 500
+            
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@app.route('/api/brain/decide', methods=['POST'])
+@require_dashboard_key
+def run_ops_brain():
+    """Run AI Ops Brain for autonomous decisions (Phase 40)"""
+    import subprocess
+    
+    try:
+        result = subprocess.run(
+            ['python3', 'scripts/ai_ops_brain.py'],
+            capture_output=True,
+            text=True,
+            timeout=60
+        )
+        
+        if result.returncode == 0:
+            data = json.loads(result.stdout)
+            return jsonify(data), 200
+        else:
+            return jsonify({"ok": False, "error": result.stderr}), 500
+            
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
 def run_bot():
     """Run the bot in a separate thread"""
     bot = EchoPilotBot()

@@ -1,0 +1,71 @@
+{
+  "ts": "2025-10-20T15:49:38.890898Z",
+  "export_type": "compliance",
+  "files": [
+    {
+      "file": "logs/full_cycle.log",
+      "sha256": "779a4eb058435490dea39d8708c2234f1057aa7d830321359d0a6e6dac024c29",
+      "size_bytes": 6399
+    },
+    {
+      "file": "logs/customer_portal.log",
+      "sha256": "e9339e20f0fbdf5848e95cfb12407fcfa3aaacdc0b14bcd9cfea358d11471a5f",
+      "size_bytes": 1916
+    },
+    {
+      "file": "logs/support_requests.log",
+      "sha256": "ae10600294d7013a794c89075d89814af247d3e36797c142e0592fc4b374590b",
+      "size_bytes": 758
+    },
+    {
+      "file": "logs/failover.log",
+      "sha256": "d9bb2a40725ac1253a27903fcf246c3d15f3a306f1dc6295d28925e4383fdea9",
+      "size_bytes": 6975
+    },
+    {
+      "file": "logs/growth_subscribers.log",
+      "sha256": "bf7851d5173381f2cb316019615834a75541c1a8bf11c91fdb9d8f1c3449ded0",
+      "size_bytes": 133
+    },
+    {
+      "file": "logs/alerts.log",
+      "sha256": "52f3306c671cdc8169d07199b8e428f02d25cf48fcd1a3cea19645d1f7af4bbb",
+      "size_bytes": 222
+    },
+    {
+      "file": "logs/exec_mode.log",
+      "sha256": "1fba042c4da43a80005edecb18ea7919eb3b997f039e13d4c2e48fa568fece02",
+      "size_bytes": 12396
+    },
+    {
+      "file": "logs/exec_emails.log",
+      "sha256": "803e4d7fa824cf3aec18b07c4307e3404d63b0285f9df4937cb79372b2b476c6",
+      "size_bytes": 466
+    },
+    {
+      "file": "logs/retention.log",
+      "sha256": "9f6f65ac8db28d466ac075e06f18818b7a03678ffd7165cf3ccd54d6d418434e",
+      "size_bytes": 15532
+    },
+    {
+      "file": "logs/scheduler.log",
+      "sha256": "0dc5bf2b812e2958f6f8d675f31d62ac8cc3f0f99a1d7d1d32b75e4cfdae2c94",
+      "size_bytes": 29224
+    },
+    {
+      "file": "logs/test_scheduler.log",
+      "sha256": "20470fc7b992c5a7defc36bee5bc3b4ccc8313a3894f323e1be8502df28baa60",
+      "size_bytes": 670
+    },
+    {
+      "file": "logs/health_probe.log",
+      "sha256": "cf19d92f36830f81465e7c67ad31ed773e0ce5ea9f461ae6933bd05018973445",
+      "size_bytes": 171
+    },
+    {
+      "file": "logs/sys_probe.log",
+      "sha256": "835d748897636b5b685a0cf34413cc01605e3d89c9e93b3ecf4bba07c9a86246",
+      "size_bytes": 760
+    }
+  ]
+}

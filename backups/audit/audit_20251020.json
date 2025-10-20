@@ -1,0 +1,10 @@
+{
+  "root_hash": "1ba7da05a6d70d8d91d3fc6f52a8d5179f31c78628a3e950a854b6b9bdb86ebc",
+  "entry_count": 634,
+  "ts": "2025-10-20T15:49:40.931363Z",
+  "audit_version": "1.0",
+  "compliance": [
+    "SOC-lite",
+    "audit-trail"
+  ]
+}

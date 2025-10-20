@@ -1,0 +1,195 @@
+ONEPROMPT — Implement Phases 76–80 (SLOs, Incident Pager, Customer Portal v1, Cost Guardrails, Autoscale)
+
+Objective: Add reliability, paging, customer self-service, cost controls, and autoscaling—fully wired into scheduler, dashboard, and logs. Keep auth via X-Dash-Key. No breaking changes.
+
+
+---
+
+Phase 76 — SLOs & Error Budgets
+
+Add
+
+scripts/slo_budget.py: compute p95/p99 latency & error-rate from logs/metrics; track daily/weekly error-budget burn; write logs/slo_budget.ndjson and logs/slo_status.json.
+
+Endpoints in run.py:
+
+GET /api/slo/status → {p95_ms,p99_ms,error_rate,period,remaining_budget_pct,burn_alert}
+
+POST /api/slo/rebaseline → resets rolling windows
+
+
+Dashboard: new “SLO & Error Budget” card with sparkline (reuse Chart.js), red/yellow/green state.
+
+Scheduler (scripts/exec_scheduler.py): run every 15m: python3 scripts/slo_budget.py Env
+
+SLO_LAT_P95_MS=800, SLO_ERR_BUDGET_DAILY_PCT=1.0, SLO_WINDOW_DAYS=30 Logs
+
+NDJSON events {"event":"slo_tick","p95":..,"err_rate":..,"burn":..} Gate
+
+If burn > 2× daily budget for 2h → set logs/deploy_gate.flag with reason.
+
+
+
+---
+
+Phase 77 — Incident Inbox & Pager (Telegram/Email)
+
+Add
+
+scripts/incident_pager.py: consumes logs/*.ndjson, dedup by fingerprint in last 1h; routes CRITICAL to Telegram & optional SMTP; writes logs/incidents.ndjson, logs/incident_summary.json.
+
+Endpoints:
+
+POST /api/incidents/raise body {severity,msg,source,meta} → enqueue
+
+POST /api/incidents/summarize → returns last 24h grouped
+
+
+Scheduler: every 5m run pager; also page when SLO burn crosses red. Env
+
+TELEGRAM_BOT_TOKEN TELEGRAM_CHAT_ID (optional)
+
+SMTP_HOST,SMTP_PORT,SMTP_USER,SMTP_PASS,SMTP_FROM (optional) Logs
+
+{"event":"page","sev":"CRITICAL","channel":"telegram","id":"..."} Gate
+
+CRITICAL delivery must log 200/OK; retries with backoff up to 5 times.
+
+
+
+---
+
+Phase 78 — Customer Portal v1 (Receipts, Invoices, Downloads)
+
+Add
+
+scripts/customer_portal.py: generate signed links to receipts/invoices; list recent purchases; unsubscribe; audit access.
+
+Endpoints:
+
+GET /api/portal/receipts?email=... (server-side auth via X-Dash-Key for now; public mode later)
+
+GET /api/portal/download?token=... (HMAC 24h; reuse signing lib)
+
+
+Dashboard: “Customer Portal” admin card: lookup by email, copy links. Env
+
+PORTAL_SIGNING_SECRET, link ttl PORTAL_LINK_TTL_HRS=24 Logs
+
+logs/portal_access.ndjson with email,ip,resource,status
+
+
+
+---
+
+Phase 79 — Cost Guardrails (AI Spend & Stripe Fees)
+
+Add
+
+scripts/cost_guardrails.py: ingest spend from our AI usage + Stripe fees; enforce caps per model/day and global/day; actions: throttle, switch to cheaper model, or page.
+
+Endpoints:
+
+GET /api/costs/status
+
+POST /api/costs/set-cap {scope:"daily|model", key?:model, usd_cap}
+
+
+Scheduler: every hour; emits logs/costs.ndjson Env
+
+COST_CAP_DAILY_USD=25
+
+MODEL_CAPS_JSON='{"gpt-4o-mini":15,"embeddings":2}' (stringified) Actions
+
+When ≥90% cap → WARN; ≥100% → throttle and raise incident. Gate
+
+Must never block admin endpoints; only degrade AI calls.
+
+
+
+---
+
+Phase 80 — Autoscale Workers (Predictive)
+
+Add
+
+scripts/autoscale_workers.py: read queue depth, p95, arrival rate; predict 30m; scale within min/max; cooldown 10m; dry-run mode default.
+
+Endpoints:
+
+GET /api/scale/status → {desired,actual,reason,dry_run}
+
+POST /api/scale/apply {dry_run?:bool}
+
+
+Scheduler: every 10m Env
+
+SCALE_MIN=1 SCALE_MAX=6 SCALE_COOLDOWN_MIN=10 SCALE_DRY_RUN=true Integration
+
+If desired changes while deploy_gate.flag exists, do not scale up.
+
+
+
+---
+
+Cross-Cutting Implementation Notes
+
+Keep auth guard (X-Dash-Key) on all admin APIs.
+
+Use existing NDJSON logger helper; one file per feature.
+
+Add unit-safe validators (ints, ms, usd) and reject negatives.
+
+Zero cron; only scheduler & workflows.
+
+All new scripts: #!/usr/bin/env python3 + safe if __name__ == "__main__".
+
+
+
+---
+
+Tests (run now after deploy)
+
+# 76
+curl -s -H "X-Dash-Key:$DASHBOARD_KEY" http://localhost:5000/api/slo/status | jq .
+# 77
+curl -s -H "X-Dash-Key:$DASHBOARD_KEY" -X POST http://localhost:5000/api/incidents/raise \
+  -H 'Content-Type: application/json' -d '{"severity":"CRITICAL","msg":"SLO burn","source":"slo"}' | jq .
+curl -s -H "X-Dash-Key:$DASHBOARD_KEY" -X POST http://localhost:5000/api/incidents/summarize | jq .
+# 78
+curl -s -H "X-Dash-Key:$DASHBOARD_KEY" "http://localhost:5000/api/portal/receipts?email=qa@echopilot.ai" | jq .
+# 79
+curl -s -H "X-Dash-Key:$DASHBOARD_KEY" http://localhost:5000/api/costs/status | jq .
+# 80
+curl -s -H "X-Dash-Key:$DASHBOARD_KEY" http://localhost:5000/api/scale/status | jq .
+
+
+---
+
+Acceptance Criteria (pass/fail)
+
+76: slo_status.json updates ≤15m; deploy_gate.flag created on sustained burn; dashboard card shows red/yellow/green.
+
+77: CRITICAL raises Telegram/email (when creds present) with dedupe ≤1/h; summarize groups incidents by fingerprint.
+
+78: Receipts endpoint returns signed links valid 24h; access logged; invalid/expired token ⇒ 403.
+
+79: Caps enforce: at 100% cap AI calls throttle and incident raised; /api/costs/status shows caps & utilization.
+
+80: /api/scale/status shows desired≠actual when backlog grows; cooldown respected; no scale-up when deploy gate active.
+
+
+
+---
+
+Rollback
+
+Disable tasks in scheduler (comment jobs); leave endpoints.
+
+Set SCALE_DRY_RUN=true, COST_CAP_DAILY_USD high to neutralize.
+
+Remove deploy_gate.flag to re-enable deploys.
+
+
+Deliverables: 5 scripts, 10 endpoints, 4 scheduler jobs, 3 dashboard cards/sections, NDJSON logs, env docs.
+

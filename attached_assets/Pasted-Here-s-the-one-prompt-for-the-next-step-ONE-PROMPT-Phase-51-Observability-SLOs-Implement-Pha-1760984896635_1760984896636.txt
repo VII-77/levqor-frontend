@@ -1,0 +1,27 @@
+Here’s the one prompt for the next step.
+
+ONE PROMPT — Phase 51: Observability & SLOs
+
+Implement Phase 51 end-to-end: production observability + SLOs. Deliverables:
+
+1. Metrics & Traces: add /metrics (Prometheus text) exposing: app_uptime_seconds, http_requests_total{route,status}, http_request_duration_ms_bucket, scheduler_tick_total, stripe_webhook_fail_total, payments_error_rate, cpu_percent, mem_percent, disk_percent. Append lightweight request timing middleware; write ndjson trace lines logs/http_traces.ndjson.
+
+
+2. SLOs & Error Budgets: define SLOs (API availability 99.9%, p95 latency < 400ms, webhook success 99%). Create scripts/slo_guard.py to compute rolling 30-day availability, p95 latency from traces, webhook success, and to emit logs/slo_report.json plus alert NDJSON when error budget burn > 2%/day.
+
+
+3. Dash & API: add GET /api/observability/slo (returns slo_report.json), GET /api/observability/latency (p50/p95/p99 last 24h), GET /metrics (auth not required). Add “📡 Observability” card on dashboard with: “Run SLO Check”, “View p95 (24h)”, live sparkline (simple canvas) for last 60 request durations (poll /api/observability/latency every 10s when toggled).
+
+
+4. Scheduler: run slo_guard every 15 min; log event alerts_run_slo.
+
+
+5. Alerts: integrate slo_guard with existing production_alerts—if SLO breach or burn rate high, write production_alerts.ndjson severity=CRITICAL reason=slo_breach with metric details.
+
+
+6. Docs & Verify: update RUNBOOK.md (Observability), add docs/SLOS.md (targets, measurement, remediation). Produce verification artifacts: curl samples for /metrics, /api/observability/*, and logs/SLO_VERIFY.txt summarizing p95 and availability computed.
+
+
+
+Constraints: zero downtime; keep endpoints behind X-Dash-Key except /metrics; no breaking changes; clean code; NDJSON everywhere. After implementation, auto-run: (a) hit / a few times to generate traces, (b) run slo_guard twice, (c) write a concise PASS/FAIL summary in logs/SLO_VERIFY.txt and print it to chat.
+

@@ -4099,6 +4099,93 @@ def api_payments_refund_last():
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
+@app.route('/api/payments/events', methods=['GET'])
+@require_dashboard_key
+def api_payments_events():
+    """List recent payment webhook events (Production Ops)"""
+    try:
+        limit = int(request.args.get('limit', 10))
+        limit = min(limit, 100)  # Max 100
+        
+        events = []
+        log_path = 'logs/stripe_webhooks.ndjson'
+        
+        if os.path.exists(log_path):
+            with open(log_path, 'r') as f:
+                lines = f.readlines()
+                recent = lines[-limit:] if len(lines) > limit else lines
+                for line in recent:
+                    if line.strip():
+                        try:
+                            events.append(json.loads(line))
+                        except:
+                            pass
+        
+        return jsonify({"ok": True, "count": len(events), "data": events}), 200
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@app.route('/api/payments/refund', methods=['POST'])
+@require_dashboard_key
+def api_payments_refund():
+    """Refund a payment (Production Ops)"""
+    try:
+        data = request.get_json(force=True, silent=True) or {}
+        payment_id = data.get('payment_id')
+        amount = data.get('amount')  # Optional partial refund amount in USD
+        
+        if not payment_id:
+            return jsonify({"ok": False, "error": "payment_id required"}), 400
+        
+        # Import stripe
+        import stripe
+        
+        # Determine mode and key
+        mode = os.getenv('STRIPE_MODE', 'test')
+        if mode == 'live':
+            stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
+        else:
+            stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
+        
+        # Build refund params
+        refund_params = {'payment_intent': payment_id}
+        if amount:
+            refund_params['amount'] = int(round(float(amount) * 100))  # Convert to cents
+        
+        # Create refund
+        refund = stripe.Refund.create(**refund_params)
+        
+        # Log refund
+        os.makedirs('logs', exist_ok=True)
+        refund_log = {
+            'ts': datetime.utcnow().isoformat() + 'Z',
+            'event': 'refund_created',
+            'refund_id': refund.get('id'),
+            'payment_id': payment_id,
+            'amount': refund.get('amount', 0) / 100,
+            'status': refund.get('status'),
+            'mode': mode
+        }
+        
+        with open('logs/refunds.ndjson', 'a') as f:
+            f.write(json.dumps(refund_log) + '\n')
+        
+        return jsonify({
+            "ok": True,
+            "data": {
+                "id": refund.get('id'),
+                "status": refund.get('status'),
+                "amount": refund.get('amount', 0) / 100,
+                "mode": mode
+            }
+        }), 200
+    
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 400
+
+
 @app.route('/api/customer/invoices/<email>', methods=['GET'])
 @require_dashboard_key
 def api_customer_invoices(email):

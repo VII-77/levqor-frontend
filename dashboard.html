@@ -259,6 +259,40 @@
         </div>
         <!-- ==================== END HEALTH & COSTS ==================== -->
 
+        <!-- ==================== LIVE OPS MONITOR (Phase 32) ==================== -->
+        <div class="button-grid" style="background: linear-gradient(135deg, #7c2d12 0%, #991b1b 100%); padding: 20px; border-radius: 12px; margin: 20px 0;">
+            <h3 style="grid-column: 1/-1; margin: 0 0 15px 0; font-size: 16px; color: #fff;">🩺 Live Ops Monitor</h3>
+            <div id="liveOpsStatus" style="grid-column: 1/-1; margin-bottom: 15px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 12px;">
+                    <div style="text-align: center;">
+                        <div style="font-size: 12px; color: #ddd;">CPU</div>
+                        <div id="cpuMetric" style="font-size: 18px; font-weight: bold; color: #4ade80;">0%</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 12px; color: #ddd;">Memory</div>
+                        <div id="memMetric" style="font-size: 18px; font-weight: bold; color: #4ade80;">0%</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 12px; color: #ddd;">Disk</div>
+                        <div id="diskMetric" style="font-size: 18px; font-weight: bold; color: #4ade80;">0%</div>
+                    </div>
+                </div>
+                <div style="border-top: 1px solid rgba(255,255,255,0.2); padding-top: 12px; margin-top: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 13px; color: #ddd;">Active IP Bans:</span>
+                        <span id="banCount" style="font-size: 14px; color: #fbbf24; font-weight: bold;">0</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 13px; color: #ddd;">IPs with Strikes:</span>
+                        <span id="strikeCount" style="font-size: 14px; color: #fb923c;">0</span>
+                    </div>
+                </div>
+            </div>
+            <button onclick="refreshLiveOps()" style="grid-column: 1/-1; background: #dc2626;">⟳ Refresh Live Ops</button>
+            <p id="liveOpsResult" style="grid-column: 1/-1; font-size: 12px; color: #ccc; margin-top: 10px; min-height: 20px;"></p>
+        </div>
+        <!-- ==================== END LIVE OPS MONITOR ==================== -->
+
         <div class="metrics-section">
             <div class="metrics-header">
                 <h2>📊 Metrics Visualization</h2>
@@ -765,6 +799,62 @@
             } catch (e) {
                 costIndicator.textContent = '$?.??';
                 log('💰 Runtime costs: ERROR - ' + e.message, 'error');
+            }
+        }
+
+        async function refreshLiveOps() {
+            const dashKey = document.getElementById('dashKey').value;
+            const cpuMetric = document.getElementById('cpuMetric');
+            const memMetric = document.getElementById('memMetric');
+            const diskMetric = document.getElementById('diskMetric');
+            const banCount = document.getElementById('banCount');
+            const strikeCount = document.getElementById('strikeCount');
+            const result = document.getElementById('liveOpsResult');
+
+            try {
+                const res = await fetch('/api/live-ops', {
+                    headers: { 'X-Dash-Key': dashKey }
+                });
+                const data = await res.json();
+
+                if (data.ok && data.system_metrics) {
+                    const cpu = data.system_metrics.cpu || 0;
+                    const mem = data.system_metrics.mem || 0;
+                    const disk = data.system_metrics.disk || 0;
+
+                    // Update metrics with color coding
+                    cpuMetric.textContent = `${cpu}%`;
+                    cpuMetric.style.color = cpu > 80 ? '#f87171' : cpu > 60 ? '#fbbf24' : '#4ade80';
+                    
+                    memMetric.textContent = `${mem}%`;
+                    memMetric.style.color = mem > 85 ? '#f87171' : mem > 70 ? '#fbbf24' : '#4ade80';
+                    
+                    diskMetric.textContent = `${disk}%`;
+                    diskMetric.style.color = disk > 85 ? '#f87171' : disk > 70 ? '#fbbf24' : '#4ade80';
+
+                    // Update rate guard stats
+                    if (data.rate_guard) {
+                        banCount.textContent = data.rate_guard.active_bans || 0;
+                        strikeCount.textContent = data.rate_guard.ips_with_strikes || 0;
+                    }
+
+                    const issues = data.issues?.length || 0;
+                    if (issues === 0) {
+                        result.textContent = '✅ All systems operational';
+                        log('🩺 Live Ops: ALL SYSTEMS OPERATIONAL', 'success');
+                    } else {
+                        result.textContent = `⚠️ ${issues} issue(s) detected: ${data.issues.join(', ')}`;
+                        log(`🩺 Live Ops: ${issues} ISSUES - ${data.issues.join(', ')}`, 'warning');
+                    }
+
+                } else {
+                    result.textContent = '❌ Failed to fetch live ops data';
+                    log('🩺 Live Ops: Failed to fetch', 'warning');
+                }
+
+            } catch (e) {
+                result.textContent = '❌ Error: ' + e.message;
+                log('🩺 Live Ops: ERROR - ' + e.message, 'error');
             }
         }
 

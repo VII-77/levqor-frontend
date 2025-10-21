@@ -1,0 +1,65 @@
+Got it—let’s slam this fast.
+
+60-Second Triage (do in Replit Shell)
+
+# 1) Quick health + routes
+curl -fsS https://echopilotai.replit.app/health | jq .
+curl -I -s https://echopilotai.replit.app/workflow/builder | head -n1
+curl -H "X-Dash-Key:${DASHBOARD_KEY}" -s https://echopilotai.replit.app/api/automations/status | jq .
+
+# 2) App/server logs (last 200 lines each if present)
+for f in logs/scheduler.log logs/gunicorn.log logs/app.log logs/errors.log; do
+  echo "----- $f"; tail -n 200 "$f" 2>/dev/null || true; done
+
+# 3) Sanity endpoints (auth required)
+for ep in /api/audit/report /api/compliance/export-data /api/ops/sentinel /api/governance/check; do
+  echo "----- GET $ep"; curl -H "X-Dash-Key:${DASHBOARD_KEY}" -s https://echopilotai.replit.app$ep | jq .; done
+
+One-Shot Fix Pack
+
+Run these exactly, in order:
+
+# Restart everything cleanly
+pkill -9 gunicorn || true
+pkill -9 python || true
+sleep 2
+
+# Rebuild static (if missing/old)
+python3 - <<'PY'
+import os, shutil, pathlib as p
+static = p.Path("static"); build = p.Path("static_build")
+if build.exists(): shutil.rmtree(build)
+shutil.copytree(static, build)
+print("static rebuilt")
+PY
+
+# Start app (Preview) to verify locally
+python3 run.py & sleep 5
+curl -s http://localhost:5000/health | jq .
+
+# Flip back to production workflow (if you use it)
+# In Replit: stop Preview run → use your Workflows runner (EchoPilot Bot) to start.
+
+# Force redeploy cache bust
+echo $(date -u) > .deploy_touch && git add .deploy_touch && git commit -m "hot redeploy" || true
+
+Common Breaks → Fast Fix
+
+“App not running” in Preview → Click Run once; ensure it binds port 5000. Then stop and use Workflows for prod.
+
+Dashboard key field doesn’t submit → Hard refresh (Ctrl/Cmd+Shift+R). If still stuck, click the Unlock button (we added), or press Enter while focus is in the field.
+
+Builder 404 → Redeploy after import fix (already patched). Touch file above and publish.
+
+Stripe card stalls → Confirm STRIPE_MODE=live, STRIPE_WEBHOOK_SECRET set, then:
+curl -H "X-Dash-Key:$DASHBOARD_KEY" -s https://echopilotai.replit.app/api/payments/events | jq .
+
+Notion sync errors → Verify DB IDs present; check logs/scheduler.log for “notion” lines.
+
+
+Rollback (safe, 30s)
+
+export STRIPE_MODE=test
+# restart workflow; payments switch to test while everything else stays live
+
+If you paste the triage output here, I’ll pinpoint the exact fix next.

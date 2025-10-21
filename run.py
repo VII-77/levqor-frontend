@@ -6,6 +6,8 @@ import threading
 import os
 import json
 import requests
+import sys
+from datetime import datetime, timedelta
 from bot import git_utils
 from bot.security import (
     rate_limit, require_csrf, audit_log, apply_security_headers,
@@ -1788,6 +1790,143 @@ def api_governance_recommendations():
 
 # ============================================================
 # END PHASE 110
+# ============================================================
+
+# ============================================================
+# PHASE 111: ANALYTICS & PRODUCT INSIGHTS
+# ============================================================
+
+@app.route('/api/analytics/usage')
+@require_dashboard_key
+def api_analytics_usage():
+    """
+    Get usage analytics: DAU/WAU/MAU, feature usage, funnels
+    Query params: ?days=30 (default)
+    """
+    from bot.analytics import get_analytics_summary
+    
+    try:
+        days = int(request.args.get('days', 30))
+        days = max(1, min(days, 365))  # Clamp to 1-365
+        
+        summary = get_analytics_summary(days=days)
+        
+        return jsonify({
+            "ok": True,
+            **summary
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "error": str(e)
+        }), 500
+
+@app.route('/api/analytics/event', methods=['POST'])
+def api_analytics_event():
+    """
+    Client telemetry endpoint for event ingestion
+    Accepts batched events from telemetry.js
+    """
+    from bot.analytics import log_event
+    
+    try:
+        data = request.get_json() or {}
+        events = data.get('events', [])
+        
+        if not isinstance(events, list):
+            return jsonify({
+                "ok": False,
+                "error": "events must be an array"
+            }), 400
+        
+        # Log each event
+        logged_count = 0
+        for event in events[:100]:  # Max 100 events per batch
+            event_type = event.get('event_type')
+            user_id = event.get('user_id')
+            feature = event.get('feature')
+            metadata = event.get('metadata', {})
+            
+            if event_type:
+                log_event(event_type, user_id, feature, metadata)
+                logged_count += 1
+        
+        return jsonify({
+            "ok": True,
+            "logged": logged_count
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "error": str(e)
+        }), 500
+
+# ============================================================
+# END PHASE 111
+# ============================================================
+
+# ============================================================
+# PHASE 112: OPERATOR CHAT CONSOLE
+# ============================================================
+
+@app.route('/api/ops/command', methods=['POST'])
+@require_dashboard_key
+def api_ops_command():
+    """
+    Execute operator commands with dry-run support
+    Body: {"verb": "restart_scheduler", "confirm": false, "user": "admin"}
+    """
+    from bot.ops_console import execute_command, get_command_list
+    
+    try:
+        data = request.get_json() or {}
+        verb = data.get('verb')
+        confirm = data.get('confirm', False)
+        user = data.get('user', 'api_user')
+        
+        if not verb:
+            return jsonify({
+                "ok": False,
+                "error": "verb required",
+                "available_commands": get_command_list()
+            }), 400
+        
+        result = execute_command(verb, user=user, confirm=confirm)
+        status_code = 200 if result.get('ok') else 400
+        
+        return jsonify(result), status_code
+        
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "error": str(e)
+        }), 500
+
+@app.route('/api/ops/commands')
+@require_dashboard_key
+def api_ops_commands():
+    """Get list of available operator commands"""
+    from bot.ops_console import get_command_list
+    
+    try:
+        commands = get_command_list()
+        
+        return jsonify({
+            "ok": True,
+            "commands": commands,
+            "count": len(commands)
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "error": str(e)
+        }), 500
+
+# ============================================================
+# END PHASE 112
 # ============================================================
 
 @app.route('/webhook/stripe', methods=['POST'])

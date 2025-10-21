@@ -58,3 +58,4 @@ pyjwt
 pytest
 psycopg2-binary
 PyJWT
+pip-audit

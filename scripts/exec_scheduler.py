@@ -743,6 +743,13 @@ def run_scheduled_tasks():
         run_analytics_hub()
         mark_run('analytics_hub')
     
+    # ==================== PHASES 111-115: ANALYTICS, OPS, SECURITY & DR ====================
+    
+    # 57) Analytics Rollup - Daily at 03:15 UTC (Phase 111)
+    if is_time_match(3, 15) and should_run('analytics_rollup'):
+        run_analytics_rollup()
+        mark_run('analytics_rollup')
+    
     # 36) Predictive Maintenance - Every 2 hours (Phase 88)
     if 'predictive_maint' not in last_run or \
        (datetime.utcnow() - last_run['predictive_maint']).total_seconds() >= (2 * 3600):
@@ -938,6 +945,8 @@ def main():
     print(f"   Alert Tuner: Weekly (Monday 03:00 UTC)", flush=True)
     print(f"   Edge Failover: Every 5 minutes", flush=True)
     print(f"   AI Governance Advisor: Every 12 hours", flush=True)
+    print(f"   --- Phases 111-115: Analytics, Ops Console, Security & DR ---", flush=True)
+    print(f"   Analytics Rollup: Daily at 03:15 UTC", flush=True)
     print(f"   --- Phases 71-75: Predictive, Smart Retries & AI ---", flush=True)
     print(f"   Predictive Scaling: Every hour", flush=True)
     print(f"   AI Incident Summaries: Every 30 minutes", flush=True)
@@ -1083,6 +1092,14 @@ def run_rotate_secrets():
         subprocess.run(['python3', 'scripts/rotate_secrets.py'], check=False, timeout=30)
     except Exception as e:
         log_event('rotate_secrets_error', {'error': str(e)})
+
+def run_analytics_rollup():
+    """Run analytics rollup job - Phase 111"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'bot/analytics.py'], check=False, timeout=60)
+    except Exception as e:
+        log_event('analytics_rollup_error', {'error': str(e)})
 
 def run_dr_drill():
     """Run DR drill - Stabilization Sprint"""

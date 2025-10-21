@@ -1,0 +1,107 @@
+{
+  "ts": "2025-10-21T10:57:21.029025Z",
+  "pip_audit": {
+    "status": "ok",
+    "vulnerabilities": 83,
+    "findings": [
+      {
+        "name": "annotated-types",
+        "version": "0.7.0",
+        "vulns": []
+      },
+      {
+        "name": "anyio",
+        "version": "4.11.0",
+        "vulns": []
+      },
+      {
+        "name": "blinker",
+        "version": "1.9.0",
+        "vulns": []
+      },
+      {
+        "name": "boolean-py",
+        "version": "5.0",
+        "vulns": []
+      },
+      {
+        "name": "cachecontrol",
+        "version": "0.14.3",
+        "vulns": []
+      },
+      {
+        "name": "cachetools",
+        "version": "6.2.1",
+        "vulns": []
+      },
+      {
+        "name": "certifi",
+        "version": "2025.10.5",
+        "vulns": []
+      },
+      {
+        "name": "cffi",
+        "version": "2.0.0",
+        "vulns": []
+      },
+      {
+        "name": "charset-normalizer",
+        "version": "3.4.4",
+        "vulns": []
+      },
+      {
+        "name": "click",
+        "version": "8.3.0",
+        "vulns": []
+      }
+    ],
+    "exit_code": 1
+  },
+  "secret_scan": {
+    "findings": 6,
+    "issues": [
+      {
+        "file": ".cache/uv/archive-v0/JHze5SbtIk2R91V_oAdp0/httpx/_urls.py",
+        "type": "Password",
+        "line": 336,
+        "context": ").copy_with(\n            username=\"jo@gmail.com\", password=\"a secret\"\n        )\n        assert url ="
+      },
+      {
+        "file": ".cache/uv/archive-v0/Y9WfaYuVe9g9c25z_o1cK/pydantic/types.py",
+        "type": "Password",
+        "line": 1841,
+        "context": "return v.get_secret_value()\n\n    model = Model(password='IAmSensitive', password_bytes=b'IAmSensitiv"
+      },
+      {
+        "file": ".pythonlibs/lib/python3.11/site-packages/httpx/_urls.py",
+        "type": "Password",
+        "line": 336,
+        "context": ").copy_with(\n            username=\"jo@gmail.com\", password=\"a secret\"\n        )\n        assert url ="
+      },
+      {
+        "file": ".pythonlibs/lib/python3.11/site-packages/pydantic/types.py",
+        "type": "Password",
+        "line": 1841,
+        "context": "return v.get_secret_value()\n\n    model = Model(password='IAmSensitive', password_bytes=b'IAmSensitiv"
+      },
+      {
+        "file": ".pythonlibs/lib/python3.11/site-packages/cryptography/hazmat/_oid.py",
+        "type": "Password",
+        "line": 355,
+        "context": "ID.NONCE: \"OCSPNonce\",\n    AttributeOID.CHALLENGE_PASSWORD: \"challengePassword\",\n}"
+      },
+      {
+        "file": ".pythonlibs/lib/python3.11/site-packages/PIL/ImageFont.py",
+        "type": "AWS Access Key",
+        "line": 1247,
+        "context": "TACgAAQAAAAAAA\nQAHAEwAAQAAAAAAAgAHAGQAAQAAAAAAAwAaAKIAAQAAAAAABAAHAM0AAQAAAAAABQA8AU8AAQAAAA\nAABgAPA"
+      }
+    ]
+  },
+  "sbom": {
+    "status": "ok",
+    "file": "logs/sbom.json",
+    "components": 83
+  },
+  "status": "ok"
+}

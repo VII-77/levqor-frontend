@@ -1,9 +1,13 @@
 # EchoPilot AI Automation Bot
 
 ## Overview
-EchoPilot is a 100-phase enterprise-ready AI automation platform designed to process tasks from Notion databases using AI (OpenAI via Replit AI Integrations). It features a 60-second polling cycle, autonomous scheduling, dynamic quality assurance (80% QA threshold), and comprehensive job performance tracking (costs, QA scores, token usage, latency).
+EchoPilot is a 115-phase enterprise-ready AI automation platform designed to process tasks from Notion databases using AI (OpenAI via Replit AI Integrations). It features a 60-second polling cycle, autonomous scheduling, dynamic quality assurance (80% QA threshold), and comprehensive job performance tracking (costs, QA scores, token usage, latency).
 
-The platform includes core infrastructure for finance, forecasting, a marketplace API, localization, and legal compliance. Advanced operations cover payments, SLO tracking, incident paging, cost guardrails, and autoscaling. The enterprise suite adds RBAC, JWT authentication, disaster recovery, multi-tenancy, security scanning, compliance automation, predictive maintenance, continuous learning, and automated enterprise validation. It is deployed on a Replit Reserved VM and is production-ready with automated validation and reporting.
+The platform includes core infrastructure for finance, forecasting, a marketplace API, localization, and legal compliance. Advanced operations cover payments, SLO tracking, incident paging, cost guardrails, and autoscaling. The enterprise suite adds RBAC, JWT authentication, disaster recovery, multi-tenancy, security scanning, compliance automation, predictive maintenance, continuous learning, and automated enterprise validation.
+
+**New in Phases 111-115**: Product analytics with DAU/WAU/MAU tracking, operator chat console with secure command execution, auto-scaler with load predictions, security scanner with SBOM generation, and advanced DR restore verification.
+
+It is deployed on a Replit Reserved VM and is production-ready with automated validation and reporting.
 
 ## User Preferences
 - Communication style: Simple, everyday language
@@ -76,12 +80,19 @@ See `docs/SLOS.md` for complete documentation.
 
 **Production Extras (E1-E7 - 100% Complete):**
 - **Extra 1 - Demo Environment:** Idempotent demo data seeder (`scripts/seed_demo.py`) with 5 categories (clients, automations, finance, growth, partners). DEMO_MODE support with read-only protection, demo banner, and write operation blocking.
-- **Extra 2 - Smoke Test Suite:** Basic smoke tests (`scripts/smoke.sh`, 18 tests, ~30s) and advanced smoke tests (`scripts/smoke_advanced.sh`, 14 tests, ~60s) with color-coded output, NDJSON logging, and CI/CD integration. Complete documentation in `docs/SMOKE_TESTS.md`.
+- **Extra 2 - Smoke Test Suite:** Basic smoke tests (`scripts/smoke.sh`, 19+ tests, ~30s) and advanced smoke tests (`scripts/smoke_advanced.sh`, 14 tests, ~60s) with color-coded output, NDJSON logging, and CI/CD integration. Complete documentation in `docs/SMOKE_TESTS.md`.
 - **Extra 3 - Observability Pack:** Request ID middleware with X-Request-ID header propagation. Real-time log tailing API (`GET /api/logs`) with 8 log file support and request ID filtering. Prometheus metrics endpoint (`GET /metrics`) with HTTP requests, latency quantiles, database health, and scheduler metrics.
 - **Extra 4 - Security Guardrails:** JWT authentication system (access 15min + refresh 24hr) with token rotation, blacklist-based revocation, and 4 API endpoints (`/api/auth/*`). WAF-style request validation detecting SQL injection, XSS, and path traversal with audit logging. CSP headers and comprehensive security documentation.
 - **Extra 5 - DX Tools:** Development environment checker (`scripts/dev_check.py`) validating Python, dependencies, env vars, directories, git, database, port, and disk space. Unified test runner (`scripts/test_all.sh`) orchestrating 8 test suites. Pre-commit hooks (`.pre-commit-config.yaml`) with black, isort, flake8, bandit, shellcheck, and custom validators.
 - **Extra 6 - UX Polish:** Custom 404 page with search box, keyword routing, and navigation links. Mobile-responsive dark theme design.
 - **Extra 7 - Documentation:** Comprehensive SECURITY.md (400+ lines) covering 7 security features, best practices, vulnerability reporting, compliance standards (OWASP, GDPR, CCPA, SOC 2), and security checklists.
+
+**Phases 111-115 - Analytics & Operations (100% Complete):**
+- **Phase 111 - Product Analytics:** DAU/WAU/MAU tracking with client-side telemetry (`static/js/telemetry.js`), event ingestion API (`POST /api/analytics/event`), usage summary API (`GET /api/analytics/usage`), daily rollup job at 03:15 UTC, and comprehensive documentation in `docs/ANALYTICS.md`.
+- **Phase 112 - Operator Chat Console:** Secure admin copilot with allow-listed commands (`restart_scheduler`, `run_backup`, `reconcile_payments`, `tail_logs`, etc.), dry-run by default with `confirm=true` execution, full audit trail in `logs/ops_console.ndjson`, and APIs at `POST /api/ops/command` and `GET /api/ops/commands`.
+- **Phase 113 - Auto-Scaler:** CPU/RAM/queue load predictions with `scripts/autoscaler.py`, linear regression trend analysis, scaling recommendations (scale_up/scale_down), metrics logging to `logs/autoscaler.ndjson`, and integration with scheduler.
+- **Phase 114 - Security Scanner & SBOM:** Automated security scanning with `scripts/security_scanner.py`, pip audit integration, secret scanning with false positive filtering, SBOM generation (65 components), and comprehensive reports in `logs/security_report.json` and `logs/sbom.json`.
+- **Phase 115 - Advanced DR:** Backup integrity verification with `scripts/dr_restore_check.py`, dry-run restore testing, tarball validation, metadata verification, and DR reports in `logs/dr_restore_report.json`.
 
 ### Data Flow Architecture
 The system utilizes a 13-database structure within Notion: 5 core databases (Automation Queue, Automation Log, EchoPilot Job Log, Notion Client, Notion Status) and 8 enterprise databases (Finance, Governance, Ops Monitor, Forecast, Region Compliance, Partners, Referrals, Growth Metrics). Automated schema enforcement ensures data integrity.

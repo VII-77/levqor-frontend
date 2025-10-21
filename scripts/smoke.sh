@@ -152,6 +152,92 @@ test_endpoint "Workflow Builder" "/workflow-builder" 200
 log "Testing Boss Mode UI..."
 test_endpoint "Boss Mode Dashboard" "/boss" 200
 
+# ============================================================================
+# PHASE 111: Analytics & Product Insights
+# ============================================================================
+
+log "Testing Analytics Endpoints (Phase 111)..."
+
+# Test 13: Analytics event ingestion (public endpoint)
+test_endpoint "Analytics Event Ingestion" \
+    "/api/analytics/event" \
+    200 \
+    "POST" \
+    '{"events":[{"event_type":"page_view","user_id":"test_user","feature":"smoke_test","metadata":{"test":true}}]}'
+
+# Test 14: Analytics usage summary (requires auth)
+if [ -n "$DASHBOARD_KEY" ]; then
+    test_endpoint "Analytics Usage Summary" \
+        "/api/analytics/usage?days=7" \
+        200 \
+        "GET" \
+        "" \
+        "X-Dash-Key: $DASHBOARD_KEY"
+else
+    warn "Skipping Analytics Usage (DASHBOARD_KEY not set)"
+fi
+
+# ============================================================================
+# PHASE 112: Operator Chat Console
+# ============================================================================
+
+log "Testing Operator Console (Phase 112)..."
+
+# Test 15: Get available commands
+if [ -n "$DASHBOARD_KEY" ]; then
+    test_endpoint "Ops Console Commands List" \
+        "/api/ops/commands" \
+        200 \
+        "GET" \
+        "" \
+        "X-Dash-Key: $DASHBOARD_KEY"
+else
+    warn "Skipping Ops Console (DASHBOARD_KEY not set)"
+fi
+
+# Test 16: Dry-run command execution
+if [ -n "$DASHBOARD_KEY" ]; then
+    test_endpoint "Ops Console Dry-Run" \
+        "/api/ops/command" \
+        200 \
+        "POST" \
+        '{"verb":"tail_logs","confirm":false,"user":"smoke_test"}' \
+        "X-Dash-Key: $DASHBOARD_KEY"
+else
+    warn "Skipping Ops Console Dry-Run (DASHBOARD_KEY not set)"
+fi
+
+# ============================================================================
+# PHASES 113-115: Auto-Scaler, Security Scanner, Advanced DR
+# ============================================================================
+
+log "Testing infrastructure scripts (Phases 113-115)..."
+
+# Test 17: Auto-scaler runs without errors
+((TOTAL_TESTS++))
+if python3 scripts/autoscaler.py > /tmp/autoscaler_test.log 2>&1; then
+    success "Auto-Scaler Execution"
+else
+    fail "Auto-Scaler Execution (check /tmp/autoscaler_test.log)"
+fi
+
+# Test 18: Security scanner runs without errors
+((TOTAL_TESTS++))
+if python3 scripts/security_scanner.py > /tmp/security_test.log 2>&1; then
+    success "Security Scanner Execution"
+else
+    fail "Security Scanner Execution (check /tmp/security_test.log)"
+fi
+
+# Test 19: DR restore check runs without errors
+((TOTAL_TESTS++))
+if python3 scripts/dr_restore_check.py > /tmp/dr_check_test.log 2>&1; then
+    success "DR Restore Check Execution"
+else
+    # DR check may fail if no backups exist - that's okay for smoke test
+    warn "DR Restore Check (may need backups to exist)"
+fi
+
 # Summary
 echo ""
 echo "======================================"

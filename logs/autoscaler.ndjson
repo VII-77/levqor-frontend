@@ -1,0 +1,2 @@
+{"ts": "2025-10-21T10:51:31.450136Z", "event_type": "metrics_snapshot", "details": {"metrics": {"cpu_percent": 82.7, "memory_percent": 45.0, "disk_percent": 64.6, "load_avg": 12.28759765625}, "queue_depth": 0}}
+{"ts": "2025-10-21T10:51:31.452009Z", "event_type": "scaling_recommendations", "details": {"recommendations": [{"action": "scale_up", "reason": "CPU usage high: 82.7%", "priority": "high"}], "metrics": {"cpu_percent": 82.7, "memory_percent": 45.0, "disk_percent": 64.6, "load_avg": 12.28759765625}, "queue_depth": 0, "trend": 0.0}}

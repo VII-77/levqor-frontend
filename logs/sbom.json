@@ -1,0 +1,425 @@
+{
+  "format": "echopilot-sbom-v1",
+  "generated_at": "2025-10-21T10:57:21.027329Z",
+  "components": [
+    {
+      "name": "annotated-types",
+      "version": "0.7.0",
+      "type": "python-package"
+    },
+    {
+      "name": "anyio",
+      "version": "4.11.0",
+      "type": "python-package"
+    },
+    {
+      "name": "blinker",
+      "version": "1.9.0",
+      "type": "python-package"
+    },
+    {
+      "name": "boolean.py",
+      "version": "5.0",
+      "type": "python-package"
+    },
+    {
+      "name": "CacheControl",
+      "version": "0.14.3",
+      "type": "python-package"
+    },
+    {
+      "name": "cachetools",
+      "version": "6.2.1",
+      "type": "python-package"
+    },
+    {
+      "name": "certifi",
+      "version": "2025.10.5",
+      "type": "python-package"
+    },
+    {
+      "name": "cffi",
+      "version": "2.0.0",
+      "type": "python-package"
+    },
+    {
+      "name": "charset-normalizer",
+      "version": "3.4.4",
+      "type": "python-package"
+    },
+    {
+      "name": "click",
+      "version": "8.3.0",
+      "type": "python-package"
+    },
+    {
+      "name": "cryptography",
+      "version": "46.0.3",
+      "type": "python-package"
+    },
+    {
+      "name": "cyclonedx-python-lib",
+      "version": "9.1.0",
+      "type": "python-package"
+    },
+    {
+      "name": "defusedxml",
+      "version": "0.7.1",
+      "type": "python-package"
+    },
+    {
+      "name": "distro",
+      "version": "1.9.0",
+      "type": "python-package"
+    },
+    {
+      "name": "filelock",
+      "version": "3.20.0",
+      "type": "python-package"
+    },
+    {
+      "name": "Flask",
+      "version": "3.1.0",
+      "type": "python-package"
+    },
+    {
+      "name": "google-api-core",
+      "version": "2.26.0",
+      "type": "python-package"
+    },
+    {
+      "name": "google-api-python-client",
+      "version": "2.184.0",
+      "type": "python-package"
+    },
+    {
+      "name": "google-auth",
+      "version": "2.41.1",
+      "type": "python-package"
+    },
+    {
+      "name": "google-auth-httplib2",
+      "version": "0.2.0",
+      "type": "python-package"
+    },
+    {
+      "name": "google-auth-oauthlib",
+      "version": "1.2.2",
+      "type": "python-package"
+    },
+    {
+      "name": "googleapis-common-protos",
+      "version": "1.70.0",
+      "type": "python-package"
+    },
+    {
+      "name": "gunicorn",
+      "version": "23.0.0",
+      "type": "python-package"
+    },
+    {
+      "name": "h11",
+      "version": "0.16.0",
+      "type": "python-package"
+    },
+    {
+      "name": "httpcore",
+      "version": "1.0.9",
+      "type": "python-package"
+    },
+    {
+      "name": "httplib2",
+      "version": "0.31.0",
+      "type": "python-package"
+    },
+    {
+      "name": "httpx",
+      "version": "0.28.1",
+      "type": "python-package"
+    },
+    {
+      "name": "idna",
+      "version": "3.11",
+      "type": "python-package"
+    },
+    {
+      "name": "iniconfig",
+      "version": "2.3.0",
+      "type": "python-package"
+    },
+    {
+      "name": "itsdangerous",
+      "version": "2.2.0",
+      "type": "python-package"
+    },
+    {
+      "name": "Jinja2",
+      "version": "3.1.6",
+      "type": "python-package"
+    },
+    {
+      "name": "jiter",
+      "version": "0.11.0",
+      "type": "python-package"
+    },
+    {
+      "name": "license-expression",
+      "version": "30.4.4",
+      "type": "python-package"
+    },
+    {
+      "name": "markdown-it-py",
+      "version": "4.0.0",
+      "type": "python-package"
+    },
+    {
+      "name": "MarkupSafe",
+      "version": "3.0.3",
+      "type": "python-package"
+    },
+    {
+      "name": "mdurl",
+      "version": "0.1.2",
+      "type": "python-package"
+    },
+    {
+      "name": "msgpack",
+      "version": "1.1.2",
+      "type": "python-package"
+    },
+    {
+      "name": "notion-client",
+      "version": "2.5.0",
+      "type": "python-package"
+    },
+    {
+      "name": "oauthlib",
+      "version": "3.3.1",
+      "type": "python-package"
+    },
+    {
+      "name": "openai",
+      "version": "2.3.0",
+      "type": "python-package"
+    },
+    {
+      "name": "packageurl-python",
+      "version": "0.17.5",
+      "type": "python-package"
+    },
+    {
+      "name": "packaging",
+      "version": "25.0",
+      "type": "python-package"
+    },
+    {
+      "name": "pillow",
+      "version": "12.0.0",
+      "type": "python-package"
+    },
+    {
+      "name": "pip",
+      "version": "25.0.1",
+      "type": "python-package"
+    },
+    {
+      "name": "pip-api",
+      "version": "0.0.34",
+      "type": "python-package"
+    },
+    {
+      "name": "pip_audit",
+      "version": "2.9.0",
+      "type": "python-package"
+    },
+    {
+      "name": "pip-requirements-parser",
+      "version": "32.0.1",
+      "type": "python-package"
+    },
+    {
+      "name": "platformdirs",
+      "version": "4.5.0",
+      "type": "python-package"
+    },
+    {
+      "name": "pluggy",
+      "version": "1.6.0",
+      "type": "python-package"
+    },
+    {
+      "name": "proto-plus",
+      "version": "1.26.1",
+      "type": "python-package"
+    },
+    {
+      "name": "protobuf",
+      "version": "6.33.0",
+      "type": "python-package"
+    },
+    {
+      "name": "psutil",
+      "version": "7.1.1",
+      "type": "python-package"
+    },
+    {
+      "name": "psycopg2-binary",
+      "version": "2.9.11",
+      "type": "python-package"
+    },
+    {
+      "name": "py-serializable",
+      "version": "2.1.0",
+      "type": "python-package"
+    },
+    {
+      "name": "pyasn1",
+      "version": "0.6.1",
+      "type": "python-package"
+    },
+    {
+      "name": "pyasn1_modules",
+      "version": "0.4.2",
+      "type": "python-package"
+    },
+    {
+      "name": "pycparser",
+      "version": "2.23",
+      "type": "python-package"
+    },
+    {
+      "name": "pydantic",
+      "version": "2.12.2",
+      "type": "python-package"
+    },
+    {
+      "name": "pydantic_core",
+      "version": "2.41.4",
+      "type": "python-package"
+    },
+    {
+      "name": "Pygments",
+      "version": "2.19.2",
+      "type": "python-package"
+    },
+    {
+      "name": "PyJWT",
+      "version": "2.10.1",
+      "type": "python-package"
+    },
+    {
+      "name": "pyparsing",
+      "version": "3.2.5",
+      "type": "python-package"
+    },
+    {
+      "name": "pytest",
+      "version": "8.4.2",
+      "type": "python-package"
+    },
+    {
+      "name": "python-dateutil",
+      "version": "2.9.0.post0",
+      "type": "python-package"
+    },
+    {
+      "name": "python-dotenv",
+      "version": "1.0.1",
+      "type": "python-package"
+    },
+    {
+      "name": "reportlab",
+      "version": "4.4.4",
+      "type": "python-package"
+    },
+    {
+      "name": "requests",
+      "version": "2.32.5",
+      "type": "python-package"
+    },
+    {
+      "name": "requests-oauthlib",
+      "version": "2.0.0",
+      "type": "python-package"
+    },
+    {
+      "name": "rich",
+      "version": "14.2.0",
+      "type": "python-package"
+    },
+    {
+      "name": "rsa",
+      "version": "4.9.1",
+      "type": "python-package"
+    },
+    {
+      "name": "schedule",
+      "version": "1.2.2",
+      "type": "python-package"
+    },
+    {
+      "name": "setuptools",
+      "version": "80.7.1.post0",
+      "type": "python-package"
+    },
+    {
+      "name": "six",
+      "version": "1.17.0",
+      "type": "python-package"
+    },
+    {
+      "name": "sniffio",
+      "version": "1.3.1",
+      "type": "python-package"
+    },
+    {
+      "name": "sortedcontainers",
+      "version": "2.4.0",
+      "type": "python-package"
+    },
+    {
+      "name": "stripe",
+      "version": "13.0.1",
+      "type": "python-package"
+    },
+    {
+      "name": "toml",
+      "version": "0.10.2",
+      "type": "python-package"
+    },
+    {
+      "name": "tqdm",
+      "version": "4.67.1",
+      "type": "python-package"
+    },
+    {
+      "name": "typing_extensions",
+      "version": "4.15.0",
+      "type": "python-package"
+    },
+    {
+      "name": "typing-inspection",
+      "version": "0.4.2",
+      "type": "python-package"
+    },
+    {
+      "name": "uritemplate",
+      "version": "4.2.0",
+      "type": "python-package"
+    },
+    {
+      "name": "urllib3",
+      "version": "2.5.0",
+      "type": "python-package"
+    },
+    {
+      "name": "Werkzeug",
+      "version": "3.1.3",
+      "type": "python-package"
+    }
+  ],
+  "metadata": {
+    "python_version": "3.11.13",
+    "platform": "linux"
+  }
+}

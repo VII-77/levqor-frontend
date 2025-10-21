@@ -1,0 +1,21 @@
+{
+  "ts": "2025-10-21T10:52:09.737711Z",
+  "backup_file": "dr_backups/backup_20251021_105208.tar.gz",
+  "backup_age_hours": 0.00036950916666666665,
+  "integrity": {
+    "valid": true,
+    "total_files": 4,
+    "missing_critical": []
+  },
+  "restore_test": {
+    "status": "ok",
+    "metadata": {
+      "ts": "2025-10-21T10:00:00Z",
+      "status": "test_backup"
+    },
+    "db_snapshot_size": 10,
+    "log_files": 1,
+    "extractable": true
+  },
+  "status": "ok"
+}

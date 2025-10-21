@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payments Center - EchoPilot AI</title>
+    <link rel="stylesheet" href="/static/app.css">
+    <style>
+        .payments-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: var(--spacing-md);
+        }
+        
+        .page-header {
+            text-align: center;
+            margin-bottom: var(--spacing-xl);
+            padding-top: var(--spacing-lg);
+        }
+        
+        .page-header h1 {
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-xs);
+        }
+        
+        .page-header p {
+            color: var(--text-secondary);
+        }
+        
+        .section-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--border-radius-lg);
+            padding: var(--spacing-lg);
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .section-title {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            margin-bottom: var(--spacing-md);
+            color: var(--text-primary);
+        }
+        
+        .payment-form {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xs);
+        }
+        
+        .form-group label {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .form-group input {
+            padding: var(--spacing-sm);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--border-radius-md);
+            font-size: var(--font-size-md);
+        }
+        
+        .payment-event {
+            padding: var(--spacing-sm);
+            border-bottom: 1px solid var(--border-primary);
+        }
+        
+        .payment-event:last-child {
+            border-bottom: none;
+        }
+        
+        .event-time {
+            color: var(--text-secondary);
+            font-size: var(--font-size-sm);
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: var(--border-radius-sm);
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+        }
+        
+        .status-live {
+            background: var(--color-success);
+            color: white;
+        }
+        
+        .status-test {
+            background: var(--color-warning);
+            color: white;
+        }
+        
+        .debug-info {
+            font-family: monospace;
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+        }
+        
+        .loading {
+            text-align: center;
+            color: var(--text-secondary);
+            padding: var(--spacing-lg);
+        }
+        
+        .error-message {
+            background: var(--bg-danger);
+            color: var(--text-danger);
+            padding: var(--spacing-sm);
+            border-radius: var(--border-radius-md);
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .success-message {
+            background: var(--bg-success);
+            color: var(--text-success);
+            padding: var(--spacing-sm);
+            border-radius: var(--border-radius-md);
+            margin-bottom: var(--spacing-md);
+        }
+    </style>
+</head>
+<body>
+    <div class="payments-container">
+        <div class="page-header">
+            <h1>💳 Payments Center</h1>
+            <p>Manage invoices, payments, and reconciliation</p>
+        </div>
+
+        <!-- System Status -->
+        <div class="section-card" id="status-card">
+            <div class="section-title">System Status</div>
+            <div id="payment-status" class="loading">Loading status...</div>
+        </div>
+
+        <!-- Create Invoice -->
+        <div class="section-card">
+            <div class="section-title">Create Invoice</div>
+            <div id="invoice-feedback"></div>
+            <form class="payment-form" id="invoice-form">
+                <div class="form-group">
+                    <label for="job-id">Job ID</label>
+                    <input type="text" id="job-id" placeholder="job-12345" required>
+                </div>
+                <div class="form-group">
+                    <label for="amount">Amount (USD)</label>
+                    <input type="number" id="amount" placeholder="99.99" step="0.01" min="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="client-email">Client Email (optional)</label>
+                    <input type="email" id="client-email" placeholder="client@example.com">
+                </div>
+                <button type="submit" class="btn btn-primary">Generate Payment Link</button>
+            </form>
+        </div>
+
+        <!-- Recent Payment Events -->
+        <div class="section-card">
+            <div class="section-title">Recent Payment Events</div>
+            <div id="payment-events" class="loading">Loading events...</div>
+        </div>
+
+        <!-- Reconciliation -->
+        <div class="section-card">
+            <div class="section-title">Reconciliation</div>
+            <p style="color: var(--text-secondary); margin-bottom: var(--spacing-md);">
+                Scan for missed webhook events
+            </p>
+            <button class="btn btn-secondary" id="recon-btn">Run Reconciliation</button>
+            <div id="recon-result" style="margin-top: var(--spacing-md);"></div>
+        </div>
+
+        <!-- Back Button -->
+        <div style="text-align: center; margin-top: var(--spacing-xl);">
+            <a href="/dashboard/v2" class="btn btn-secondary">← Back to Dashboard</a>
+        </div>
+    </div>
+
+    <script>
+        const DASHBOARD_KEY = localStorage.getItem('dashboard_key');
+        
+        // Load payment status
+        async function loadPaymentStatus() {
+            try {
+                const resp = await fetch('/payments/debug');
+                const data = await resp.json();
+                
+                if (resp.ok) {
+                    const mode = data.stripe?.mode || 'unknown';
+                    const badgeClass = mode === 'live' ? 'status-live' : 'status-test';
+                    
+                    document.getElementById('payment-status').innerHTML = `
+                        <div class="debug-info">
+                            <div style="margin-bottom: var(--spacing-sm);">
+                                <strong>Stripe:</strong> 
+                                <span class="status-badge ${badgeClass}">${mode.toUpperCase()}</span>
+                            </div>
+                            <div>Key: ${data.stripe?.key_configured ? '✅ Configured' : '❌ Not configured'}</div>
+                            <div>Webhook: ${data.stripe?.webhook_secret_configured ? '✅ Configured' : '❌ Not configured'}</div>
+                        </div>
+                    `;
+                } else {
+                    throw new Error(data.error || 'Failed to load status');
+                }
+            } catch (error) {
+                document.getElementById('payment-status').innerHTML = 
+                    `<div class="error-message">Error: ${error.message}</div>`;
+            }
+        }
+
+        // Load payment events
+        async function loadPaymentEvents() {
+            try {
+                const resp = await fetch('/api/payments/events', {
+                    headers: {
+                        'X-Dashboard-Key': DASHBOARD_KEY
+                    }
+                });
+                const data = await resp.json();
+                
+                if (resp.ok && data.ok) {
+                    const events = data.events || [];
+                    
+                    if (events.length === 0) {
+                        document.getElementById('payment-events').innerHTML = 
+                            '<p style="color: var(--text-secondary);">No recent events</p>';
+                    } else {
+                        document.getElementById('payment-events').innerHTML = events.map(e => `
+                            <div class="payment-event">
+                                <div><strong>${e.type}</strong></div>
+                                <div class="event-time">${new Date(e.created * 1000).toLocaleString()}</div>
+                                ${e.job_id ? `<div>Job ID: ${e.job_id}</div>` : ''}
+                            </div>
+                        `).join('');
+                    }
+                } else {
+                    throw new Error(data.error || 'Failed to load events');
+                }
+            } catch (error) {
+                document.getElementById('payment-events').innerHTML = 
+                    `<div class="error-message">Error: ${error.message}</div>`;
+            }
+        }
+
+        // Create invoice
+        document.getElementById('invoice-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const jobId = document.getElementById('job-id').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+            const email = document.getElementById('client-email').value;
+            
+            const feedback = document.getElementById('invoice-feedback');
+            feedback.innerHTML = '<div class="loading">Creating invoice...</div>';
+            
+            try {
+                const resp = await fetch('/api/payments/create-invoice', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Dashboard-Key': DASHBOARD_KEY
+                    },
+                    body: JSON.stringify({
+                        job_id: jobId,
+                        amount: amount,
+                        client_email: email || null
+                    })
+                });
+                
+                const data = await resp.json();
+                
+                if (resp.ok && data.ok) {
+                    const url = data.data?.url;
+                    feedback.innerHTML = `
+                        <div class="success-message">
+                            ✅ Invoice created!<br>
+                            <a href="${url}" target="_blank" style="color: inherit; text-decoration: underline;">
+                                Open Payment Link →
+                            </a>
+                        </div>
+                    `;
+                    e.target.reset();
+                } else {
+                    throw new Error(data.error || 'Failed to create invoice');
+                }
+            } catch (error) {
+                feedback.innerHTML = `<div class="error-message">Error: ${error.message}</div>`;
+            }
+        });
+
+        // Run reconciliation
+        document.getElementById('recon-btn').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('recon-result');
+            resultDiv.innerHTML = '<div class="loading">Running reconciliation...</div>';
+            
+            try {
+                const resp = await fetch('/api/payments/scan', {
+                    method: 'POST',
+                    headers: {
+                        'X-Dashboard-Key': DASHBOARD_KEY
+                    }
+                });
+                
+                const data = await resp.json();
+                
+                if (resp.ok && data.ok) {
+                    const summary = data.summary || {};
+                    resultDiv.innerHTML = `
+                        <div class="success-message">
+                            ✅ Reconciliation complete<br>
+                            Matched: ${summary.matched || 0}<br>
+                            Mismatches: ${summary.amount_mismatch || 0}<br>
+                            Missing in ledger: ${summary.missing_in_ledger || 0}
+                        </div>
+                    `;
+                } else {
+                    throw new Error(data.error || 'Reconciliation failed');
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error-message">Error: ${error.message}</div>`;
+            }
+        });
+
+        // Load data on page load
+        loadPaymentStatus();
+        loadPaymentEvents();
+    </script>
+</body>
+</html>

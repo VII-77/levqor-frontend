@@ -805,6 +805,11 @@ def dashboard_v1():
     """Serve legacy dashboard (fallback)"""
     return send_from_directory('.', 'dashboard.html')
 
+@app.route('/payments')
+def payments():
+    """Boss Mode Phase 5: Payments Center UI"""
+    return send_from_directory('templates', 'payments.html')
+
 @app.route('/api/feature-flags')
 def api_feature_flags():
     """Get current feature flags (public endpoint for UI)"""

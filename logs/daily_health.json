@@ -1,0 +1,28 @@
+{
+  "timestamp": "2025-10-21T12:25:35.482149Z",
+  "checks": [
+    {
+      "endpoint": "/api/health",
+      "name": "Health Endpoint",
+      "status": "PASS",
+      "http_code": 200,
+      "response_time_ms": 4
+    },
+    {
+      "endpoint": "/api/platform/status",
+      "name": "Platform Status",
+      "status": "PASS",
+      "http_code": 200,
+      "response_time_ms": 6
+    },
+    {
+      "endpoint": "/api/status/summary",
+      "name": "Status Summary",
+      "status": "PASS",
+      "http_code": 200,
+      "response_time_ms": 9
+    }
+  ],
+  "status": "HEALTHY",
+  "failures": 0
+}

@@ -512,10 +512,24 @@
         async function refreshAutomations() {
             try {
                 showToast('Refreshing automation status...', 'info');
-                const data = await apiCall('/api/scheduler-status');
+                const data = await apiCall('/api/automations/status');
                 showToast('Automation data refreshed', 'success');
                 console.log('Automation data:', data);
-                // TODO: Render automation cards
+                
+                // Render automation status
+                const container = document.getElementById('automationsList');
+                if (container && data && data.data) {
+                    const status = data.data;
+                    container.innerHTML = `
+                        <div class="card">
+                            <div class="card-body">
+                                <p><strong>Status:</strong> ${status.running ? '✅ Running' : '❌ Stopped'}</p>
+                                ${status.pid ? `<p><strong>PID:</strong> ${status.pid}</p>` : ''}
+                                ${status.last_activity ? `<p><strong>Last Activity:</strong> ${new Date(status.last_activity).toLocaleString()}</p>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
             } catch (err) {
                 showToast('Failed to load automations: ' + err.message, 'error');
             }

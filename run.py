@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from bot.main import EchoPilotBot
-from flask import Flask, jsonify, send_from_directory, request, make_response
+from flask import Flask, jsonify, send_from_directory, request, make_response, render_template
 import threading
 import os
 import json
@@ -895,7 +895,7 @@ def api_get_strings(locale):
 @app.route('/workflow/builder')
 def workflow_builder_ui():
     """Visual Workflow Builder UI"""
-    return send_from_directory('templates', 'workflow_builder.html')
+    return render_template('workflow_builder.html')
 
 @app.route('/api/workflow/node-types')
 def api_get_node_types():

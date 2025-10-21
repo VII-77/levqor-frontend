@@ -1,0 +1,182 @@
+TITLE: Phases 103–110 (+ extras) — Customer SaaS, Brand, Analytics, Resilience, DX, and Launch Hardening
+
+OBJECTIVE
+Turn EchoPilot into a customer-ready SaaS: auth+portal, billing UX, brand polish, pricing+leads, data warehouse, ML alert tuning, A/B tests, edge failover, AI governance, plus DX/tooling, observability, seeds, and a single post-work smoke test script.
+
+GLOBAL RULES
+- Backwards compatible. Keep all existing routes; don’t break admin flows.
+- Admin APIs require X-Dash-Key. Customer APIs use JWT Bearer.
+- Log structured NDJSON to logs/*.ndjson; never log secrets/PII.
+- Each new area gets: (a) API, (b) UI if applicable, (c) tests, (d) runbook/docs.
+- Add unit/integration smoke tests per route; wire to a single runner script.
+- Mobile-first UI (Galaxy Fold 6), dark mode default.
+- Reuse existing Stripe + Notion models; no schema-breaking changes.
+
+ENV (ensure present or add safe defaults)
+AUTH_JWT_SECRET, AUTH_JWT_EXP_HRS=24, EMAIL_FROM, SUPPORT_EMAIL,
+PUBLIC_BASE_URL=https://echopilotai.replit.app,
+REDIS_URL (optional cache), WAREHOUSE_URL (Postgres; can reuse DATABASE_URL),
+SLO_P95_MS=800, SLO_P99_MS=1200, SLO_AVAIL=99.9
+
+──────────────────────────────────────────────────────────────────────────────
+PHASE 103 — CUSTOMER AUTH + PORTAL
+Deliverables
+- Routes (customer):
+  GET /app (dashboard HTML), GET /auth/login (HTML)
+  POST /api/auth/login (email+code or email+password)
+  POST /api/auth/magic-link (stub to logs/emails.ndjson)
+  GET /api/me (JWT), GET /api/billing/history (JWT)
+  POST /api/billing/portal (JWT → Stripe customer portal link)
+- JWT middleware (exp from AUTH_JWT_EXP_HRS). Rate-limit login 5/min/IP.
+- Map email↔stripe_customer_id (Notion Clients or local table).
+- UI sections: Overview, Invoices, Support.
+
+Tests/Logs
+- tests/test_auth.py (happy/negative paths).
+- logs/auth.ndjson, logs/billing.ndjson.
+
+Acceptance
+- Login returns JWT; /api/me 200; /app renders invoices list; no PII in logs.
+
+──────────────────────────────────────────────────────────────────────────────
+PHASE 104 — BRAND + UI POLISH
+Deliverables
+- Tailwind tokens (brand colors, spacing, shadows, radii), favicon/logo.
+- Components: Card, Stat, Badge, Button, EmptyState, Alert.
+- Apply to /, /about, /dashboard/v2, /payments, /app, /workflow/builder.
+- Dark mode default; toggle persisted.
+
+Acceptance
+- Lighthouse Mobile ≥90 performance / ≥95 accessibility on / and /app.
+
+──────────────────────────────────────────────────────────────────────────────
+PHASE 105 — PUBLIC PRICING + LEADS
+Deliverables
+- GET /pricing (Starter/Pro/Enterprise).
+- POST /api/lead (email+use_case → Notion Partners/Leads DB).
+- Stripe CTAs for Starter/Pro; Enterprise CTA posts /api/lead.
+- SEO: meta, OG tags, sitemap.xml, robots.txt; canonical URLs.
+
+Tests
+- tests/test_pricing.py (tiers JSON & lead creation).
+
+Acceptance
+- /pricing responsive; Checkout links correct (test/live via STRIPE_MODE).
+
+──────────────────────────────────────────────────────────────────────────────
+PHASE 106 — DATA WAREHOUSE BRIDGE
+Deliverables
+- scripts/warehouse_sync.py: nightly ETL → Postgres (WAREHOUSE_URL).
+  Tables: jobs, payments, customers, ops_events. Idempotent upserts.
+- GET /api/warehouse/status (last_sync, row_counts).
+- Scheduler: daily 02:50 UTC.
+
+Tests/Logs
+- tests/test_warehouse.py (mock DB). logs/warehouse.ndjson (insert/updated).
+
+Acceptance
+- First sync populates ≥4 tables; status endpoint OK.
+
+──────────────────────────────────────────────────────────────────────────────
+PHASE 107 — ML ALERT TUNING
+Deliverables
+- scripts/alert_tuner.py: train lightweight model on historical alerts vs truth (ack/resolved/false+), propose thresholds for error_rate, p95, p99, webhook_fail%.
+- configs/slo_tuned.json (proposed). SLO guard reads tuned file if present.
+- Admin APIs: POST /api/slo/tune (run & return proposal), GET /api/slo/active.
+- Scheduler: weekly Mon 01:10 UTC auto-apply if F1 improves ≥10% (otherwise keep current).
+
+Acceptance
+- /api/slo/active shows tuned thresholds when file exists; rollback safe.
+
+──────────────────────────────────────────────────────────────────────────────
+PHASE 108 — A/B TESTING
+Deliverables
+- configs/flags.json and hot-reload cache (60s).
+- Admin APIs: GET /api/flags, POST /api/flags/set (set variant & %).
+- Public API: GET /api/flags/eval?k=<userKey>&f=<flag> → variant A/B.
+- Client helpers on /app and /pricing for CTA copy/price experiments.
+- logs/ab.ndjson for assignment & conversion events.
+
+Acceptance
+- 10% rollout of new CTA on /pricing; conversions recorded.
+
+──────────────────────────────────────────────────────────────────────────────
+PHASE 109 — EDGE RESILIENCE + FAILOVER
+Deliverables
+- GET /health expanded (build, git sha, deps, last_notation_sync).
+- scripts/edge_failover.py: detect 3×/60s 5xx/timeout on primary, emit logs/failover.ndjson; runbook steps for manual DNS/proxy flip (no auto DNS changes).
+- DR: verify nightly backup restore dry-run (document procedure).
+
+Acceptance
+- Simulated outage logs failover event; runbook section updated.
+
+──────────────────────────────────────────────────────────────────────────────
+PHASE 110 — AI AUTO-GOVERNANCE
+Deliverables
+- scripts/auto_governance.py: aggregate last 24h (SLO, revenue, errors, builder usage/NPS if available) → GPT-4o-mini proposes 3 actions (priority, effort, impact); write to Notion Governance DB + logs/governance_ai.ndjson.
+- POST /api/governance/advise (admin) persists & returns items.
+- Scheduler: every 12h.
+
+Acceptance
+- New “proposed” entries appear in Governance DB; dashboard badge shows count.
+
+──────────────────────────────────────────────────────────────────────────────
+EXTRAS (TIME-SAVERS + HARDENING)
+
+E1 — Seed Data (demo mode)
+- Script scripts/seed_demo.py creates: 1 demo customer (email demo@), 3 invoices (paid/open/refunded), 6 demo jobs with QA scores, 1 referral, 1 governance entry.
+- Flag DEMO_MODE=1 auto-links /auth/login → prefilled demo account; never in live.
+
+E2 — Unified Smoke Test
+- Create scripts/smoke.sh (bash with jq) that checks, with $DASHBOARD_KEY and optional CONFIRM_LIVE=YES:
+  health, scheduler, pricing optimize, brain decide, audit, export, region sync, signed-url, ops sentinel, governance check, builder route, auth->JWT->/api/me, billing history (JWT), /api/warehouse/status, /api/slo/tune (dry), /api/flags/eval, /api/governance/advise (dry).
+- Exit non-zero on first failure; print last 50 lines of relevant log file.
+
+E3 — Observability Pack
+- Add request ID middleware (X-Request-ID), and attach to logs.
+- Add /api/logs/tail?file=xyz&n=200 (admin) with safe allowlist.
+- Prometheus-style metrics at /metrics (p95, p99, RPS, 5xx count, queue depth).
+
+E4 — Security & Abuse Guardrails
+- Rate limits: /api/auth/*, /api/lead, /api/flags/eval (per IP & userKey).
+- JWT rotation helper (kid header, JWKS-like static with one active key).
+- CSP headers, referrer-policy, strict-transport-security (documented).
+- Simple WAF regex denylist (obvious injection patterns) → 403 & log.
+
+E5 — DX & CI Lite
+- scripts/dev_check.py: imports, routes registry, env completeness, open files.
+- tests run via scripts/test_all.sh; produce junit.xml.
+- Pre-commit hook: black/ruff or minimal flake8; fail on prints in core.
+
+E6 — UX Finishing Touches
+- Navbar “Customer” group (Home, Builder, App, Pricing, Support).
+- Command Palette actions: Open App, Open Pricing, Toggle Theme, New Workflow.
+- Empty states with CTA “Create first workflow” → /workflow/builder.
+- 404 page consistent styling; helpful links.
+
+E7 — Docs & Runbook
+- Update RUNBOOK.md (new routes, JWT, failover steps, smoke.sh usage).
+- SECURITY.md (JWT rotation, rate limits, WAF, log redaction policy).
+- SLOS.md (tuned thresholds, metrics map).
+- PRODUCTION_READY_REPORT.md (103–110 checklist matrix with PASS/FAIL).
+- POST_LAUNCH_CHECKLIST.md append: Stripe receipts verified, DR restore dry-run, A/B flag template, governance weekly review ritual.
+
+──────────────────────────────────────────────────────────────────────────────
+POST-WORK: SINGLE-COMMAND VALIDATION
+- Make scripts/smoke.sh executable and run:
+  $ DASHBOARD_KEY=... ./scripts/smoke.sh
+- If CONFIRM_LIVE=YES, include a $0.50 live Stripe invoice check; otherwise skip.
+- Output a green summary; on failure, print failing endpoint, response body, and tail of the closest log (auto-mapping endpoint→log file).
+
+ROLLBACK
+- Feature flags: set variants to baseline; remove configs/slo_tuned.json to revert thresholds; disable schedulers added in 103–110; rotate AUTH_JWT_SECRET if needed (JWKS method supports 2 keys overlap).
+
+DONE CRITERIA
+- All endpoints 2xx; tests pass; smoke.sh green.
+- New logs populated; dashboards reflect state.
+- Docs updated; runbook steps verified.
+- No regressions in existing admin routes or scheduler jobs.
+
+OUTPUTS EXPECTED
+- Code, tests, configs, seeds, smoke.sh, updated docs.
+- A final “PHASES_103_110_COMPLETE.md” with checklist and links to logs.

@@ -86,3 +86,5 @@
 {"ts": "2025-10-21T11:10:52.340537Z", "request_id": "bf16c4f6-a119-46be-9814-c7ba7caa360f", "route": "health_check", "method": "GET", "status": 200, "duration_ms": 76.32, "path": "/health"}
 {"ts": "2025-10-21T11:10:53.511073Z", "request_id": "5bf04639-ea35-4a64-84de-bcd6dae51c4c", "route": "landing", "method": "GET", "status": 200, "duration_ms": 1.61, "path": "/"}
 {"ts": "2025-10-21T11:10:53.766176Z", "request_id": "18404f99-44d0-4b59-b805-d04c65b7493f", "route": "health_check", "method": "GET", "status": 200, "duration_ms": 22.7, "path": "/health"}
+{"ts": "2025-10-21T11:11:45.711687Z", "request_id": "2b7aa304-fae6-4b59-8ba6-91fe1e405fef", "route": "landing", "method": "GET", "status": 200, "duration_ms": 0.94, "path": "/"}
+{"ts": "2025-10-21T11:11:53.901120Z", "request_id": "bdb8981f-a522-4188-b274-a6e8514af403", "route": "landing", "method": "GET", "status": 200, "duration_ms": 0.62, "path": "/"}

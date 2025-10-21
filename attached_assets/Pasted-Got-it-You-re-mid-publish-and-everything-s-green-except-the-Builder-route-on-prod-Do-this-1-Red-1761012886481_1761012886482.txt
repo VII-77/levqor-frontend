@@ -1,0 +1,56 @@
+Got it. You’re mid-publish and everything’s green except the Builder route on prod. Do this:
+
+1. Redeploy (you already hit Publish). Wait for publish to finish, then verify the Builder:
+
+
+
+curl -fsS https://echopilotai.replit.app/workflow/builder -o /dev/null -w "Builder: %{http_code}\n"
+
+Expected: Builder: 200.
+
+2. If it’s still 404 after publish, quickly confirm the route and template are present, then restart:
+
+
+
+In run.py you must have:
+
+
+from flask import render_template
+@app.route("/workflow/builder")
+def workflow_builder():
+    return render_template("workflow_builder.html")
+
+File: templates/workflow_builder.html (exists).
+
+Restart: stop/start the “EchoPilot Bot” workflow, then re-check with the curl above.
+
+
+3. Full prod smoke (11/11), including optional live $0.50 charge (set CONFIRM_LIVE=YES to run that step):
+
+
+
+bash -c 'set -euo pipefail
+: "${DASHBOARD_KEY:?Set DASHBOARD_KEY first}"; BASE="https://echopilotai.replit.app"; LIVE="${CONFIRM_LIVE:-NO}"
+H=(-H "X-Dash-Key: $DASHBOARD_KEY"); ok(){ jq -e ".ok==true or .status==\"healthy\"" >/dev/null; }
+echo "▶ /health";         curl -fsS "$BASE/health" | ok && echo "✓ health"
+echo "▶ /api/automations"; curl -fsS "${H[@]}" "$BASE/api/automations/status" | ok && echo "✓ scheduler"
+echo "▶ pricing";          curl -fsS "${H[@]}" -X POST "$BASE/api/pricing/optimize" | ok && echo "✓ pricing"
+echo "▶ brain";            curl -fsS "${H[@]}" -X POST "$BASE/api/brain/decide" | ok && echo "✓ ops brain"
+echo "▶ audit";            curl -fsS "${H[@]}" "$BASE/api/audit/report" | ok && echo "✓ audit"
+echo "▶ export";           curl -fsS "${H[@]}" "$BASE/api/compliance/export-data" | ok && echo "✓ export"
+echo "▶ regions";          curl -fsS "${H[@]}" -X POST "$BASE/api/regions/sync" | ok && echo "✓ regions"
+echo "▶ signed-url";       curl -fsS "${H[@]}" "$BASE/api/customer/signed-url/QA_SMOKE?email=qa@echopilot.ai" | ok && echo "✓ signed-url"
+echo "▶ ops";              curl -fsS "${H[@]}" "$BASE/api/ops/sentinel" | jq -e ".ok==true or .cpu>=0" >/dev/null && echo "✓ ops"
+echo "▶ governance";       curl -fsS "${H[@]}" "$BASE/api/governance/check" | ok && echo "✓ governance"
+echo "▶ builder";          curl -fsS "$BASE/workflow/builder" >/dev/null && echo "✓ builder route"
+if [ "$LIVE" = YES ]; then
+  echo "▶ payments (LIVE \$0.50)"; curl -fsS "${H[@]}" -H "Content-Type: application/json" \
+   -X POST "$BASE/api/payments/create-invoice" -d "{\"amount\":0.50,\"email\":\"live-check@echopilot.ai\"}" | ok && echo "✓ live invoice"
+else echo "! skipping live charge (set CONFIRM_LIVE=YES)"; fi
+echo "✓ prod smoke complete"'
+
+4. Stripe receipts reminder (manual in Stripe): Settings → Emails → enable “Email customers about successful payments”.
+
+
+
+Ping me with the builder curl result (200/404) and I’ll triage instantly if anything’s off.

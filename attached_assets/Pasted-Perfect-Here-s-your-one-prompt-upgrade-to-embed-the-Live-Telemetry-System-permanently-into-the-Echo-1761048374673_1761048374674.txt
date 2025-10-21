@@ -1,0 +1,111 @@
+Perfect.
+Here’s your one-prompt upgrade to embed the Live Telemetry System permanently into the EchoPilot Quantum Runbook — ensuring it’s documented, validated, and part of your daily + deployment flow.
+
+Copy-paste this entire block into your Replit shell:
+
+
+---
+
+# ============================================
+# 📘 EchoPilot Quantum v2.0 — Runbook Update
+# Adds Live Telemetry & Validation sections
+# ============================================
+
+mkdir -p docs
+
+# Append new section to the main runbook
+cat >> docs/RUNBOOK.md << 'EOF'
+
+---
+
+## 🛰️  Live Telemetry System (v2.0.0-stable)
+
+### Overview
+The **EchoPilot OS Telemetry Module** provides real-time operational visibility across the entire system.
+- Accessible via web: [`/os`](https://echopilotai.replit.app/os)
+- JSON endpoint: [`/api/os/telemetry`](https://echopilotai.replit.app/api/os/telemetry)
+- Auto-updates every minute through `scripts/os_heartbeat.py`
+- Displays CPU, memory, disk usage, latency (p50/p95), Notion, Stripe, OpenAI, and scheduler status.
+
+### Key Components
+| Component | Path | Purpose |
+|------------|------|----------|
+| **Heartbeat Script** | `scripts/os_heartbeat.py` | Writes metrics to `logs/os_telemetry_cache.json` every 60s |
+| **Telemetry API** | `/api/os/telemetry` | Exposes latest snapshot in JSON |
+| **Live Dashboard** | `/os` | Interactive UI with auto-refresh |
+| **Scheduler Hook** | `scripts/exec_scheduler.py` | Triggers `run_os_heartbeat()` every 1 min |
+
+### Daily Validation Integration
+Telemetry is automatically verified during the **08:00 UTC daily validation**:
+```bash
+bash scripts/daily_validation.sh
+
+If /api/os/telemetry or /os fails:
+
+1. Capture the console output.
+
+
+2. Paste last 10 lines of logs/validation_*.log.
+
+
+3. Re-run manually:
+
+python3 scripts/os_heartbeat.py
+
+
+4. If unresolved, escalate to #ops-alerts (Telegram).
+
+
+
+Troubleshooting Guide
+
+Symptom	Likely Cause	Fix
+
+/os shows blank grid	Browser cache	Hard refresh (Ctrl+F5)
+/api/os/telemetry 404	Route not reloaded	Restart workflow
+Stale metrics (>2m old)	Scheduler stalled	bash scripts/daily_validation.sh
+“FAIL” in builder or notion	Service down	Check /supervisor?token=$DASHBOARD_KEY
+
+
+Publishing Checklist
+
+Before each release:
+
+1. Ensure logs/os_telemetry_cache.json updates at least once per minute.
+
+
+2. Verify /api/os/telemetry returns "ok": true.
+
+
+3. Confirm dashboard loads and auto-refreshes.
+
+
+4. Include telemetry verification in smoke tests:
+
+curl -fsS https://echopilotai.replit.app/api/os/telemetry | jq .
+
+
+5. Tag build:
+
+git tag -a v2.0.0-stable-telemetry -m "Telemetry verified"
+
+
+
+✅ Status: Embedded into runbook
+✅ Version: v2.0.0-stable
+✅ Last Updated: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+EOF
+
+echo "✅ Live Telemetry documentation successfully added to docs/RUNBOOK.md" echo "📊 Check the section 'Live Telemetry System (v2.0.0-stable)' in your runbook."
+
+---
+
+### 💡 Why this matters
+- **Why:** Ensures telemetry stays part of every release and health validation.  
+- **Benefit:** 24/7 observability, automated alerting, and auditable uptime evidence.  
+- **Impact if ignored:** Blind outages or stale data in dashboard with no audit trace.
+
+---
+
+Once you’ve run it, reply **“done”**, and I’ll give you the **next step: automatic uptime SLA generator** (so your `/os` dashboard shows daily uptime % charts automatically).

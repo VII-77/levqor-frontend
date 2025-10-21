@@ -306,3 +306,141 @@
     background: var(--error-light);
     color: var(--error);
 }
+
+/* Phase 53: Node Configuration Panels */
+.config-panel {
+    padding: var(--space-md);
+}
+
+.config-title {
+    font-size: var(--text-md);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--space-md);
+    padding-bottom: var(--space-sm);
+    border-bottom: 2px solid var(--border);
+}
+
+.config-field {
+    margin-bottom: var(--space-md);
+}
+
+.config-label {
+    display: block;
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: var(--space-xs);
+}
+
+.config-label .required {
+    color: var(--error);
+    margin-left: 2px;
+}
+
+.config-input {
+    width: 100%;
+    padding: var(--space-sm);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-sm);
+    font-family: inherit;
+    transition: all 0.2s;
+}
+
+.config-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.config-input:invalid {
+    border-color: var(--error);
+}
+
+textarea.config-input {
+    resize: vertical;
+    font-family: 'Monaco', 'Menlo', monospace;
+}
+
+.range-container {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.config-range {
+    flex: 1;
+}
+
+.range-value {
+    min-width: 40px;
+    text-align: center;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.config-actions {
+    display: flex;
+    gap: var(--space-sm);
+    margin-top: var(--space-lg);
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--border);
+}
+
+.config-actions .btn {
+    flex: 1;
+}
+
+/* Node Validation States */
+.workflow-node.incomplete {
+    border-color: var(--warning);
+    border-width: 2px;
+}
+
+.workflow-node.error {
+    border-color: var(--error);
+    border-width: 2px;
+}
+
+.workflow-node.valid {
+    border-color: var(--success);
+}
+
+.node-status-indicator {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+.node-status-indicator.warning {
+    color: var(--warning);
+}
+
+.node-status-indicator.error {
+    color: var(--error);
+}
+
+.node-status-indicator.success {
+    color: var(--success);
+}
+
+/* Copy/Paste Feedback */
+.workflow-node.copied {
+    animation: copyFlash 0.5s;
+}
+
+@keyframes copyFlash {
+    0%, 100% { background: white; }
+    50% { background: var(--primary-light); }
+}

@@ -493,10 +493,40 @@
         
         // Initialize on load
         init();
+        
+        // Phase 53: Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Copy: Ctrl+C / Cmd+C
+            if ((e.ctrlKey || e.metaKey) && e.key === 'c' && !e.target.matches('input, textarea')) {
+                e.preventDefault();
+                if (window.workflowCanvas?.selectedNode) {
+                    window.workflowCanvas.copyNode(window.workflowCanvas.selectedNode);
+                }
+            }
+            
+            // Paste: Ctrl+V / Cmd+V
+            if ((e.ctrlKey || e.metaKey) && e.key === 'v' && !e.target.matches('input, textarea')) {
+                e.preventDefault();
+                window.workflowCanvas?.pasteNode();
+            }
+            
+            // Delete: Delete / Backspace
+            if ((e.key === 'Delete' || e.key === 'Backspace') && !e.target.matches('input, textarea')) {
+                e.preventDefault();
+                if (window.workflowCanvas?.selectedNode) {
+                    window.workflowCanvas.deleteNode(window.workflowCanvas.selectedNode);
+                } else if (window.workflowCanvas?.selectedConnection) {
+                    window.workflowCanvas.deleteConnection(window.workflowCanvas.selectedConnection);
+                }
+            }
+        });
     </script>
     
     <!-- Phase 52: Canvas JavaScript -->
     <script src="/static/workflow-canvas.js"></script>
+    
+    <!-- Phase 53: Node Configuration -->
+    <script src="/static/node-config.js"></script>
     
     <script>
         // Integration with canvas

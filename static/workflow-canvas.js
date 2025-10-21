@@ -377,23 +377,31 @@ class WorkflowCanvas {
         if (!node) return;
         
         const panel = document.getElementById('propertiesContent');
-        panel.innerHTML = `
-            <div class="property-group">
-                <div class="property-label">Node Type</div>
-                <div style="color: var(--text-primary);">${node.data.label}</div>
-            </div>
-            <div class="property-group">
-                <div class="property-label">Label</div>
-                <input type="text" class="property-input" value="${node.data.label}" 
-                       onchange="workflowCanvas.updateNodeLabel('${nodeId}', this.value)">
-            </div>
-            <div class="property-group">
-                <button class="btn btn-secondary" style="width: 100%;" 
-                        onclick="workflowCanvas.deleteNode('${nodeId}')">
-                    Delete Node
-                </button>
-            </div>
-        `;
+        
+        // Use Phase 53 configuration panel if available
+        if (window.nodeConfigurator) {
+            panel.innerHTML = window.nodeConfigurator.renderConfigPanel(node);
+            this.validateNode(nodeId);
+        } else {
+            // Fallback to basic properties
+            panel.innerHTML = `
+                <div class="property-group">
+                    <div class="property-label">Node Type</div>
+                    <div style="color: var(--text-primary);">${node.data.label}</div>
+                </div>
+                <div class="property-group">
+                    <div class="property-label">Label</div>
+                    <input type="text" class="property-input" value="${node.data.label}" 
+                           onchange="workflowCanvas.updateNodeLabel('${nodeId}', this.value)">
+                </div>
+                <div class="property-group">
+                    <button class="btn btn-secondary" style="width: 100%;" 
+                            onclick="workflowCanvas.deleteNode('${nodeId}')">
+                        Delete Node
+                    </button>
+                </div>
+            `;
+        }
     }
     
     updateNodeLabel(nodeId, label) {
@@ -403,6 +411,87 @@ class WorkflowCanvas {
             const labelEl = document.querySelector(`#${nodeId} .node-label`);
             if (labelEl) labelEl.textContent = label;
             this.saveWorkflow();
+        }
+    }
+    
+    updateNodeConfig(nodeId, config) {
+        const node = this.nodes.find(n => n.id === nodeId);
+        if (node) {
+            node.config = config;
+            this.validateNode(nodeId);
+            this.saveWorkflow();
+        }
+    }
+    
+    validateNode(nodeId) {
+        const node = this.nodes.find(n => n.id === nodeId);
+        if (!node || !window.nodeConfigurator) return;
+        
+        const validation = window.nodeConfigurator.validate(node.type, node.config || {});
+        node.validation = validation;
+        
+        const nodeEl = document.getElementById(nodeId);
+        if (!nodeEl) return;
+        
+        // Remove existing status classes
+        nodeEl.classList.remove('incomplete', 'error', 'valid');
+        
+        // Remove existing status indicator
+        const existingIndicator = nodeEl.querySelector('.node-status-indicator');
+        if (existingIndicator) existingIndicator.remove();
+        
+        // Add status indicator
+        if (!validation.valid) {
+            nodeEl.classList.add('error');
+            const indicator = document.createElement('div');
+            indicator.className = 'node-status-indicator error';
+            indicator.textContent = '⚠️';
+            indicator.title = validation.errors.join(', ');
+            nodeEl.appendChild(indicator);
+        } else if (!node.config || Object.keys(node.config).length === 0) {
+            nodeEl.classList.add('incomplete');
+            const indicator = document.createElement('div');
+            indicator.className = 'node-status-indicator warning';
+            indicator.textContent = '⚙️';
+            indicator.title = 'Configuration incomplete';
+            nodeEl.appendChild(indicator);
+        } else {
+            nodeEl.classList.add('valid');
+        }
+    }
+    
+    copyNode(nodeId) {
+        const node = this.nodes.find(n => n.id === nodeId);
+        if (node) {
+            localStorage.setItem('copiedNode', JSON.stringify(node));
+            const nodeEl = document.getElementById(nodeId);
+            if (nodeEl) {
+                nodeEl.classList.add('copied');
+                setTimeout(() => nodeEl.classList.remove('copied'), 500);
+            }
+        }
+    }
+    
+    pasteNode() {
+        const copiedData = localStorage.getItem('copiedNode');
+        if (!copiedData) return;
+        
+        const copiedNode = JSON.parse(copiedData);
+        const newNode = {
+            ...copiedNode,
+            id: `node-${Date.now()}`,
+            position: {
+                x: copiedNode.position.x + 50,
+                y: copiedNode.position.y + 50
+            }
+        };
+        
+        this.nodes.push(newNode);
+        this.renderNode(newNode);
+        this.saveWorkflow();
+        
+        if (this.nodes.length === 1) {
+            document.getElementById('emptyState').style.display = 'none';
         }
     }
     

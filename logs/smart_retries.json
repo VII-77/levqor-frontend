@@ -1,6 +1,6 @@
 {
   "ok": true,
   "attempts": 3,
-  "total_wait_seconds": 3.101,
+  "total_wait_seconds": 2.379,
   "target": "/api/health"
 }

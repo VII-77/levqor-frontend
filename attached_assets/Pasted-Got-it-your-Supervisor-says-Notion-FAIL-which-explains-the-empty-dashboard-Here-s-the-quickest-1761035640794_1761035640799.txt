@@ -1,0 +1,73 @@
+Got it — your Supervisor says Notion = FAIL, which explains the empty dashboard. Here’s the quickest path to green.
+
+Fix-now plan (5 tight steps)
+
+1. Restart both workers
+
+
+
+Replit → Workflows → stop/start EchoPilot Bot and Scheduler.
+
+
+2. Verify Notion secrets are loaded
+
+
+
+In Secrets, confirm these exist (not blank):
+NOTION_PARENT_PAGE_ID, NOTION_CLIENT_DB_ID, JOB_LOG_DB_ID, NOTION_STATUS_DB_ID, NOTION_PRICING_DB_ID, NOTION_REFERRALS_DB_ID, NOTION_GROWTH_METRICS_DB_ID, NOTION_FINANCE_DB_ID, NOTION_GOVERNANCE_DB_ID, NOTION_OPS_MONITOR_DB_ID, NOTION_FORECAST_DB_ID, NOTION_REGION_COMPLIANCE_DB_ID, NOTION_COST_DB_ID, NOTION_COST_DASHBOARD_DB_ID.
+
+
+3. Re-grant the Notion integration (most common cause)
+
+
+
+In Notion, open the Job Log database → ••• (menu) → Connections → Connect the EchoPilot integration.
+
+Repeat for Status, Pricing, and any DBs the dashboard reads. (If the token was rotated, all DBs need to be reconnected once.)
+
+
+4. Run these two checks and paste results if anything is red
+
+
+
+Status summary:
+
+curl -s -H "X-Dash-Key: YOUR_DASHBOARD_KEY" \
+https://echopilotai.replit.app/api/status/summary | jq .
+
+Scheduler state:
+
+curl -s -H "X-Dash-Key: YOUR_DASHBOARD_KEY" \
+https://echopilotai.replit.app/api/automations/status | jq .
+
+
+5. Confirm data is flowing
+
+
+
+Open /dashboard/v2 → hard refresh (Cmd/Ctrl+Shift+R).
+
+If still empty, open https://echopilotai.replit.app/logs/scheduler.log and copy the last ~50 lines that mention notion (401/403/429 errors indicate auth/permission/rate-limit).
+
+
+One copy-paste prompt (for your notes / team)
+
+“Run EchoPilot daily health:
+
+1. Open /health and share the JSON.
+
+
+2. Open /supervisor?token=… and share the first 3 lines.
+
+
+3. In Notion Job Log, confirm a new row in the last 5 minutes and the latest job’s QA score.
+
+
+4. If anything fails, share the exact error on screen plus the last 10 lines from the Replit console.”
+
+
+
+
+---
+
+If you send me: (a) the two curl JSONs, and (b) any Notion error lines from scheduler.log, I’ll pinpoint whether it’s missing connection, bad DB ID, or rate limiting, and give the exact fix.

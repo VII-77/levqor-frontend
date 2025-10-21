@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing - EchoPilot AI | Autonomous Enterprise Automation</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Transform your business with EchoPilot AI - enterprise-grade autonomous automation powered by GPT-4. Starter plans from $99/month.">
+    <meta name="keywords" content="AI automation, enterprise automation, workflow automation, GPT-4, business automation">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="EchoPilot AI Pricing - Enterprise Automation Plans">
+    <meta property="og:description" content="Autonomous AI automation for modern businesses. Choose from Starter, Pro, or Enterprise plans.">
+    <meta property="og:image" content="https://echopilotai.replit.app/static/og-image.png">
+    <meta property="og:url" content="https://echopilotai.replit.app/pricing">
+    <meta property="og:type" content="website">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="EchoPilot AI Pricing">
+    <meta name="twitter:description" content="Enterprise-grade AI automation. Starting at $99/month.">
+    
+    <link rel="canonical" href="https://echopilotai.replit.app/pricing">
+    <link rel="stylesheet" href="/static/brand.css">
+    <script src="/static/dark-mode.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="bg-gray-800 border-b border-gray-700 sticky top-0 z-50">
+        <div class="container">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-8">
+                    <a href="/" class="text-xl font-bold gradient-text">
+                        🤖 EchoPilot
+                    </a>
+                    <div class="hidden md:flex items-center gap-6">
+                        <a href="/workflow/builder" class="text-sm text-gray-300 hover:text-white">Builder</a>
+                        <a href="/pricing" class="text-sm text-white font-medium">Pricing</a>
+                        <a href="/docs" class="text-sm text-gray-300 hover:text-white">Docs</a>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button id="theme-toggle" class="btn btn-ghost btn-sm" aria-label="Toggle theme">🌙</button>
+                    <a href="/auth/login" class="btn btn-ghost btn-sm">Sign In</a>
+                    <a href="#starter-cta" class="btn btn-primary btn-sm">Get Started</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="container py-16 text-center">
+        <h1 class="text-4xl md:text-5xl font-bold mb-4 gradient-text">
+            Simple, Transparent Pricing
+        </h1>
+        <p class="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
+            Choose the perfect plan for your automation needs. No hidden fees, cancel anytime.
+        </p>
+    </div>
+
+    <!-- Pricing Tiers -->
+    <div class="container pb-16">
+        <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            
+            <!-- Starter Plan -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="badge badge-info mb-4">STARTER</div>
+                    <div class="stat-value mb-2">$99<span class="text-xl text-gray-400">/mo</span></div>
+                    <p class="text-sm text-gray-400">Perfect for small teams</p>
+                </div>
+                <div class="card-body">
+                    <ul class="space-y-3 mb-6">
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-400">✓</span>
+                            <span class="text-sm">1,000 AI tasks per month</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-400">✓</span>
+                            <span class="text-sm">GPT-4o-mini processing</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-400">✓</span>
+                            <span class="text-sm">5 workflow automations</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-400">✓</span>
+                            <span class="text-sm">Email support</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-400">✓</span>
+                            <span class="text-sm">99.9% uptime SLA</span>
+                        </li>
+                    </ul>
+                    <button 
+                        id="starter-cta"
+                        onclick="checkoutStarter()"
+                        class="btn btn-secondary w-full"
+                    >
+                        Start Free Trial
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pro Plan (Popular) -->
+            <div class="card" style="transform: scale(1.05); border-color: var(--brand-purple);">
+                <div class="badge badge-purple mb-2">MOST POPULAR</div>
+                <div class="card-header">
+                    <div class="badge badge-success mb-4">PRO</div>
+                    <div class="stat-value mb-2">$299<span class="text-xl text-gray-400">/mo</span></div>
+                    <p class="text-sm text-gray-400">For growing businesses</p>
+                </div>
+                <div class="card-body">
+                    <ul class="space-y-3 mb-6">
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-400">✓</span>
+                            <span class="text-sm">10,000 AI tasks per month</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-400">✓</span>
+                            <span class="text-sm">GPT-4o processing</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-400">✓</span>
+                            <span class="text-sm">Unlimited workflows</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-400">✓</span>
+                            <span class="text-sm">Priority support</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-400">✓</span>
+                            <span class="text-sm">99.99% uptime SLA</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-400">✓</span>
+                            <span class="text-sm">Advanced analytics</span>
+                        </li>
+                    </ul>
+                    <button 
+                        onclick="checkoutPro()"
+                        class="btn btn-primary w-full"
+                    >
+                        Start Free Trial
+                    </button>
+                </div>
+            </div>
+
+            <!-- Enterprise Plan -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="badge badge-purple mb-4">ENTERPRISE</div>
+                    <div class="stat-value mb-2">Custom</div>
+                    <p class="text-sm text-gray-400">For large organizations</p>
+                </div>
+                <div class="card-body">
+                    <ul class="space-y-3 mb-6">
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-400">✓</span>
+                            <span class="text-sm">Unlimited AI tasks</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-400">✓</span>
+                            <span class="text-sm">Custom AI models</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-400">✓</span>
+                            <span class="text-sm">Dedicated infrastructure</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-400">✓</span>
+                            <span class="text-sm">24/7 phone support</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-400">✓</span>
+                            <span class="text-sm">Custom SLA</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-400">✓</span>
+                            <span class="text-sm">SSO & RBAC</span>
+                        </li>
+                    </ul>
+                    <button 
+                        onclick="contactEnterprise()"
+                        class="btn btn-secondary w-full"
+                    >
+                        Contact Sales
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enterprise Contact Form -->
+    <div id="enterprise-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="card max-w-md w-full">
+            <div class="card-header">
+                <h3 class="text-xl font-bold">Contact Enterprise Sales</h3>
+            </div>
+            <div class="card-body">
+                <form id="lead-form">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Email</label>
+                            <input 
+                                type="email"
+                                name="email"
+                                required
+                                class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 text-white"
+                                placeholder="you@company.com"
+                            >
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Use Case</label>
+                            <textarea 
+                                name="use_case"
+                                rows="3"
+                                class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 text-white"
+                                placeholder="Tell us about your automation needs..."
+                            ></textarea>
+                        </div>
+                        <div class="flex gap-2">
+                            <button type="submit" class="btn btn-primary flex-1">Submit</button>
+                            <button type="button" onclick="closeModal()" class="btn btn-ghost flex-1">Cancel</button>
+                        </div>
+                    </div>
+                </form>
+                <div id="form-message" class="mt-4 hidden"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAQ Section -->
+    <div class="container py-16 border-t border-gray-700">
+        <h2 class="text-3xl font-bold text-center mb-12">Frequently Asked Questions</h2>
+        <div class="max-w-3xl mx-auto space-y-6">
+            <div class="card">
+                <div class="card-header">Can I change plans later?</div>
+                <div class="card-body">Yes! You can upgrade or downgrade at any time. Changes take effect on your next billing cycle.</div>
+            </div>
+            <div class="card">
+                <div class="card-header">What payment methods do you accept?</div>
+                <div class="card-body">We accept all major credit cards via Stripe. Enterprise customers can also pay by invoice.</div>
+            </div>
+            <div class="card">
+                <div class="card-header">Is there a free trial?</div>
+                <div class="card-body">Yes! All paid plans include a 14-day free trial. No credit card required.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get Stripe mode from environment
+        const STRIPE_MODE = "{{ stripe_mode }}";  // Will be rendered server-side
+        
+        // Stripe checkout (Starter)
+        function checkoutStarter() {
+            window.location.href = '/api/checkout?plan=starter';
+        }
+        
+        // Stripe checkout (Pro)
+        function checkoutPro() {
+            window.location.href = '/api/checkout?plan=pro';
+        }
+        
+        // Enterprise contact modal
+        function contactEnterprise() {
+            document.getElementById('enterprise-modal').classList.remove('hidden');
+        }
+        
+        function closeModal() {
+            document.getElementById('enterprise-modal').classList.add('hidden');
+            document.getElementById('lead-form').reset();
+            document.getElementById('form-message').classList.add('hidden');
+        }
+        
+        // Lead form submission
+        document.getElementById('lead-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = {
+                email: formData.get('email'),
+                use_case: formData.get('use_case')
+            };
+            
+            try {
+                const response = await fetch('/api/lead', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                const messageDiv = document.getElementById('form-message');
+                
+                if (response.ok) {
+                    messageDiv.className = 'alert alert-success mt-4';
+                    messageDiv.innerHTML = '<div class="alert-title">Success!</div><div class="alert-body">Thank you! Our team will contact you within 24 hours.</div>';
+                    messageDiv.classList.remove('hidden');
+                    
+                    setTimeout(() => {
+                        closeModal();
+                    }, 2000);
+                } else {
+                    messageDiv.className = 'alert alert-error mt-4';
+                    messageDiv.innerHTML = '<div class="alert-title">Error</div><div class="alert-body">' + (result.error || 'Failed to submit form') + '</div>';
+                    messageDiv.classList.remove('hidden');
+                }
+            } catch (error) {
+                const messageDiv = document.getElementById('form-message');
+                messageDiv.className = 'alert alert-error mt-4';
+                messageDiv.innerHTML = '<div class="alert-title">Error</div><div class="alert-body">Connection error. Please try again.</div>';
+                messageDiv.classList.remove('hidden');
+            }
+        });
+        
+        // Close modal on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

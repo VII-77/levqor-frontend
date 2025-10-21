@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - EchoPilot AI</title>
+    <link rel="stylesheet" href="/static/brand.css">
+    <script src="/static/dark-mode.js" defer></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen flex items-center justify-center px-4">
+    <div class="max-w-md w-full">
+        <!-- Theme Toggle (Top Right) -->
+        <div class="flex justify-end mb-4">
+            <button id="theme-toggle" class="btn btn-ghost btn-sm" aria-label="Toggle theme">🌙</button>
+        </div>
+        
+        <!-- Logo -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold gradient-text">
+                🤖 EchoPilot AI
+            </h1>
+            <p class="mt-2" style="color: var(--text-tertiary);">Sign in to your account</p>
+        </div>
+
+        <!-- Login Form -->
+        <div class="card">
+            <form id="loginForm">
+                <div class="mb-6">
+                    <label for="email" class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">
+                        Email Address
+                    </label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        required
+                        class="w-full px-4 py-3 rounded-lg focus:ring-2"
+                        style="background-color: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary);"
+                        placeholder="you@example.com"
+                    >
+                </div>
+
+                <div class="mb-6">
+                    <label for="password" class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">
+                        Password or Access Code
+                    </label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        required
+                        class="w-full px-4 py-3 rounded-lg focus:ring-2"
+                        style="background-color: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary);"
+                        placeholder="Enter password or code"
+                    >
+                </div>
+
+                <button
+                    type="submit"
+                    class="btn btn-primary w-full"
+                >
+                    Sign In
+                </button>
+            </form>
+
+            <div class="mt-6 text-center">
+                <button
+                    onclick="sendMagicLink()"
+                    class="btn btn-ghost btn-sm"
+                >
+                    Send me a magic link instead
+                </button>
+            </div>
+
+            <!-- Error/Success Messages -->
+            <div id="message" class="mt-4 hidden"></div>
+        </div>
+
+        <div class="mt-6 text-center text-sm" style="color: var(--text-tertiary);">
+            <p>Don't have an account? <a href="/pricing" class="btn btn-ghost btn-sm">View Pricing</a></p>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('loginForm');
+        const messageDiv = document.getElementById('message');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem('jwt_token', data.token);
+                    showMessage('Login successful! Redirecting...', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/app';
+                    }, 1000);
+                } else {
+                    showMessage(data.error || 'Login failed', 'error');
+                }
+            } catch (error) {
+                showMessage('Connection error. Please try again.', 'error');
+            }
+        });
+
+        async function sendMagicLink() {
+            const email = document.getElementById('email').value;
+            if (!email) {
+                showMessage('Please enter your email address', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/magic-link', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage('Magic link sent! Check your email.', 'success');
+                } else {
+                    showMessage(data.error || 'Failed to send magic link', 'error');
+                }
+            } catch (error) {
+                showMessage('Connection error. Please try again.', 'error');
+            }
+        }
+
+        function showMessage(text, type) {
+            messageDiv.className = `mt-4 p-4 rounded-lg ${
+                type === 'success' ? 'bg-green-900 text-green-200' : 'bg-red-900 text-red-200'
+            }`;
+            messageDiv.textContent = text;
+            messageDiv.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

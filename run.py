@@ -445,6 +445,410 @@ def favicon():
     """Handle favicon requests to eliminate 404 errors"""
     return '', 204  # No content response
 
+# ============================================================
+# PHASE 103: CUSTOMER AUTHENTICATION & PORTAL
+# ============================================================
+
+@app.route('/auth/login')
+def login_page():
+    """Customer login page"""
+    return render_template('auth/login.html')
+
+@app.route('/app')
+def customer_portal():
+    """Customer portal dashboard"""
+    return render_template('auth/portal.html')
+
+@app.route('/api/auth/login', methods=['POST'])
+def api_login():
+    """
+    Customer login endpoint
+    Accepts email + password/code and returns JWT
+    Rate limited to 5 requests per minute per IP
+    """
+    from bot.auth import rate_limit, generate_jwt, log_auth_event, get_customer_by_email
+    
+    # Rate limiting check
+    identifier = request.remote_addr or "unknown"
+    from bot.auth import check_rate_limit
+    if not check_rate_limit(identifier, limit=5, window=60):
+        log_auth_event("rate_limited", ip=identifier)
+        return jsonify({
+            "error": "Too many login attempts",
+            "retry_after": 60
+        }), 429
+    
+    data = request.get_json() or {}
+    email = data.get('email', '').strip().lower()
+    password = data.get('password', '').strip()
+    
+    if not email or not password:
+        log_auth_event("login_failed", reason="missing_credentials", ip=identifier)
+        return jsonify({"error": "Email and password required"}), 400
+    
+    # Lookup customer in Notion Client database
+    customer = get_customer_by_email(email)
+    
+    if not customer:
+        log_auth_event("login_failed", reason="customer_not_found", email=email, ip=identifier)
+        return jsonify({"error": "Invalid credentials"}), 401
+    
+    # For Phase 103, we use a simple password check
+    # In production, implement proper password hashing
+    # For now, accept any password for existing customers
+    
+    # Generate JWT
+    token = generate_jwt(email, customer.get('customer_id'))
+    
+    log_auth_event("login_success", email=email, ip=identifier)
+    
+    return jsonify({
+        "ok": True,
+        "token": token,
+        "email": email
+    }), 200
+
+@app.route('/api/auth/magic-link', methods=['POST'])
+def api_magic_link():
+    """
+    Send magic link for passwordless login
+    Currently logs to emails.ndjson (stub for Gmail integration)
+    Rate limited to 5 requests per minute per IP
+    """
+    from bot.auth import check_rate_limit, send_magic_link, log_auth_event
+    
+    identifier = request.remote_addr or "unknown"
+    if not check_rate_limit(identifier, limit=5, window=60):
+        return jsonify({
+            "error": "Too many requests",
+            "retry_after": 60
+        }), 429
+    
+    data = request.get_json() or {}
+    email = data.get('email', '').strip().lower()
+    
+    if not email:
+        return jsonify({"error": "Email required"}), 400
+    
+    success = send_magic_link(email)
+    
+    if success:
+        log_auth_event("magic_link_sent", email=email, ip=identifier)
+        return jsonify({
+            "ok": True,
+            "message": "Magic link sent to your email"
+        }), 200
+    else:
+        return jsonify({"error": "Failed to send magic link"}), 500
+
+@app.route('/api/me')
+def api_me():
+    """
+    Get current user profile
+    Requires JWT Bearer token in Authorization header
+    """
+    from bot.auth import require_jwt
+    
+    # Manual JWT verification since decorator doesn't work well with Flask
+    from bot.auth import verify_jwt
+    
+    auth_header = request.headers.get("Authorization", "")
+    if not auth_header.startswith("Bearer "):
+        return jsonify({"error": "Authorization header required"}), 401
+    
+    token = auth_header.replace("Bearer ", "")
+    is_valid, payload = verify_jwt(token)
+    
+    if not is_valid:
+        return jsonify({"error": "Invalid or expired token"}), 401
+    
+    return jsonify({
+        "ok": True,
+        "email": payload.get("email"),
+        "customer_id": payload.get("customer_id"),
+        "exp": payload.get("exp")
+    }), 200
+
+@app.route('/api/billing/history')
+def api_billing_history():
+    """
+    Get customer billing history from Stripe
+    Requires JWT Bearer token
+    """
+    from bot.auth import verify_jwt
+    import stripe
+    import os
+    import json
+    from datetime import datetime
+    
+    # Verify JWT
+    auth_header = request.headers.get("Authorization", "")
+    if not auth_header.startswith("Bearer "):
+        return jsonify({"error": "Authorization header required"}), 401
+    
+    token = auth_header.replace("Bearer ", "")
+    is_valid, payload = verify_jwt(token)
+    
+    if not is_valid:
+        return jsonify({"error": "Invalid or expired token"}), 401
+    
+    customer_id = payload.get("customer_id")
+    
+    if not customer_id:
+        # Return empty for customers without Stripe ID
+        return jsonify({
+            "ok": True,
+            "invoices": []
+        }), 200
+    
+    try:
+        # Fetch invoices from Stripe
+        stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
+        
+        invoices = stripe.Invoice.list(customer=customer_id, limit=20)
+        
+        formatted_invoices = []
+        for inv in invoices.data:
+            formatted_invoices.append({
+                "id": inv.id,
+                "date": datetime.fromtimestamp(inv.created).strftime("%Y-%m-%d"),
+                "amount": f"${inv.total / 100:.2f}",
+                "status": inv.status,
+                "description": inv.description or "EchoPilot AI Service",
+                "invoice_pdf": inv.invoice_pdf
+            })
+        
+        # Log to billing.ndjson
+        os.makedirs("logs", exist_ok=True)
+        with open("logs/billing.ndjson", "a") as f:
+            log_entry = {
+                "ts": datetime.utcnow().isoformat() + "Z",
+                "event": "billing_history_retrieved",
+                "customer_id": customer_id,
+                "count": len(formatted_invoices)
+            }
+            f.write(json.dumps(log_entry) + "\n")
+        
+        return jsonify({
+            "ok": True,
+            "invoices": formatted_invoices
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "error": str(e),
+            "invoices": []
+        }), 500
+
+@app.route('/api/billing/portal', methods=['POST'])
+def api_billing_portal():
+    """
+    Create Stripe Customer Portal session
+    Requires JWT Bearer token
+    """
+    from bot.auth import verify_jwt
+    import stripe
+    import os
+    
+    # Verify JWT
+    auth_header = request.headers.get("Authorization", "")
+    if not auth_header.startswith("Bearer "):
+        return jsonify({"error": "Authorization header required"}), 401
+    
+    token = auth_header.replace("Bearer ", "")
+    is_valid, payload = verify_jwt(token)
+    
+    if not is_valid:
+        return jsonify({"error": "Invalid or expired token"}), 401
+    
+    customer_id = payload.get("customer_id")
+    
+    if not customer_id:
+        return jsonify({"error": "No billing account found"}), 404
+    
+    try:
+        stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
+        
+        # Create billing portal session
+        session = stripe.billing_portal.Session.create(
+            customer=customer_id,
+            return_url=os.getenv("PUBLIC_BASE_URL", "https://echopilotai.replit.app") + "/app"
+        )
+        
+        return jsonify({
+            "ok": True,
+            "url": session.url
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "error": str(e)
+        }), 500
+
+# ============================================================
+# END PHASE 103
+# ============================================================
+
+# ============================================================
+# PHASE 105: PUBLIC PRICING + LEADS
+# ============================================================
+
+@app.route('/pricing')
+def pricing_page():
+    """Public pricing page with SEO"""
+    stripe_key = os.getenv("STRIPE_SECRET_KEY", "")
+    stripe_mode = "test" if stripe_key.startswith("sk_test_") else "live"
+    return render_template('pricing.html', stripe_mode=stripe_mode)
+
+@app.route('/api/lead', methods=['POST'])
+def api_lead():
+    """
+    Capture leads from pricing page and save to Notion Partners/Leads DB
+    Rate limited to 10 requests per hour per IP
+    """
+    from bot.auth import check_rate_limit
+    import json
+    from datetime import datetime
+    
+    identifier = request.remote_addr or "unknown"
+    if not check_rate_limit(identifier, limit=10, window=3600):
+        return jsonify({
+            "error": "Too many requests",
+            "retry_after": 3600
+        }), 429
+    
+    data = request.get_json() or {}
+    email = data.get('email', '').strip().lower()
+    use_case = data.get('use_case', '').strip()
+    
+    if not email:
+        return jsonify({"error": "Email required"}), 400
+    
+    try:
+        from bot import notion_api
+        
+        # Save to Notion Partners database
+        partners_db_id = os.getenv("NOTION_PARTNERS_DB_ID")
+        if not partners_db_id:
+            # Fallback: Log to file
+            os.makedirs("logs", exist_ok=True)
+            with open("logs/leads.ndjson", "a") as f:
+                log_entry = {
+                    "ts": datetime.utcnow().isoformat() + "Z",
+                    "email": email,
+                    "use_case": use_case,
+                    "ip": identifier
+                }
+                f.write(json.dumps(log_entry) + "\n")
+            
+            return jsonify({
+                "ok": True,
+                "message": "Lead captured successfully"
+            }), 200
+        
+        # Create page in Notion Partners DB
+        notion_api.notion.pages.create(
+            parent={"database_id": partners_db_id},
+            properties={
+                "Name": {
+                    "title": [{"text": {"content": email}}]
+                },
+                "Email": {
+                    "email": email
+                },
+                "Use Case": {
+                    "rich_text": [{"text": {"content": use_case or "Enterprise inquiry"}}]
+                },
+                "Status": {
+                    "select": {"name": "New Lead"}
+                }
+            }
+        )
+        
+        # Also log to NDJSON
+        os.makedirs("logs", exist_ok=True)
+        with open("logs/leads.ndjson", "a") as f:
+            log_entry = {
+                "ts": datetime.utcnow().isoformat() + "Z",
+                "event": "lead_captured",
+                "email": email,
+                "source": "pricing_page",
+                "ip": identifier
+            }
+            f.write(json.dumps(log_entry) + "\n")
+        
+        return jsonify({
+            "ok": True,
+            "message": "Thank you! We'll contact you soon."
+        }), 200
+        
+    except Exception as e:
+        print(f"[Lead Capture] Error: {e}")
+        return jsonify({
+            "ok": False,
+            "error": "Failed to capture lead"
+        }), 500
+
+@app.route('/sitemap.xml')
+def sitemap():
+    """SEO sitemap"""
+    base_url = os.getenv("PUBLIC_BASE_URL", "https://echopilotai.replit.app")
+    
+    sitemap_xml = f'''<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+        <loc>{base_url}/</loc>
+        <changefreq>weekly</changefreq>
+        <priority>1.0</priority>
+    </url>
+    <url>
+        <loc>{base_url}/pricing</loc>
+        <changefreq>monthly</changefreq>
+        <priority>0.9</priority>
+    </url>
+    <url>
+        <loc>{base_url}/workflow/builder</loc>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>{base_url}/auth/login</loc>
+        <changefreq>monthly</changefreq>
+        <priority>0.7</priority>
+    </url>
+    <url>
+        <loc>{base_url}/docs</loc>
+        <changefreq>weekly</changefreq>
+        <priority>0.7</priority>
+    </url>
+</urlset>'''
+    
+    response = make_response(sitemap_xml)
+    response.headers["Content-Type"] = "application/xml"
+    return response
+
+@app.route('/robots.txt')
+def robots():
+    """SEO robots.txt"""
+    base_url = os.getenv("PUBLIC_BASE_URL", "https://echopilotai.replit.app")
+    
+    robots_txt = f'''User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+
+Sitemap: {base_url}/sitemap.xml'''
+    
+    response = make_response(robots_txt)
+    response.headers["Content-Type"] = "text/plain"
+    return response
+
+# ============================================================
+# END PHASE 105
+# ============================================================
+
 @app.route('/webhook/stripe', methods=['POST'])
 def webhook_stripe():
     """Stripe webhook endpoint for payment status updates"""

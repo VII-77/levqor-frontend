@@ -50,7 +50,7 @@ outputType = "console"
 
 [deployment]
 deploymentTarget = "vm"
-run = ["bash", "-c", "gunicorn -w 1 -k gthread -t 120 --bind 0.0.0.0:5000 run:app & python3 -u scripts/exec_scheduler.py"]
+run = ["gunicorn", "--bind=0.0.0.0:5000", "--reuse-port", "-w", "2", "-k", "gthread", "-t", "120", "run:app"]
 
 [[ports]]
 localPort = 5000

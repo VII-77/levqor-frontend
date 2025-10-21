@@ -1,0 +1,5 @@
+{"ts": "2025-10-21T11:07:11.778166Z", "event_type": "referral_created", "details": {"referral_code": "3BCF905F", "referrer_id": "user123", "campaign": "spring2025", "created_at": "2025-10-21T11:07:11.778156Z", "clicks": 0, "signups": 0, "conversions": 0, "revenue_usd": 0.0, "payout_usd": 0.0, "payout_status": "pending"}}
+{"ts": "2025-10-21T11:07:11.779813Z", "event_type": "referral_click", "details": {"referral_code": "3BCF905F", "timestamp": "2025-10-21T11:07:11.779806Z"}}
+{"ts": "2025-10-21T11:07:11.781824Z", "event_type": "referral_signup", "details": {"referral_code": "3BCF905F", "user_id": "new_user_1", "timestamp": "2025-10-21T11:07:11.781818Z"}}
+{"ts": "2025-10-21T11:07:11.782227Z", "event_type": "referral_conversion", "details": {"referral_code": "3BCF905F", "user_id": "new_user_1", "revenue_usd": 50.0, "payout_usd": 10.0, "commission_rate": 0.2, "timestamp": "2025-10-21T11:07:11.782222Z"}}
+{"ts": "2025-10-21T11:07:11.784691Z", "event_type": "payout_export", "details": {"payout_count": 0, "total_payout_usd": 0}}

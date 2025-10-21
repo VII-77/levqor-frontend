@@ -1,0 +1,6 @@
+{"job_id": "bb9764f9", "job_type": "ai_task", "payload": {"prompt": "Test task"}, "priority": "normal", "status": "queued", "queued_at": "2025-10-21T11:08:54.784314Z", "worker_id": null, "attempts": 0}
+{"job_id": "aa9bc28b", "job_type": "ai_task", "payload": {"prompt": "Test task"}, "priority": "normal", "status": "queued", "queued_at": "2025-10-21T11:08:54.929554Z", "worker_id": null, "attempts": 0}
+{"job_id": "bb9764f9", "job_type": "ai_task", "payload": {"prompt": "Test task"}, "priority": "normal", "status": "processing", "queued_at": "2025-10-21T11:08:54.784314Z", "worker_id": "test_worker", "attempts": 1, "started_at": "2025-10-21T11:08:56.028965Z"}
+{"job_id": "bb9764f9", "status": "completed", "completed_at": "2025-10-21T11:08:56.537846Z", "result": {"status": "completed", "tokens_used": 150, "cost_usd": 0.02}}
+{"job_id": "aa9bc28b", "job_type": "ai_task", "payload": {"prompt": "Test task"}, "priority": "normal", "status": "processing", "queued_at": "2025-10-21T11:08:54.929554Z", "worker_id": "test_worker", "attempts": 1, "started_at": "2025-10-21T11:08:56.547208Z"}
+{"job_id": "aa9bc28b", "status": "completed", "completed_at": "2025-10-21T11:08:57.052410Z", "result": {"status": "completed", "tokens_used": 150, "cost_usd": 0.02}}

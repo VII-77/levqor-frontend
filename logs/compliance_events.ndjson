@@ -1,0 +1,1 @@
+{"ts": "2025-10-21T11:06:57.265431Z", "event_type": "gdpr_data_request", "severity": "high", "description": "User requested data export under GDPR", "metadata": {"user_id": "user123", "email": "user@example.com"}}

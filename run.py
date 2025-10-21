@@ -1929,6 +1929,376 @@ def api_ops_commands():
 # END PHASE 112
 # ============================================================
 
+# ============================================================
+# PHASE 116: TENANTIZATION HARDENING
+# ============================================================
+
+@app.before_request
+def apply_tenant_context():
+    """Apply tenant context to all requests (Phase 116)"""
+    from bot.tenancy import set_tenant_context
+    
+    # Skip for health checks and static files
+    if request.path in ['/health', '/favicon.ico'] or request.path.startswith('/static'):
+        return None
+    
+    set_tenant_context()
+
+@app.route('/api/tenant/info')
+def api_tenant_info():
+    """Get current tenant information"""
+    from bot.tenancy import get_tenant_stats
+    from flask import g
+    
+    try:
+        stats = get_tenant_stats()
+        
+        return jsonify({
+            'ok': True,
+            'tenant_id': getattr(g, 'tenant_id', 'unknown'),
+            'tenant_verified': getattr(g, 'tenant_verified', False),
+            'stats': stats
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'ok': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/tenant/test-access')
+@require_dashboard_key
+def api_tenant_test_access():
+    """Test cross-tenant access control"""
+    from bot.tenancy import check_cross_tenant_access
+    from flask import g
+    
+    try:
+        test_tenant = request.args.get('test_tenant', 'other_tenant')
+        action = request.args.get('action', 'access')
+        
+        allowed, reason = check_cross_tenant_access(test_tenant, action)
+        
+        return jsonify({
+            'ok': True,
+            'current_tenant': getattr(g, 'tenant_id', 'unknown'),
+            'test_tenant': test_tenant,
+            'action': action,
+            'allowed': allowed,
+            'reason': reason
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'ok': False,
+            'error': str(e)
+        }), 500
+
+# ============================================================
+# END PHASE 116
+# ============================================================
+
+# ============================================================
+# PHASE 117: FINOPS COST & PROFITABILITY
+# ============================================================
+
+@app.route('/api/finops/summary')
+@require_dashboard_key
+def api_finops_summary():
+    """Get FinOps summary with revenue, costs, and profitability"""
+    from bot.finops import get_finops_summary
+    from flask import g
+    
+    try:
+        days = int(request.args.get('days', 30))
+        tenant_id = request.args.get('tenant_id')
+        
+        # If no tenant specified and user has tenant context, use it
+        if not tenant_id and hasattr(g, 'tenant_id') and g.tenant_id != 'default':
+            tenant_id = g.tenant_id
+        
+        summary = get_finops_summary(tenant_id=tenant_id, days=days)
+        
+        return jsonify({
+            'ok': True,
+            **summary
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'ok': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/finops/tenants')
+@require_dashboard_key
+def api_finops_tenants():
+    """Get cost/revenue breakdown by tenant"""
+    from bot.finops import get_tenant_breakdown
+    
+    try:
+        days = int(request.args.get('days', 30))
+        
+        breakdown = get_tenant_breakdown(days=days)
+        
+        return jsonify({
+            'ok': True,
+            'period_days': days,
+            **breakdown
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'ok': False,
+            'error': str(e)
+        }), 500
+
+# ============================================================
+# END PHASE 117
+# ============================================================
+
+# ============================================================
+# PHASE 118: COMPLIANCE WEBHOOKS & AUDIT API
+# ============================================================
+
+@app.route('/api/audit/chain')
+@require_dashboard_key
+def api_audit_chain():
+    """Get immutable audit chain entries"""
+    from bot.compliance_webhooks import get_audit_chain, verify_audit_chain
+    
+    try:
+        limit = int(request.args.get('limit', 100))
+        offset = int(request.args.get('offset', 0))
+        verify = request.args.get('verify', 'false').lower() == 'true'
+        
+        chain = get_audit_chain(limit=limit, offset=offset)
+        
+        result = {
+            'ok': True,
+            **chain
+        }
+        
+        if verify:
+            verification = verify_audit_chain()
+            result['verification'] = verification
+        
+        return jsonify(result), 200
+        
+    except Exception as e:
+        return jsonify({
+            'ok': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/compliance/webhook', methods=['POST'])
+def api_compliance_webhook():
+    """Receive compliance events from external systems"""
+    from bot.compliance_webhooks import log_compliance_event
+    import hmac
+    import hashlib
+    import os
+    
+    try:
+        # Verify signature
+        signature = request.headers.get('X-EchoPilot-Signature')
+        if signature:
+            secret = os.getenv('COMPLIANCE_WEBHOOK_SECRET', 'default_secret')
+            payload = request.get_data()
+            expected_sig = hmac.new(
+                secret.encode(),
+                payload,
+                hashlib.sha256
+            ).hexdigest()
+            
+            if signature != expected_sig:
+                return jsonify({
+                    'ok': False,
+                    'error': 'Invalid signature'
+                }), 401
+        
+        data = request.get_json() or {}
+        
+        # Log compliance event
+        event = log_compliance_event(
+            event_type=data.get('event_type', 'external_event'),
+            severity=data.get('severity', 'medium'),
+            description=data.get('description', 'External compliance event'),
+            metadata=data.get('metadata', {})
+        )
+        
+        return jsonify({
+            'ok': True,
+            'event_logged': True,
+            'ts': event['ts']
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'ok': False,
+            'error': str(e)
+        }), 500
+
+# ============================================================
+# END PHASE 118
+# ============================================================
+
+# ============================================================
+# PHASE 119: EDGE QUEUE
+# ============================================================
+
+@app.route('/api/queue/enqueue', methods=['POST'])
+@require_dashboard_key
+def api_queue_enqueue():
+    """Enqueue job for edge processing"""
+    from scripts.edge_worker import enqueue_job
+    
+    try:
+        data = request.get_json() or {}
+        
+        job_type = data.get('job_type')
+        payload = data.get('payload', {})
+        priority = data.get('priority', 'normal')
+        
+        if not job_type:
+            return jsonify({
+                'ok': False,
+                'error': 'job_type required'
+            }), 400
+        
+        job_id = enqueue_job(job_type, payload, priority)
+        
+        return jsonify({
+            'ok': True,
+            'job_id': job_id,
+            'status': 'queued'
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'ok': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/queue/status')
+@require_dashboard_key
+def api_queue_status():
+    """Get edge queue status"""
+    from scripts.edge_worker import get_queue_status
+    
+    try:
+        status = get_queue_status()
+        
+        return jsonify({
+            'ok': True,
+            **status
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'ok': False,
+            'error': str(e)
+        }), 500
+
+# ============================================================
+# END PHASE 119
+# ============================================================
+
+# ============================================================
+# PHASE 120: GROWTH & MARKETING REFERRAL 2.0
+# ============================================================
+
+@app.route('/api/growth/referrals')
+@require_dashboard_key
+def api_growth_referrals():
+    """Get referral statistics and leaderboard"""
+    from bot.growth_referrals import get_referral_stats
+    
+    try:
+        days = int(request.args.get('days', 30))
+        referrer_id = request.args.get('referrer_id')
+        
+        stats = get_referral_stats(referrer_id=referrer_id, days=days)
+        
+        return jsonify({
+            'ok': True,
+            'period_days': days,
+            **stats
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'ok': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/growth/referral/create', methods=['POST'])
+@require_dashboard_key
+def api_create_referral():
+    """Create new referral link"""
+    from bot.growth_referrals import create_referral
+    
+    try:
+        data = request.get_json() or {}
+        
+        referrer_id = data.get('referrer_id')
+        campaign = data.get('campaign', 'default')
+        
+        if not referrer_id:
+            return jsonify({
+                'ok': False,
+                'error': 'referrer_id required'
+            }), 400
+        
+        referral = create_referral(referrer_id, campaign=campaign)
+        
+        return jsonify({
+            'ok': True,
+            **referral
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'ok': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/growth/payouts/export')
+@require_dashboard_key
+def api_export_payouts():
+    """Export referral payouts as CSV"""
+    from bot.growth_referrals import export_payouts_csv
+    from flask import Response
+    
+    try:
+        min_payout = float(request.args.get('min_payout', 10.0))
+        
+        csv_content = export_payouts_csv(min_payout_usd=min_payout)
+        
+        if not csv_content:
+            return jsonify({
+                'ok': False,
+                'error': 'Failed to generate CSV'
+            }), 500
+        
+        return Response(
+            csv_content,
+            mimetype='text/csv',
+            headers={
+                'Content-Disposition': f'attachment; filename=payouts_{datetime.utcnow().strftime("%Y%m%d")}.csv'
+            }
+        )
+        
+    except Exception as e:
+        return jsonify({
+            'ok': False,
+            'error': str(e)
+        }), 500
+
+# ============================================================
+# END PHASE 120
+# ============================================================
+
 @app.route('/webhook/stripe', methods=['POST'])
 def webhook_stripe():
     """Stripe webhook endpoint for payment status updates"""

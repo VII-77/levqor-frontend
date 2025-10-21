@@ -1,0 +1,11 @@
+{"ts": "2025-10-21T11:07:10.588841Z", "event_type": "job_enqueued", "worker_id": "worker_1", "details": {"job_id": "b370c898", "job_type": "ai_task", "priority": "normal"}}
+{"ts": "2025-10-21T11:08:54.785621Z", "event_type": "job_enqueued", "worker_id": "worker_1", "details": {"job_id": "bb9764f9", "job_type": "ai_task", "priority": "normal"}}
+{"ts": "2025-10-21T11:08:54.930125Z", "event_type": "job_enqueued", "worker_id": "worker_1", "details": {"job_id": "aa9bc28b", "job_type": "ai_task", "priority": "normal"}}
+{"ts": "2025-10-21T11:08:56.018448Z", "event_type": "worker_started", "worker_id": "worker_1", "details": {"worker_id": "test_worker", "max_jobs": 2}}
+{"ts": "2025-10-21T11:08:56.033606Z", "event_type": "job_fetched", "worker_id": "worker_1", "details": {"job_id": "bb9764f9", "job_type": "ai_task", "worker_id": "test_worker"}}
+{"ts": "2025-10-21T11:08:56.034127Z", "event_type": "job_processing", "worker_id": "worker_1", "details": {"job_id": "bb9764f9", "job_type": "ai_task"}}
+{"ts": "2025-10-21T11:08:56.545430Z", "event_type": "job_completed", "worker_id": "worker_1", "details": {"job_id": "bb9764f9", "success": true}}
+{"ts": "2025-10-21T11:08:56.547887Z", "event_type": "job_fetched", "worker_id": "worker_1", "details": {"job_id": "aa9bc28b", "job_type": "ai_task", "worker_id": "test_worker"}}
+{"ts": "2025-10-21T11:08:56.551791Z", "event_type": "job_processing", "worker_id": "worker_1", "details": {"job_id": "aa9bc28b", "job_type": "ai_task"}}
+{"ts": "2025-10-21T11:08:57.053050Z", "event_type": "job_completed", "worker_id": "worker_1", "details": {"job_id": "aa9bc28b", "success": true}}
+{"ts": "2025-10-21T11:08:57.053830Z", "event_type": "worker_stopped", "worker_id": "worker_1", "details": {"worker_id": "test_worker", "jobs_processed": 2}}

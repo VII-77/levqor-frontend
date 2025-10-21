@@ -94,6 +94,13 @@ See `docs/SLOS.md` for complete documentation.
 - **Phase 114 - Security Scanner & SBOM:** Automated security scanning with `scripts/security_scanner.py`, pip audit integration, secret scanning with false positive filtering, SBOM generation (65 components), and comprehensive reports in `logs/security_report.json` and `logs/sbom.json`.
 - **Phase 115 - Advanced DR:** Backup integrity verification with `scripts/dr_restore_check.py`, dry-run restore testing, tarball validation, metadata verification, and DR reports in `logs/dr_restore_report.json`.
 
+**Phases 116-120 - Multi-Tenancy & Growth (100% Complete):**
+- **Phase 116 - Tenantization Hardening:** Tenant context middleware with `@app.before_request`, cross-tenant access denial via `check_cross_tenant_access()`, tenant-aware filtering with `filter_by_tenant()`, audit logging to `logs/tenant_security.ndjson`, and APIs at `GET /api/tenant/info` and `GET /api/tenant/test-access`.
+- **Phase 117 - FinOps Cost & Profitability:** Revenue tracking from Stripe payments, AI cost calculation from job logs, infrastructure cost estimation, profitability calculations (profit/margin/ROI), per-tenant cost breakdown, and APIs at `GET /api/finops/summary` and `GET /api/finops/tenants`.
+- **Phase 118 - Compliance Webhooks & Audit API:** Immutable audit chain with SHA-256 hash chaining, audit integrity verification, compliance event logging with severity levels, HMAC webhook signature verification, and APIs at `GET /api/audit/chain` and `POST /api/compliance/webhook`.
+- **Phase 119 - Edge Queue:** Distributed job processing with priority queuing (critical/high/normal/low), job lifecycle tracking (queued→processing→completed/failed), de-duplicated queue status, worker processing in `scripts/edge_worker.py`, and APIs at `POST /api/queue/enqueue` and `GET /api/queue/status`.
+- **Phase 120 - Growth & Marketing Referral 2.0:** Referral code generation, click/signup/conversion tracking, 20% commission calculations, CSV payout export, referral leaderboard, and APIs at `GET /api/growth/referrals`, `POST /api/growth/referral/create`, and `GET /api/growth/payouts/export`.
+
 ### Data Flow Architecture
 The system utilizes a 13-database structure within Notion: 5 core databases (Automation Queue, Automation Log, EchoPilot Job Log, Notion Client, Notion Status) and 8 enterprise databases (Finance, Governance, Ops Monitor, Forecast, Region Compliance, Partners, Referrals, Growth Metrics). Automated schema enforcement ensures data integrity.
 

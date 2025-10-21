@@ -1,0 +1,3 @@
+{"ts": "2025-10-21T11:06:57.255887Z", "event_type": "data_access", "user": "user123", "action": "read", "resource": "customer_data", "details": {"record_count": 10}, "prev_hash": "genesis", "hash": "d307f33f141668a5"}
+{"ts": "2025-10-21T11:06:57.259737Z", "event_type": "data_modification", "user": "admin456", "action": "update", "resource": "pricing", "details": {"field": "price", "old": 100, "new": 120}, "prev_hash": "d307f33f141668a5", "hash": "e073fd7e57bef346"}
+{"ts": "2025-10-21T11:06:57.264156Z", "event_type": "data_deletion", "user": "admin456", "action": "delete", "resource": "old_logs", "details": {"count": 50}, "prev_hash": "e073fd7e57bef346", "hash": "f98b3b017883b696"}

@@ -1,13 +1,7 @@
 # EchoPilot AI Automation Bot
 
 ## Overview
-EchoPilot is a 115-phase enterprise-ready AI automation platform designed to process tasks from Notion databases using AI (OpenAI via Replit AI Integrations). It features a 60-second polling cycle, autonomous scheduling, dynamic quality assurance (80% QA threshold), and comprehensive job performance tracking (costs, QA scores, token usage, latency).
-
-The platform includes core infrastructure for finance, forecasting, a marketplace API, localization, and legal compliance. Advanced operations cover payments, SLO tracking, incident paging, cost guardrails, and autoscaling. The enterprise suite adds RBAC, JWT authentication, disaster recovery, multi-tenancy, security scanning, compliance automation, predictive maintenance, continuous learning, and automated enterprise validation.
-
-**New in Phases 111-115**: Product analytics with DAU/WAU/MAU tracking, operator chat console with secure command execution, auto-scaler with load predictions, security scanner with SBOM generation, and advanced DR restore verification.
-
-It is deployed on a Replit Reserved VM and is production-ready with automated validation and reporting.
+EchoPilot is an enterprise-ready AI automation platform that processes tasks from Notion databases using AI (OpenAI via Replit AI Integrations). It features a 60-second polling cycle, autonomous scheduling, dynamic quality assurance, and comprehensive job performance tracking. The platform includes core infrastructure for finance, forecasting, a marketplace API, localization, and legal compliance. Advanced operations cover payments, SLO tracking, incident paging, cost guardrails, autoscaling, RBAC, JWT authentication, disaster recovery, multi-tenancy, security scanning, compliance automation, predictive maintenance, continuous learning, and automated enterprise validation. All 130 phases are operational, including platform extensions like PWA support, an integrations hub, an AI data lake, predictive load balancing, self-healing 2.0, enterprise marketplace, compliance APIs, multi-region edge runtime, a partner portal, and a unified orchestration layer. It is deployed on a Replit Reserved VM and is production-ready.
 
 ## User Preferences
 - Communication style: Simple, everyday language
@@ -17,92 +11,52 @@ It is deployed on a Replit Reserved VM and is production-ready with automated va
 ## System Architecture
 
 ### Core Architecture
-EchoPilot employs a polling-based, event-driven system with Git integration, polling Notion every 60 seconds. All operations are traceable via Git commit hashes, and execution is prevented with a dirty working tree unless explicitly allowed. It leverages Replit Workflows for scheduling and Replit Connectors for OAuth-based integrations.
+EchoPilot uses a polling-based, event-driven system with Git integration, polling Notion every 60 seconds. Operations are traceable via Git commit hashes, and execution is prevented with a dirty working tree unless explicitly allowed. It leverages Replit Workflows for scheduling and Replit Connectors for OAuth-based integrations.
 
-### SLO Configuration (Production-Ready)
-All SLO thresholds are configurable via environment variables:
-- **Availability:** `SLO_AVAILABILITY_PCT` (default: 99.9%)
-- **P95 Latency:** `SLO_P95_TARGET_MS` (default: 800ms)
-- **P99 Latency:** `SLO_P99_TARGET_MS` (default: 1200ms)
-- **Webhook Success:** `SLO_WEBHOOK_SUCCESS_PCT` (default: 99%)
-- **Error Budget Burn:** `SLO_ERROR_BUDGET_PCT` (default: 2% per day)
-
-See `docs/SLOS.md` for complete documentation.
+### SLO Configuration
+All SLO thresholds are configurable via environment variables for Availability, P95/P99 Latency, Webhook Success, and Error Budget Burn.
 
 ### Application Structure and Key Features
 **Core Automation:**
 - **Task Processing:** Manages task execution, dynamic QA, metrics, and alerts.
-- **Notion Integration:** Interacts with 13 Notion databases for task queues, logging, and metrics.
-- **AI Integration:** Uses OpenAI models (GPT-4o for processing, GPT-4o-mini for QA) with detailed cost/token tracking.
-- **Quality Assurance:** Dynamic, multi-criteria QA (Clarity, Accuracy, Completeness, Professional tone) with an 80% pass threshold.
+- **Notion Integration:** Interacts with 13 Notion databases.
+- **AI Integration:** Uses OpenAI models (GPT-4o for processing, GPT-4o-mini for QA) with cost/token tracking.
+- **Quality Assurance:** Dynamic, multi-criteria QA with an 80% pass threshold.
 
 **Enterprise Features:**
-- **Finance System:** Tracks revenue, costs, P&L, margins, valuation, and integrates with Stripe.
+- **Finance System:** Tracks revenue, costs, P&L, and integrates with Stripe.
 - **Forecast Engine:** Provides 30-day load and revenue predictions using ML.
-- **Marketplace API:** Supports partner integration with API keys, quotas, and job submission/retrieval.
+- **Marketplace API:** Supports partner integration with API keys and quotas.
 - **Localization:** Multi-language (EN/ES/UR) and multi-currency (USD/EUR/GBP/INR/PKR) support with regional compliance.
 - **Legal Compliance:** Includes ToS, Privacy Policy, Cookie Policy, and Accessibility Statement (GDPR/CCPA compliant).
 - **Database Infrastructure:** Automated setup of 8 enterprise-specific databases.
 
 **Platform Capabilities:**
-- **Authentication:** Handles Notion, Google Drive, and Gmail via Replit Connectors OAuth with dynamic token refresh.
-- **Alerting System:** Webhook, email, and Telegram notifications for failures.
-- **Monitoring & Diagnostics:** Auto-Operator for self-healing, hourly heartbeats, synthetic tests, daily supervisor reports, and real-time alerts.
-- **Metrics Aggregation:** Cross-database metrics system with daily System Pulse reports.
-- **Edge Routing:** Railway fallback for specific endpoints (`/supervisor`, `/forecast`, `/metrics`, `/pulse`).
-- **Resilience & Auto-Recovery:** Mechanisms for Stripe payment reconciliation, job retry, and media file validation.
+- **Authentication:** Handles Notion, Google Drive, and Gmail via Replit Connectors OAuth.
+- **Alerting System:** Webhook, email, and Telegram notifications.
+- **Monitoring & Diagnostics:** Auto-Operator for self-healing, heartbeats, synthetic tests, and reports.
+- **Metrics Aggregation:** Cross-database metrics system with daily reports.
+- **Edge Routing:** Railway fallback for specific endpoints.
+- **Resilience & Auto-Recovery:** Mechanisms for payment reconciliation, job retry, and media file validation.
 
-**Visual Workflow Builder (Phases 51-55 - 100% Complete):**
-- Provides a no-code drag-and-drop interface for creating automation workflows with live execution.
-- Supports 6 node types (Trigger, AI Task, Condition, Action, Notification, Delay) and 5 pre-built templates.
-- Includes dynamic configuration panels, real-time auto-save, and mobile optimization (Galaxy Fold 6).
-- **Live Execution:** Run workflows directly from the builder with real-time visual feedback and execution logs.
-- **Debug Mode:** Test workflows with simulated data before running with actual AI/Notion integration.
-- Integrates with existing Notion databases, AI models (GPT-4o/mini), and notification systems (Email, Telegram).
-- **2,850+ lines of code across 7 files** - Fully production-ready visual automation platform.
+**Visual Workflow Builder:** Provides a no-code drag-and-drop interface for creating automation workflows with live execution, debug mode, and mobile optimization.
 
-**Boss Mode UI v2.0:**
-- A comprehensive UI/UX overhaul with a mobile-first dashboard, design system, and improved performance.
-- Features enterprise security (rate limiting, CSRF, audit logs), a payments center, status and observability tools (SLOs), and a command palette.
-- Includes AI quality systems, growth loops, internationalization, and extensive documentation.
+**Boss Mode UI v2.0:** A mobile-first dashboard with enterprise security, payments center, observability tools, and internationalization.
 
-**Enterprise Finale Features (Phases 81-100):**
-- **Access & Security:** RBAC, JWT/OAuth, Disaster Recovery, Security Scanning, Privacy & Consent Management.
-- **AI & Data:** AI Model Router, FinOps Reports, Data Warehouse Sync, Analytics Hub, Anomaly Detection, Training Audit, Continuous Learning Engine.
-- **Operations:** Predictive Maintenance, Compliance Suite 2.0, Governance AI Advisor, Multi-Tenant Core, Tenant Billing, Adaptive Optimizer, Self-Heal v2, Enterprise Validator, Final Enterprise Report.
+**Enterprise Finale Features:** Covers RBAC, JWT/OAuth, Disaster Recovery, Security Scanning, Privacy & Consent, AI Model Routing, FinOps Reports, Data Warehouse Sync, Analytics Hub, Anomaly Detection, Continuous Learning, Predictive Maintenance, Compliance Suite, Governance AI Advisor, Multi-Tenant Core, and Adaptive Optimization.
 
-**Autonomous Maintenance (Phase 102):**
-- **Anomaly Guard:** Real-time anomaly detection with 5-minute polling cycle monitoring health endpoint latency and system resources.
-- **Statistical Analysis:** Calculates rolling mean/stdev using 50-sample window to identify latency outliers (>3σ threshold).
-- **Auto-Heal Triggers:** Automatically invokes self-heal script when health check fails, CPU/MEM >90%, or latency anomaly detected.
-- **NDJSON Logging:** Comprehensive event logging to `logs/anomaly_guard.ndjson` for forensic analysis and trend detection.
-- **Reliability Target:** Pushes system uptime from 99.9% → 99.99% through early warning and zero-touch recovery.
+**Autonomous Maintenance:** Real-time anomaly detection, statistical analysis, and auto-heal triggers for system health, pushing uptime to 99.99%.
 
-**Production Extras (E1-E7 - 100% Complete):**
-- **Extra 1 - Demo Environment:** Idempotent demo data seeder (`scripts/seed_demo.py`) with 5 categories (clients, automations, finance, growth, partners). DEMO_MODE support with read-only protection, demo banner, and write operation blocking.
-- **Extra 2 - Smoke Test Suite:** Basic smoke tests (`scripts/smoke.sh`, 19+ tests, ~30s) and advanced smoke tests (`scripts/smoke_advanced.sh`, 14 tests, ~60s) with color-coded output, NDJSON logging, and CI/CD integration. Complete documentation in `docs/SMOKE_TESTS.md`.
-- **Extra 3 - Observability Pack:** Request ID middleware with X-Request-ID header propagation. Real-time log tailing API (`GET /api/logs`) with 8 log file support and request ID filtering. Prometheus metrics endpoint (`GET /metrics`) with HTTP requests, latency quantiles, database health, and scheduler metrics.
-- **Extra 4 - Security Guardrails:** JWT authentication system (access 15min + refresh 24hr) with token rotation, blacklist-based revocation, and 4 API endpoints (`/api/auth/*`). WAF-style request validation detecting SQL injection, XSS, and path traversal with audit logging. CSP headers and comprehensive security documentation.
-- **Extra 5 - DX Tools:** Development environment checker (`scripts/dev_check.py`) validating Python, dependencies, env vars, directories, git, database, port, and disk space. Unified test runner (`scripts/test_all.sh`) orchestrating 8 test suites. Pre-commit hooks (`.pre-commit-config.yaml`) with black, isort, flake8, bandit, shellcheck, and custom validators.
-- **Extra 6 - UX Polish:** Custom 404 page with search box, keyword routing, and navigation links. Mobile-responsive dark theme design.
-- **Extra 7 - Documentation:** Comprehensive SECURITY.md (400+ lines) covering 7 security features, best practices, vulnerability reporting, compliance standards (OWASP, GDPR, CCPA, SOC 2), and security checklists.
+**Production Extras:** Includes a demo environment, smoke test suite, observability pack (request ID, log tailing, Prometheus metrics), security guardrails (JWT, WAF-style validation, CSP), DX tools (dev checker, unified test runner, pre-commit hooks), UX polish (custom 404, dark theme), and comprehensive documentation.
 
-**Phases 111-115 - Analytics & Operations (100% Complete):**
-- **Phase 111 - Product Analytics:** DAU/WAU/MAU tracking with client-side telemetry (`static/js/telemetry.js`), event ingestion API (`POST /api/analytics/event`), usage summary API (`GET /api/analytics/usage`), daily rollup job at 03:15 UTC, and comprehensive documentation in `docs/ANALYTICS.md`.
-- **Phase 112 - Operator Chat Console:** Secure admin copilot with allow-listed commands (`restart_scheduler`, `run_backup`, `reconcile_payments`, `tail_logs`, etc.), dry-run by default with `confirm=true` execution, full audit trail in `logs/ops_console.ndjson`, and APIs at `POST /api/ops/command` and `GET /api/ops/commands`.
-- **Phase 113 - Auto-Scaler:** CPU/RAM/queue load predictions with `scripts/autoscaler.py`, linear regression trend analysis, scaling recommendations (scale_up/scale_down), metrics logging to `logs/autoscaler.ndjson`, and integration with scheduler.
-- **Phase 114 - Security Scanner & SBOM:** Automated security scanning with `scripts/security_scanner.py`, pip audit integration, secret scanning with false positive filtering, SBOM generation (65 components), and comprehensive reports in `logs/security_report.json` and `logs/sbom.json`.
-- **Phase 115 - Advanced DR:** Backup integrity verification with `scripts/dr_restore_check.py`, dry-run restore testing, tarball validation, metadata verification, and DR reports in `logs/dr_restore_report.json`.
+**Analytics & Operations:** Product analytics (telemetry, usage tracking), operator chat console, auto-scaler (CPU/RAM/queue load predictions), security scanner & SBOM generation, and advanced DR with backup integrity verification.
 
-**Phases 116-120 - Multi-Tenancy & Growth (100% Complete):**
-- **Phase 116 - Tenantization Hardening:** Tenant context middleware with `@app.before_request`, cross-tenant access denial via `check_cross_tenant_access()`, tenant-aware filtering with `filter_by_tenant()`, audit logging to `logs/tenant_security.ndjson`, and APIs at `GET /api/tenant/info` and `GET /api/tenant/test-access`.
-- **Phase 117 - FinOps Cost & Profitability:** Revenue tracking from Stripe payments, AI cost calculation from job logs, infrastructure cost estimation, profitability calculations (profit/margin/ROI), per-tenant cost breakdown, and APIs at `GET /api/finops/summary` and `GET /api/finops/tenants`.
-- **Phase 118 - Compliance Webhooks & Audit API:** Immutable audit chain with SHA-256 hash chaining, audit integrity verification, compliance event logging with severity levels, HMAC webhook signature verification, and APIs at `GET /api/audit/chain` and `POST /api/compliance/webhook`.
-- **Phase 119 - Edge Queue:** Distributed job processing with priority queuing (critical/high/normal/low), job lifecycle tracking (queued→processing→completed/failed), de-duplicated queue status, worker processing in `scripts/edge_worker.py`, and APIs at `POST /api/queue/enqueue` and `GET /api/queue/status`.
-- **Phase 120 - Growth & Marketing Referral 2.0:** Referral code generation, click/signup/conversion tracking, 20% commission calculations, CSV payout export, referral leaderboard, and APIs at `GET /api/growth/referrals`, `POST /api/growth/referral/create`, and `GET /api/growth/payouts/export`.
+**Multi-Tenancy & Growth:** Tenantization hardening, FinOps cost & profitability tracking, compliance webhooks & audit API, edge queue for distributed job processing, and a growth & marketing referral system.
+
+**Platform Extensions:** PWA & mobile app support, an integrations hub (9+ connectors), AI data lake & prompt analytics, predictive load & staff hints, self-healing 2.0, enterprise marketplace, external compliance APIs (GDPR, CCPA, SOC2), multi-region edge runtime, partner/affiliate portal, and the EchoPilot OS orchestration layer.
 
 ### Data Flow Architecture
-The system utilizes a 13-database structure within Notion: 5 core databases (Automation Queue, Automation Log, EchoPilot Job Log, Notion Client, Notion Status) and 8 enterprise databases (Finance, Governance, Ops Monitor, Forecast, Region Compliance, Partners, Referrals, Growth Metrics). Automated schema enforcement ensures data integrity.
+The system uses a 13-database structure within Notion: 5 core and 8 enterprise databases. Automated schema enforcement ensures data integrity.
 
 ## External Dependencies
 
@@ -121,4 +75,4 @@ The system utilizes a 13-database structure within Notion: 5 core databases (Aut
 -   `requests`
 -   `schedule`
 -   `python-dotenv`
--   `ReportLab` (for PDF generation)
+-   `ReportLab`

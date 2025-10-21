@@ -1,5 +1,5 @@
 {
-  "ts": "2025-10-21T09:00:26.058175Z",
+  "ts": "2025-10-21T10:00:58.809978Z",
   "status": "PASS",
   "checks": {
     "api_status": {
@@ -12,7 +12,7 @@
     },
     "logs_integrity": {
       "status": "PASS",
-      "details": "31 NDJSON log files found"
+      "details": "32 NDJSON log files found"
     },
     "rbac_users": {
       "status": "PASS",

@@ -103,6 +103,34 @@ def require_role(*allowed):
         return wrapped
     return deco
 
+# ===== DEMO MODE - Extra 1 =====
+def is_demo_mode():
+    """Check if application is running in demo mode"""
+    return os.getenv('DEMO_MODE', '').lower() in ('true', '1', 'yes')
+
+def block_in_demo_mode(f):
+    """Decorator to block write operations in demo mode"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if is_demo_mode():
+            return jsonify({
+                "ok": False,
+                "error": "Operation not allowed in demo mode",
+                "demo_mode": True,
+                "message": "This is a read-only demo environment. Write operations are disabled."
+            }), 403
+        
+        return f(*args, **kwargs)
+    return decorated_function
+
+@app.route('/api/demo-mode')
+def api_demo_mode():
+    """Get demo mode status"""
+    return jsonify({
+        "demo_mode": is_demo_mode(),
+        "message": "Demo mode enabled - read-only operations only" if is_demo_mode() else "Normal mode"
+    })
+
 @app.before_request
 def before_request_timing():
     """Record request start time for latency tracking"""
@@ -983,6 +1011,7 @@ def api_warehouse_status():
 
 @app.route('/api/warehouse/sync', methods=['POST'])
 @require_dashboard_key
+@block_in_demo_mode
 def api_warehouse_sync():
     """
     Trigger manual data warehouse sync
@@ -1054,6 +1083,7 @@ def api_slo_recommendations():
 
 @app.route('/api/slo/tune', methods=['POST'])
 @require_dashboard_key
+@block_in_demo_mode
 def api_slo_tune():
     """
     Trigger SLO threshold tuning analysis
@@ -1208,6 +1238,7 @@ def api_flags_get(flag_name):
 
 @app.route('/api/flags/<flag_name>', methods=['PUT'])
 @require_dashboard_key
+@block_in_demo_mode
 def api_flags_update(flag_name):
     """
     Update feature flag configuration
@@ -1367,6 +1398,7 @@ def api_governance_report():
 
 @app.route('/api/governance/analyze', methods=['POST'])
 @require_dashboard_key
+@block_in_demo_mode
 def api_governance_analyze():
     """
     Trigger AI governance analysis
@@ -1788,7 +1820,7 @@ def pulse_route():
 @app.route('/')
 def landing():
     """Boss Mode: Landing page"""
-    return send_from_directory('templates', 'landing.html')
+    return render_template('landing.html', demo_mode=is_demo_mode())
 
 @app.route('/about')
 def about():

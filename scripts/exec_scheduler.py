@@ -500,6 +500,14 @@ def run_enterprise_report():
     except Exception as e:
         log_event('enterprise_report_error', {'error': str(e)})
 
+def run_anomaly_guard():
+    """Run anomaly guard for autonomous maintenance (Phase 102)"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/anomaly_guard.py'], check=False, timeout=60)
+    except Exception as e:
+        log_event('anomaly_guard_error', {'error': str(e)})
+
 def run_scheduled_tasks():
     """Check and run scheduled tasks"""
     
@@ -803,6 +811,14 @@ def run_scheduled_tasks():
        (datetime.utcnow() - last_run['governance_loop']).total_seconds() >= (15 * 60):
         run_governance_loop()
         mark_run('governance_loop')
+    
+    # ==================== PHASE 102: AUTONOMOUS MAINTENANCE ====================
+    
+    # 48) Anomaly Guard - Every 5 minutes (Phase 102)
+    if 'anomaly_guard' not in last_run or \
+       (datetime.utcnow() - last_run['anomaly_guard']).total_seconds() >= (5 * 60):
+        run_anomaly_guard()
+        mark_run('anomaly_guard')
     
     # 48) Predictive Maintenance - Every hour (Phase 101)
     if is_time_match(datetime.utcnow().hour, 0) and should_run('predictive_maintenance'):

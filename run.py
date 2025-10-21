@@ -5761,7 +5761,7 @@ def api_support_digest():
 
 @app.route('/api/flags/get', methods=['GET'])
 @require_dashboard_key
-def api_flags_get():
+def api_flags_get_all():
     """Get all feature flags (Phase 62)"""
     try:
         from scripts.feature_flags import get_flags
@@ -6483,21 +6483,7 @@ def api_rbac_users():
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
-@app.route('/api/auth/token', methods=['POST'])
-@require_dashboard_key
-def api_auth_token():
-    """Generate JWT token (Phase 82)"""
-    try:
-        data = request.get_json() or {}
-        email = data.get('email', 'user@example.com')
-        import subprocess
-        result = subprocess.run(
-            ['python3', 'scripts/customer_auth.py'],
-            capture_output=True, text=True, timeout=10
-        )
-        return jsonify(json.loads(result.stdout) if result.returncode == 0 else {"ok": False}), 200
-    except Exception as e:
-        return jsonify({"ok": False, "error": str(e)}), 500
+# JWT auth endpoints moved to lines 1447-1540 (Extra 4)
 
 @app.route('/api/dr/backup', methods=['POST'])
 @require_dashboard_key
@@ -6544,19 +6530,7 @@ def api_finops_report():
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
-@app.route('/api/warehouse/sync', methods=['POST'])
-@require_dashboard_key
-def api_warehouse_sync():
-    """Sync to data warehouse (Phase 86)"""
-    try:
-        import subprocess
-        result = subprocess.run(
-            ['python3', 'scripts/warehouse_sync.py'],
-            capture_output=True, text=True, timeout=60
-        )
-        return jsonify(json.loads(result.stdout) if result.returncode == 0 else {"ok": False, "error": result.stderr}), 200
-    except Exception as e:
-        return jsonify({"ok": False, "error": str(e)}), 500
+# Warehouse sync endpoint moved to line ~1030 (Phase 106)
 
 @app.route('/api/analytics/hub', methods=['GET'])
 @require_dashboard_key

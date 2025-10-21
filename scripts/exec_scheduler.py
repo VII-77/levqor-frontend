@@ -886,6 +886,12 @@ def run_scheduled_tasks():
     if now.weekday() == 6 and is_time_match(1, 0) and should_run('dr_drill'):
         run_dr_drill()
         mark_run('dr_drill')
+    
+    # 57) SLA Tracker - Every 15 minutes (v2.0 Quantum)
+    if 'sla_tracker' not in last_run or \
+       (datetime.utcnow() - last_run['sla_tracker']).total_seconds() >= (15 * 60):
+        run_sla_tracker()
+        mark_run('sla_tracker')
 
 def write_pid():
     """Write PID to file with fsync"""
@@ -1108,6 +1114,14 @@ def run_dr_drill():
         subprocess.run(['python3', 'scripts/dr_drill.py'], check=False, timeout=60)
     except Exception as e:
         log_event('dr_drill_error', {'error': str(e)})
+
+def run_sla_tracker():
+    """Run SLA uptime tracker - v2.0 Quantum"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/os_sla_tracker.py'], check=False, timeout=30)
+    except Exception as e:
+        log_event('sla_tracker_error', {'error': str(e)})
 
 if __name__ == '__main__':
     main()

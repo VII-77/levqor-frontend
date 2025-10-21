@@ -491,3 +491,4 @@
 {"ts": "2025-10-21T12:17:04.579840Z", "request_id": "e94016a5-19fb-43b8-8062-963b5977892f", "route": "landing", "method": "GET", "status": 200, "duration_ms": 0.51, "path": "/"}
 {"ts": "2025-10-21T12:17:29.099802Z", "request_id": "2a5796b1-393b-40d5-be57-86e1b67b432d", "route": "health_check", "method": "GET", "status": 200, "duration_ms": 27.73, "path": "/health"}
 {"ts": "2025-10-21T12:17:30.265846Z", "request_id": "13f5ac12-b62b-4699-bbce-ffab27b3535b", "route": "landing", "method": "GET", "status": 200, "duration_ms": 0.76, "path": "/"}
+{"ts": "2025-10-21T12:17:30.529828Z", "request_id": "e94a21df-4cb5-40a6-ac4d-7c5c599adda5", "route": "health_check", "method": "GET", "status": 200, "duration_ms": 32.94, "path": "/health"}

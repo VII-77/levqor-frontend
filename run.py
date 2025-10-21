@@ -2299,6 +2299,373 @@ def api_export_payouts():
 # END PHASE 120
 # ============================================================
 
+# ============================================================
+# PHASE 121: PWA SUPPORT
+# ============================================================
+
+@app.route('/offline.html')
+def offline_page():
+    """Offline fallback page for PWA"""
+    return render_template('offline.html')
+
+@app.route('/manifest.json')
+def pwa_manifest():
+    """PWA manifest file"""
+    return send_from_directory('static', 'manifest.json', mimetype='application/manifest+json')
+
+# ============================================================
+# PHASE 122: INTEGRATIONS HUB
+# ============================================================
+
+@app.route('/api/integrations/catalog')
+@require_dashboard_key
+def api_integrations_catalog():
+    """Get integrations catalog"""
+    from bot.integrations_hub import get_integrations_catalog
+    
+    try:
+        category = request.args.get('category')
+        status = request.args.get('status', 'active')
+        
+        catalog = get_integrations_catalog(category=category, status=status)
+        
+        return jsonify({
+            'ok': True,
+            **catalog
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'ok': False, 'error': str(e)}), 500
+
+@app.route('/api/integrations/install', methods=['POST'])
+@require_dashboard_key
+def api_install_integration():
+    """Install an integration"""
+    from bot.integrations_hub import install_integration
+    from flask import g
+    
+    try:
+        data = request.get_json() or {}
+        integration_id = data.get('integration_id')
+        tenant_id = g.tenant_id if hasattr(g, 'tenant_id') else 'default'
+        config = data.get('config', {})
+        
+        result = install_integration(integration_id, tenant_id, config)
+        
+        return jsonify({
+            'ok': True,
+            **result
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'ok': False, 'error': str(e)}), 500
+
+# ============================================================
+# PHASE 123: AI DATA LAKE
+# ============================================================
+
+@app.route('/api/ai/analytics')
+@require_dashboard_key
+def api_ai_analytics():
+    """Get AI prompt analytics"""
+    from bot.ai_data_lake import get_prompt_analytics
+    
+    try:
+        days = int(request.args.get('days', 7))
+        analytics = get_prompt_analytics(days=days)
+        
+        return jsonify({
+            'ok': True,
+            **analytics
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'ok': False, 'error': str(e)}), 500
+
+@app.route('/api/ai/model-comparison')
+@require_dashboard_key
+def api_model_comparison():
+    """Get AI model performance comparison"""
+    from bot.ai_data_lake import get_model_comparison
+    
+    try:
+        comparison = get_model_comparison()
+        
+        return jsonify({
+            'ok': True,
+            **comparison
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'ok': False, 'error': str(e)}), 500
+
+# ============================================================
+# PHASE 124: PREDICTIVE LOAD
+# ============================================================
+
+@app.route('/api/predict/load')
+@require_dashboard_key
+def api_predict_load():
+    """Get load prediction"""
+    from bot.predictive_load import predict_load
+    
+    try:
+        hours = int(request.args.get('hours', 24))
+        prediction = predict_load(hours_ahead=hours)
+        
+        return jsonify({
+            'ok': True,
+            **prediction
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'ok': False, 'error': str(e)}), 500
+
+@app.route('/api/predict/staffing')
+@require_dashboard_key
+def api_staffing_recommendation():
+    """Get staffing recommendation"""
+    from bot.predictive_load import get_staffing_recommendation
+    
+    try:
+        recommendation = get_staffing_recommendation()
+        
+        return jsonify({
+            'ok': True,
+            **recommendation
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'ok': False, 'error': str(e)}), 500
+
+# ============================================================
+# PHASE 125: SELF-HEALING 2.0
+# ============================================================
+
+@app.route('/api/healing/status')
+@require_dashboard_key
+def api_healing_status():
+    """Get self-healing status"""
+    from bot.self_healing_v2 import health_check, get_healing_history
+    
+    try:
+        health = health_check()
+        history = get_healing_history(limit=10)
+        
+        return jsonify({
+            'ok': True,
+            'health': health,
+            'recent_actions': history.get('actions', [])
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'ok': False, 'error': str(e)}), 500
+
+# ============================================================
+# PHASE 126: ENTERPRISE MARKETPLACE
+# ============================================================
+
+@app.route('/api/marketplace/listings')
+@require_dashboard_key
+def api_marketplace_listings():
+    """Get marketplace listings"""
+    from bot.enterprise_marketplace import get_marketplace_listings
+    
+    try:
+        category = request.args.get('category')
+        listings = get_marketplace_listings(category=category)
+        
+        return jsonify({
+            'ok': True,
+            **listings
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'ok': False, 'error': str(e)}), 500
+
+@app.route('/api/marketplace/purchase', methods=['POST'])
+@require_dashboard_key
+def api_marketplace_purchase():
+    """Purchase marketplace listing"""
+    from bot.enterprise_marketplace import purchase_listing
+    from flask import g
+    
+    try:
+        data = request.get_json() or {}
+        listing_id = data.get('listing_id')
+        tenant_id = g.tenant_id if hasattr(g, 'tenant_id') else 'default'
+        quantity = data.get('quantity', 1)
+        
+        result = purchase_listing(listing_id, tenant_id, quantity)
+        
+        return jsonify({
+            'ok': True,
+            **result
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'ok': False, 'error': str(e)}), 500
+
+# ============================================================
+# PHASE 127: COMPLIANCE APIS
+# ============================================================
+
+@app.route('/api/compliance/gdpr-export')
+@require_dashboard_key
+def api_gdpr_export():
+    """Generate GDPR data export"""
+    from bot.compliance_apis import generate_gdpr_report
+    from flask import g
+    
+    try:
+        user_id = request.args.get('user_id')
+        tenant_id = g.tenant_id if hasattr(g, 'tenant_id') else 'default'
+        
+        report = generate_gdpr_report(user_id, tenant_id)
+        
+        return jsonify({
+            'ok': True,
+            **report
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'ok': False, 'error': str(e)}), 500
+
+@app.route('/api/compliance/soc2-report')
+@require_dashboard_key
+def api_soc2_report():
+    """Generate SOC2 compliance report"""
+    from bot.compliance_apis import generate_soc2_report
+    
+    try:
+        report = generate_soc2_report()
+        
+        return jsonify({
+            'ok': True,
+            **report
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'ok': False, 'error': str(e)}), 500
+
+# ============================================================
+# PHASE 128: MULTI-REGION
+# ============================================================
+
+@app.route('/api/regions/status')
+@require_dashboard_key
+def api_regions_status():
+    """Get multi-region status"""
+    from bot.multi_region import get_regional_health, get_region_stats
+    
+    try:
+        health = get_regional_health()
+        stats = get_region_stats()
+        
+        return jsonify({
+            'ok': True,
+            'health': health,
+            'stats': stats
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'ok': False, 'error': str(e)}), 500
+
+# ============================================================
+# PHASE 129: PARTNER PORTAL
+# ============================================================
+
+@app.route('/api/partners/dashboard')
+@require_dashboard_key
+def api_partner_dashboard():
+    """Get partner dashboard"""
+    from bot.partner_portal import get_partner_dashboard
+    
+    try:
+        partner_id = request.args.get('partner_id')
+        days = int(request.args.get('days', 30))
+        
+        dashboard = get_partner_dashboard(partner_id, days=days)
+        
+        return jsonify({
+            'ok': True,
+            **dashboard
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'ok': False, 'error': str(e)}), 500
+
+@app.route('/api/partners/register', methods=['POST'])
+@require_dashboard_key
+def api_register_partner():
+    """Register new partner"""
+    from bot.partner_portal import register_partner
+    
+    try:
+        data = request.get_json() or {}
+        partner = register_partner(
+            data.get('name'),
+            data.get('email'),
+            data.get('tier', 'standard')
+        )
+        
+        return jsonify({
+            'ok': True,
+            **partner
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'ok': False, 'error': str(e)}), 500
+
+# ============================================================
+# PHASE 130: ECHOPILOT OS
+# ============================================================
+
+@app.route('/api/platform/status')
+def api_platform_status():
+    """Get comprehensive platform status"""
+    from bot.echopilot_os import get_platform_status
+    
+    try:
+        status = get_platform_status()
+        return jsonify(status), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/platform/metrics')
+@require_dashboard_key
+def api_platform_metrics():
+    """Get unified system metrics"""
+    from bot.echopilot_os import get_system_metrics
+    
+    try:
+        metrics = get_system_metrics()
+        return jsonify({
+            'ok': True,
+            **metrics
+        }), 200
+    except Exception as e:
+        return jsonify({'ok': False, 'error': str(e)}), 500
+
+@app.route('/api/platform/phase-report')
+@require_dashboard_key
+def api_phase_report():
+    """Get all phases completion report"""
+    from bot.echopilot_os import get_phase_completion_report
+    
+    try:
+        report = get_phase_completion_report()
+        return jsonify({
+            'ok': True,
+            **report
+        }), 200
+    except Exception as e:
+        return jsonify({'ok': False, 'error': str(e)}), 500
+
+# ============================================================
+# END PHASE 130 - ALL 130 PHASES COMPLETE
+# ============================================================
+
 @app.route('/webhook/stripe', methods=['POST'])
 def webhook_stripe():
     """Stripe webhook endpoint for payment status updates"""

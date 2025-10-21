@@ -1,0 +1,3 @@
+{"ts": "2025-10-21T11:32:29.750660Z", "event_type": "task_orchestrated", "task_type": "ai_task", "orchestrator": "EchoPilot OS", "version": "2.0.0", "timestamp": "2025-10-21T11:32:29.750033Z", "handler": "bot.core_automation", "priority": "high"}
+{"ts": "2025-10-21T11:32:29.751014Z", "event_type": "task_orchestrated", "task_type": "compliance_report", "orchestrator": "EchoPilot OS", "version": "2.0.0", "timestamp": "2025-10-21T11:32:29.750801Z", "handler": "bot.compliance_apis", "priority": "high"}
+{"ts": "2025-10-21T11:32:29.751330Z", "event_type": "task_orchestrated", "task_type": "partner_sale", "orchestrator": "EchoPilot OS", "version": "2.0.0", "timestamp": "2025-10-21T11:32:29.751116Z", "handler": "bot.partner_portal", "priority": "normal"}

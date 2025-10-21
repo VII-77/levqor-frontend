@@ -1,2 +1,3 @@
 {"ts": 1760985341.425824, "ts_iso": "2025-10-20T18:35:41.425825Z", "type": "incident", "severity": "medium", "details": ["System warnings: High Latency: 999.00s"]}
 {"ts": 1760996460.0444057, "ts_iso": "2025-10-20T21:41:00.044406Z", "type": "incident", "severity": "medium", "details": ["System warnings: High CPU: 88.7%"]}
+{"ts": 1761006301.2631257, "ts_iso": "2025-10-21T00:25:01.263127Z", "type": "incident", "severity": "medium", "details": ["System warnings: High Latency: 999.00s"]}

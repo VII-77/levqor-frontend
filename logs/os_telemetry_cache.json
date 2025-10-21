@@ -1,0 +1,1 @@
+{"timestamp":"2025-10-21T12:20:52Z","status":"ok","uptime_sec":3600,"cpu":45.2,"mem":32.1,"disk":63.4,"latency_ms_p50":25.3,"latency_ms_p95":89.7,"webhooks_ok":true,"scheduler_running":true,"regions":["us-east","us-west","eu-west","ap-south"],"notion_ok":true,"stripe_ok":true,"openai_ok":true,"builder":"OK","commit":"c78ba2e"}

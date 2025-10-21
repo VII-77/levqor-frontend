@@ -1,0 +1,467 @@
+<!-- Boss Mode Phase 7: Command Palette Component -->
+<style>
+    .command-palette-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 9999;
+        animation: fadeIn 0.2s ease;
+    }
+    
+    .command-palette-overlay.active {
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding-top: 20vh;
+    }
+    
+    .command-palette {
+        background: var(--bg-primary);
+        border-radius: var(--border-radius-lg);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        width: 90%;
+        max-width: 600px;
+        max-height: 70vh;
+        overflow: hidden;
+        animation: slideDown 0.2s ease;
+    }
+    
+    .command-palette-header {
+        padding: var(--spacing-md);
+        border-bottom: 1px solid var(--border-primary);
+    }
+    
+    .command-palette-search {
+        width: 100%;
+        padding: var(--spacing-sm);
+        border: 1px solid var(--border-primary);
+        border-radius: var(--border-radius-md);
+        font-size: var(--font-size-lg);
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+    }
+    
+    .command-palette-search:focus {
+        outline: none;
+        border-color: var(--color-primary);
+    }
+    
+    .command-palette-body {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    
+    .command-palette-section {
+        padding: var(--spacing-sm) 0;
+    }
+    
+    .command-palette-section-title {
+        padding: var(--spacing-xs) var(--spacing-md);
+        font-size: var(--font-size-sm);
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+    }
+    
+    .command-item {
+        display: flex;
+        align-items: center;
+        padding: var(--spacing-sm) var(--spacing-md);
+        cursor: pointer;
+        transition: background 0.15s ease;
+        border: none;
+        width: 100%;
+        text-align: left;
+        background: none;
+        color: var(--text-primary);
+    }
+    
+    .command-item:hover,
+    .command-item.selected {
+        background: var(--bg-hover);
+    }
+    
+    .command-item-icon {
+        font-size: var(--font-size-xl);
+        margin-right: var(--spacing-sm);
+        width: 32px;
+        text-align: center;
+    }
+    
+    .command-item-content {
+        flex: 1;
+    }
+    
+    .command-item-title {
+        font-weight: 500;
+        margin-bottom: 2px;
+    }
+    
+    .command-item-subtitle {
+        font-size: var(--font-size-sm);
+        color: var(--text-secondary);
+    }
+    
+    .command-item-shortcut {
+        font-size: var(--font-size-xs);
+        color: var(--text-secondary);
+        background: var(--bg-secondary);
+        padding: 2px 6px;
+        border-radius: var(--border-radius-sm);
+        margin-left: var(--spacing-xs);
+    }
+    
+    .command-palette-footer {
+        padding: var(--spacing-xs) var(--spacing-md);
+        border-top: 1px solid var(--border-primary);
+        display: flex;
+        gap: var(--spacing-md);
+        font-size: var(--font-size-xs);
+        color: var(--text-secondary);
+    }
+    
+    .footer-hint {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-xs);
+    }
+    
+    .kbd {
+        background: var(--bg-secondary);
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-family: monospace;
+        font-size: var(--font-size-xs);
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .command-trigger-btn {
+        position: fixed;
+        bottom: 80px;
+        right: var(--spacing-md);
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: var(--color-primary);
+        color: white;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        z-index: 100;
+        transition: transform 0.2s ease, background 0.2s ease;
+    }
+    
+    .command-trigger-btn:hover {
+        transform: scale(1.1);
+        background: var(--color-primary-dark);
+    }
+    
+    .command-trigger-btn:active {
+        transform: scale(0.95);
+    }
+</style>
+
+<!-- Floating Trigger Button (Mobile-friendly) -->
+<button class="command-trigger-btn" id="command-trigger" title="Quick Actions (⌘K)">
+    ⚡
+</button>
+
+<!-- Command Palette Overlay -->
+<div class="command-palette-overlay" id="command-palette-overlay">
+    <div class="command-palette">
+        <div class="command-palette-header">
+            <input 
+                type="text" 
+                class="command-palette-search" 
+                id="command-search"
+                placeholder="Search actions..."
+                autocomplete="off"
+            >
+        </div>
+        
+        <div class="command-palette-body" id="command-palette-body">
+            <!-- Navigation Section -->
+            <div class="command-palette-section">
+                <div class="command-palette-section-title">Navigation</div>
+                <button class="command-item" data-action="navigate" data-target="/">
+                    <div class="command-item-icon">🏠</div>
+                    <div class="command-item-content">
+                        <div class="command-item-title">Home</div>
+                        <div class="command-item-subtitle">Go to landing page</div>
+                    </div>
+                </button>
+                <button class="command-item" data-action="navigate" data-target="/dashboard/v2">
+                    <div class="command-item-icon">📊</div>
+                    <div class="command-item-content">
+                        <div class="command-item-title">Dashboard</div>
+                        <div class="command-item-subtitle">Operations dashboard</div>
+                    </div>
+                </button>
+                <button class="command-item" data-action="navigate" data-target="/payments">
+                    <div class="command-item-icon">💳</div>
+                    <div class="command-item-content">
+                        <div class="command-item-title">Payments</div>
+                        <div class="command-item-subtitle">Manage invoices & reconciliation</div>
+                    </div>
+                </button>
+                <button class="command-item" data-action="navigate" data-target="/about">
+                    <div class="command-item-icon">ℹ️</div>
+                    <div class="command-item-content">
+                        <div class="command-item-title">About</div>
+                        <div class="command-item-subtitle">System information</div>
+                    </div>
+                </button>
+            </div>
+            
+            <!-- Actions Section -->
+            <div class="command-palette-section">
+                <div class="command-palette-section-title">Quick Actions</div>
+                <button class="command-item" data-action="api" data-endpoint="/api/create-test-job">
+                    <div class="command-item-icon">🧪</div>
+                    <div class="command-item-content">
+                        <div class="command-item-title">Create Test Job</div>
+                        <div class="command-item-subtitle">Submit a test automation task</div>
+                    </div>
+                </button>
+                <button class="command-item" data-action="api" data-endpoint="/api/pulse">
+                    <div class="command-item-icon">📡</div>
+                    <div class="command-item-content">
+                        <div class="command-item-title">Run System Pulse</div>
+                        <div class="command-item-subtitle">Capture current health metrics</div>
+                    </div>
+                </button>
+                <button class="command-item" data-action="api" data-endpoint="/api/metrics-summary">
+                    <div class="command-item-icon">📈</div>
+                    <div class="command-item-content">
+                        <div class="command-item-title">View Metrics</div>
+                        <div class="command-item-subtitle">Load performance metrics</div>
+                    </div>
+                </button>
+                <button class="command-item" data-action="api" data-endpoint="/api/status/summary">
+                    <div class="command-item-icon">🏥</div>
+                    <div class="command-item-content">
+                        <div class="command-item-title">Health Check</div>
+                        <div class="command-item-subtitle">System status summary</div>
+                    </div>
+                </button>
+            </div>
+            
+            <!-- Tools Section -->
+            <div class="command-palette-section">
+                <div class="command-palette-section-title">Tools</div>
+                <button class="command-item" data-action="refresh">
+                    <div class="command-item-icon">🔄</div>
+                    <div class="command-item-content">
+                        <div class="command-item-title">Refresh Page</div>
+                        <div class="command-item-subtitle">Reload current view</div>
+                    </div>
+                    <span class="command-item-shortcut">⌘R</span>
+                </button>
+                <button class="command-item" data-action="copy-url">
+                    <div class="command-item-icon">🔗</div>
+                    <div class="command-item-content">
+                        <div class="command-item-title">Copy URL</div>
+                        <div class="command-item-subtitle">Copy current page URL</div>
+                    </div>
+                </button>
+            </div>
+        </div>
+        
+        <div class="command-palette-footer">
+            <div class="footer-hint">
+                <span class="kbd">↑↓</span>
+                <span>Navigate</span>
+            </div>
+            <div class="footer-hint">
+                <span class="kbd">Enter</span>
+                <span>Execute</span>
+            </div>
+            <div class="footer-hint">
+                <span class="kbd">Esc</span>
+                <span>Close</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    const overlay = document.getElementById('command-palette-overlay');
+    const search = document.getElementById('command-search');
+    const body = document.getElementById('command-palette-body');
+    const trigger = document.getElementById('command-trigger');
+    
+    let selectedIndex = 0;
+    let visibleItems = [];
+    
+    function showPalette() {
+        overlay.classList.add('active');
+        search.value = '';
+        search.focus();
+        updateVisibleItems();
+        selectItem(0);
+    }
+    
+    function hidePalette() {
+        overlay.classList.remove('active');
+    }
+    
+    function updateVisibleItems() {
+        const query = search.value.toLowerCase();
+        const allItems = body.querySelectorAll('.command-item');
+        
+        visibleItems = [];
+        allItems.forEach((item, index) => {
+            const title = item.querySelector('.command-item-title').textContent.toLowerCase();
+            const subtitle = item.querySelector('.command-item-subtitle').textContent.toLowerCase();
+            const matches = title.includes(query) || subtitle.includes(query);
+            
+            if (matches) {
+                item.style.display = 'flex';
+                visibleItems.push(item);
+            } else {
+                item.style.display = 'none';
+            }
+        });
+        
+        // Update section visibility
+        const sections = body.querySelectorAll('.command-palette-section');
+        sections.forEach(section => {
+            const hasVisibleItems = Array.from(section.querySelectorAll('.command-item'))
+                .some(item => item.style.display !== 'none');
+            section.style.display = hasVisibleItems ? 'block' : 'none';
+        });
+        
+        selectItem(0);
+    }
+    
+    function selectItem(index) {
+        if (visibleItems.length === 0) return;
+        
+        selectedIndex = Math.max(0, Math.min(index, visibleItems.length - 1));
+        
+        visibleItems.forEach((item, i) => {
+            item.classList.toggle('selected', i === selectedIndex);
+        });
+        
+        // Scroll selected item into view
+        if (visibleItems[selectedIndex]) {
+            visibleItems[selectedIndex].scrollIntoView({ block: 'nearest' });
+        }
+    }
+    
+    async function executeCommand(item) {
+        const action = item.dataset.action;
+        
+        hidePalette();
+        
+        if (action === 'navigate') {
+            window.location.href = item.dataset.target;
+        } else if (action === 'api') {
+            const endpoint = item.dataset.endpoint;
+            const dashKey = localStorage.getItem('dashboard_key');
+            
+            try {
+                const resp = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'X-Dashboard-Key': dashKey,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await resp.json();
+                
+                if (resp.ok) {
+                    alert(`✅ Success!\n${JSON.stringify(data, null, 2)}`);
+                } else {
+                    alert(`❌ Error: ${data.error || 'Failed'}`);
+                }
+            } catch (error) {
+                alert(`❌ Error: ${error.message}`);
+            }
+        } else if (action === 'refresh') {
+            window.location.reload();
+        } else if (action === 'copy-url') {
+            navigator.clipboard.writeText(window.location.href);
+            alert('✅ URL copied to clipboard');
+        }
+    }
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+        // Cmd/Ctrl + K to open
+        if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+            e.preventDefault();
+            showPalette();
+        }
+        
+        // Esc to close
+        if (e.key === 'Escape' && overlay.classList.contains('active')) {
+            hidePalette();
+        }
+        
+        // Navigation
+        if (overlay.classList.contains('active')) {
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                selectItem(selectedIndex + 1);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                selectItem(selectedIndex - 1);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (visibleItems[selectedIndex]) {
+                    executeCommand(visibleItems[selectedIndex]);
+                }
+            }
+        }
+    });
+    
+    // Click handlers
+    trigger.addEventListener('click', showPalette);
+    
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+            hidePalette();
+        }
+    });
+    
+    body.addEventListener('click', (e) => {
+        const item = e.target.closest('.command-item');
+        if (item) {
+            executeCommand(item);
+        }
+    });
+    
+    search.addEventListener('input', updateVisibleItems);
+    
+    // Initialize
+    updateVisibleItems();
+})();
+</script>
+            showToast('Dashboard loaded successfully', 'success');
+        });
+    </script>
+</body>
+</html>

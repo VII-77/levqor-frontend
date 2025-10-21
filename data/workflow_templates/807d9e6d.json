@@ -1,0 +1,54 @@
+{
+  "id": "807d9e6d",
+  "name": "Simple AI Processing",
+  "description": "Single AI task with notification",
+  "created_at": "2025-10-21T00:23:14.094907",
+  "nodes": [
+    {
+      "id": "trigger-1",
+      "type": "trigger",
+      "position": {
+        "x": 100,
+        "y": 100
+      },
+      "data": {
+        "label": "Manual Trigger"
+      }
+    },
+    {
+      "id": "ai-1",
+      "type": "ai_task",
+      "position": {
+        "x": 300,
+        "y": 100
+      },
+      "data": {
+        "label": "Process with AI"
+      }
+    },
+    {
+      "id": "notify-1",
+      "type": "notification",
+      "position": {
+        "x": 500,
+        "y": 100
+      },
+      "data": {
+        "label": "Send Result"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "source": "trigger-1",
+      "target": "ai-1"
+    },
+    {
+      "id": "e2",
+      "source": "ai-1",
+      "target": "notify-1"
+    }
+  ],
+  "category": "custom"
+}

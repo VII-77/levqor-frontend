@@ -151,3 +151,12 @@
 {"ts": "2025-10-21T00:11:47Z", "latency_ms": 4, "ok": true, "code": 200}
 {"ts": "2025-10-21T00:12:47Z", "latency_ms": 7, "ok": true, "code": 200}
 {"ts": "2025-10-21T00:13:49Z", "latency_ms": 3, "ok": true, "code": 200}
+{"ts": "2025-10-21T00:14:50Z", "latency_ms": 3, "ok": true, "code": 200}
+{"ts": "2025-10-21T00:15:50Z", "latency_ms": 5, "ok": true, "code": 200}
+{"ts": "2025-10-21T00:16:53Z", "latency_ms": 16, "ok": true, "code": 200}
+{"ts": "2025-10-21T00:17:53Z", "latency_ms": 10, "ok": true, "code": 200}
+{"ts": "2025-10-21T00:18:53Z", "latency_ms": 5, "ok": true, "code": 200}
+{"ts": "2025-10-21T00:19:57Z", "latency_ms": 3, "ok": true, "code": 200}
+{"ts": "2025-10-21T00:20:57Z", "latency_ms": 24, "ok": true, "code": 200}
+{"ts": "2025-10-21T00:21:58Z", "latency_ms": 6, "ok": true, "code": 200}
+{"ts": "2025-10-21T00:23:00Z", "latency_ms": 50, "ok": true, "code": 200}

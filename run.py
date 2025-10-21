@@ -891,6 +891,94 @@ def api_get_strings(locale):
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
+# ===== Visual Workflow Builder (Phases 51-55) =====
+@app.route('/workflow/builder')
+def workflow_builder_ui():
+    """Visual Workflow Builder UI"""
+    return send_from_directory('templates', 'workflow_builder.html')
+
+@app.route('/api/workflow/node-types')
+def api_get_node_types():
+    """Get available workflow node types"""
+    try:
+        from bot.workflow_builder import get_available_node_types
+        result = get_available_node_types()
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/workflow', methods=['POST'])
+@require_dashboard_key
+def api_create_workflow():
+    """Create a new workflow"""
+    try:
+        from bot.workflow_builder import create_workflow
+        data = request.get_json() or {}
+        result = create_workflow(
+            user_id=data.get('user_id', 'default'),
+            name=data.get('name', 'New Workflow'),
+            description=data.get('description', ''),
+            template_id=data.get('template_id')
+        )
+        return jsonify(result), 201
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/workflow/<workflow_id>')
+def api_get_workflow(workflow_id):
+    """Get workflow by ID"""
+    try:
+        from bot.workflow_builder import get_workflow
+        result = get_workflow(workflow_id)
+        return jsonify(result), 200 if result.get('ok') else 404
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/workflow/<workflow_id>', methods=['PUT'])
+@require_dashboard_key
+def api_update_workflow(workflow_id):
+    """Update workflow"""
+    try:
+        from bot.workflow_builder import update_workflow
+        data = request.get_json() or {}
+        result = update_workflow(workflow_id, data)
+        return jsonify(result), 200 if result.get('ok') else 404
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/workflow/<workflow_id>', methods=['DELETE'])
+@require_dashboard_key
+def api_delete_workflow(workflow_id):
+    """Delete workflow"""
+    try:
+        from bot.workflow_builder import delete_workflow
+        result = delete_workflow(workflow_id)
+        return jsonify(result), 200 if result.get('ok') else 404
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/workflow/list')
+def api_list_workflows():
+    """List all workflows"""
+    try:
+        from bot.workflow_builder import list_workflows
+        user_id = request.args.get('user_id')
+        result = list_workflows(user_id)
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/workflow/templates')
+def api_list_templates():
+    """List workflow templates"""
+    try:
+        from bot.workflow_builder import list_templates, initialize_default_templates
+        initialize_default_templates()
+        result = list_templates()
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
 @app.route('/api/status/summary')
 @rate_limit(max_requests=30, window=60)
 def api_status_summary():

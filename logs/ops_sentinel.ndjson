@@ -176,3 +176,7 @@
 {"ts": "2025-10-21T08:00:58.480450Z", "event": "ops_sentinel", "status": "healthy", "cpu_percent": 44.0, "mem_percent": 32.4, "disk_percent": 64.4, "latency_sec": 0.010091543197631836, "warnings": []}
 {"ts": "2025-10-21T08:03:22.401113Z", "event": "ops_sentinel", "status": "critical", "cpu_percent": 37.9, "mem_percent": 31.9, "disk_percent": 64.5, "latency_sec": 999, "warnings": ["High Latency: 999.00s"]}
 {"ts": "2025-10-21T08:04:03.006974Z", "event": "ops_sentinel", "status": "healthy", "cpu_percent": 65.0, "mem_percent": 32.7, "disk_percent": 64.5, "latency_sec": 0.004172325134277344, "warnings": []}
+{"ts": "2025-10-21T08:07:06.278361Z", "event": "ops_sentinel", "status": "healthy", "cpu_percent": 39.4, "mem_percent": 32.3, "disk_percent": 64.5, "latency_sec": 0.004479169845581055, "warnings": []}
+{"ts": "2025-10-21T08:10:09.108947Z", "event": "ops_sentinel", "status": "healthy", "cpu_percent": 39.6, "mem_percent": 31.7, "disk_percent": 64.8, "latency_sec": 0.005544185638427734, "warnings": []}
+{"ts": "2025-10-21T08:13:12.240642Z", "event": "ops_sentinel", "status": "healthy", "cpu_percent": 43.2, "mem_percent": 32.7, "disk_percent": 64.8, "latency_sec": 0.009667396545410156, "warnings": []}
+{"ts": "2025-10-21T08:16:14.893799Z", "event": "ops_sentinel", "status": "healthy", "cpu_percent": 47.0, "mem_percent": 33.3, "disk_percent": 64.8, "latency_sec": 0.004015445709228516, "warnings": []}

@@ -67,6 +67,13 @@ See `docs/SLOS.md` for complete documentation.
 - **AI & Data:** AI Model Router, FinOps Reports, Data Warehouse Sync, Analytics Hub, Anomaly Detection, Training Audit, Continuous Learning Engine.
 - **Operations:** Predictive Maintenance, Compliance Suite 2.0, Governance AI Advisor, Multi-Tenant Core, Tenant Billing, Adaptive Optimizer, Self-Heal v2, Enterprise Validator, Final Enterprise Report.
 
+**Autonomous Maintenance (Phase 102):**
+- **Anomaly Guard:** Real-time anomaly detection with 5-minute polling cycle monitoring health endpoint latency and system resources.
+- **Statistical Analysis:** Calculates rolling mean/stdev using 50-sample window to identify latency outliers (>3σ threshold).
+- **Auto-Heal Triggers:** Automatically invokes self-heal script when health check fails, CPU/MEM >90%, or latency anomaly detected.
+- **NDJSON Logging:** Comprehensive event logging to `logs/anomaly_guard.ndjson` for forensic analysis and trend detection.
+- **Reliability Target:** Pushes system uptime from 99.9% → 99.99% through early warning and zero-touch recovery.
+
 ### Data Flow Architecture
 The system utilizes a 13-database structure within Notion: 5 core databases (Automation Queue, Automation Log, EchoPilot Job Log, Notion Client, Notion Status) and 8 enterprise databases (Finance, Governance, Ops Monitor, Forecast, Region Compliance, Partners, Referrals, Growth Metrics). Automated schema enforcement ensures data integrity.
 

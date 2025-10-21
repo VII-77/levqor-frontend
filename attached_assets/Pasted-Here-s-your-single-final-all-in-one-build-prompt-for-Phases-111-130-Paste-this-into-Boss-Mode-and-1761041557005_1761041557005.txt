@@ -1,0 +1,284 @@
+Here’s your single, final, all-in-one build prompt for Phases 111–130. Paste this into Boss Mode and run it as your master instruction.
+
+
+---
+
+MASTER PROMPT — ECHOPILOT v2 FINAL (PHASES 111–130)
+
+You are Release Captain and Lead Engineer. Execute Phases 111–130 sequentially with strict pass/fail gates. Do not proceed to the next phase until the current one passes all acceptance criteria. All work must be production-safe, mobile-first, and backwards-compatible.
+
+Global Objectives (apply to every phase)
+
+Zero downtime, no breaking changes, idempotent migrations.
+
+Add metrics, structured logs (NDJSON), alerts, docs, tests, and a rollback step.
+
+All admin routes behind X-Dash-Key; never expose secrets in logs.
+
+Update: RUNBOOK.md, CHANGELOG.md, POST_LAUNCH_CHECKLIST.md.
+
+Add smoke tests to scripts/smoke.sh; add scheduler jobs only if they are safe.
+
+On failure: write logs/PHASE_<n>_FAIL.txt with the exact error; stop.
+
+
+
+---
+
+PHASE 111 — Analytics & Product Insights
+
+Goal: Deep usage analytics and funnels. Build:
+
+Endpoint GET /api/analytics/usage (auth) returning DAU/WAU/MAU, feature usage, funnel steps.
+
+Client events (/js/telemetry.js) with debounce + local retry.
+
+Daily job analytics_rollup (03:15 UTC) → logs/analytics.ndjson. Tests: event ingestion, rollups, P95 latency < 250ms. Docs: docs/ANALYTICS.md. Gate: GET /api/analytics/usage returns non-empty aggregates.
+
+
+PHASE 112 — Operator Chat Console (Admin Copilot)
+
+Goal: Secure chat to run admin actions with audit. Build:
+
+UI card on /dashboard/v2: “Operator Console”.
+
+Endpoint POST /api/ops/command (auth) with allow-listed verbs (restart_scheduler, run_backup, reconcile_payments, tail_logs).
+
+All actions are dry-run by default; confirm=true executes.
+
+Full audit trail logs/ops_console.ndjson. Gate: Dry-run + confirm paths both logged and safe.
+
+
+PHASE 113 — Auto-Scaler (Reserved VM Guardrails)
+
+Goal: Predictive scale hints + safe toggles. Build:
+
+Script scripts/autoscaler.py: reads CPU/RAM/queue and predicts next-hour load; suggests up/down.
+
+Endpoint GET /api/infra/scale_suggestion (auth).
+
+Feature flag AUTOSCALE_ALLOW_EXECUTE=false (env). If true, call provider API (mock if not available). Gate: Suggestions produced; execution path no-ops unless flag true.
+
+
+PHASE 114 — Security Scanner & SBOM
+
+Goal: Automated dependency & secrets scanning. Build:
+
+scripts/security_scanner.py runs: pip audit (or safety DB), regex secret scan, SBOM (cyclonedx).
+
+Endpoint POST /api/security/scan (auth) → report JSON + writes backups/security/security_report.json.
+
+Weekly job Monday 01:20 UTC with Telegram summary if issues > 0. Gate: Report contains package list, vulns (if any), and zero leaked secrets in repo snapshot.
+
+
+PHASE 115 — Advanced DR: Point-in-Time Restore Plan
+
+Goal: Restore rehearsals + integrity checks. Build:
+
+scripts/dr_restore_check.py does restore-dry-run from latest backup to temp dir and verifies hashes.
+
+Endpoint GET /api/dr/verify (auth) → PASS/FAIL with details.
+
+Nightly verify 02:45 UTC; fails trigger alert with last 50 lines. Gate: Verify passes with file counts + matching hashes.
+
+
+PHASE 116 — Tenantization Hardening (Multi-Tenant v2)
+
+Goal: Strong tenant isolation everywhere. Build:
+
+Add tenant_id propagation across jobs, logs, analytics, invoices.
+
+Filter every /api/* list/read to current tenant when header X-Tenant-Id present and authorized via RBAC.
+
+Add tests for cross-tenant access denial. Gate: Cross-tenant data access attempts return 403 and are logged.
+
+
+PHASE 117 — FinOps: Cost & Profitability
+
+Goal: Cost counters + margin dashboards. Build:
+
+Track OpenAI/infra/Stripe fees per job; store in Notion Finance DB and local logs/cost.ndjson.
+
+Endpoint GET /api/finops/summary (auth): revenue, costs, gross margin, per-customer view.
+
+Monthly export to backups/finops/. Gate: Summary returns valid aggregates; margins computed for last 30/90 days.
+
+
+PHASE 118 — Compliance Webhooks & Audit API
+
+Goal: External auditor-friendly interfaces. Build:
+
+GET /api/audit/chain (auth): return current audit hash chain head + verifiable receipts.
+
+POST /api/compliance/webhook (auth via HMAC) to receive/record external checks; store in logs/compliance_hooks.ndjson. Gate: Hash chain verifiable; webhook authentication validated.
+
+
+PHASE 119 — Edge Queue (Background Worker @ Edge-like Mode)
+
+Goal: Isolate long tasks; keep web fast. Build:
+
+scripts/edge_worker.py consumes queue (AUTOMATION_QUEUE_DB_ID or fallback fs queue).
+
+Web enqueues tasks via POST /api/queue/enqueue (auth).
+
+Health GET /api/queue/health (auth) shows lag and oldest age. Gate: Queue depth/lag visible; enqueue→execute flow confirmed.
+
+
+PHASE 120 — Growth & Marketing: Referral 2.0 + Payouts
+
+Goal: Self-service referral portal + monthly payouts CSV. Build:
+
+Endpoint GET /api/growth/referrals (auth): codes, clicks, conversions, revenue.
+
+POST /api/growth/payouts/export (auth): CSV for accounting, signed URL (24h).
+
+UI: small card on dashboard to download CSV. Gate: CSV includes at least headers and last 30 days rows.
+
+
+PHASE 121 — PWA + Mobile Installable App
+
+Goal: “Add to Home Screen” + offline shell. Build:
+
+manifest.webmanifest, service worker caching static/build pages.
+
+/about, /dashboard/v2, /workflow/builder offline shell; network-first for APIs. Gate: Lighthouse PWA installable score ≥ 90.
+
+
+PHASE 122 — Integrations Hub (Slack, Zapier/Make Webhooks)
+
+Goal: Simple inbound/outbound connectors. Build:
+
+POST /api/integrations/slack/command (auth by token) → routes to bot actions.
+
+POST /api/integrations/webhook generic receiver with mapping to internal events.
+
+Docs + examples in docs/INTEGRATIONS.md. Gate: Round-trip Slack command works in dry-run; generic webhook persists event.
+
+
+PHASE 123 — AI Data Lake & Prompt Analytics
+
+Goal: Central log for AI prompts/responses with PII scrubbing. Build:
+
+logs/ai_events.ndjson with request/response hashes, token usage, latency; configurable redaction.
+
+GET /api/ai/analytics (auth): top prompts, avg tokens, error rates. Gate: Analytics returns non-empty aggregates; redaction verified.
+
+
+PHASE 124 — Predictive Load & Staff Hints
+
+Goal: Forecast jobs/traffic; recommend staffing windows. Build:
+
+scripts/forecast_load.py uses exponential smoothing on job counts; exports 24h forecast.
+
+Endpoint GET /api/forecast/next_24h (auth); add chart to dashboard. Gate: Forecast array length 24 with error bounds.
+
+
+PHASE 125 — Self-Healing 2.0 (Deeper Remediations)
+
+Goal: Auto-fix common failures safely. Build:
+
+Library of remediations (restart worker, clear stuck queue file, rotate signed URL key).
+
+scripts/self_heal_v2.py runs hourly; only executes remediations tagged safe=true.
+
+Audit all actions to logs/self_heal_v2.ndjson. Gate: At least one simulated issue auto-resolved and logged.
+
+
+PHASE 126 — Enterprise Marketplace (Internal Plugins)
+
+Goal: Enable optional modules toggled per tenant. Build:
+
+Feature flags per tenant (Notion/JSON config).
+
+GET /api/marketplace/list and POST /api/marketplace/toggle (auth).
+
+UI card to enable/disable modules; logs license events. Gate: Enabling toggles features for that tenant only.
+
+
+PHASE 127 — External Compliance APIs (SOC2/ISO hooks)
+
+Goal: Exportable evidence bundles. Build:
+
+POST /api/compliance/evidence/export (auth) → zip with audits, SLO, DR proofs.
+
+Include machine-readable evidence.json. Gate: Download produces valid archive with all sections.
+
+
+PHASE 128 — Multi-Region Edge Runtime (Lite)
+
+Goal: Low-latency reads; write-through strategy. Build:
+
+Read cache with signed, short-TTL JSON at /edge/cache/*.
+
+Sync job every 10 min invalidates/refreshes hot keys. Gate: Edge read path < 100ms median on cached responses.
+
+
+PHASE 129 — Partner/Affiliate Portal
+
+Goal: Managed partner accounts + tracked links. Build:
+
+GET /api/partners and POST /api/partners/new (auth), referral link generator, revenue attribution.
+
+UI: simple partner page with metrics. Gate: New partner creation + tracked click registers in analytics.
+
+
+PHASE 130 — EchoPilot OS (Unified Admin Shell)
+
+Goal: One pane of glass for operators. Build:
+
+/os page: tabs for Telemetry, Jobs, Queue, Costs, Security, DR, Forecast, Integrations.
+
+Command palette extended with OS commands, all routes using existing APIs (no duplication).
+
+Export snapshot: POST /api/os/snapshot (auth) → tar.gz of JSON summaries. Gate: /os loads; snapshot exports; all tabs render.
+
+
+
+---
+
+Cross-Phase Deliverables
+
+Tests: Add/extend tests/ for each new endpoint; ensure pytest -q passes.
+
+Smoke: Update scripts/smoke.sh to include all new routes.
+
+Scheduler: Register new safe jobs with comments and schedule.every(...).
+
+Docs: Update/author docs/*.md as specified; link from RUNBOOK.md.
+
+Security: RBAC checks, request size limits, JSON schema validation, PII redaction where applicable.
+
+Observability: Every phase logs to logs/<area>.ndjson and exposes counters in /api/status/summary.
+
+
+Acceptance Criteria (must pass to finish)
+
+1. All new endpoints return 2xx under auth with realistic data.
+
+
+2. No PII in logs; secrets never printed.
+
+
+3. Latency: P95 < 800ms and P99 < 1200ms for new synchronous endpoints.
+
+
+4. Docs complete and linked in RUNBOOK.md.
+
+
+5. Smoke test ALL GREEN and PRODUCTION_READY_REPORT.md updated.
+
+
+6. Rollback: Instructions work by flipping feature flags or reverting env/config—documented for each phase.
+
+
+
+Finalization
+
+Write logs/PHASES_111_130_COMPLETE.txt summarizing endpoints, jobs, files, envs and links.
+
+Post a one-page Release Notes to CHANGELOG.md with “What’s new / Why it matters / How to use / Rollback”.
+
+Tag build v2-final and print the exact commit hash in the supervisor report.
+
+
+**Do not skip gates. Stop on any failure and record the failure file.**

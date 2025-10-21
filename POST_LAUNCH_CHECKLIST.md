@@ -84,13 +84,14 @@ curl -s -H "X-Dash-Key:$DASHBOARD_KEY" \
 
 ## 📅 THIS WEEK (Stabilize & Learn)
 
-### 1. SLA & On-Call ⏳ TODO
+### 1. SLA & On-Call ✅ CONFIGURED
 ```yaml
-SLOs to Set:
-  - Uptime: 99.5% (43.2 min downtime/month)
-  - P95 Latency: <800ms (already tracked)
-  - P99 Latency: <1200ms (already tracked)
-  - Error Budget: 1% daily (already tracked)
+SLOs Configured:
+  - Uptime: 99.9% (43.2 min downtime/month) - SLO_AVAILABILITY_PCT
+  - P95 Latency: <800ms - SLO_P95_TARGET_MS
+  - P99 Latency: <1200ms - SLO_P99_TARGET_MS (NEW!)
+  - Webhook Success: 99% - SLO_WEBHOOK_SUCCESS_PCT
+  - Error Budget: 2% daily - SLO_ERROR_BUDGET_PCT
 
 Escalation:
   - Primary: Telegram alerts (already configured)
@@ -98,13 +99,24 @@ Escalation:
   - Critical: Set TELEGRAM_CHAT_ID for instant paging
 ```
 
-**Quick Setup:**
+**Environment Variables (Optional Customization):**
 ```bash
-# Already have SLO tracking in place!
-# Just set alert thresholds:
+# Production-Ready Defaults (Already Set)
+export SLO_AVAILABILITY_PCT=99.9
 export SLO_P95_TARGET_MS=800
 export SLO_P99_TARGET_MS=1200
-export SLO_ERROR_BUDGET_PCT=1.0
+export SLO_WEBHOOK_SUCCESS_PCT=99.0
+export SLO_ERROR_BUDGET_PCT=2.0
+
+# For relaxed testing environments:
+export SLO_AVAILABILITY_PCT=99.5
+export SLO_P95_TARGET_MS=1500
+export SLO_P99_TARGET_MS=2500
+```
+
+**Verify SLO Configuration:**
+```bash
+python3 scripts/slo_guard.py | jq '.slos'
 ```
 
 ### 2. Backups & DR Drill ⏳ TODO

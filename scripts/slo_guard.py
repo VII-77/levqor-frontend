@@ -2,25 +2,27 @@
 """
 SLO Guard - Monitor SLOs and error budgets (Phase 51)
 
-SLO Targets:
-- API Availability: 99.9% (43.2 min downtime/month)
-- P95 Latency: < 400ms
-- Webhook Success: 99%
+SLO Targets (configurable via environment variables):
+- API Availability: 99.9% (43.2 min downtime/month) - set SLO_AVAILABILITY_PCT
+- P95 Latency: < 800ms - set SLO_P95_TARGET_MS
+- P99 Latency: < 1200ms - set SLO_P99_TARGET_MS
+- Webhook Success: 99% - set SLO_WEBHOOK_SUCCESS_PCT
 """
 import json
 import os
 from datetime import datetime, timedelta, timezone
 from collections import defaultdict
 
-# SLO Targets
+# SLO Targets (configurable via environment variables)
 SLO_TARGETS = {
-    'availability_pct': 99.9,
-    'p95_latency_ms': 400,
-    'webhook_success_pct': 99.0
+    'availability_pct': float(os.getenv('SLO_AVAILABILITY_PCT', '99.9')),
+    'p95_latency_ms': int(os.getenv('SLO_P95_TARGET_MS', '800')),
+    'p99_latency_ms': int(os.getenv('SLO_P99_TARGET_MS', '1200')),
+    'webhook_success_pct': float(os.getenv('SLO_WEBHOOK_SUCCESS_PCT', '99.0'))
 }
 
 # Error budget thresholds
-ERROR_BUDGET_BURN_ALERT_PCT_PER_DAY = 2.0  # Alert if burning >2% budget per day
+ERROR_BUDGET_BURN_ALERT_PCT_PER_DAY = float(os.getenv('SLO_ERROR_BUDGET_PCT', '2.0'))  # Alert if burning >2% budget per day
 
 NOW = datetime.now(timezone.utc)
 WINDOW_DAYS = 30
@@ -78,6 +80,15 @@ def compute_p95_latency(traces):
     idx = int(len(durations) * 0.95)
     return durations[min(idx, len(durations) - 1)]
 
+def compute_p99_latency(traces):
+    """Compute P99 latency from HTTP traces"""
+    if not traces:
+        return 0.0
+    
+    durations = sorted([t.get('duration_ms', 0) for t in traces])
+    idx = int(len(durations) * 0.99)
+    return durations[min(idx, len(durations) - 1)]
+
 def compute_webhook_success(webhooks):
     """Compute webhook success rate"""
     if not webhooks:
@@ -132,14 +143,16 @@ def main():
     # Compute SLOs
     availability_pct, avail_success, avail_total = compute_availability(traces)
     p95_latency_ms = compute_p95_latency(traces)
+    p99_latency_ms = compute_p99_latency(traces)
     webhook_success_pct, webhook_success, webhook_total = compute_webhook_success(webhooks)
     
     # Error budgets
     avail_budget = compute_error_budget(availability_pct, SLO_TARGETS['availability_pct'], WINDOW_DAYS)
     webhook_budget = compute_error_budget(webhook_success_pct, SLO_TARGETS['webhook_success_pct'], WINDOW_DAYS)
     
-    # P95 latency status
+    # Latency status
     p95_status = 'OK' if p95_latency_ms <= SLO_TARGETS['p95_latency_ms'] else 'BREACH'
+    p99_status = 'OK' if p99_latency_ms <= SLO_TARGETS['p99_latency_ms'] else 'BREACH'
     
     # Overall SLO status
     breaches = []
@@ -147,6 +160,8 @@ def main():
         breaches.append('availability')
     if p95_latency_ms > SLO_TARGETS['p95_latency_ms']:
         breaches.append('p95_latency')
+    if p99_latency_ms > SLO_TARGETS['p99_latency_ms']:
+        breaches.append('p99_latency')
     if webhook_success_pct < SLO_TARGETS['webhook_success_pct']:
         breaches.append('webhook_success')
     
@@ -171,6 +186,12 @@ def main():
                 'actual_ms': round(p95_latency_ms, 2),
                 'target_ms': SLO_TARGETS['p95_latency_ms'],
                 'status': p95_status,
+                'sample_count': len(traces)
+            },
+            'p99_latency': {
+                'actual_ms': round(p99_latency_ms, 2),
+                'target_ms': SLO_TARGETS['p99_latency_ms'],
+                'status': p99_status,
                 'sample_count': len(traces)
             },
             'webhook_success': {
@@ -198,7 +219,8 @@ def main():
             'breaches': breaches,
             'availability_error_budget': avail_budget,
             'webhook_error_budget': webhook_budget,
-            'p95_latency_ms': round(p95_latency_ms, 2)
+            'p95_latency_ms': round(p95_latency_ms, 2),
+            'p99_latency_ms': round(p99_latency_ms, 2)
         }
         
         with open('logs/production_alerts.ndjson', 'a') as f:

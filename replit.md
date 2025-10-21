@@ -15,6 +15,16 @@ The platform includes core infrastructure for finance, forecasting, a marketplac
 ### Core Architecture
 EchoPilot employs a polling-based, event-driven system with Git integration, polling Notion every 60 seconds. All operations are traceable via Git commit hashes, and execution is prevented with a dirty working tree unless explicitly allowed. It leverages Replit Workflows for scheduling and Replit Connectors for OAuth-based integrations.
 
+### SLO Configuration (Production-Ready)
+All SLO thresholds are configurable via environment variables:
+- **Availability:** `SLO_AVAILABILITY_PCT` (default: 99.9%)
+- **P95 Latency:** `SLO_P95_TARGET_MS` (default: 800ms)
+- **P99 Latency:** `SLO_P99_TARGET_MS` (default: 1200ms)
+- **Webhook Success:** `SLO_WEBHOOK_SUCCESS_PCT` (default: 99%)
+- **Error Budget Burn:** `SLO_ERROR_BUDGET_PCT` (default: 2% per day)
+
+See `docs/SLOS.md` for complete documentation.
+
 ### Application Structure and Key Features
 **Core Automation:**
 - **Task Processing:** Manages task execution, dynamic QA, metrics, and alerts.

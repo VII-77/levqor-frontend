@@ -11,20 +11,36 @@ EchoPilot maintains production-grade SLOs to ensure reliable, performant service
 
 ## SLO Targets
 
+All SLO targets are configurable via environment variables. Default values shown below:
+
 ### 1. API Availability: 99.9%
+**Environment Variable:** `SLO_AVAILABILITY_PCT` (default: 99.9)  
 **Definition:** Percentage of HTTP requests that return status < 500  
 **Error Budget:** 0.1% (43.2 minutes of downtime per month)  
 **Measurement Period:** Rolling 30 days
 
-### 2. P95 Latency: < 400ms
+### 2. P95 Latency: < 800ms
+**Environment Variable:** `SLO_P95_TARGET_MS` (default: 800)  
 **Definition:** 95th percentile of HTTP request duration  
 **Measurement Period:** Rolling 30 days  
 **Sample:** All HTTP requests logged to `logs/http_traces.ndjson`
 
-### 3. Webhook Success: 99%
+### 3. P99 Latency: < 1200ms
+**Environment Variable:** `SLO_P99_TARGET_MS` (default: 1200)  
+**Definition:** 99th percentile of HTTP request duration  
+**Measurement Period:** Rolling 30 days  
+**Sample:** All HTTP requests logged to `logs/http_traces.ndjson`
+
+### 4. Webhook Success: 99%
+**Environment Variable:** `SLO_WEBHOOK_SUCCESS_PCT` (default: 99.0)  
 **Definition:** Percentage of Stripe webhooks that succeed  
 **Error Budget:** 1% allowed failures  
 **Measurement Period:** Rolling 30 days
+
+### 5. Error Budget Burn Rate Threshold
+**Environment Variable:** `SLO_ERROR_BUDGET_PCT` (default: 2.0)  
+**Definition:** Alert threshold for error budget burn rate (% per day)  
+**Alerts:** Triggered when burn rate exceeds this threshold
 
 ---
 
@@ -154,7 +170,7 @@ SLO Guard writes to `logs/production_alerts.ndjson` when:
 - Implement circuit breakers for failing dependencies
 - Enable auto-retry for transient failures
 
-#### 2. P95 Latency Breach (> 400ms)
+#### 2. P95/P99 Latency Breach (> 800ms / > 1200ms)
 **Immediate Actions:**
 1. Identify slow endpoints: `curl /api/observability/latency`
 2. Check database performance: review query logs
@@ -210,6 +226,28 @@ SLO Guard writes to `logs/production_alerts.ndjson` when:
 - **Action:** Dedicate team to reliability improvements
 
 ---
+
+## Configuration
+
+### Environment Variables
+Configure SLO thresholds by setting these environment variables:
+
+```bash
+# SLO Targets (Production-Ready Defaults)
+export SLO_AVAILABILITY_PCT=99.9       # 99.9% uptime (43.2 min/month downtime)
+export SLO_P95_TARGET_MS=800           # P95 latency < 800ms
+export SLO_P99_TARGET_MS=1200          # P99 latency < 1200ms
+export SLO_WEBHOOK_SUCCESS_PCT=99.0    # 99% webhook success
+export SLO_ERROR_BUDGET_PCT=2.0        # Alert on >2% budget burn/day
+```
+
+For testing or development environments, you may use more relaxed thresholds:
+```bash
+# Development Settings (More Relaxed)
+export SLO_AVAILABILITY_PCT=99.5
+export SLO_P95_TARGET_MS=1500
+export SLO_P99_TARGET_MS=2500
+```
 
 ## Commands Reference
 

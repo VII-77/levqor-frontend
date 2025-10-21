@@ -528,28 +528,30 @@
                 // Get cost status (includes error rate)
                 const costData = await apiCall('/api/costs/status');
                 
-                // Update stats
-                const errorRate = costData?.payment_error_rate || 0;
+                // Update stats - handle both formats (0-1 fraction or 0-100 percentage)
+                let errorRate = costData?.payment_error_rate || 0;
+                // If error rate is < 1, assume it's a fraction (0-1) and convert to percentage
+                if (errorRate > 0 && errorRate < 1) {
+                    errorRate = errorRate * 100;
+                }
+                // Clamp to 0-100 range
+                errorRate = Math.max(0, Math.min(100, errorRate));
                 const successRate = 100 - errorRate;
                 
                 document.getElementById('paymentSuccessRate').textContent = `${successRate.toFixed(1)}%`;
                 document.getElementById('paymentErrorRate').textContent = `${errorRate.toFixed(1)}%`;
                 
-                // Load payment events from webhook log
-                const response = await fetch('/logs/payment_webhooks.ndjson');
-                const text = await response.text();
-                const lines = text.trim().split('\n').filter(l => l);
+                // Load payment events from API (secured endpoint)
+                const eventsData = await apiCall('/api/payments/events?limit=10');
                 
-                // Parse last 10 events
-                const events = lines.slice(-10).reverse().map(line => {
-                    try {
-                        return JSON.parse(line);
-                    } catch {
-                        return null;
-                    }
-                }).filter(e => e !== null);
+                if (!eventsData || !eventsData.ok) {
+                    throw new Error('Failed to fetch payment events');
+                }
                 
-                document.getElementById('paymentTotalEvents').textContent = lines.length;
+                const events = eventsData.data || [];
+                const totalCount = eventsData.count || 0;
+                
+                document.getElementById('paymentTotalEvents').textContent = totalCount;
                 
                 // Render payment list
                 const listContainer = document.getElementById('recentPaymentsList');
@@ -562,27 +564,57 @@
                         </div>
                     `;
                 } else {
-                    listContainer.innerHTML = events.map(event => `
-                        <div style="padding: var(--spacing-md); background: var(--bg-tertiary); border-radius: var(--border-radius-md); margin-bottom: var(--spacing-sm);">
-                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: var(--spacing-xs);">
-                                <div>
-                                    <div class="font-bold">${event.type || 'payment'}</div>
-                                    <div class="text-sm text-secondary">${new Date(event.timestamp).toLocaleString()}</div>
+                    listContainer.innerHTML = events.map(event => {
+                        // Handle various timestamp formats
+                        const timestamp = event.timestamp || event.ts || event.created || event.ts_iso || new Date().toISOString();
+                        const dateStr = new Date(timestamp).toLocaleString();
+                        
+                        // Handle amount in different formats (cents vs dollars)
+                        let amountDisplay = '';
+                        if (event.amount) {
+                            const amount = event.amount > 100 ? event.amount / 100 : event.amount;
+                            amountDisplay = `<div class="text-sm">Amount: $${amount.toFixed(2)}</div>`;
+                        } else if (event.amount_cents) {
+                            amountDisplay = `<div class="text-sm">Amount: $${(event.amount_cents / 100).toFixed(2)}</div>`;
+                        }
+                        
+                        // Handle email from various fields
+                        const email = event.customer_email || event.email || '';
+                        const emailDisplay = email ? `<div class="text-sm text-secondary">${email}</div>` : '';
+                        
+                        return `
+                            <div style="padding: var(--spacing-md); background: var(--bg-tertiary); border-radius: var(--border-radius-md); margin-bottom: var(--spacing-sm);">
+                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: var(--spacing-xs);">
+                                    <div>
+                                        <div class="font-bold">${event.type || event.event_type || 'payment'}</div>
+                                        <div class="text-sm text-secondary">${dateStr}</div>
+                                    </div>
+                                    <div class="badge ${(event.status || event.payment_status) === 'succeeded' ? 'badge-success' : 'badge-error'}">
+                                        ${event.status || event.payment_status || 'unknown'}
+                                    </div>
                                 </div>
-                                <div class="badge ${event.status === 'succeeded' ? 'badge-success' : 'badge-error'}">
-                                    ${event.status || 'unknown'}
-                                </div>
+                                ${amountDisplay}
+                                ${emailDisplay}
                             </div>
-                            ${event.amount ? `<div class="text-sm">Amount: $${(event.amount / 100).toFixed(2)}</div>` : ''}
-                            ${event.customer_email ? `<div class="text-sm text-secondary">${event.customer_email}</div>` : ''}
-                        </div>
-                    `).join('');
+                        `;
+                    }).join('');
                 }
                 
                 showToast('Payment data loaded', 'success');
             } catch (err) {
                 showToast('Failed to load payments: ' + err.message, 'error');
                 console.error('Payment load error:', err);
+                
+                // Show error state
+                document.getElementById('paymentSuccessRate').textContent = '--';
+                document.getElementById('paymentErrorRate').textContent = '--';
+                document.getElementById('paymentTotalEvents').textContent = '0';
+                document.getElementById('recentPaymentsList').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <p class="empty-state-description">Error loading payment data. Please try again.</p>
+                    </div>
+                `;
             }
         }
         

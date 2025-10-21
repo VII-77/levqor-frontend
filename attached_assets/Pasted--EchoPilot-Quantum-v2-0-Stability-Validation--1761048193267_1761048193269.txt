@@ -1,0 +1,124 @@
+# ============================================
+# 🧠 EchoPilot Quantum v2.0 - Stability & Validation Setup
+# ============================================
+# Creates the long-term operations manual
+# Adds a daily health validation script
+# Schedules automatic daily telemetry checks
+# ============================================
+
+mkdir -p docs scripts logs backups
+
+# 1️⃣  Long-Term Operations Manual
+cat > docs/LTO_OPERATIONS.md << 'EOF'
+# 🧠 EchoPilot Quantum — Long-Term Operations Manual
+**Version:** v2.0.0-stable (Quantum)
+**Purpose:** Maintain, monitor, and secure the EchoPilot OS platform in production.
+
+## 1. Daily Operations
+| Task | Command / URL | Expected Result |
+|------|----------------|----------------|
+| Health Check | `/health` | `{ "status": "healthy" }` |
+| Supervisor | `/supervisor?token=$DASHBOARD_KEY` | Scheduler + uptime shown |
+| Smoke Test | `bash scripts/daily_validation.sh` | All 11 endpoints PASS |
+| Notion Sync | `/api/status/summary` | `"notion": "OK"` |
+| Logs | `tail -n 20 logs/scheduler.log` | Tick < 60 s |
+| Backup Verify | `/api/dr/verify` | `"status": "PASS"` |
+
+## 2. Weekly Maintenance
+- Run `python3 scripts/security_scanner.py`
+- Test DR restore: `python3 scripts/dr_restore_check.py`
+- Review SLO metrics in `/os`
+- Refresh edge cache: `python3 scripts/edge_worker.py --flush`
+- Patch dependencies: `pip install -U -r requirements.txt`
+
+## 3. Monthly Compliance
+1. Export:  
+   `curl -H "X-Dash-Key:$DASHBOARD_KEY" https://echopilotai.replit.app/api/compliance/evidence/export -o evidence.zip`
+2. Verify SOC2/GDPR sections → archive to `backups/compliance/`.
+3. Rotate API keys older than 90 days.
+
+## 4. Quarterly Governance
+| Metric | Target | Check |
+|---------|---------|-------|
+| Availability | ≥ 99.9 % | `/api/slo/report` |
+| P95 Latency | < 800 ms | `/os` |
+| Cost Margin | > 30 % | `/api/finops/summary` |
+| Region Health | 4/4 Nodes | `/api/regions/status` |
+
+## 5. Incident Response
+1. Capture `/health` + `/supervisor` output  
+2. Copy last 10 lines of `logs/scheduler.log`  
+3. Run `python3 scripts/self_heal_v2.py --safe`  
+4. Escalate to Telegram `#ops-alerts` if unresolved.
+
+## 6. Backup & Versioning
+| Item | Frequency | Command |
+|------|------------|----------|
+| DB/File Backup | Daily 02:30 UTC | Automated |
+| Git Tag Stable | Quarterly | `git tag -a v2.X.Y-stable` |
+| Archive | Quarterly | `tar -czf backups/$(date +%YQ%q)_release.tar.gz *` |
+
+## 7. Upgrade Path — EchoPilot v3 (Sentience)
+- Branch: `feature/v3-sentience`
+- Goals: AI-generated workflows, predictive optimization, edge inference.
+
+## 8. Key Contacts
+| Role | Contact |
+|------|----------|
+| Release Captain | bot@echopilot.ai |
+| Compliance | compliance@echopilot.ai |
+| DevOps | ops@echopilot.ai |
+
+**End of Manual**
+EOF
+
+# 2️⃣  Daily Validation Script
+cat > scripts/daily_validation.sh << 'EOF'
+#!/bin/bash
+set -euo pipefail
+BASE="https://echopilotai.replit.app"
+HDR=(-H "X-Dash-Key:${DASHBOARD_KEY:?set DASHBOARD_KEY}")
+OUT="logs/validation_$(date -u +%Y%m%d).log"
+
+ok(){ jq -e '.ok==true or .status=="healthy"' >/dev/null; }
+
+echo "=== EchoPilot Daily Validation ($(date -u)) ===" | tee "$OUT"
+echo "▶ Health";        curl -fsS "$BASE/health" | ok && echo "✓ health" | tee -a "$OUT"
+echo "▶ Scheduler";     curl -fsS "${HDR[@]}" "$BASE/api/automations/status" | ok && echo "✓ scheduler" | tee -a "$OUT"
+echo "▶ Pricing AI";    curl -fsS "${HDR[@]}" -X POST "$BASE/api/pricing/optimize" | ok && echo "✓ pricing" | tee -a "$OUT"
+echo "▶ Ops Brain";     curl -fsS "${HDR[@]}" -X POST "$BASE/api/brain/decide" | ok && echo "✓ ops brain" | tee -a "$OUT"
+echo "▶ Audit";         curl -fsS "${HDR[@]}" "$BASE/api/audit/report" | ok && echo "✓ audit" | tee -a "$OUT"
+echo "▶ Export";        curl -fsS "${HDR[@]}" "$BASE/api/compliance/export-data" | ok && echo "✓ export" | tee -a "$OUT"
+echo "▶ Regions";       curl -fsS "${HDR[@]}" -X POST "$BASE/api/regions/sync" | ok && echo "✓ regions" | tee -a "$OUT"
+echo "▶ Signed URL";    curl -fsS "${HDR[@]}" "$BASE/api/customer/signed-url/QA_SMOKE?email=qa@echopilot.ai" | ok && echo "✓ signed-url" | tee -a "$OUT"
+echo "▶ Ops Sentinel";  curl -fsS "${HDR[@]}" "$BASE/api/ops/sentinel" | jq -e '.ok==true or .cpu>=0' >/dev/null && echo "✓ ops" | tee -a "$OUT"
+echo "▶ Governance";    curl -fsS "${HDR[@]}" "$BASE/api/governance/check" | ok && echo "✓ governance" | tee -a "$OUT"
+echo "▶ Builder";       curl -fsS "$BASE/workflow/builder" >/dev/null && echo "✓ builder" | tee -a "$OUT"
+echo "✅ All checks complete." | tee -a "$OUT"
+
+# Optional Telegram alert
+if grep -q "✗" "$OUT"; then
+  curl -s -X POST https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN:?}/sendMessage \
+       -d chat_id="${TELEGRAM_CHAT_ID:?}" \
+       -d text="⚠️ EchoPilot Health Check FAILED - see $(basename $OUT)"
+else
+  curl -s -X POST https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN:?}/sendMessage \
+       -d chat_id="${TELEGRAM_CHAT_ID:?}" \
+       -d text="✅ EchoPilot Daily Health Check PASSED ($(date -u))"
+fi
+EOF
+chmod +x scripts/daily_validation.sh
+
+# 3️⃣  Scheduler Entry
+cat >> scripts/exec_scheduler.py << 'EOF'
+
+# --- Daily Health Validation Job (added automatically) ---
+def run_daily_validation():
+    import subprocess
+    subprocess.run(["bash", "scripts/daily_validation.sh"], check=False)
+
+schedule.every().day.at("08:00").do(run_daily_validation)
+EOF
+
+echo "✅  LTO manual created, validation script installed, and scheduler job registered."
+echo "Next step: verify tomorrow’s run logs at logs/validation_YYYYMMDD.log"

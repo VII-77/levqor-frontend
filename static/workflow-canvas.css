@@ -1,0 +1,308 @@
+/* Visual Workflow Builder - Phase 52: Canvas Styles */
+
+/* Workflow Nodes */
+.workflow-node {
+    position: absolute;
+    background: white;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: var(--space-sm);
+    min-width: 160px;
+    cursor: move;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: all 0.2s;
+    user-select: none;
+}
+
+.workflow-node:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+}
+
+.workflow-node.selected {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.workflow-node.dragging {
+    opacity: 0.7;
+    cursor: grabbing;
+    z-index: 1000;
+}
+
+.node-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    margin-bottom: var(--space-xs);
+    padding-bottom: var(--space-xs);
+    border-bottom: 1px solid var(--border);
+}
+
+.node-type-icon {
+    font-size: 20px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    flex-shrink: 0;
+}
+
+.node-label {
+    flex: 1;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.node-delete {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    opacity: 0;
+    transition: all 0.2s;
+    color: var(--error);
+}
+
+.workflow-node:hover .node-delete {
+    opacity: 1;
+}
+
+.node-delete:hover {
+    background: var(--error-light);
+}
+
+.node-body {
+    font-size: var(--text-xs);
+    color: var(--text-secondary);
+}
+
+/* Connection Ports */
+.node-port {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: white;
+    border: 2px solid var(--primary);
+    cursor: crosshair;
+    transition: all 0.2s;
+}
+
+.node-port:hover {
+    transform: scale(1.3);
+    box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.node-port.input {
+    left: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.node-port.output {
+    right: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.node-port.active {
+    background: var(--primary);
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 var(--primary); }
+    50% { box-shadow: 0 0 0 6px transparent; }
+}
+
+/* Canvas SVG for Connections */
+#connections-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.connection-path {
+    fill: none;
+    stroke: var(--primary);
+    stroke-width: 2;
+    pointer-events: all;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.connection-path:hover {
+    stroke: var(--secondary);
+    stroke-width: 3;
+}
+
+.connection-path.selected {
+    stroke: var(--secondary);
+    stroke-width: 3;
+    stroke-dasharray: 5;
+    animation: dash 0.5s linear infinite;
+}
+
+@keyframes dash {
+    to { stroke-dashoffset: -10; }
+}
+
+.temp-connection {
+    stroke: var(--primary);
+    stroke-width: 2;
+    stroke-dasharray: 5;
+    opacity: 0.5;
+}
+
+/* Canvas Controls */
+.canvas-controls {
+    position: absolute;
+    bottom: var(--space-md);
+    right: var(--space-md);
+    display: flex;
+    gap: var(--space-xs);
+    background: white;
+    border-radius: var(--radius-md);
+    padding: var(--space-xs);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    z-index: 10;
+}
+
+.control-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 18px;
+}
+
+.control-btn:hover {
+    background: var(--bg-secondary);
+    border-color: var(--primary);
+}
+
+.control-btn:active {
+    transform: scale(0.95);
+}
+
+/* Mini Map */
+.canvas-minimap {
+    position: absolute;
+    bottom: var(--space-md);
+    left: var(--space-md);
+    width: 200px;
+    height: 150px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    z-index: 10;
+    overflow: hidden;
+}
+
+.minimap-viewport {
+    position: absolute;
+    border: 2px solid var(--primary);
+    background: rgba(102, 126, 234, 0.1);
+    cursor: move;
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+    .workflow-node {
+        min-width: 140px;
+        touch-action: none;
+    }
+    
+    .node-port {
+        width: 16px;
+        height: 16px;
+    }
+    
+    .canvas-controls {
+        bottom: 80px; /* Above bottom nav */
+    }
+    
+    .canvas-minimap {
+        display: none; /* Hide on mobile */
+    }
+}
+
+/* Zoom Levels */
+.canvas-viewport.zoom-50 {
+    transform: scale(0.5);
+}
+
+.canvas-viewport.zoom-75 {
+    transform: scale(0.75);
+}
+
+.canvas-viewport.zoom-100 {
+    transform: scale(1);
+}
+
+.canvas-viewport.zoom-125 {
+    transform: scale(1.25);
+}
+
+.canvas-viewport.zoom-150 {
+    transform: scale(1.5);
+}
+
+/* Selection Box */
+.selection-box {
+    position: absolute;
+    border: 2px dashed var(--primary);
+    background: rgba(102, 126, 234, 0.1);
+    pointer-events: none;
+    z-index: 999;
+}
+
+/* Context Menu */
+.context-menu {
+    position: absolute;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    padding: var(--space-xs);
+    min-width: 180px;
+    z-index: 1000;
+}
+
+.context-menu-item {
+    padding: var(--space-sm);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: var(--text-sm);
+    transition: all 0.2s;
+}
+
+.context-menu-item:hover {
+    background: var(--bg-secondary);
+}
+
+.context-menu-item.danger:hover {
+    background: var(--error-light);
+    color: var(--error);
+}

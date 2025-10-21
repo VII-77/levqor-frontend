@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Visual Workflow Builder - EchoPilot AI</title>
     <link rel="stylesheet" href="/static/app.css">
+    <link rel="stylesheet" href="/static/workflow-canvas.css">
     <style>
         /* Phase 51: Foundation Styles */
         .workflow-builder {
@@ -317,6 +318,13 @@
                             Choose a Template
                         </button>
                     </div>
+                    
+                    <!-- Phase 52: Canvas Controls -->
+                    <div class="canvas-controls">
+                        <button class="control-btn" onclick="window.workflowCanvas?.zoomIn()" title="Zoom In">+</button>
+                        <button class="control-btn" onclick="window.workflowCanvas?.resetZoom()" title="Reset Zoom">⊙</button>
+                        <button class="control-btn" onclick="window.workflowCanvas?.zoomOut()" title="Zoom Out">−</button>
+                    </div>
                 </div>
             </div>
             
@@ -375,11 +383,14 @@
                     </div>
                 </div>
             `).join('');
+            
+            // Store node types globally for canvas
+            window.nodeTypes = nodeTypes;
         }
         
         // Drag and drop handlers
         function handleDragStart(event, type) {
-            draggedNodeType = type;
+            event.dataTransfer.setData('nodeType', type);
             event.dataTransfer.effectAllowed = 'copy';
         }
         
@@ -482,6 +493,64 @@
         
         // Initialize on load
         init();
+    </script>
+    
+    <!-- Phase 52: Canvas JavaScript -->
+    <script src="/static/workflow-canvas.js"></script>
+    
+    <script>
+        // Integration with canvas
+        async function loadWorkflow() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const workflowId = urlParams.get('id');
+            
+            if (workflowId) {
+                try {
+                    const response = await fetch(`/api/workflow/${workflowId}`);
+                    const data = await response.json();
+                    if (data.ok) {
+                        currentWorkflow = data.workflow;
+                        updateHeader();
+                        // Load into canvas
+                        if (window.workflowCanvas) {
+                            window.workflowCanvas.loadWorkflow(currentWorkflow);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Failed to load workflow:', error);
+                }
+            } else {
+                // Create new workflow
+                await createNewWorkflow();
+            }
+        }
+        
+        async function createNewWorkflow() {
+            try {
+                const response = await fetch('/api/workflow', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Dash-Key': localStorage.getItem('dashKey') || 'temp'
+                    },
+                    body: JSON.stringify({
+                        user_id: 'default',
+                        name: 'New Workflow',
+                        description: 'Created from visual builder'
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.ok) {
+                    currentWorkflow = data.workflow;
+                    updateHeader();
+                    // Update URL
+                    window.history.replaceState({}, '', `/workflow/builder?id=${data.workflow_id}`);
+                }
+            } catch (error) {
+                console.error('Failed to create workflow:', error);
+            }
+        }
     </script>
 </body>
 </html>

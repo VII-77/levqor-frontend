@@ -57,3 +57,4 @@ psutil
 pyjwt
 pytest
 psycopg2-binary
+PyJWT

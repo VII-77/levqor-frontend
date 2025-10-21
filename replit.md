@@ -74,6 +74,15 @@ See `docs/SLOS.md` for complete documentation.
 - **NDJSON Logging:** Comprehensive event logging to `logs/anomaly_guard.ndjson` for forensic analysis and trend detection.
 - **Reliability Target:** Pushes system uptime from 99.9% → 99.99% through early warning and zero-touch recovery.
 
+**Production Extras (E1-E7 - 100% Complete):**
+- **Extra 1 - Demo Environment:** Idempotent demo data seeder (`scripts/seed_demo.py`) with 5 categories (clients, automations, finance, growth, partners). DEMO_MODE support with read-only protection, demo banner, and write operation blocking.
+- **Extra 2 - Smoke Test Suite:** Basic smoke tests (`scripts/smoke.sh`, 18 tests, ~30s) and advanced smoke tests (`scripts/smoke_advanced.sh`, 14 tests, ~60s) with color-coded output, NDJSON logging, and CI/CD integration. Complete documentation in `docs/SMOKE_TESTS.md`.
+- **Extra 3 - Observability Pack:** Request ID middleware with X-Request-ID header propagation. Real-time log tailing API (`GET /api/logs`) with 8 log file support and request ID filtering. Prometheus metrics endpoint (`GET /metrics`) with HTTP requests, latency quantiles, database health, and scheduler metrics.
+- **Extra 4 - Security Guardrails:** JWT authentication system (access 15min + refresh 24hr) with token rotation, blacklist-based revocation, and 4 API endpoints (`/api/auth/*`). WAF-style request validation detecting SQL injection, XSS, and path traversal with audit logging. CSP headers and comprehensive security documentation.
+- **Extra 5 - DX Tools:** Development environment checker (`scripts/dev_check.py`) validating Python, dependencies, env vars, directories, git, database, port, and disk space. Unified test runner (`scripts/test_all.sh`) orchestrating 8 test suites. Pre-commit hooks (`.pre-commit-config.yaml`) with black, isort, flake8, bandit, shellcheck, and custom validators.
+- **Extra 6 - UX Polish:** Custom 404 page with search box, keyword routing, and navigation links. Mobile-responsive dark theme design.
+- **Extra 7 - Documentation:** Comprehensive SECURITY.md (400+ lines) covering 7 security features, best practices, vulnerability reporting, compliance standards (OWASP, GDPR, CCPA, SOC 2), and security checklists.
+
 ### Data Flow Architecture
 The system utilizes a 13-database structure within Notion: 5 core databases (Automation Queue, Automation Log, EchoPilot Job Log, Notion Client, Notion Status) and 8 enterprise databases (Finance, Governance, Ops Monitor, Forecast, Region Compliance, Partners, Referrals, Growth Metrics). Automated schema enforcement ensures data integrity.
 

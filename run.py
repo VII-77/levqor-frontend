@@ -189,6 +189,12 @@ def add_security_headers(response):
 
 app.after_request(add_security_headers)
 
+# ===== EXTRA 6: Custom 404 Handler =====
+@app.errorhandler(404)
+def page_not_found(e):
+    """Custom 404 error handler"""
+    return render_template('404.html'), 404
+
 # Rate limiting moved to bot/security.py (Boss Mode upgrade)
 # Old implementation removed to avoid conflicts
 
@@ -1437,6 +1443,101 @@ def api_governance_analyze():
             "ok": False,
             "error": str(e)
         }), 500
+
+# ===== EXTRA 4: JWT Authentication Endpoints =====
+from bot.security import generate_jwt_pair, rotate_jwt, revoke_jwt, require_jwt
+
+@app.route('/api/auth/token', methods=['POST'])
+def api_auth_token():
+    """
+    Generate JWT token pair
+    Body: {"user_id": "...", "user_data": {...}}
+    """
+    data = request.get_json() or {}
+    user_id = data.get('user_id')
+    user_data = data.get('user_data')
+    
+    if not user_id:
+        return jsonify({
+            "ok": False,
+            "error": "user_id required"
+        }), 400
+    
+    tokens = generate_jwt_pair(user_id, user_data)
+    
+    return jsonify({
+        "ok": True,
+        **tokens
+    }), 200
+
+@app.route('/api/auth/refresh', methods=['POST'])
+def api_auth_refresh():
+    """
+    Refresh access token using refresh token
+    Body: {"refresh_token": "..."}
+    """
+    data = request.get_json() or {}
+    refresh_token = data.get('refresh_token')
+    
+    if not refresh_token:
+        return jsonify({
+            "ok": False,
+            "error": "refresh_token required"
+        }), 400
+    
+    tokens, error = rotate_jwt(refresh_token)
+    
+    if error:
+        return jsonify({
+            "ok": False,
+            "error": error
+        }), 401
+    
+    return jsonify({
+        "ok": True,
+        **tokens
+    }), 200
+
+@app.route('/api/auth/revoke', methods=['POST'])
+def api_auth_revoke():
+    """
+    Revoke JWT token
+    Body: {"token": "..."}
+    """
+    data = request.get_json() or {}
+    token = data.get('token')
+    
+    if not token:
+        return jsonify({
+            "ok": False,
+            "error": "token required"
+        }), 400
+    
+    success = revoke_jwt(token)
+    
+    if success:
+        return jsonify({
+            "ok": True,
+            "message": "Token revoked successfully"
+        }), 200
+    else:
+        return jsonify({
+            "ok": False,
+            "error": "Failed to revoke token"
+        }), 400
+
+@app.route('/api/auth/me')
+@require_jwt
+def api_auth_me():
+    """
+    Get current JWT user info
+    Requires: Authorization: Bearer <access_token>
+    """
+    return jsonify({
+        "ok": True,
+        "user_id": getattr(request, 'jwt_user_id', None),
+        "user_data": getattr(request, 'jwt_data', None)
+    }), 200
 
 # ===== EXTRA 3: OBSERVABILITY PACK =====
 

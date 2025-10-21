@@ -1,0 +1,133 @@
+# EchoPilot Pre-Commit Hooks
+# Install: pip install pre-commit && pre-commit install
+# Run manually: pre-commit run --all-files
+
+repos:
+  # Python formatting and linting
+  - repo: https://github.com/psf/black
+    rev: 23.12.1
+    hooks:
+      - id: black
+        language_version: python3
+        files: \.(py)$
+  
+  # Python import sorting
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: ["--profile", "black"]
+        files: \.(py)$
+  
+  # Python linting
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.0.0
+    hooks:
+      - id: flake8
+        args: ['--max-line-length=120', '--ignore=E501,W503,E203']
+        files: \.(py)$
+  
+  # General file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      # Prevent large files from being committed
+      - id: check-added-large-files
+        args: ['--maxkb=5000']
+      
+      # Check for merge conflict markers
+      - id: check-merge-conflict
+      
+      # Check YAML syntax
+      - id: check-yaml
+        exclude: '^\.github/workflows/'  # GitHub Actions has special syntax
+      
+      # Check JSON syntax
+      - id: check-json
+        files: \.(json)$
+      
+      # Check for trailing whitespace
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      
+      # Ensure files end with newline
+      - id: end-of-file-fixer
+      
+      # Check for mixed line endings
+      - id: mixed-line-ending
+      
+      # Prevent committing to main branch
+      - id: no-commit-to-branch
+        args: ['--branch', 'main', '--branch', 'master']
+        stages: [commit]
+  
+  # Security checks
+  - repo: https://github.com/PyCQA/bandit
+    rev: '1.7.6'
+    hooks:
+      - id: bandit
+        args: ['-ll', '-i']  # Low severity, ignore info
+        files: \.(py)$
+        exclude: ^tests/
+  
+  # Shell script linting
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.9.0.6
+    hooks:
+      - id: shellcheck
+        files: \.(sh|bash)$
+        args: ['--severity=warning']
+  
+  # Markdown linting
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.38.0
+    hooks:
+      - id: markdownlint
+        args: ['--fix']
+        files: \.(md|markdown)$
+
+# Custom local hooks
+  - repo: local
+    hooks:
+      # Run development environment check
+      - id: dev-check
+        name: Development Environment Check
+        entry: python3 scripts/dev_check.py
+        language: system
+        pass_filenames: false
+        stages: [push]  # Only run on push, not every commit
+      
+      # Validate Python imports
+      - id: python-imports
+        name: Python Import Validation
+        entry: python3 -c "import bot.main; import bot.config"
+        language: system
+        pass_filenames: false
+        stages: [push]
+      
+      # Validate feature flags JSON
+      - id: validate-flags
+        name: Feature Flags Validation
+        entry: python3 -m json.tool configs/flags.json
+        language: system
+        pass_filenames: false
+        files: ^configs/flags\.json$
+      
+      # Check for hardcoded secrets
+      - id: no-hardcoded-secrets
+        name: Check for Hardcoded Secrets
+        entry: bash -c 'if grep -rn --include="*.py" --include="*.js" "sk-[a-zA-Z0-9]\\{32,\\}" .; then exit 1; fi'
+        language: system
+        pass_filenames: false
+      
+      # Ensure logs are gitignored
+      - id: no-log-files
+        name: Prevent Committing Log Files
+        entry: bash -c 'if git diff --cached --name-only | grep "\.ndjson$"; then echo "Error: Attempting to commit log files"; exit 1; fi'
+        language: system
+        pass_filenames: false
+
+# Configuration
+default_install_hook_types: [pre-commit, pre-push]
+default_stages: [commit]
+fail_fast: false  # Run all hooks even if one fails

@@ -1,7 +1,128 @@
 {
-  "payments.live": true,
-  "ui.new_dashboard": false,
-  "ab.pricing_v2": false,
-  "features.churn_ai": true,
-  "features.slo_monitoring": true
+  "meta": {
+    "version": "1.0.0",
+    "last_updated": "2025-10-21T00:00:00Z",
+    "description": "EchoPilot Feature Flags - A/B Testing & Progressive Rollout"
+  },
+  "flags": {
+    "visual_workflow_builder": {
+      "enabled": true,
+      "rollout_pct": 100,
+      "description": "Visual drag-and-drop workflow builder (Phase 51-55)",
+      "environments": ["development", "production"],
+      "created_at": "2025-10-15T00:00:00Z"
+    },
+    "boss_mode_v2": {
+      "enabled": true,
+      "rollout_pct": 100,
+      "description": "Boss Mode UI v2.0 with mobile-first design",
+      "environments": ["development", "production"],
+      "created_at": "2025-10-10T00:00:00Z"
+    },
+    "customer_auth": {
+      "enabled": true,
+      "rollout_pct": 100,
+      "description": "Customer authentication system (Phase 103)",
+      "environments": ["development", "production"],
+      "created_at": "2025-10-20T00:00:00Z"
+    },
+    "public_pricing": {
+      "enabled": true,
+      "rollout_pct": 100,
+      "description": "Public pricing page with lead capture (Phase 105)",
+      "environments": ["development", "production"],
+      "created_at": "2025-10-21T00:00:00Z"
+    },
+    "data_warehouse": {
+      "enabled": true,
+      "rollout_pct": 100,
+      "description": "Data warehouse ETL sync (Phase 106)",
+      "environments": ["development", "production"],
+      "created_at": "2025-10-21T00:00:00Z"
+    },
+    "slo_auto_tune": {
+      "enabled": false,
+      "rollout_pct": 0,
+      "description": "Automatic SLO threshold tuning (Phase 107)",
+      "environments": ["development"],
+      "created_at": "2025-10-21T00:00:00Z"
+    },
+    "ai_quality_boost": {
+      "enabled": true,
+      "rollout_pct": 100,
+      "description": "Enhanced AI quality checks with multi-criteria QA",
+      "environments": ["development", "production"],
+      "created_at": "2025-09-01T00:00:00Z"
+    },
+    "stripe_payments": {
+      "enabled": true,
+      "rollout_pct": 100,
+      "description": "Stripe payment processing integration",
+      "environments": ["development", "production"],
+      "created_at": "2025-08-15T00:00:00Z"
+    },
+    "dark_mode": {
+      "enabled": true,
+      "rollout_pct": 100,
+      "description": "Dark mode support with localStorage persistence",
+      "environments": ["development", "production"],
+      "created_at": "2025-10-20T00:00:00Z"
+    },
+    "ai_governance": {
+      "enabled": false,
+      "rollout_pct": 0,
+      "description": "AI-powered governance advisor (Phase 110 - coming soon)",
+      "environments": ["development"],
+      "created_at": "2025-10-21T00:00:00Z"
+    },
+    "demo_mode": {
+      "enabled": false,
+      "rollout_pct": 0,
+      "description": "Demo mode with synthetic data for testing",
+      "environments": ["development"],
+      "created_at": "2025-10-21T00:00:00Z"
+    },
+    "advanced_analytics": {
+      "enabled": true,
+      "rollout_pct": 50,
+      "description": "Advanced analytics dashboard (gradual rollout)",
+      "environments": ["development", "production"],
+      "created_at": "2025-10-21T00:00:00Z"
+    },
+    "payments.live": {
+      "enabled": true,
+      "rollout_pct": 100,
+      "description": "Live payment processing (legacy flag)",
+      "environments": ["production"],
+      "created_at": "2025-08-01T00:00:00Z"
+    },
+    "ui.new_dashboard": {
+      "enabled": false,
+      "rollout_pct": 0,
+      "description": "Experimental new dashboard UI (legacy flag)",
+      "environments": ["development"],
+      "created_at": "2025-08-01T00:00:00Z"
+    },
+    "ab.pricing_v2": {
+      "enabled": false,
+      "rollout_pct": 0,
+      "description": "A/B test for pricing page v2 (legacy flag)",
+      "environments": ["development"],
+      "created_at": "2025-08-01T00:00:00Z"
+    },
+    "features.churn_ai": {
+      "enabled": true,
+      "rollout_pct": 100,
+      "description": "Churn prediction AI (legacy flag)",
+      "environments": ["production"],
+      "created_at": "2025-08-01T00:00:00Z"
+    },
+    "features.slo_monitoring": {
+      "enabled": true,
+      "rollout_pct": 100,
+      "description": "SLO monitoring system (legacy flag)",
+      "environments": ["production"],
+      "created_at": "2025-08-01T00:00:00Z"
+    }
+  }
 }

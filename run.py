@@ -18,24 +18,9 @@ from pathlib import Path
 
 app = Flask(__name__)
 
-# ===== Feature Flags System (Boss Mode Phase 9) =====
-FEATURE_FLAGS_PATH = Path(__file__).parent / "scripts" / "feature_flags.json"
-
-def load_feature_flags():
-    """Load feature flags from JSON file"""
-    try:
-        if FEATURE_FLAGS_PATH.exists():
-            with open(FEATURE_FLAGS_PATH, 'r') as f:
-                data = json.load(f)
-                return data.get('flags', {})
-    except Exception as e:
-        print(f"Warning: Could not load feature flags: {e}")
-    return {}
-
-def is_feature_enabled(feature_name):
-    """Check if a feature flag is enabled"""
-    flags = load_feature_flags()
-    return flags.get(feature_name, {}).get('enabled', False)
+# ===== Feature Flags System - Phase 108 =====
+# Migrated to bot.feature_flags module with hot-reload cache
+# Use: from bot.feature_flags import is_enabled, get_environment
 
 # Phase 51: Observability metrics storage
 metrics_storage = {
@@ -1098,6 +1083,182 @@ def api_slo_apply():
 # END PHASE 107
 # ============================================================
 
+# ============================================================
+# PHASE 108: A/B TESTING FRAMEWORK
+# ============================================================
+
+@app.route('/api/flags')
+@require_dashboard_key
+def api_flags_list():
+    """
+    Get all feature flags
+    Returns complete flag configuration with metadata
+    """
+    from bot.feature_flags import get_all_flags
+    
+    try:
+        flags = get_all_flags()
+        
+        return jsonify({
+            "ok": True,
+            "flags": flags,
+            "count": len(flags)
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "error": str(e)
+        }), 500
+
+@app.route('/api/flags/<flag_name>')
+@require_dashboard_key
+def api_flags_get(flag_name):
+    """Get specific feature flag configuration"""
+    from bot.feature_flags import get_flag
+    
+    try:
+        flag = get_flag(flag_name)
+        
+        if not flag:
+            return jsonify({
+                "ok": False,
+                "error": "Flag not found"
+            }), 404
+        
+        return jsonify({
+            "ok": True,
+            "flag": flag
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "error": str(e)
+        }), 500
+
+@app.route('/api/flags/<flag_name>', methods=['PUT'])
+@require_dashboard_key
+def api_flags_update(flag_name):
+    """
+    Update feature flag configuration
+    Supports hot-reload without restart
+    """
+    from bot.feature_flags import set_flag
+    from flask import request
+    
+    try:
+        data = request.get_json() or {}
+        
+        success = set_flag(
+            flag_name,
+            enabled=data.get('enabled'),
+            rollout_pct=data.get('rollout_pct'),
+            environments=data.get('environments'),
+            description=data.get('description')
+        )
+        
+        if success:
+            return jsonify({
+                "ok": True,
+                "message": f"Flag {flag_name} updated successfully"
+            }), 200
+        else:
+            return jsonify({
+                "ok": False,
+                "error": "Failed to update flag"
+            }), 500
+        
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "error": str(e)
+        }), 500
+
+@app.route('/api/flags/<flag_name>', methods=['DELETE'])
+@require_dashboard_key
+def api_flags_delete(flag_name):
+    """Delete feature flag"""
+    from bot.feature_flags import delete_flag
+    
+    try:
+        success = delete_flag(flag_name)
+        
+        if success:
+            return jsonify({
+                "ok": True,
+                "message": f"Flag {flag_name} deleted successfully"
+            }), 200
+        else:
+            return jsonify({
+                "ok": False,
+                "error": "Flag not found"
+            }), 404
+        
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "error": str(e)
+        }), 500
+
+@app.route('/api/flags/check/<flag_name>')
+def api_flags_check(flag_name):
+    """
+    Check if flag is enabled (public endpoint)
+    Supports user_id parameter for rollout percentage
+    """
+    from bot.feature_flags import is_enabled, get_environment
+    from flask import request
+    
+    try:
+        user_id = request.args.get('user_id')
+        environment = get_environment()
+        
+        enabled = is_enabled(flag_name, user_id=user_id, environment=environment)
+        
+        return jsonify({
+            "ok": True,
+            "flag": flag_name,
+            "enabled": enabled,
+            "environment": environment
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "error": str(e)
+        }), 500
+
+@app.route('/api/flags/evaluate')
+def api_flags_evaluate():
+    """
+    Evaluate all flags for a user
+    Returns map of flag_name -> enabled status
+    """
+    from bot.feature_flags import evaluate_for_user
+    from flask import request
+    
+    try:
+        user_id = request.args.get('user_id', 'anonymous')
+        
+        flags = evaluate_for_user(user_id)
+        
+        return jsonify({
+            "ok": True,
+            "user_id": user_id,
+            "flags": flags
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "error": str(e)
+        }), 500
+
+# ============================================================
+# END PHASE 108
+# ============================================================
+
 @app.route('/webhook/stripe', methods=['POST'])
 def webhook_stripe():
     """Stripe webhook endpoint for payment status updates"""
@@ -1462,8 +1623,9 @@ def payments():
 
 @app.route('/api/feature-flags')
 def api_feature_flags():
-    """Get current feature flags (public endpoint for UI)"""
-    flags = load_feature_flags()
+    """Get current feature flags (legacy - use /api/flags instead)"""
+    from bot.feature_flags import get_all_flags
+    flags = get_all_flags()
     return jsonify({"ok": True, "flags": flags})
 
 # ===== Boss Mode Phase 10: Growth Loops =====

@@ -412,3 +412,12 @@
 {"ts": "2025-10-21T09:33:12Z", "latency_ms": 4, "ok": true, "code": 200}
 {"ts": "2025-10-21T09:34:14Z", "latency_ms": 4, "ok": true, "code": 200}
 {"ts": "2025-10-21T09:35:14Z", "latency_ms": 4, "ok": true, "code": 200}
+{"ts": "2025-10-21T09:36:17Z", "latency_ms": 12, "ok": true, "code": 200}
+{"ts": "2025-10-21T09:37:19Z", "latency_ms": 5, "ok": true, "code": 200}
+{"ts": "2025-10-21T09:38:19Z", "latency_ms": 4, "ok": true, "code": 200}
+{"ts": "2025-10-21T09:39:20Z", "latency_ms": 4, "ok": true, "code": 200}
+{"ts": "2025-10-21T09:40:22Z", "latency_ms": 4, "ok": true, "code": 200}
+{"ts": "2025-10-21T09:41:24Z", "latency_ms": 4, "ok": true, "code": 200}
+{"ts": "2025-10-21T09:42:24Z", "latency_ms": 3, "ok": true, "code": 200}
+{"ts": "2025-10-21T09:43:26Z", "latency_ms": 11, "ok": true, "code": 200}
+{"ts": "2025-10-21T09:44:26Z", "latency_ms": 9, "ok": true, "code": 200}

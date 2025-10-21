@@ -849,6 +849,118 @@ Sitemap: {base_url}/sitemap.xml'''
 # END PHASE 105
 # ============================================================
 
+# ============================================================
+# PHASE 106: DATA WAREHOUSE SYNC
+# ============================================================
+
+@app.route('/api/warehouse/status')
+@require_dashboard_key
+def api_warehouse_status():
+    """
+    Get data warehouse sync status
+    Reads wh_sync_metadata table and warehouse_sync.ndjson logs
+    """
+    import psycopg2
+    import os
+    import json
+    from datetime import datetime
+    
+    try:
+        conn = psycopg2.connect(os.getenv('DATABASE_URL'))
+        cursor = conn.cursor()
+        
+        # Get latest sync metadata
+        cursor.execute("""
+            SELECT table_name, sync_started_at, sync_completed_at, rows_synced, status, error_message
+            FROM wh_sync_metadata
+            ORDER BY sync_completed_at DESC
+            LIMIT 10
+        """)
+        
+        recent_syncs = []
+        for row in cursor.fetchall():
+            recent_syncs.append({
+                "table": row[0],
+                "started_at": row[1].isoformat() if row[1] else None,
+                "completed_at": row[2].isoformat() if row[2] else None,
+                "rows_synced": row[3],
+                "status": row[4],
+                "error": row[5]
+            })
+        
+        # Get table row counts
+        tables = [
+            'wh_automation_queue', 'wh_automation_log', 'wh_job_log', 
+            'wh_clients', 'wh_finance', 'wh_governance', 'wh_ops_monitor',
+            'wh_forecast', 'wh_region_compliance', 'wh_partners', 
+            'wh_referrals', 'wh_growth_metrics'
+        ]
+        
+        table_stats = {}
+        for table in tables:
+            cursor.execute(f"SELECT COUNT(*) FROM {table}")
+            count = cursor.fetchone()[0]
+            table_stats[table] = count
+        
+        cursor.close()
+        conn.close()
+        
+        # Read latest sync log
+        latest_log = None
+        if os.path.exists('logs/warehouse_sync.ndjson'):
+            with open('logs/warehouse_sync.ndjson', 'r') as f:
+                lines = f.readlines()
+                if lines:
+                    latest_log = json.loads(lines[-1].strip())
+        
+        return jsonify({
+            "ok": True,
+            "recent_syncs": recent_syncs,
+            "table_stats": table_stats,
+            "latest_sync": latest_log,
+            "total_rows": sum(table_stats.values())
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "error": str(e)
+        }), 500
+
+@app.route('/api/warehouse/sync', methods=['POST'])
+@require_dashboard_key
+def api_warehouse_sync():
+    """
+    Trigger manual data warehouse sync
+    Runs warehouse_sync.py script asynchronously
+    """
+    import subprocess
+    import os
+    
+    try:
+        # Run warehouse sync in background
+        result = subprocess.Popen(
+            ['python3', 'scripts/warehouse_sync.py'],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        
+        return jsonify({
+            "ok": True,
+            "message": "Warehouse sync started",
+            "pid": result.pid
+        }), 202  # 202 Accepted
+        
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "error": str(e)
+        }), 500
+
+# ============================================================
+# END PHASE 106
+# ============================================================
+
 @app.route('/webhook/stripe', methods=['POST'])
 def webhook_stripe():
     """Stripe webhook endpoint for payment status updates"""

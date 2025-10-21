@@ -56,3 +56,4 @@ python-dateutil
 psutil
 pyjwt
 pytest
+psycopg2-binary

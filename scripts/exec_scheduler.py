@@ -838,12 +838,19 @@ def run_scheduled_tasks():
         run_backup_verify()
         mark_run('backup_verify')
     
-    # 51) Secret Rotation - Daily at 00:10 UTC (script decides monthly rotation)
+    # ==================== PHASE 106: DATA WAREHOUSE ====================
+    
+    # 51) Data Warehouse Sync - Daily at 02:50 UTC (Phase 106)
+    if is_time_match(2, 50) and should_run('warehouse_sync'):
+        run_warehouse_sync()
+        mark_run('warehouse_sync')
+    
+    # 53) Secret Rotation - Daily at 00:10 UTC (script decides monthly rotation)
     if is_time_match(0, 10) and should_run('rotate_secrets'):
         run_rotate_secrets()
         mark_run('rotate_secrets')
     
-    # 52) DR Drill - Weekly on Sundays at 01:00 UTC
+    # 54) DR Drill - Weekly on Sundays at 01:00 UTC
     now = datetime.utcnow()
     if now.weekday() == 6 and is_time_match(1, 0) and should_run('dr_drill'):
         run_dr_drill()
@@ -984,6 +991,17 @@ def run_uptime():
         subprocess.run(['python3', 'scripts/uptime_monitor.py', '--once'], check=False, timeout=15)
     except Exception as e:
         log_event('uptime_error', {'error': str(e)})
+
+def run_warehouse_sync():
+    """Run data warehouse ETL sync - Phase 106"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/warehouse_sync.py'], check=False, timeout=120)
+        log_event('warehouse_sync', {'ok': True})
+    except subprocess.TimeoutExpired:
+        log_event('warehouse_sync_timeout', {'error': 'Timeout after 120s'})
+    except Exception as e:
+        log_event('warehouse_sync_error', {'error': str(e)})
 
 def run_backup_verify():
     """Run backup verification - Stabilization Sprint"""

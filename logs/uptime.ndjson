@@ -391,3 +391,16 @@
 {"ts": "2025-10-21T09:11:43Z", "latency_ms": 5, "ok": true, "code": 200}
 {"ts": "2025-10-21T09:12:45Z", "latency_ms": 4, "ok": true, "code": 200}
 {"ts": "2025-10-21T09:13:45Z", "latency_ms": 3, "ok": true, "code": 200}
+{"ts": "2025-10-21T09:14:46Z", "latency_ms": 4, "ok": true, "code": 200}
+{"ts": "2025-10-21T09:15:51Z", "latency_ms": 4, "ok": true, "code": 200}
+{"ts": "2025-10-21T09:16:52Z", "latency_ms": 5, "ok": true, "code": 200}
+{"ts": "2025-10-21T09:17:52Z", "latency_ms": 17, "ok": true, "code": 200}
+{"ts": "2025-10-21T09:18:55Z", "latency_ms": 4, "ok": true, "code": 200}
+{"ts": "2025-10-21T09:19:55Z", "latency_ms": 7, "ok": true, "code": 200}
+{"ts": "2025-10-21T09:20:57Z", "latency_ms": 4, "ok": true, "code": 200}
+{"ts": "2025-10-21T09:21:59Z", "latency_ms": 20, "ok": true, "code": 200}
+{"ts": "2025-10-21T09:23:00Z", "latency_ms": 3, "ok": true, "code": 200}
+{"ts": "2025-10-21T09:24:00Z", "latency_ms": 30, "ok": true, "code": 200}
+{"ts": "2025-10-21T09:25:02Z", "latency_ms": 6, "ok": true, "code": 200}
+{"ts": "2025-10-21T09:26:04Z", "latency_ms": 3, "ok": true, "code": 200}
+{"ts": "2025-10-21T09:27:04Z", "latency_ms": 4, "ok": true, "code": 200}

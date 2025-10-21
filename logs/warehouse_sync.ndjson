@@ -19,3 +19,5 @@
 {"ok": true, "ts": "2025-10-21T07:50:35.307670Z", "warehouse_url": "sqlite:///data/warehouse.db", "synced_records": 0, "tables": ["jobs", "costs", "incidents", "slo_metrics"]}
 {"ok": true, "ts": "2025-10-21T08:34:24.651475Z", "warehouse_url": "sqlite:///data/warehouse.db", "synced_records": 0, "tables": ["jobs", "costs", "incidents", "slo_metrics"]}
 {"ok": true, "ts": "2025-10-21T08:45:02.022961Z", "warehouse_url": "sqlite:///data/warehouse.db", "synced_records": 0, "tables": ["jobs", "costs", "incidents", "slo_metrics"]}
+{"ok": false, "ts": "2025-10-21T09:20:47.368237Z", "error": "module 'bot.config' has no attribute 'NOTION_FINANCE_DB_ID'"}
+{"ok": true, "ts": "2025-10-21T09:22:01.638828Z", "tables_synced": 5, "rows_synced": 101, "duration_secs": 8.998369}

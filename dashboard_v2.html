@@ -182,17 +182,37 @@
                     
                     <!-- Payments Tab -->
                     <div class="tab-content" data-tab-content="payments">
+                        <!-- Payment Stats Card -->
                         <div class="card">
                             <div class="card-header">
-                                <h2 class="card-title">💰 Payments</h2>
+                                <h2 class="card-title">💰 Payment Center</h2>
+                                <button class="btn btn-sm btn-primary" onclick="refreshPayments()">Refresh</button>
                             </div>
                             <div class="card-body">
-                                <div class="empty-state">
-                                    <div class="empty-state-icon">💳</div>
-                                    <h3 class="empty-state-title">Payment center coming soon</h3>
-                                    <p class="empty-state-description">
-                                        Create invoices, manage refunds, and track payments
-                                    </p>
+                                <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
+                                    <div class="stat-card" style="padding: var(--spacing-md); background: var(--bg-tertiary); border-radius: var(--border-radius-md);">
+                                        <div class="text-sm text-secondary">Success Rate</div>
+                                        <div class="text-xl font-bold" id="paymentSuccessRate">--%</div>
+                                    </div>
+                                    <div class="stat-card" style="padding: var(--spacing-md); background: var(--bg-tertiary); border-radius: var(--border-radius-md);">
+                                        <div class="text-sm text-secondary">Error Rate</div>
+                                        <div class="text-xl font-bold" id="paymentErrorRate">--%</div>
+                                    </div>
+                                    <div class="stat-card" style="padding: var(--spacing-md); background: var(--bg-tertiary); border-radius: var(--border-radius-md);">
+                                        <div class="text-sm text-secondary">Total Events</div>
+                                        <div class="text-xl font-bold" id="paymentTotalEvents">0</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Recent Payments -->
+                                <div id="recentPaymentsContainer">
+                                    <h3 class="text-lg font-bold" style="margin-bottom: var(--spacing-md);">Recent Payment Events</h3>
+                                    <div id="recentPaymentsList">
+                                        <div class="empty-state">
+                                            <div class="empty-state-icon">💳</div>
+                                            <p class="empty-state-description">Click "Refresh" to load payment events</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -498,6 +518,71 @@
                 // TODO: Render automation cards
             } catch (err) {
                 showToast('Failed to load automations: ' + err.message, 'error');
+            }
+        }
+        
+        async function refreshPayments() {
+            try {
+                showToast('Loading payment events...', 'info');
+                
+                // Get cost status (includes error rate)
+                const costData = await apiCall('/api/costs/status');
+                
+                // Update stats
+                const errorRate = costData?.payment_error_rate || 0;
+                const successRate = 100 - errorRate;
+                
+                document.getElementById('paymentSuccessRate').textContent = `${successRate.toFixed(1)}%`;
+                document.getElementById('paymentErrorRate').textContent = `${errorRate.toFixed(1)}%`;
+                
+                // Load payment events from webhook log
+                const response = await fetch('/logs/payment_webhooks.ndjson');
+                const text = await response.text();
+                const lines = text.trim().split('\n').filter(l => l);
+                
+                // Parse last 10 events
+                const events = lines.slice(-10).reverse().map(line => {
+                    try {
+                        return JSON.parse(line);
+                    } catch {
+                        return null;
+                    }
+                }).filter(e => e !== null);
+                
+                document.getElementById('paymentTotalEvents').textContent = lines.length;
+                
+                // Render payment list
+                const listContainer = document.getElementById('recentPaymentsList');
+                
+                if (events.length === 0) {
+                    listContainer.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">💳</div>
+                            <p class="empty-state-description">No payment events yet</p>
+                        </div>
+                    `;
+                } else {
+                    listContainer.innerHTML = events.map(event => `
+                        <div style="padding: var(--spacing-md); background: var(--bg-tertiary); border-radius: var(--border-radius-md); margin-bottom: var(--spacing-sm);">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: var(--spacing-xs);">
+                                <div>
+                                    <div class="font-bold">${event.type || 'payment'}</div>
+                                    <div class="text-sm text-secondary">${new Date(event.timestamp).toLocaleString()}</div>
+                                </div>
+                                <div class="badge ${event.status === 'succeeded' ? 'badge-success' : 'badge-error'}">
+                                    ${event.status || 'unknown'}
+                                </div>
+                            </div>
+                            ${event.amount ? `<div class="text-sm">Amount: $${(event.amount / 100).toFixed(2)}</div>` : ''}
+                            ${event.customer_email ? `<div class="text-sm text-secondary">${event.customer_email}</div>` : ''}
+                        </div>
+                    `).join('');
+                }
+                
+                showToast('Payment data loaded', 'success');
+            } catch (err) {
+                showToast('Failed to load payments: ' + err.message, 'error');
+                console.error('Payment load error:', err);
             }
         }
         

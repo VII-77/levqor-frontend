@@ -1328,6 +1328,132 @@ def api_flags_evaluate():
 # END PHASE 108
 # ============================================================
 
+# ============================================================
+# PHASE 110: AI GOVERNANCE ADVISOR
+# ============================================================
+
+@app.route('/api/governance/report')
+@require_dashboard_key
+def api_governance_report():
+    """
+    Get latest AI governance report
+    Returns recommendations, alerts, and system health analysis
+    """
+    import json
+    from pathlib import Path
+    
+    try:
+        report_file = Path('logs/governance_report.json')
+        
+        if not report_file.exists():
+            return jsonify({
+                "ok": False,
+                "error": "No governance report available. Run /api/governance/analyze first."
+            }), 404
+        
+        with open(report_file, 'r') as f:
+            report = json.load(f)
+        
+        return jsonify({
+            "ok": True,
+            "report": report
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "error": str(e)
+        }), 500
+
+@app.route('/api/governance/analyze', methods=['POST'])
+@require_dashboard_key
+def api_governance_analyze():
+    """
+    Trigger AI governance analysis
+    Runs auto_governance.py with GPT-4o-mini advisor
+    """
+    import subprocess
+    
+    try:
+        # Run governance advisor in background
+        result = subprocess.Popen(
+            ['python3', 'scripts/auto_governance.py'],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        
+        return jsonify({
+            "ok": True,
+            "message": "AI governance analysis started",
+            "pid": result.pid
+        }), 202  # 202 Accepted
+        
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "error": str(e)
+        }), 500
+
+@app.route('/api/governance/recommendations')
+@require_dashboard_key
+def api_governance_recommendations():
+    """
+    Get governance recommendations summary
+    Returns only high-priority actionable items
+    """
+    import json
+    from pathlib import Path
+    
+    try:
+        report_file = Path('logs/governance_report.json')
+        
+        if not report_file.exists():
+            return jsonify({
+                "ok": False,
+                "error": "No recommendations available"
+            }), 404
+        
+        with open(report_file, 'r') as f:
+            report = json.load(f)
+        
+        # Handle actual JSON structure: report['recommendations'] is the full object
+        recommendations_obj = report.get('recommendations', {})
+        
+        # Extract lists from the recommendations object
+        all_recommendations = recommendations_obj.get('recommendations', [])
+        all_alerts = recommendations_obj.get('alerts', [])
+        
+        # Filter for high-priority recommendations
+        high_priority = [
+            rec for rec in all_recommendations
+            if rec.get('priority') in ['high', 'critical']
+        ]
+        
+        # Filter for critical alerts
+        critical_alerts = [
+            alert for alert in all_alerts
+            if alert.get('severity') in ['high', 'critical']
+        ]
+        
+        return jsonify({
+            "ok": True,
+            "priority": recommendations_obj.get('priority', 'unknown'),
+            "summary": recommendations_obj.get('summary', ''),
+            "high_priority_recommendations": high_priority,
+            "critical_alerts": critical_alerts,
+            "last_updated": report.get('timestamp')
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "error": str(e)
+        }), 500
+
+# ============================================================
+# END PHASE 110
+# ============================================================
+
 @app.route('/webhook/stripe', methods=['POST'])
 def webhook_stripe():
     """Stripe webhook endpoint for payment status updates"""

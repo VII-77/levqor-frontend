@@ -861,6 +861,14 @@ def run_scheduled_tasks():
         run_edge_failover()
         mark_run('edge_failover')
     
+    # ==================== PHASE 110: AI GOVERNANCE ADVISOR ====================
+    
+    # 54) AI Governance Advisor - Every 12 hours (Phase 110)
+    if 'governance_advisor' not in last_run or \
+       (datetime.utcnow() - last_run['governance_advisor']).total_seconds() >= (12 * 3600):
+        run_governance_advisor()
+        mark_run('governance_advisor')
+    
     # 55) Secret Rotation - Daily at 00:10 UTC (script decides monthly rotation)
     if is_time_match(0, 10) and should_run('rotate_secrets'):
         run_rotate_secrets()
@@ -929,6 +937,7 @@ def main():
     print(f"   Warehouse Sync: Daily at 02:50 UTC", flush=True)
     print(f"   Alert Tuner: Weekly (Monday 03:00 UTC)", flush=True)
     print(f"   Edge Failover: Every 5 minutes", flush=True)
+    print(f"   AI Governance Advisor: Every 12 hours", flush=True)
     print(f"   --- Phases 71-75: Predictive, Smart Retries & AI ---", flush=True)
     print(f"   Predictive Scaling: Every hour", flush=True)
     print(f"   AI Incident Summaries: Every 30 minutes", flush=True)
@@ -1044,6 +1053,20 @@ def run_edge_failover():
         log_event('edge_failover_timeout', {'error': 'Timeout after 30s'})
     except Exception as e:
         log_event('edge_failover_error', {'error': str(e)})
+
+def run_governance_advisor():
+    """Run AI governance advisor - Phase 110"""
+    import subprocess
+    try:
+        result = subprocess.run(['python3', 'scripts/auto_governance.py'], check=False, timeout=120)
+        if result.returncode == 0:
+            log_event('governance_advisor', {'ok': True})
+        else:
+            log_event('governance_advisor_failed', {'ok': False, 'exit_code': result.returncode})
+    except subprocess.TimeoutExpired:
+        log_event('governance_advisor_timeout', {'error': 'Timeout after 120s'})
+    except Exception as e:
+        log_event('governance_advisor_error', {'error': str(e)})
 
 def run_backup_verify():
     """Run backup verification - Stabilization Sprint"""

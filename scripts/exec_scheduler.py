@@ -853,12 +853,20 @@ def run_scheduled_tasks():
         run_alert_tuner()
         mark_run('alert_tuner')
     
-    # 53) Secret Rotation - Daily at 00:10 UTC (script decides monthly rotation)
+    # ==================== PHASE 109: EDGE FAILOVER & HEALTH ====================
+    
+    # 53) Edge Failover Monitor - Every 5 minutes (Phase 109)
+    if 'edge_failover' not in last_run or \
+       (datetime.utcnow() - last_run['edge_failover']).total_seconds() >= (5 * 60):
+        run_edge_failover()
+        mark_run('edge_failover')
+    
+    # 55) Secret Rotation - Daily at 00:10 UTC (script decides monthly rotation)
     if is_time_match(0, 10) and should_run('rotate_secrets'):
         run_rotate_secrets()
         mark_run('rotate_secrets')
     
-    # 54) DR Drill - Weekly on Sundays at 01:00 UTC
+    # 56) DR Drill - Weekly on Sundays at 01:00 UTC
     now = datetime.utcnow()
     if now.weekday() == 6 and is_time_match(1, 0) and should_run('dr_drill'):
         run_dr_drill()
@@ -920,6 +928,7 @@ def main():
     print(f"   --- Phases 103-110: Customer SaaS Platform ---", flush=True)
     print(f"   Warehouse Sync: Daily at 02:50 UTC", flush=True)
     print(f"   Alert Tuner: Weekly (Monday 03:00 UTC)", flush=True)
+    print(f"   Edge Failover: Every 5 minutes", flush=True)
     print(f"   --- Phases 71-75: Predictive, Smart Retries & AI ---", flush=True)
     print(f"   Predictive Scaling: Every hour", flush=True)
     print(f"   AI Incident Summaries: Every 30 minutes", flush=True)
@@ -1024,6 +1033,17 @@ def run_alert_tuner():
         log_event('alert_tuner_timeout', {'error': 'Timeout after 90s'})
     except Exception as e:
         log_event('alert_tuner_error', {'error': str(e)})
+
+def run_edge_failover():
+    """Run edge failover monitor - Phase 109"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/edge_failover.py'], check=False, timeout=30)
+        log_event('edge_failover', {'ok': True})
+    except subprocess.TimeoutExpired:
+        log_event('edge_failover_timeout', {'error': 'Timeout after 30s'})
+    except Exception as e:
+        log_event('edge_failover_error', {'error': str(e)})
 
 def run_backup_verify():
     """Run backup verification - Stabilization Sprint"""

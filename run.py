@@ -312,7 +312,10 @@ def strict_health():
 
 @app.route('/health')
 def health():
-    """Alternative health endpoint - non-blocking"""
+    """
+    Enhanced health endpoint - Phase 109
+    Returns build metadata, dependency status, and system health
+    """
     import threading
     import datetime
     from pathlib import Path
@@ -330,8 +333,74 @@ def health():
     
     threading.Thread(target=background_log, daemon=True).start()
     
-    # Return immediately
-    return jsonify({"status": "ok"})
+    # Build metadata
+    build_info = {
+        "version": "1.0.0",
+        "phase": "103-110",
+        "build_date": "2025-10-21T00:00:00Z",
+        "commit": os.getenv("REPL_ID", "unknown")[:8],
+        "environment": os.getenv("REPL_SLUG", "development")
+    }
+    
+    # Dependency health checks
+    dependencies = {}
+    
+    # Check Notion API
+    try:
+        from bot.config import NOTION_TOKEN
+        dependencies["notion"] = "ok" if NOTION_TOKEN else "missing_token"
+    except:
+        dependencies["notion"] = "error"
+    
+    # Check OpenAI API
+    try:
+        openai_key = os.getenv("AI_INTEGRATIONS_OPENAI_API_KEY")
+        dependencies["openai"] = "ok" if openai_key else "missing_key"
+    except:
+        dependencies["openai"] = "error"
+    
+    # Check Database (graceful degradation if psycopg2 not installed)
+    try:
+        import psycopg2
+        conn = psycopg2.connect(os.getenv('DATABASE_URL'), connect_timeout=2)
+        conn.close()
+        dependencies["database"] = "ok"
+    except ImportError:
+        dependencies["database"] = "psycopg2_not_installed"
+    except:
+        dependencies["database"] = "error"
+    
+    # Check Stripe
+    try:
+        stripe_key = os.getenv("STRIPE_SECRET_KEY")
+        dependencies["stripe"] = "ok" if stripe_key else "missing_key"
+    except:
+        dependencies["stripe"] = "error"
+    
+    # Check Telegram
+    try:
+        telegram_token = os.getenv("TELEGRAM_BOT_TOKEN")
+        dependencies["telegram"] = "ok" if telegram_token else "missing_token"
+    except:
+        dependencies["telegram"] = "error"
+    
+    # System metrics
+    uptime_seconds = time.time() - metrics_storage['app_start_time']
+    
+    return jsonify({
+        "status": "ok",
+        "timestamp": datetime.datetime.utcnow().isoformat() + 'Z',
+        "build": build_info,
+        "dependencies": dependencies,
+        "uptime_seconds": int(uptime_seconds),
+        "features": {
+            "visual_workflow_builder": True,
+            "boss_mode_v2": True,
+            "customer_auth": True,
+            "data_warehouse": True,
+            "a_b_testing": True
+        }
+    })
 
 @app.get("/supervisor")
 def supervisor():

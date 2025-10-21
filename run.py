@@ -13,6 +13,7 @@ from bot.security import (
 )
 from functools import wraps
 import time
+import uuid
 from collections import defaultdict
 from pathlib import Path
 
@@ -133,8 +134,14 @@ def api_demo_mode():
 
 @app.before_request
 def before_request_timing():
-    """Record request start time for latency tracking"""
+    """Record request start time for latency tracking and generate request ID"""
     request._start_time = time.time()
+    
+    # Generate or use existing request ID (Extra 3)
+    request_id = request.headers.get('X-Request-ID')
+    if not request_id:
+        request_id = str(uuid.uuid4())
+    request._request_id = request_id
 
 def add_security_headers(response):
     """Add security headers and record metrics/traces"""
@@ -147,6 +154,10 @@ def add_security_headers(response):
     response.headers['X-Content-Type-Options'] = 'nosniff'
     response.headers['Pragma'] = 'no-cache'
     
+    # Extra 3: Add request ID to response headers
+    if hasattr(request, '_request_id'):
+        response.headers['X-Request-ID'] = request._request_id
+    
     # Phase 51: Record HTTP traces and metrics
     if hasattr(request, '_start_time'):
         duration_ms = (time.time() - request._start_time) * 1000
@@ -157,11 +168,12 @@ def add_security_headers(response):
         record_metric('http_requests_total', 1, {'route': route, 'status': str(status)})
         record_metric('http_request_duration_ms', duration_ms, {'route': route})
         
-        # Write trace to NDJSON
+        # Write trace to NDJSON (Extra 3: Include request ID)
         try:
             os.makedirs('logs', exist_ok=True)
             trace_entry = {
                 'ts': datetime.utcnow().isoformat() + 'Z',
+                'request_id': getattr(request, '_request_id', None),
                 'route': route,
                 'method': request.method,
                 'status': status,
@@ -1425,6 +1437,197 @@ def api_governance_analyze():
             "ok": False,
             "error": str(e)
         }), 500
+
+# ===== EXTRA 3: OBSERVABILITY PACK =====
+
+@app.route('/api/logs')
+@require_dashboard_key
+def api_logs():
+    """
+    Real-time log tailing endpoint
+    Returns recent log entries from various NDJSON log files
+    Query params: ?file=<logfile>&lines=<count>&request_id=<id>
+    """
+    from pathlib import Path
+    
+    log_file = request.args.get('file', 'http_traces')
+    
+    # Validate lines parameter (clamp between 1 and 10000)
+    try:
+        lines_count = int(request.args.get('lines', 100))
+        lines_count = max(1, min(lines_count, 10000))  # Clamp to safe range
+    except ValueError:
+        return jsonify({
+            "ok": False,
+            "error": "Invalid 'lines' parameter, must be an integer"
+        }), 400
+    
+    request_id_filter = request.args.get('request_id')
+    
+    # Supported log files
+    log_files = {
+        'http_traces': 'logs/http_traces.ndjson',
+        'automation': 'logs/automation_log.ndjson',
+        'scheduler': 'logs/scheduler.ndjson',
+        'anomaly_guard': 'logs/anomaly_guard.ndjson',
+        'warehouse_sync': 'logs/warehouse_sync.ndjson',
+        'alert_tuner': 'logs/alert_tuner.ndjson',
+        'governance': 'logs/governance.ndjson',
+        'seed_demo': 'logs/seed_demo.ndjson'
+    }
+    
+    if log_file not in log_files:
+        return jsonify({
+            "ok": False,
+            "error": f"Unknown log file. Available: {', '.join(log_files.keys())}"
+        }), 400
+    
+    log_path = Path(log_files[log_file])
+    
+    if not log_path.exists():
+        return jsonify({
+            "ok": True,
+            "logs": [],
+            "message": f"Log file {log_file} not yet created"
+        }), 200
+    
+    try:
+        # Read last N lines
+        with open(log_path, 'r') as f:
+            all_lines = f.readlines()
+        
+        # Parse NDJSON
+        logs = []
+        for line in all_lines[-lines_count:]:
+            try:
+                entry = json.loads(line.strip())
+                
+                # Filter by request_id if provided
+                if request_id_filter and entry.get('request_id') != request_id_filter:
+                    continue
+                
+                logs.append(entry)
+            except:
+                continue
+        
+        return jsonify({
+            "ok": True,
+            "file": log_file,
+            "count": len(logs),
+            "logs": logs
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "error": str(e)
+        }), 500
+
+@app.route('/metrics')
+def metrics_prometheus():
+    """
+    Prometheus-compatible metrics endpoint
+    Exports metrics in Prometheus text format
+    """
+    from collections import defaultdict
+    
+    try:
+        # Gather metrics from in-memory store
+        metrics_output = []
+        metrics_output.append("# HELP echopilot_info EchoPilot system information")
+        metrics_output.append("# TYPE echopilot_info gauge")
+        metrics_output.append('echopilot_info{version="2.0",environment="production"} 1')
+        
+        # HTTP request metrics
+        if os.path.exists('logs/http_traces.ndjson'):
+            with open('logs/http_traces.ndjson', 'r') as f:
+                lines = f.readlines()[-1000:]  # Last 1000 requests
+            
+            # Count by status code
+            status_counts = defaultdict(int)
+            total_duration = defaultdict(list)
+            
+            for line in lines:
+                try:
+                    entry = json.loads(line.strip())
+                    status = entry.get('status', 0)
+                    duration = entry.get('duration_ms', 0)
+                    route = entry.get('route', 'unknown')
+                    
+                    status_counts[status] += 1
+                    total_duration[route].append(duration)
+                except:
+                    continue
+            
+            # HTTP requests total
+            metrics_output.append("\n# HELP http_requests_total Total HTTP requests")
+            metrics_output.append("# TYPE http_requests_total counter")
+            for status, count in status_counts.items():
+                metrics_output.append(f'http_requests_total{{status="{status}"}} {count}')
+            
+            # HTTP request duration
+            metrics_output.append("\n# HELP http_request_duration_seconds HTTP request latency")
+            metrics_output.append("# TYPE http_request_duration_seconds summary")
+            for route, durations in total_duration.items():
+                if durations:
+                    avg_duration = sum(durations) / len(durations) / 1000  # Convert to seconds
+                    p95 = sorted(durations)[int(len(durations) * 0.95)] / 1000 if len(durations) > 1 else avg_duration
+                    p99 = sorted(durations)[int(len(durations) * 0.99)] / 1000 if len(durations) > 1 else avg_duration
+                    
+                    metrics_output.append(f'http_request_duration_seconds{{route="{route}",quantile="0.5"}} {avg_duration:.3f}')
+                    metrics_output.append(f'http_request_duration_seconds{{route="{route}",quantile="0.95"}} {p95:.3f}')
+                    metrics_output.append(f'http_request_duration_seconds{{route="{route}",quantile="0.99"}} {p99:.3f}')
+        
+        # Database metrics (if available)
+        if os.getenv('DATABASE_URL'):
+            metrics_output.append("\n# HELP database_connected Database connection status")
+            metrics_output.append("# TYPE database_connected gauge")
+            try:
+                import psycopg2
+                conn = psycopg2.connect(os.getenv('DATABASE_URL'))
+                cur = conn.cursor()
+                cur.execute('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = %s', ('public',))
+                table_count = cur.fetchone()[0]
+                conn.close()
+                
+                metrics_output.append("database_connected 1")
+                metrics_output.append(f"\n# HELP database_tables_total Total database tables")
+                metrics_output.append(f"# TYPE database_tables_total gauge")
+                metrics_output.append(f"database_tables_total {table_count}")
+            except:
+                metrics_output.append("database_connected 0")
+        
+        # Scheduler metrics (if log exists)
+        if os.path.exists('logs/scheduler.ndjson'):
+            metrics_output.append("\n# HELP scheduler_jobs_total Total scheduler job executions")
+            metrics_output.append("# TYPE scheduler_jobs_total counter")
+            
+            with open('logs/scheduler.ndjson', 'r') as f:
+                lines = f.readlines()[-1000:]
+            
+            job_counts = defaultdict(int)
+            for line in lines:
+                try:
+                    entry = json.loads(line.strip())
+                    if entry.get('event') == 'job_complete':
+                        job = entry.get('job', 'unknown')
+                        job_counts[job] += 1
+                except:
+                    continue
+            
+            for job, count in job_counts.items():
+                metrics_output.append(f'scheduler_jobs_total{{job="{job}"}} {count}')
+        
+        # System uptime
+        metrics_output.append("\n# HELP process_uptime_seconds Process uptime in seconds")
+        metrics_output.append("# TYPE process_uptime_seconds gauge")
+        uptime = time.time() - metrics_storage.get('app_start_time', time.time())
+        metrics_output.append(f"process_uptime_seconds {uptime:.0f}")
+        
+        return '\n'.join(metrics_output), 200, {'Content-Type': 'text/plain; version=0.0.4'}
+        
+    except Exception as e:
+        return f"# Error generating metrics: {str(e)}\n", 500, {'Content-Type': 'text/plain'}
 
 @app.route('/api/governance/recommendations')
 @require_dashboard_key

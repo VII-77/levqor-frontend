@@ -2621,6 +2621,23 @@ def api_register_partner():
 # PHASE 130: ECHOPILOT OS
 # ============================================================
 
+@app.route('/api/health')
+def api_health():
+    """Basic health check endpoint for monitoring"""
+    try:
+        return jsonify({
+            'ok': True,
+            'status': 'healthy',
+            'timestamp': datetime.utcnow().isoformat() + 'Z',
+            'version': '2.0.0'
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'ok': False,
+            'status': 'unhealthy',
+            'error': str(e)
+        }), 500
+
 @app.route('/api/platform/status')
 def api_platform_status():
     """Get comprehensive platform status"""

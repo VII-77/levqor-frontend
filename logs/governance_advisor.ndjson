@@ -28,3 +28,9 @@
 {"ts": "2025-10-21T11:25:56.145826Z", "event": "recommendations_generated", "priority": "medium", "num_recommendations": 5, "num_alerts": 0}
 {"ts": "2025-10-21T11:25:56.146579Z", "event": "report_saved", "path": "logs/governance_report.json"}
 {"ts": "2025-10-21T11:25:56.146811Z", "event": "advisor_complete", "ok": true, "priority": "medium", "num_recommendations": 5, "num_alerts": 0}
+{"ts": "2025-10-21T12:00:41.804341Z", "event": "advisor_started", "ok": true}
+{"ts": "2025-10-21T12:00:41.805275Z", "event": "collecting_metrics", "ok": true}
+{"ts": "2025-10-21T12:00:41.808119Z", "event": "generating_recommendations", "ok": true}
+{"ts": "2025-10-21T12:01:01.571884Z", "event": "recommendations_generated", "priority": "medium", "num_recommendations": 5, "num_alerts": 2}
+{"ts": "2025-10-21T12:01:01.572471Z", "event": "report_saved", "path": "logs/governance_report.json"}
+{"ts": "2025-10-21T12:01:01.572661Z", "event": "advisor_complete", "ok": true, "priority": "medium", "num_recommendations": 5, "num_alerts": 2}

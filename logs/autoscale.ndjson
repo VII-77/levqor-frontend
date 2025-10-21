@@ -57,3 +57,4 @@
 {"event": "scale_decision", "ts": "2025-10-21T07:50:35.247638Z", "current": 1, "desired": 1, "reason": "low_utilization", "dry_run": true}
 {"event": "scale_decision", "ts": "2025-10-21T08:01:00.073174Z", "current": 1, "desired": 1, "reason": "low_utilization", "dry_run": true}
 {"event": "scale_decision", "ts": "2025-10-21T08:11:09.389774Z", "current": 1, "desired": 1, "reason": "low_utilization", "dry_run": true}
+{"event": "scale_decision", "ts": "2025-10-21T08:21:19.057762Z", "current": 1, "desired": 1, "reason": "low_utilization", "dry_run": true}

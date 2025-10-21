@@ -1,5 +1,5 @@
 {
-  "ts": "2025-10-21T11:10:51.753533Z",
+  "ts": "2025-10-21T11:25:34.077814Z",
   "current_workers": 1,
   "desired_workers": 1,
   "reason": "low_utilization",
@@ -13,7 +13,7 @@
     "min": 1,
     "max": 6,
     "cooldown_min": 10,
-    "cooldown_remaining_sec": 469.0,
+    "cooldown_remaining_sec": 330.0,
     "deploy_gate_active": false
   }
 }

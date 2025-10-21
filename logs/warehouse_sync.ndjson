@@ -22,3 +22,4 @@
 {"ok": false, "ts": "2025-10-21T09:20:47.368237Z", "error": "module 'bot.config' has no attribute 'NOTION_FINANCE_DB_ID'"}
 {"ok": true, "ts": "2025-10-21T09:22:01.638828Z", "tables_synced": 5, "rows_synced": 101, "duration_secs": 8.998369}
 {"ok": true, "ts": "2025-10-21T10:39:53.014287Z", "tables_synced": 5, "rows_synced": 101, "duration_secs": 9.550501}
+{"ok": true, "ts": "2025-10-21T11:25:44.758633Z", "tables_synced": 5, "rows_synced": 101, "duration_secs": 9.651364}

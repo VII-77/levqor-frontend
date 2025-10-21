@@ -789,11 +789,8 @@ def about():
 @app.route('/dashboard')
 @app.route('/dashboard.html')
 def dashboard():
-    """Serve ops dashboard - v2 if enabled, else v1"""
-    if is_feature_enabled('ui_v2_shell'):
-        return send_from_directory('.', 'dashboard_v2.html')
-    else:
-        return send_from_directory('.', 'dashboard.html')
+    """Serve ops dashboard - always redirect to Boss Mode UI v2"""
+    return send_from_directory('.', 'dashboard_v2.html')
 
 @app.route('/dashboard/v2')
 def dashboard_v2():

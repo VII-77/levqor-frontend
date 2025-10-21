@@ -979,6 +979,50 @@ def api_list_templates():
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
+@app.route('/api/workflow/execute/ai', methods=['POST'])
+@require_dashboard_key
+def api_execute_ai_task():
+    """Phase 55: Execute AI task for workflow execution"""
+    try:
+        data = request.get_json()
+        model = data.get('model', 'gpt-4o-mini')
+        system_prompt = data.get('system_prompt', 'You are a helpful assistant.')
+        user_message = data.get('user_message', '')
+        temperature = data.get('temperature', 0.7)
+        max_tokens = data.get('max_tokens', 2000)
+        
+        # Call AI
+        from bot.ai_client import get_ai_client
+        client = get_ai_client()
+        
+        response = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_message}
+            ],
+            temperature=temperature,
+            max_tokens=max_tokens
+        )
+        
+        result_text = response.choices[0].message.content
+        tokens = response.usage.total_tokens
+        
+        # Estimate cost (simplified)
+        cost_per_1k = 0.0015 if 'gpt-4o' in model else 0.0005
+        cost = (tokens / 1000) * cost_per_1k
+        
+        return jsonify({
+            "ok": True,
+            "response": result_text,
+            "model": model,
+            "tokens": tokens,
+            "cost": round(cost, 4)
+        })
+        
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
 @app.route('/api/status/summary')
 @rate_limit(max_requests=30, window=60)
 def api_status_summary():

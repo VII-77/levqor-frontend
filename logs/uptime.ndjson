@@ -189,3 +189,8 @@
 {"ts": "2025-10-21T01:16:17Z", "latency_ms": 14, "ok": true, "code": 200}
 {"ts": "2025-10-21T01:17:17Z", "latency_ms": 5, "ok": true, "code": 200}
 {"ts": "2025-10-21T01:18:17Z", "latency_ms": 6, "ok": true, "code": 200}
+{"ts": "2025-10-21T01:19:20Z", "latency_ms": 10, "ok": true, "code": 200}
+{"ts": "2025-10-21T01:20:20Z", "latency_ms": 17, "ok": true, "code": 200}
+{"ts": "2025-10-21T01:21:20Z", "latency_ms": 3, "ok": true, "code": 200}
+{"ts": "2025-10-21T01:22:23Z", "latency_ms": 11, "ok": true, "code": 200}
+{"ts": "2025-10-21T01:23:23Z", "latency_ms": 5, "ok": true, "code": 200}

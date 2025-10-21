@@ -325,6 +325,12 @@
                         <button class="control-btn" onclick="window.workflowCanvas?.resetZoom()" title="Reset Zoom">⊙</button>
                         <button class="control-btn" onclick="window.workflowCanvas?.zoomOut()" title="Zoom Out">−</button>
                     </div>
+                    
+                    <!-- Phase 55: Execution Controls -->
+                    <div class="execution-controls-bar">
+                        <button class="exec-btn exec-run" onclick="workflowExecutor.executeWorkflow()" title="Run Workflow">▶️ Run</button>
+                        <button class="exec-btn exec-debug" id="debug-mode-btn" onclick="workflowExecutor.toggleDebugMode()" title="Debug Mode">🐛 Debug: OFF</button>
+                    </div>
                 </div>
             </div>
             
@@ -530,6 +536,9 @@
     
     <!-- Phase 54: Template Library -->
     <script src="/static/workflow-templates.js"></script>
+    
+    <!-- Phase 55: Live Execution -->
+    <script src="/static/workflow-execution.js"></script>
     
     <script>
         // Integration with canvas

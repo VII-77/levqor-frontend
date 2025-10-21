@@ -611,3 +611,281 @@ textarea.config-input {
         border-radius: 0;
     }
 }
+
+/* Phase 55: Live Execution */
+.execution-panel {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    width: 400px;
+    max-width: 90vw;
+    height: 400px;
+    background: white;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+    display: none;
+    flex-direction: column;
+    z-index: 1500;
+}
+
+.execution-panel-header {
+    padding: var(--space-md);
+    border-bottom: 2px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg-secondary);
+}
+
+.execution-panel-header h3 {
+    font-size: var(--text-md);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.execution-controls {
+    display: flex;
+    gap: var(--space-sm);
+}
+
+.btn-clear, .btn-close {
+    padding: 4px 12px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    background: white;
+    cursor: pointer;
+    font-size: var(--text-sm);
+    transition: all 0.2s;
+}
+
+.btn-clear:hover {
+    background: var(--bg-secondary);
+}
+
+.btn-close {
+    font-weight: bold;
+}
+
+.btn-close:hover {
+    background: var(--error-light);
+    color: var(--error);
+    border-color: var(--error);
+}
+
+.execution-log-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-md);
+    font-family: 'Monaco', 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.log-entry {
+    display: flex;
+    gap: var(--space-sm);
+    padding: 6px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 4px;
+}
+
+.log-entry.log-info {
+    background: var(--bg-secondary);
+}
+
+.log-entry.log-success {
+    background: var(--success-light);
+}
+
+.log-entry.log-error {
+    background: var(--error-light);
+}
+
+.log-entry.log-warning {
+    background: var(--warning-light);
+}
+
+.log-time {
+    color: var(--text-secondary);
+    font-size: 11px;
+    min-width: 70px;
+}
+
+.log-icon {
+    font-size: 14px;
+}
+
+.log-message {
+    flex: 1;
+    color: var(--text-primary);
+}
+
+/* Execution Node States */
+.workflow-node.exec-running {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-light);
+    animation: pulseNode 1.5s infinite;
+}
+
+.workflow-node.exec-success {
+    border-color: var(--success);
+    box-shadow: 0 0 0 3px var(--success-light);
+}
+
+.workflow-node.exec-error {
+    border-color: var(--error);
+    box-shadow: 0 0 0 3px var(--error-light);
+}
+
+@keyframes pulseNode {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+/* Test Data Modal */
+.test-data-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2500;
+}
+
+.test-data-content {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    width: 500px;
+    max-width: 90vw;
+}
+
+.test-data-content h3 {
+    margin-top: 0;
+    font-size: var(--text-lg);
+}
+
+.test-data-content p {
+    color: var(--text-secondary);
+    margin-bottom: var(--space-md);
+}
+
+#test-data-input {
+    width: 100%;
+    height: 200px;
+    padding: var(--space-md);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    font-family: 'Monaco', 'Courier New', monospace;
+    font-size: 13px;
+    resize: vertical;
+}
+
+.test-data-actions {
+    margin-top: var(--space-md);
+    display: flex;
+    gap: var(--space-sm);
+    justify-content: flex-end;
+}
+
+.btn-primary, .btn-secondary {
+    padding: 10px 20px;
+    border-radius: var(--radius-md);
+    border: none;
+    cursor: pointer;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+}
+
+.btn-secondary {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.btn-secondary:hover {
+    background: var(--border);
+}
+
+/* Debug Mode Button */
+#debug-mode-btn.active {
+    background: var(--warning);
+    color: white;
+    border-color: var(--warning);
+}
+
+/* Execution Controls Bar */
+.execution-controls-bar {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: var(--space-sm);
+    z-index: 100;
+}
+
+.exec-btn {
+    padding: 10px 20px;
+    border-radius: var(--radius-md);
+    border: 2px solid var(--border);
+    background: white;
+    cursor: pointer;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.exec-run {
+    background: var(--success);
+    color: white;
+    border-color: var(--success);
+}
+
+.exec-run:hover {
+    background: #059669;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.exec-debug {
+    background: white;
+    color: var(--text-primary);
+}
+
+.exec-debug:hover {
+    background: var(--bg-secondary);
+}
+
+@media (max-width: 768px) {
+    .execution-panel {
+        width: 100vw;
+        height: 50vh;
+    }
+    
+    .execution-controls-bar {
+        top: 10px;
+        right: 10px;
+        gap: var(--space-xs);
+    }
+    
+    .exec-btn {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+}

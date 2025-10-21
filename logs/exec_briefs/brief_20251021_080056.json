@@ -1,0 +1,70 @@
+{
+  "ts": "2025-10-21T08:00:56.021345Z",
+  "headline": "\u26a0\ufe0f 1 HIGH SEVERITY ALERTS",
+  "summary": "Jobs (7d): 0 | QA: 0.0% | ROI: 0.0x\nRevenue: $0.00 | Margin: 0.0%\n\nTop Risks:\n  \u2022 [HIGH] Finance metrics failed: Cannot compute metrics\n  \u2022 [MED] Job Log entry not found after full backoff\n  \u2022 [MED] QA 85% < 95",
+  "kpis": {
+    "avg_qa_7d": 0.0,
+    "jobs_7d": 0,
+    "margin_pct_7d": 0,
+    "revenue_7d": 0,
+    "roi_7d": 0
+  },
+  "top_risks": [
+    {
+      "evidence": [
+        "Cost, jobs, profit, and revenue metrics are all zero.",
+        "Error: Finance metrics failed: Cannot compute metrics"
+      ],
+      "severity": "high",
+      "signal": "Finance metrics failed: Cannot compute metrics",
+      "suggested_fix": "Investigate finance module for errors.",
+      "type": "finance"
+    },
+    {
+      "evidence": [
+        "Multiple failures in release captain due to Job Log entry not found.",
+        "Notion sync lag reported."
+      ],
+      "severity": "med",
+      "signal": "Job Log entry not found after full backoff",
+      "suggested_fix": "Check Notion integration and job processing.",
+      "type": "ops"
+    },
+    {
+      "evidence": [
+        "QA score of 85% reported.",
+        "Job Log entry not found after full backoff."
+      ],
+      "severity": "med",
+      "signal": "QA 85% < 95",
+      "suggested_fix": "Improve QA processes to meet standards.",
+      "type": "quality"
+    }
+  ],
+  "actions_next_24h": [
+    {
+      "eta_hours": 2,
+      "owner": "finance",
+      "priority": 1,
+      "task": "Investigate finance module for errors."
+    },
+    {
+      "eta_hours": 2,
+      "owner": "ops",
+      "priority": 1,
+      "task": "Check Notion integration and job processing."
+    },
+    {
+      "eta_hours": 2,
+      "owner": "quality",
+      "priority": 1,
+      "task": "Improve QA processes to meet standards."
+    }
+  ],
+  "actions_next_7d": [],
+  "confidence": 0.0,
+  "attachments": {
+    "analysis_json_path": "logs/exec_analysis_20251021_080056.json",
+    "ingest_json_path": "logs/exec_ingest_20251021_080051.json"
+  }
+}

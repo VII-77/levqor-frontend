@@ -961,6 +961,143 @@ def api_warehouse_sync():
 # END PHASE 106
 # ============================================================
 
+# ============================================================
+# PHASE 107: SLO THRESHOLD OPTIMIZATION
+# ============================================================
+
+@app.route('/api/slo/recommendations')
+@require_dashboard_key
+def api_slo_recommendations():
+    """
+    Get SLO threshold tuning recommendations
+    Returns ML-generated recommendations from alert_tuner.py
+    """
+    import json
+    from pathlib import Path
+    
+    try:
+        rec_file = Path('configs/slo_tuning_recommendations.json')
+        
+        if not rec_file.exists():
+            return jsonify({
+                "ok": False,
+                "error": "No recommendations available. Run /api/slo/tune first."
+            }), 404
+        
+        with open(rec_file, 'r') as f:
+            recommendations = json.load(f)
+        
+        return jsonify({
+            "ok": True,
+            "recommendations": recommendations
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "error": str(e)
+        }), 500
+
+@app.route('/api/slo/tune', methods=['POST'])
+@require_dashboard_key
+def api_slo_tune():
+    """
+    Trigger SLO threshold tuning analysis
+    Runs alert_tuner.py ML model asynchronously
+    """
+    import subprocess
+    
+    try:
+        # Run alert tuner in background
+        result = subprocess.Popen(
+            ['python3', 'scripts/alert_tuner.py'],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        
+        return jsonify({
+            "ok": True,
+            "message": "SLO tuning started",
+            "pid": result.pid
+        }), 202
+        
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "error": str(e)
+        }), 500
+
+@app.route('/api/slo/apply', methods=['POST'])
+@require_dashboard_key
+def api_slo_apply():
+    """
+    Apply SLO recommendations (admin-only)
+    Returns instructions for setting environment variables
+    """
+    import json
+    from pathlib import Path
+    from flask import request
+    
+    try:
+        rec_file = Path('configs/slo_tuning_recommendations.json')
+        
+        if not rec_file.exists():
+            return jsonify({
+                "ok": False,
+                "error": "No recommendations available"
+            }), 404
+        
+        with open(rec_file, 'r') as f:
+            data = json.load(f)
+        
+        recommendations = data.get('recommendations', {})
+        
+        # Get min confidence from request (default: high)
+        min_confidence = request.json.get('min_confidence', 'high') if request.json else 'high'
+        
+        # Define confidence hierarchy (high > medium > low)
+        confidence_levels = {'high': 3, 'medium': 2, 'low': 1}
+        min_level = confidence_levels.get(min_confidence, 3)
+        
+        # Filter by confidence level
+        to_apply = []
+        for var_name, rec in recommendations.items():
+            rec_level = confidence_levels.get(rec['confidence'], 0)
+            
+            # Include if recommendation confidence >= minimum threshold
+            if rec_level >= min_level:
+                to_apply.append({
+                    'variable': var_name,
+                    'current': rec['current'],
+                    'recommended': rec['recommended'],
+                    'confidence': rec['confidence'],
+                    'sample_size': rec.get('sample_size', 0),
+                    'rationale': rec['rationale']
+                })
+        
+        # Generate instructions
+        instructions = []
+        for item in to_apply:
+            instructions.append(f"export {item['variable']}={item['recommended']}")
+        
+        return jsonify({
+            "ok": True,
+            "apply_count": len(to_apply),
+            "recommendations": to_apply,
+            "instructions": instructions,
+            "note": "Set these environment variables in Replit Secrets, then restart workflows"
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "error": str(e)
+        }), 500
+
+# ============================================================
+# END PHASE 107
+# ============================================================
+
 @app.route('/webhook/stripe', methods=['POST'])
 def webhook_stripe():
     """Stripe webhook endpoint for payment status updates"""

@@ -845,6 +845,14 @@ def run_scheduled_tasks():
         run_warehouse_sync()
         mark_run('warehouse_sync')
     
+    # ==================== PHASE 107: SLO THRESHOLD OPTIMIZATION ====================
+    
+    # 52) Alert Tuner - Weekly on Mondays at 03:00 UTC (Phase 107)
+    now = datetime.utcnow()
+    if now.weekday() == 0 and is_time_match(3, 0) and should_run('alert_tuner'):
+        run_alert_tuner()
+        mark_run('alert_tuner')
+    
     # 53) Secret Rotation - Daily at 00:10 UTC (script decides monthly rotation)
     if is_time_match(0, 10) and should_run('rotate_secrets'):
         run_rotate_secrets()
@@ -909,6 +917,9 @@ def main():
     print(f"   Payment Recon Nightly: Daily at 23:50 UTC", flush=True)
     print(f"   SLO Monitor: Every hour", flush=True)
     print(f"   Daily Backup: Daily at 00:30 UTC", flush=True)
+    print(f"   --- Phases 103-110: Customer SaaS Platform ---", flush=True)
+    print(f"   Warehouse Sync: Daily at 02:50 UTC", flush=True)
+    print(f"   Alert Tuner: Weekly (Monday 03:00 UTC)", flush=True)
     print(f"   --- Phases 71-75: Predictive, Smart Retries & AI ---", flush=True)
     print(f"   Predictive Scaling: Every hour", flush=True)
     print(f"   AI Incident Summaries: Every 30 minutes", flush=True)
@@ -1002,6 +1013,17 @@ def run_warehouse_sync():
         log_event('warehouse_sync_timeout', {'error': 'Timeout after 120s'})
     except Exception as e:
         log_event('warehouse_sync_error', {'error': str(e)})
+
+def run_alert_tuner():
+    """Run SLO threshold tuner - Phase 107"""
+    import subprocess
+    try:
+        subprocess.run(['python3', 'scripts/alert_tuner.py'], check=False, timeout=90)
+        log_event('alert_tuner', {'ok': True})
+    except subprocess.TimeoutExpired:
+        log_event('alert_tuner_timeout', {'error': 'Timeout after 90s'})
+    except Exception as e:
+        log_event('alert_tuner_error', {'error': str(e)})
 
 def run_backup_verify():
     """Run backup verification - Stabilization Sprint"""

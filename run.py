@@ -816,6 +816,81 @@ def api_feature_flags():
     flags = load_feature_flags()
     return jsonify({"ok": True, "flags": flags})
 
+# ===== Boss Mode Phase 10: Growth Loops =====
+@app.route('/api/growth/referral', methods=['POST'])
+@require_dashboard_key
+def api_track_referral():
+    """Track a new referral"""
+    try:
+        from bot.growth import track_referral
+        data = request.get_json() or {}
+        result = track_referral(
+            data.get('referrer_id'),
+            data.get('referee_id'),
+            data.get('source', 'direct')
+        )
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/growth/referrals/<user_id>')
+@require_dashboard_key
+def api_get_referrals(user_id):
+    """Get referral stats for a user"""
+    try:
+        from bot.growth import get_referral_stats
+        result = get_referral_stats(user_id)
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/growth/onboarding/<user_id>')
+def api_get_onboarding(user_id):
+    """Get onboarding status for a user"""
+    try:
+        from bot.growth import get_onboarding_status
+        result = get_onboarding_status(user_id)
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/growth/onboarding', methods=['POST'])
+@require_dashboard_key
+def api_update_onboarding():
+    """Update onboarding progress"""
+    try:
+        from bot.growth import update_onboarding_status
+        data = request.get_json() or {}
+        result = update_onboarding_status(
+            data.get('user_id'),
+            data.get('step'),
+            data.get('completed', True)
+        )
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+# ===== Boss Mode Phase 11: Internationalization =====
+@app.route('/api/i18n/locales')
+def api_get_locales():
+    """Get supported locales"""
+    try:
+        from bot.i18n import get_supported_locales
+        result = get_supported_locales()
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/api/i18n/strings/<locale>')
+def api_get_strings(locale):
+    """Get translations for a locale"""
+    try:
+        from bot.i18n import get_locale_strings
+        result = get_locale_strings(locale)
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
 @app.route('/api/status/summary')
 @rate_limit(max_requests=30, window=60)
 def api_status_summary():

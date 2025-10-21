@@ -3,3 +3,4 @@
 {"event": "cost_check", "ts": "2025-10-20T19:00:30.074030Z", "total_usd": 0.0, "cap_usd": 25.0, "utilization": 0.0, "alert": "OK"}
 {"event": "cost_check", "ts": "2025-10-20T22:00:35.661329Z", "total_usd": 0.0, "cap_usd": 25.0, "utilization": 0.0, "alert": "OK"}
 {"event": "cost_check", "ts": "2025-10-20T23:00:35.982525Z", "total_usd": 0.0, "cap_usd": 25.0, "utilization": 0.0, "alert": "OK"}
+{"event": "cost_check", "ts": "2025-10-21T00:00:33.441025Z", "total_usd": 0.0, "cap_usd": 25.0, "utilization": 0.0, "alert": "OK"}

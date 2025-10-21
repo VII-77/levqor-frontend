@@ -1,19 +1,19 @@
 {
-  "ts": 1761001235.4287689,
-  "ts_iso": "2025-10-20T23:00:35.428770Z",
+  "ts": 1761004833.1291354,
+  "ts_iso": "2025-10-21T00:00:33.129137Z",
   "system": {
-    "cpu_percent": 70.5,
-    "mem_percent": 44.3,
-    "mem_available_gb": 34.970767974853516,
-    "disk_percent": 76.1,
-    "disk_free_gb": 11.226322174072266
+    "cpu_percent": 67.2,
+    "mem_percent": 40.8,
+    "mem_available_gb": 37.19127655029297,
+    "disk_percent": 75.6,
+    "disk_free_gb": 11.481986999511719
   },
   "process": {
-    "memory_mb": 14.5
+    "memory_mb": 14.625
   },
   "api": {
     "healthy": true,
-    "latency_sec": 0.03690934181213379
+    "latency_sec": 0.0058443546295166016
   },
   "health": {
     "governance_status": "healthy",

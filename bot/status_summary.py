@@ -17,14 +17,27 @@ def get_status_summary():
         "components": {}
     }
     
-    # Scheduler Status
+    # Scheduler Status - check via PID file
     try:
-        from bot.scheduler_status import get_scheduler_info
-        scheduler = get_scheduler_info()
-        summary["components"]["scheduler"] = {
-            "status": "running" if scheduler.get("running") else "stopped",
-            "next_jobs": scheduler.get("next_tasks", [])[:5]
-        }
+        pid_file = Path("logs/scheduler.pid")
+        if pid_file.exists():
+            pid = int(pid_file.read_text().strip())
+            import psutil
+            if psutil.pid_exists(pid):
+                summary["components"]["scheduler"] = {
+                    "status": "running",
+                    "pid": pid
+                }
+            else:
+                summary["components"]["scheduler"] = {
+                    "status": "stopped",
+                    "error": "Process not found"
+                }
+        else:
+            summary["components"]["scheduler"] = {
+                "status": "unknown",
+                "error": "PID file not found"
+            }
     except Exception as e:
         summary["components"]["scheduler"] = {
             "status": "error",

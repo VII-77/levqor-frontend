@@ -12,3 +12,4 @@
 {"ts": 1761580278.8160272, "ts_iso": "2025-10-27T15:51:18.816327Z", "type": "incident", "severity": "medium", "details": ["System warnings: High Latency: 999.00s"]}
 {"ts": 1761592585.5237856, "ts_iso": "2025-10-27T19:16:25.523902Z", "type": "incident", "severity": "medium", "details": ["System warnings: High CPU: 86.1%"]}
 {"ts": 1761596286.6527443, "ts_iso": "2025-10-27T20:18:06.653446Z", "type": "incident", "severity": "medium", "details": ["System warnings: High CPU: 87.1%"]}
+{"ts": 1761596904.9445443, "ts_iso": "2025-10-27T20:28:24.944711Z", "type": "incident", "severity": "medium", "details": ["System warnings: High CPU: 89.5%"]}

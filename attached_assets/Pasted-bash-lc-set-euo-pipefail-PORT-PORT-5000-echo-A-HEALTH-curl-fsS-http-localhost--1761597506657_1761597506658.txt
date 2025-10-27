@@ -1,0 +1,69 @@
+bash -lc '
+set -euo pipefail
+PORT="${PORT:-5000}"
+echo "== A. HEALTH =="
+curl -fsS http://localhost:$PORT/health || true
+
+echo "== B. STATIC INVENTORY =="
+ls -1 static 2>/dev/null | grep -E "index|pricing|login|workflow|dashboard|help" || echo "x no key html files in static/"
+
+echo "== C. ROUTING GUARD =="
+# Ensure Flask serves /path -> static/path.html when present
+python - <<PY
+import io,sys,re
+p="run.py"; s=open(p,encoding="utf-8",errors="ignore").read()
+need = "def _serve_static_html(path):"
+if need in s:
+    print("✓ routing helper already present")
+    sys.exit(0)
+ins = """
+from flask import send_from_directory, abort
+import os
+@app.route("/<path:path>")
+def _serve_static_html(path):
+    # map /foo -> static/foo.html if exists
+    html_path = os.path.join("static", path + ".html")
+    file_path = os.path.join("static", path)
+    if os.path.isfile(html_path):
+        return send_from_directory("static", path + ".html")
+    if os.path.isfile(file_path):
+        return send_from_directory("static", path)
+    if path in ("favicon.ico","robots.txt","sitemap.xml"):
+        if os.path.isfile(os.path.join("static", path)):
+            return send_from_directory("static", path)
+    abort(404)
+"""
+# insert near app init
+m=re.search(r"app\s*=\s*Flask\([^)]*\)\s*",s)
+if not m:
+    print("x cannot find Flask app init"); sys.exit(1)
+i=m.end()
+ns=s[:i]+"\n"+ins+"\n"+s[i:]
+open(p,"w",encoding="utf-8").write(ns)
+print("✓ added routing helper to run.py")
+PY
+
+echo "== D. BUILD STAMP & CACHE BUSTER =="
+mkdir -p static
+date -u +"BUILD_UTC=%Y-%m-%dT%H:%M:%SZ" | tee static/.buildstamp
+date -u +%Y%m%dT%H%M%SZ > static/.cachebuster
+
+echo "== E. RESTART GUNICORN =="
+pkill -f "gunicorn .*run:app" || true
+sleep 2
+nohup gunicorn -w 1 -k gthread -t 120 --bind 0.0.0.0:$PORT run:app > /tmp/gunicorn.out 2>&1 &
+for i in $(seq 1 30); do code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:$PORT/health || true); [ "$code" = 200 ] && break; sleep 1; done
+echo "health http $code"; [ "$code" = 200 ] || { tail -n 120 /tmp/gunicorn.out; exit 1; }
+
+echo "== F. REAL CONTENT CHECKS =="
+check(){ p="$1"; e="$2"; body=$(curl -fsS http://localhost:$PORT$p || true); echo "$p -> $(printf "%s" "$body" | head -n1 | cut -c1-80)"; printf "%s" "$body" | grep -qi "$e" && echo "  ✓ contains $e" || echo "  x missing $e"; }
+check /               "<title"
+check /pricing        "<h1"
+check /login          "<h1"
+check /workflow       "<h1"
+check /dashboard      "<h1"
+check /help           "<h1"
+
+echo "== G. SUMMARY =="
+echo "BUILD $(cat static/.buildstamp)"; echo "cache $(cat static/.cachebuster)"
+'

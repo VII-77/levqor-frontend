@@ -1,13 +1,13 @@
 {
-  "ts": 1761595235.560107,
-  "ts_iso": "2025-10-27T20:00:35.560236Z",
+  "ts": 1761598823.3350961,
+  "ts_iso": "2025-10-27T21:00:23.335215Z",
   "count": 1,
   "dry_run": true,
   "items": [
     {
       "from": "dryrun@example.com",
       "subject": "Sample Support Request",
-      "date": "2025-10-27T20:00:35.560096",
+      "date": "2025-10-27T21:00:23.335090",
       "message_id": "<dryrun@example.com>"
     }
   ]

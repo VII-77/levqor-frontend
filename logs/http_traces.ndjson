@@ -1236,3 +1236,12 @@
 {"ts": "2025-10-27T12:46:55.644727Z", "request_id": "761cfc49-a258-405d-a386-8e6f3bae4aef", "route": "favicon", "method": "GET", "status": 204, "duration_ms": 0.12, "path": "/favicon.ico"}
 {"ts": "2025-10-27T12:46:55.815679Z", "request_id": "330dbca6-6a9f-482e-9e02-89c7058ca9d6", "route": "api_status_summary", "method": "GET", "status": 200, "duration_ms": 10.86, "path": "/api/status/summary"}
 {"ts": "2025-10-27T12:47:13.826229Z", "request_id": "047b5ed6-4c2a-4a66-b541-11322b6b4396", "route": "landing", "method": "GET", "status": 200, "duration_ms": 1.08, "path": "/"}
+{"ts": "2025-10-27T12:47:34.066465Z", "request_id": "7da20cc6-688c-4352-8c06-694188274c17", "route": "api_status_summary", "method": "GET", "status": 200, "duration_ms": 0.83, "path": "/api/status/summary"}
+{"ts": "2025-10-27T12:47:35.200102Z", "request_id": "0d24801a-882b-40c9-b7e3-060b27a35ec5", "route": "landing", "method": "GET", "status": 200, "duration_ms": 0.54, "path": "/"}
+{"ts": "2025-10-27T12:47:35.376605Z", "request_id": "848b808e-a081-4639-96a9-55d5427ae054", "route": "static", "method": "GET", "status": 200, "duration_ms": 4.1, "path": "/static/app.css"}
+{"ts": "2025-10-27T12:47:35.663555Z", "request_id": "ed480c65-d26f-4667-bcfc-baf3cf0a127d", "route": "api_status_summary", "method": "GET", "status": 200, "duration_ms": 0.86, "path": "/api/status/summary"}
+{"ts": "2025-10-27T12:47:46.490474Z", "request_id": "aefdc7f6-0de4-4770-a964-e55df99274e7", "route": "landing", "method": "GET", "status": 200, "duration_ms": 0.96, "path": "/"}
+{"ts": "2025-10-27T12:47:46.662882Z", "request_id": "790bace0-64a7-4a2b-a498-d309ab07de06", "route": "static", "method": "GET", "status": 200, "duration_ms": 0.52, "path": "/static/app.css"}
+{"ts": "2025-10-27T12:47:46.974400Z", "request_id": "26c84627-76f9-46c9-8817-b3f82900d99d", "route": "api_status_summary", "method": "GET", "status": 200, "duration_ms": 4.33, "path": "/api/status/summary"}
+{"ts": "2025-10-27T12:47:56.486915Z", "request_id": "e474258e-15a5-40b8-bec4-3f1f04f172da", "route": "api_status_summary", "method": "GET", "status": 200, "duration_ms": 13.37, "path": "/api/status/summary"}
+{"ts": "2025-10-27T12:48:14.017464Z", "request_id": "90c6df76-e8e3-401a-9fb5-35ba3ef99e4b", "route": "landing", "method": "GET", "status": 200, "duration_ms": 0.6, "path": "/"}

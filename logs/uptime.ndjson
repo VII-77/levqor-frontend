@@ -680,3 +680,10 @@
 {"ts": "2025-10-27T12:26:39Z", "latency_ms": 36, "ok": true, "code": 200}
 {"ts": "2025-10-27T12:27:42Z", "latency_ms": 39, "ok": true, "code": 200}
 {"ts": "2025-10-27T12:28:42Z", "latency_ms": 4, "ok": true, "code": 200}
+{"ts": "2025-10-27T12:29:45Z", "latency_ms": 8, "ok": true, "code": 200}
+{"ts": "2025-10-27T12:30:48Z", "latency_ms": 7, "ok": true, "code": 200}
+{"ts": "2025-10-27T12:31:48Z", "latency_ms": 5, "ok": true, "code": 200}
+{"ts": "2025-10-27T12:32:48Z", "latency_ms": 18, "ok": true, "code": 200}
+{"ts": "2025-10-27T12:33:51Z", "latency_ms": 7, "ok": true, "code": 200}
+{"ts": "2025-10-27T12:34:53Z", "latency_ms": 7, "ok": false, "code": null}
+{"ts": "2025-10-27T12:35:53Z", "latency_ms": 5, "ok": true, "code": 200}

@@ -1,0 +1,112 @@
+You are Replit AI Agent. Execute the following cache-rebuild and verification, step by step. Do NOT modify run.py or any Python blueprints. Fail fast on errors.
+
+# -------------------------------
+# 0) Preconditions
+# -------------------------------
+set -euo pipefail
+APP_ROOT="${APP_ROOT:-$PWD}"
+STATIC_DIR="static"
+PORT="${PORT:-5000}"
+
+test -f run.py || { echo "x missing run.py"; exit 1; }
+test -d "$STATIC_DIR" || { echo "x missing static/"; exit 1; }
+
+echo "✅ Preconditions OK"
+
+# -------------------------------
+# 1) Create a fresh cache-buster
+# -------------------------------
+BUSTER="$(date -u +%Y%m%dT%H%M%SZ)"
+echo "$BUSTER" > "$STATIC_DIR/.cachebuster"
+echo "CACHE_BUSTER=$BUSTER"
+
+# -------------------------------
+# 2) Append ?v=<buster> to asset URLs in static HTML
+#    (idempotent; only adds if no existing v= param)
+# -------------------------------
+shopt -s nullglob
+for f in $STATIC_DIR/*.html; do
+  tmp="${f}.tmp"
+  # Add version to <link href="...css"> and <script src="...js">
+  # Skip if ?v= already present on that tag
+  awk -v v="$BUSTER" '
+    function addv(u) {
+      if (u ~ /\?v=/) return u;      # already has v=
+      if (u ~ /\?/)   return u"&v="v;
+      return u"?v="v;
+    }
+    {
+      gsub(/href="([^"#?][^"]*\.css)"/, "href=\"" addv(substr($0, RSTART+6, RLENGTH-7)) "\"");
+      gsub(/src="([^"#?][^"]*\.js)"/,  "src=\""  addv(substr($0, RSTART+5, RLENGTH-6)) "\"");
+      print $0;
+    }
+  ' "$f" > "$tmp" && mv "$tmp" "$f"
+done
+echo "✅ Versioned asset URLs"
+
+# -------------------------------
+# 3) Optional: bust key entry points too
+# -------------------------------
+for f in index.html pricing.html login.html workflow.html dashboard.html help.html; do
+  [ -f "$STATIC_DIR/$f" ] && touch "$STATIC_DIR/$f"
+done
+
+# -------------------------------
+# 4) Stamp build time for operators
+# -------------------------------
+date -u +"BUILD_UTC=%Y-%m-%dT%H:%M:%SZ" | tee "$STATIC_DIR/.buildstamp"
+
+# -------------------------------
+# 5) Restart Gunicorn cleanly (do NOT edit python code)
+# -------------------------------
+pkill -f "gunicorn .*run:app" || true
+sleep 2
+nohup gunicorn -w 1 -k gthread -t 120 --bind 0.0.0.0:"$PORT" run:app \
+  > /tmp/gunicorn.out 2>&1 &
+
+# -------------------------------
+# 6) Health wait
+# -------------------------------
+echo "⏳ Waiting for /health..."
+for i in $(seq 1 30); do
+  code=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:$PORT/health" || true)
+  [ "$code" = "200" ] && break
+  sleep 1
+done
+[ "$code" = "200" ] || { echo "x /health failed"; tail -n 120 /tmp/gunicorn.out; exit 1; }
+echo "✅ Health OK"
+
+# -------------------------------
+# 7) Content verification (real content, not just codes)
+# -------------------------------
+chk(){ path="$1"; expect="$2"; body=$(curl -fsS "http://localhost:$PORT$path?v=$BUSTER" || true)
+  echo "$body" | grep -qi "$expect" && echo "✓ $path contains: $expect" \
+    || { echo "x $path missing: $expect"; exit 1; }
+}
+
+chk "/"         "<title>"
+chk "/pricing"  "<h1"
+chk "/login"    "<h1>Login</h1>"
+chk "/workflow" "<h1>Workflow</h1>"
+chk "/dashboard" "Status"
+chk "/help"     "<h1>Help Center</h1>"
+
+# -------------------------------
+# 8) Asset freshness proof
+# -------------------------------
+css=$(grep -o 'href="[^"]*\.css[^"]*"' "$STATIC_DIR"/index.html 2>/dev/null | head -1 | cut -d'"' -f2 || true)
+js=$(grep  -o 'src="[^"]*\.js[^"]*"'  "$STATIC_DIR"/index.html 2>/dev/null | head -1 | cut -d'"' -f2 || true)
+
+if [ -n "$css" ]; then
+  echo "CSS head (cache-busted): $css"
+  curl -fsS "http://localhost:$PORT$css" | head -5 >/dev/null && echo "✓ CSS reachable"
+fi
+if [ -n "$js" ]; then
+  echo "JS head (cache-busted): $js"
+  curl -fsS "http://localhost:$PORT$js"  | head -5 >/dev/null && echo "✓ JS reachable"
+fi
+
+echo
+echo "🎉 Cache rebuild complete."
+echo "Stamp: $(cat "$STATIC_DIR/.buildstamp")  Buster: $(cat "$STATIC_DIR/.cachebuster")"
+echo "Tip: hard refresh in browser (Ctrl/Cmd+Shift+R) to see latest."

@@ -1,5 +1,5 @@
 {
-  "ts": "2025-10-27T12:40:00.395870Z",
+  "ts": "2025-10-27T12:50:16.774212Z",
   "window_days": 30,
   "overall_status": "BREACH",
   "breaches": [
@@ -7,29 +7,29 @@
   ],
   "slos": {
     "availability": {
-      "actual_pct": 99.742,
+      "actual_pct": 99.765,
       "target_pct": 99.9,
       "status": "BREACH",
-      "success_requests": 1162,
-      "total_requests": 1165,
+      "success_requests": 1275,
+      "total_requests": 1278,
       "error_budget": {
         "remaining_pct": 0,
-        "consumed_pct": 257.51,
-        "burn_rate_pct_per_day": 8.58,
+        "consumed_pct": 234.74,
+        "burn_rate_pct_per_day": 7.82,
         "status": "CRITICAL"
       }
     },
     "p95_latency": {
-      "actual_ms": 39.22,
+      "actual_ms": 39.99,
       "target_ms": 800,
       "status": "OK",
-      "sample_count": 1165
+      "sample_count": 1278
     },
     "p99_latency": {
-      "actual_ms": 156.29,
+      "actual_ms": 144.82,
       "target_ms": 1200,
       "status": "OK",
-      "sample_count": 1165
+      "sample_count": 1278
     },
     "webhook_success": {
       "actual_pct": 100.0,

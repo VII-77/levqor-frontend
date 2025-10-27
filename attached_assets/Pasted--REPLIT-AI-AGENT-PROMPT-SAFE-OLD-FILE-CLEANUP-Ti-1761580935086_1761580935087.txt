@@ -1,0 +1,57 @@
+# ============================================
+# REPLIT AI AGENT PROMPT — SAFE OLD FILE CLEANUP
+# Title: Detect and Delete Old / Unused Version Files
+# Objective: Identify and remove stale, duplicate, or legacy files not referenced in the active EchoPilot codebase.
+# Verification rules:
+#   - Never delete any file still imported, required, or mentioned in configs.
+#   - Never touch `.env`, `requirements.txt`, `.gitignore`, migrations, or secrets.
+#   - Always verify Git history before deletion.
+# ============================================
+
+echo "=== STEP 1: SCAN FOR OLD FILES (>30 days old) ==="
+find /home/runner/workspace -type f -mtime +30 \
+  ! -path "*/.git/*" ! -path "*/venv/*" ! -path "*/node_modules/*" \
+  -exec stat -c "%y %n" {} \; | sort -r > /tmp/old_files.txt
+head -20 /tmp/old_files.txt
+
+echo "=== STEP 2: DETECT POTENTIAL LEGACY VERSIONS ==="
+# Match patterns like *_old.py, *_backup.py, *_v1.py, *_v2.py, etc.
+find /home/runner/workspace -type f -regex ".*_\(old\|backup\|v[0-9]\)\.py" > /tmp/legacy_files.txt
+wc -l /tmp/legacy_files.txt
+head -20 /tmp/legacy_files.txt
+
+echo "=== STEP 3: VERIFY NO ACTIVE REFERENCES ==="
+# Check that no other file imports or references them
+while read -r f; do
+  base=$(basename "$f" .py)
+  hits=$(rg -i "$base" --glob '!*.git/*' --glob '!venv/*' --glob '!node_modules/*' | wc -l)
+  if [ "$hits" -eq 0 ]; then
+    echo "✅ Unreferenced: $f" >> /tmp/deletion_candidates.txt
+  else
+    echo "⚠️  In use ($hits refs): $f" >> /tmp/keep_files.txt
+  fi
+done < /tmp/legacy_files.txt
+echo "=== Unreferenced candidates ==="
+cat /tmp/deletion_candidates.txt || echo "None found"
+
+echo "=== STEP 4: GIT SAFETY SNAPSHOT ==="
+# Verify all candidate files are versioned
+xargs -a /tmp/deletion_candidates.txt -I{} git ls-files --error-unmatch "{}" > /dev/null 2>&1 \
+  && echo "✅ All candidates tracked by git (recoverable if deleted)."
+
+echo "=== STEP 5: DELETE CONFIRMED SAFE FILES ==="
+# Only delete after all checks pass; dry-run first
+cat /tmp/deletion_candidates.txt | cut -d' ' -f3- | while read -r target; do
+  if [ -f "$target" ]; then
+    echo "rm $target"
+  fi
+done > /tmp/delete_plan.sh
+
+echo "✅ Review delete plan here: /tmp/delete_plan.sh"
+echo "Run the following to execute cleanup after review:"
+echo "bash /tmp/delete_plan.sh && git add -A && git commit -m 'chore: remove old unused versions'"
+
+echo "=== STEP 6: VERIFY CLEANUP ==="
+# Ensure nothing deleted breaks imports
+python3 -m compileall /home/runner/workspace >/tmp/compile_check.log 2>&1
+grep -i "error" /tmp/compile_check.log && echo "❌ Compile errors found!" || echo "✅ All modules compile successfully."

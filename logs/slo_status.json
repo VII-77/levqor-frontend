@@ -1,12 +1,12 @@
 {
-  "ts": 1761577256.5640552,
-  "ts_iso": "2025-10-27T15:00:56.564233Z",
+  "ts": 1761580835.7484133,
+  "ts_iso": "2025-10-27T16:00:35.748512Z",
   "status": "PASS",
   "breach": false,
   "p95_ms": 0,
   "success_rate": 1.0,
   "details": {
-    "ts": "2025-10-27T14:59:51.428110Z",
+    "ts": "2025-10-27T15:51:18.698095Z",
     "window_days": 30,
     "overall_status": "BREACH",
     "breaches": [
@@ -14,29 +14,29 @@
     ],
     "slos": {
       "availability": {
-        "actual_pct": 99.724,
+        "actual_pct": 99.745,
         "target_pct": 99.9,
         "status": "BREACH",
-        "success_requests": 2166,
-        "total_requests": 2172,
+        "success_requests": 2350,
+        "total_requests": 2356,
         "error_budget": {
           "remaining_pct": 0,
-          "consumed_pct": 276.24,
-          "burn_rate_pct_per_day": 9.21,
+          "consumed_pct": 254.67,
+          "burn_rate_pct_per_day": 8.49,
           "status": "CRITICAL"
         }
       },
       "p95_latency": {
-        "actual_ms": 42.99,
+        "actual_ms": 42.9,
         "target_ms": 800,
         "status": "OK",
-        "sample_count": 2172
+        "sample_count": 2356
       },
       "p99_latency": {
-        "actual_ms": 114.2,
+        "actual_ms": 112.98,
         "target_ms": 1200,
         "status": "OK",
-        "sample_count": 2172
+        "sample_count": 2356
       },
       "webhook_success": {
         "actual_pct": 100.0,

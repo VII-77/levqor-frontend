@@ -1674,3 +1674,10 @@
 {"ts": "2025-10-27T13:36:39.093825Z", "request_id": "5568e7ab-64e1-4643-9f91-04130ac562c4", "route": "health_check", "method": "GET", "status": 200, "duration_ms": 33.22, "path": "/health"}
 {"ts": "2025-10-27T13:36:48.803653Z", "request_id": "c9893f74-d3e0-4c57-8b86-2b91c88b613c", "route": "api_status_summary", "method": "GET", "status": 200, "duration_ms": 3.0, "path": "/api/status/summary"}
 {"ts": "2025-10-27T13:36:49.452579Z", "request_id": "5e78d912-cd26-4905-99d1-915936799ac5", "route": "api_status_summary", "method": "GET", "status": 200, "duration_ms": 1.55, "path": "/api/status/summary"}
+{"ts": "2025-10-27T13:37:18.806856Z", "request_id": "942cafb5-96c6-4862-95e7-f25926685db5", "route": "api_status_summary", "method": "GET", "status": 200, "duration_ms": 2.89, "path": "/api/status/summary"}
+{"ts": "2025-10-27T13:37:19.449221Z", "request_id": "f74a1ded-49ce-4365-9b58-38e8a7ba2810", "route": "api_status_summary", "method": "GET", "status": 200, "duration_ms": 0.89, "path": "/api/status/summary"}
+{"ts": "2025-10-27T13:37:39.292032Z", "request_id": "dbb226d2-f9bb-4e37-9454-3d406d6767f0", "route": "landing", "method": "GET", "status": 200, "duration_ms": 2.83, "path": "/"}
+{"ts": "2025-10-27T13:37:48.811849Z", "request_id": "aca73d7e-c53a-46e2-a898-6edcf4994de0", "route": "api_status_summary", "method": "GET", "status": 200, "duration_ms": 0.86, "path": "/api/status/summary"}
+{"ts": "2025-10-27T13:37:49.475226Z", "request_id": "d8b80aaa-ae85-44b7-8426-4917849eb65b", "route": "api_status_summary", "method": "GET", "status": 200, "duration_ms": 0.76, "path": "/api/status/summary"}
+{"ts": "2025-10-27T13:38:18.818524Z", "request_id": "7186aed8-5ed3-43d1-90cf-df3d6554ea9c", "route": "api_status_summary", "method": "GET", "status": 200, "duration_ms": 1.01, "path": "/api/status/summary"}
+{"ts": "2025-10-27T13:38:19.463946Z", "request_id": "77c0da19-30e9-4293-b963-eb532625d5d2", "route": "api_status_summary", "method": "GET", "status": 200, "duration_ms": 0.7, "path": "/api/status/summary"}

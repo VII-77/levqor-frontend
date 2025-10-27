@@ -3,3 +3,5 @@
 {"ts": "2025-10-27T11:38:13.240686Z", "type": "predictive_maintenance_ticket", "failure_type": "Disk", "risk_level": "HIGH", "status": "open", "created_by": "predictive_maintenance_ai"}
 {"ts": "2025-10-27T13:00:43.698479Z", "type": "predictive_maintenance_ticket", "failure_type": "CPU", "risk_level": "HIGH", "status": "open", "created_by": "predictive_maintenance_ai"}
 {"ts": "2025-10-27T13:00:43.698715Z", "type": "predictive_maintenance_ticket", "failure_type": "Disk", "risk_level": "HIGH", "status": "open", "created_by": "predictive_maintenance_ai"}
+{"ts": "2025-10-27T13:38:44.152749Z", "type": "predictive_maintenance_ticket", "failure_type": "CPU", "risk_level": "HIGH", "status": "open", "created_by": "predictive_maintenance_ai"}
+{"ts": "2025-10-27T13:38:44.153593Z", "type": "predictive_maintenance_ticket", "failure_type": "Disk", "risk_level": "HIGH", "status": "open", "created_by": "predictive_maintenance_ai"}

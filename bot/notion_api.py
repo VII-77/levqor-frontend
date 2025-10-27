@@ -74,7 +74,7 @@ class NotionClientWrapper:
     def query_database(self, database_id: str, filter_criteria: Optional[Dict] = None, retry_delays: Optional[List[int]] = None) -> List[Dict]:
         client = self.get_client()
         
-        query_params: Dict[str, Any] = {"database_id": database_id}
+        query_params: Dict[str, Any] = {"data_source_id": database_id}
         if filter_criteria:
             query_params["filter"] = filter_criteria
         
@@ -89,7 +89,7 @@ class NotionClientWrapper:
                 time.sleep(delay)
             
             try:
-                response = client.databases.query(**query_params)
+                response = client.data_sources.query(**query_params)
                 results = response.get('results', [])
                 
                 # If retry_delays provided and got empty results, continue retrying

@@ -351,3 +351,15 @@
 {"ts": "2025-10-27T13:45:23.983187Z", "event": "ops_sentinel", "status": "healthy", "cpu_percent": 64.2, "mem_percent": 58.9, "disk_percent": 81.0, "latency_sec": 0.005408525466918945, "warnings": []}
 {"ts": "2025-10-27T13:47:43.181634Z", "event": "ops_sentinel", "status": "healthy", "cpu_percent": 67.7, "mem_percent": 59.3, "disk_percent": 81.1, "latency_sec": 0.006247282028198242, "warnings": []}
 {"ts": "2025-10-27T13:50:57.796643Z", "event": "ops_sentinel", "status": "critical", "cpu_percent": 93.5, "mem_percent": 58.2, "disk_percent": 81.1, "latency_sec": 0.01819467544555664, "warnings": ["High CPU: 93.5%"]}
+{"ts": "2025-10-27T13:54:04.872896Z", "event": "ops_sentinel", "status": "healthy", "cpu_percent": 66.1, "mem_percent": 57.9, "disk_percent": 81.0, "latency_sec": 0.0050258636474609375, "warnings": []}
+{"ts": "2025-10-27T13:57:08.066072Z", "event": "ops_sentinel", "status": "healthy", "cpu_percent": 70.9, "mem_percent": 57.6, "disk_percent": 81.0, "latency_sec": 0.004960536956787109, "warnings": []}
+{"ts": "2025-10-27T14:00:14.285640Z", "event": "ops_sentinel", "status": "healthy", "cpu_percent": 80.2, "mem_percent": 59.4, "disk_percent": 81.0, "latency_sec": 0.005006074905395508, "warnings": []}
+{"ts": "2025-10-27T14:03:21.779590Z", "event": "ops_sentinel", "status": "healthy", "cpu_percent": 69.2, "mem_percent": 60.2, "disk_percent": 81.0, "latency_sec": 0.00990438461303711, "warnings": []}
+{"ts": "2025-10-27T14:06:27.718837Z", "event": "ops_sentinel", "status": "healthy", "cpu_percent": 52.8, "mem_percent": 58.9, "disk_percent": 81.0, "latency_sec": 0.005584239959716797, "warnings": []}
+{"ts": "2025-10-27T14:09:33.311955Z", "event": "ops_sentinel", "status": "healthy", "cpu_percent": 62.0, "mem_percent": 58.0, "disk_percent": 81.0, "latency_sec": 0.006117343902587891, "warnings": []}
+{"ts": "2025-10-27T14:12:36.870968Z", "event": "ops_sentinel", "status": "healthy", "cpu_percent": 45.2, "mem_percent": 59.4, "disk_percent": 81.0, "latency_sec": 0.004590511322021484, "warnings": []}
+{"ts": "2025-10-27T14:15:42.261445Z", "event": "ops_sentinel", "status": "healthy", "cpu_percent": 84.2, "mem_percent": 58.4, "disk_percent": 81.0, "latency_sec": 0.005712985992431641, "warnings": []}
+{"ts": "2025-10-27T14:18:45.839236Z", "event": "ops_sentinel", "status": "healthy", "cpu_percent": 45.7, "mem_percent": 54.8, "disk_percent": 81.0, "latency_sec": 0.005763053894042969, "warnings": []}
+{"ts": "2025-10-27T14:21:52.200766Z", "event": "ops_sentinel", "status": "healthy", "cpu_percent": 57.4, "mem_percent": 54.7, "disk_percent": 81.0, "latency_sec": 0.0054473876953125, "warnings": []}
+{"ts": "2025-10-27T14:24:57.727303Z", "event": "ops_sentinel", "status": "healthy", "cpu_percent": 55.5, "mem_percent": 55.5, "disk_percent": 81.0, "latency_sec": 0.005782127380371094, "warnings": []}
+{"ts": "2025-10-27T14:28:01.173234Z", "event": "ops_sentinel", "status": "healthy", "cpu_percent": 46.7, "mem_percent": 54.9, "disk_percent": 81.0, "latency_sec": 0.013428449630737305, "warnings": []}

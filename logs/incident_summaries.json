@@ -1,7 +1,7 @@
 {
-  "ts": "2025-10-27T13:47:48.378807Z",
+  "ts": "2025-10-27T14:18:46.417300Z",
   "period_hours": 24,
-  "events_analyzed": 31520,
+  "events_analyzed": 31467,
   "severity": "high",
   "top_errors": {
     "primary_unhealthy": 2

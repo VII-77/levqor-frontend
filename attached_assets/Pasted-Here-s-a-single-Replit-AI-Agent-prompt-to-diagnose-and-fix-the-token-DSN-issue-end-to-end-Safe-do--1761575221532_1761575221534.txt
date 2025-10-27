@@ -1,0 +1,142 @@
+Here’s a single Replit AI Agent prompt to diagnose and fix the token/DSN issue end-to-end. Safe: do not touch run.py, no schema changes, no destructive deletes.
+
+
+---
+
+Replit AI Agent — Fix Invalid Token/DSN (Sentry/Notion/Stripe/OpenAI/Telegram)
+
+Do all steps in order. Fail fast on errors. Use existing Replit Secrets. Do not modify run.py or routes.
+
+0) Preconditions
+
+Workspace root has run.py and static/.
+
+App listens on PORT (default 5000).
+
+
+Run:
+
+set -euo pipefail
+test -f run.py || { echo "x missing run.py"; exit 1; }
+PORT="${PORT:-5000}"
+
+1) Identify the failing token
+
+Collect recent errors and show which integration is failing.
+
+echo "== recent errors ==";
+tail -n 400 /tmp/gunicorn.out 2>/dev/null | grep -iE "token|dsn|sentry|notion|stripe|openai|telegram|unauthorized|forbidden|401|403" || true
+
+echo; echo "== env presence (masked) ==";
+for k in SENTRY_DSN NEXT_PUBLIC_SENTRY_DSN NOTION_TOKEN STRIPE_SECRET_KEY OPENAI_API_KEY TELEGRAM_BOT_TOKEN; do
+  v="${!k:-}"; [ -n "$v" ] && m=$(printf "%s" "$v" | sed 's/./*/g'); printf "%-24s %s\n" "$k" "${m:0:8}" || true
+done
+
+2) Validate formats quickly
+
+Sentry DSN must start with http or https and contain @ and a project id.
+
+Stripe secret starts with sk_live_ or sk_test_.
+
+OpenAI starts with sk-.
+
+Telegram is a number + : + token.
+
+
+Run:
+
+echo "== quick format checks =="
+
+check_dsn(){ n="$1"; v="${!n:-}"; if [ -n "$v" ]; then
+  echo "$n: $([["$v" =~ ^https?://[^@]+@[^/]+/.+ ]] && echo OK || echo BAD)"
+  else echo "$n: MISSING"; fi
+}
+check_pref(){ n="$1"; p="$2"; v="${!n:-}"; [ -n "$v" ] && { case "$v" in $p*) echo "$n: OK";; *) echo "$n: BAD";; esac; } || echo "$n: MISSING"
+
+check_dsn SENTRY_DSN
+check_dsn NEXT_PUBLIC_SENTRY_DSN
+check_pref STRIPE_SECRET_KEY sk_
+check_pref OPENAI_API_KEY sk-
+if [ -n "${TELEGRAM_BOT_TOKEN:-}" ]; then echo "TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN%%:*}:OK?"; else echo "TELEGRAM_BOT_TOKEN: MISSING"; fi
+
+3) Fix policy
+
+If Sentry is BAD and no valid DSN in Secrets, disable Sentry for now to remove noise.
+
+If any key is MISSING but exists in Replit Secrets UI, load it into the environment for this process.
+
+Do not hardcode secrets in files.
+
+
+Apply:
+
+set +e
+fix=0
+
+# Prefer disabling Sentry if DSN invalid
+if [ -n "${SENTRY_DSN:-}" ] && ! printf "%s" "$SENTRY_DSN" | grep -Eq '^https?://[^@]+@[^/]+/.+'; then
+  unset SENTRY_DSN; fix=1; echo "[fix] disabled Sentry (bad SENTRY_DSN)";
+fi
+if [ -n "${NEXT_PUBLIC_SENTRY_DSN:-}" ] && ! printf "%s" "$NEXT_PUBLIC_SENTRY_DSN" | grep -Eq '^https?://[^@]+@[^/]+/.+'; then
+  unset NEXT_PUBLIC_SENTRY_DSN; fix=1; echo "[fix] disabled NEXT_PUBLIC_SENTRY_DSN (bad)";
+fi
+
+# Reload env from Replit Secrets file if present
+[ -f ~/.config/secrets/env ] && { set -a; . ~/.config/secrets/env; set +a; echo "[info] reloaded secrets"; fix=1; }
+
+# Restart backend only if something changed
+if [ "$fix" = "1" ]; then
+  pkill -f "gunicorn .*run:app" || true; sleep 2;
+  nohup gunicorn -w 1 -k gthread -t 120 --bind 0.0.0.0:"$PORT" run:app >/tmp/gunicorn.out 2>&1 &
+  echo "[ok] gunicorn restarted";
+fi
+set -e
+
+4) Health gate
+
+echo "== wait for /health ==";
+for i in $(seq 1 30); do
+  code=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:$PORT/health" || true)
+  [ "$code" = "200" ] && break; sleep 1
+done
+[ "$code" = "200" ] || { echo "x health failed"; tail -n 120 /tmp/gunicorn.out; exit 1; }
+curl -fsS "http://localhost:$PORT/health"
+
+5) Functional probes
+
+Anonymous pages should be 200.
+
+Protected API may return 401 (expected) not 404.
+
+
+probe(){ p="$1"; e="${2:-200}"; c=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:$PORT$p"); printf "%-16s %s\n" "$p" "$c"; }
+echo "== probes =="
+for p in / /pricing /auth/login /app /health; do probe "$p"; done
+for p in /api/analytics/summary /api/revenue/forecast; do probe "$p" "401"; done || true
+
+6) Report and next actions
+
+If Sentry was disabled, output instruction to re-enable with a valid DSN later.
+
+If any secret missing, print the exact names to set in Replit Secrets.
+
+
+Generate:
+
+echo "== summary =="
+grep -iE "token|dsn|unauthorized|forbidden|401|403" -n /tmp/gunicorn.out | tail -n 20 || true
+echo "Set these if missing: SENTRY_DSN, NEXT_PUBLIC_SENTRY_DSN, NOTION_TOKEN, STRIPE_SECRET_KEY, OPENAI_API_KEY, TELEGRAM_BOT_TOKEN"
+echo "Done."
+
+Success criteria
+
+/health returns 200.
+
+Public pages / and /pricing return 200.
+
+Protected APIs return 401 (not 404).
+
+No repeating “invalid token/DSN” errors in the last 200 log lines.
+
+
+Do not rebuild Next.js or modify run.py. Only environment fixes and a safe restart.

@@ -45,3 +45,4 @@
 {"ts": "2025-10-27T13:09:56.054553Z", "period_hours": 24, "events_analyzed": 32677, "severity": "high", "top_errors": {"primary_unhealthy": 1}, "recommendations": ["Investigate primary_unhealthy: 1 occurrences"]}
 {"ts": "2025-10-27T13:40:45.673397Z", "period_hours": 24, "events_analyzed": 31654, "severity": "high", "top_errors": {"primary_unhealthy": 2}, "recommendations": ["Investigate primary_unhealthy: 2 occurrences"]}
 {"ts": "2025-10-27T13:47:48.378807Z", "period_hours": 24, "events_analyzed": 31520, "severity": "high", "top_errors": {"primary_unhealthy": 2}, "recommendations": ["Investigate primary_unhealthy: 2 occurrences"]}
+{"ts": "2025-10-27T14:18:46.417300Z", "period_hours": 24, "events_analyzed": 31467, "severity": "high", "top_errors": {"primary_unhealthy": 2}, "recommendations": ["Investigate primary_unhealthy: 2 occurrences"]}

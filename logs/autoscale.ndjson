@@ -124,3 +124,4 @@
 {"event": "scale_decision", "ts": "2025-10-27T17:03:18.187310Z", "current": 1, "desired": 1, "reason": "low_utilization", "dry_run": true}
 {"event": "scale_decision", "ts": "2025-10-27T17:10:29.469614Z", "current": 1, "desired": 1, "reason": "low_utilization", "dry_run": true}
 {"event": "scale_decision", "ts": "2025-10-27T17:20:46.770617Z", "current": 1, "desired": 1, "reason": "low_utilization", "dry_run": true}
+{"event": "scale_decision", "ts": "2025-10-27T17:31:01.946686Z", "current": 1, "desired": 1, "reason": "low_utilization", "dry_run": true}

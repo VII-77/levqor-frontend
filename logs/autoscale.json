@@ -1,5 +1,5 @@
 {
-  "ts": "2025-10-27T17:20:46.770617Z",
+  "ts": "2025-10-27T17:31:01.946686Z",
   "current_workers": 1,
   "desired_workers": 1,
   "reason": "low_utilization",

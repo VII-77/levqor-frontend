@@ -4,6 +4,7 @@ import base64
 import hmac
 import hashlib
 import time
+import re
 import requests
 import stripe
 from urllib.parse import quote
@@ -18,6 +19,27 @@ CURRENCY = os.getenv("PAYMENT_CURRENCY", "USD").upper()
 SUCCESS_URL = os.getenv("PAYMENT_SUCCESS_URL", "https://example.com/success")
 CANCEL_URL = os.getenv("PAYMENT_CANCEL_URL", "https://example.com/cancel")
 BRAND_NAME = os.getenv("PAYMENT_BRAND_NAME", "EchoPilot AI")
+
+# Job ID validation: Allow common safe characters (still URL-encode for robustness)
+_SAFE_JOB_RE = re.compile(r"^[\w\-:.@/ ]{1,256}$", re.UNICODE)
+
+
+def _encode_job(job_id: str) -> str:
+    """
+    URL-encode job ID for use in payment redirect URLs.
+    Validates input and encodes non-ASCII characters.
+    """
+    if not isinstance(job_id, str) or not job_id:
+        raise ValueError("job_id must be a non-empty string")
+    
+    # Check for unusual characters (informational, still proceed with encoding)
+    if not _SAFE_JOB_RE.match(job_id):
+        # Note: Emojis and special chars are valid, just log for observability
+        # In production, you might log: logger.warning("job_id contains unusual chars: %r", job_id)
+        pass
+    
+    # URL-encode with safe="" to encode all special characters
+    return quote(job_id, safe="")
 
 
 def stripe_create_checkout(amount_usd: float, job_id: str, client_email: str = None):
@@ -37,8 +59,8 @@ def stripe_create_checkout(amount_usd: float, job_id: str, client_email: str = N
             "quantity": 1
         }],
         customer_email=client_email or None,
-        success_url=f"{SUCCESS_URL}?job={quote(job_id)}&status=success",
-        cancel_url=f"{CANCEL_URL}?job={quote(job_id)}&status=cancel",
+        success_url=f"{SUCCESS_URL}?job={_encode_job(job_id)}&status=success",
+        cancel_url=f"{CANCEL_URL}?job={_encode_job(job_id)}&status=cancel",
         metadata={"job_id": job_id}
     )
     return {
@@ -103,8 +125,8 @@ def paypal_create_order(amount_usd: float, job_id: str):
         }],
         "application_context": {
             "brand_name": BRAND_NAME,
-            "return_url": f"{SUCCESS_URL}?job={job_id}&status=success",
-            "cancel_url": f"{CANCEL_URL}?job={job_id}&status=cancel",
+            "return_url": f"{SUCCESS_URL}?job={_encode_job(job_id)}&status=success",
+            "cancel_url": f"{CANCEL_URL}?job={_encode_job(job_id)}&status=cancel",
             "shipping_preference": "NO_SHIPPING",
             "user_action": "PAY_NOW"
         }

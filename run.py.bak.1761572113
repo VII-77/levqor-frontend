@@ -7881,15 +7881,3 @@ def api_ops_telemetry():
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
-
-# === EchoPilotAI: minimal version endpoint (guarded) ===
-try:
-    from flask import send_from_directory
-    @app.get("/version.json")
-    def _version_json():
-        # serves static/version.json without touching other routes
-        return send_from_directory("static", "version.json", mimetype="application/json")
-except Exception as _e:
-    # do not fail app startup if import context differs
-    pass
-# === /EchoPilotAI guard end ===

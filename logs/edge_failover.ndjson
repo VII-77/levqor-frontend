@@ -182,3 +182,7 @@
 {"ts": "2025-10-27T13:31:29.662978Z", "event": "checking_primary", "url": "https://7bcf7cfb-abac-4066-a19e-5fbe1b6c0854-00-msem1k2vhtji.kirk.replit.dev"}
 {"ts": "2025-10-27T13:31:29.743516Z", "event": "primary_unhealthy", "consecutive_failures": 1, "max_failures": 3, "error": "Non-200 response"}
 {"ts": "2025-10-27T13:31:29.744605Z", "event": "monitor_complete", "ok": true, "healthy": false, "response_time_ms": 78, "consecutive_failures": 1, "failover_active": false}
+{"ts": "2025-10-27T13:36:39.006783Z", "event": "monitor_started", "ok": true}
+{"ts": "2025-10-27T13:36:39.007002Z", "event": "checking_primary", "url": "https://7bcf7cfb-abac-4066-a19e-5fbe1b6c0854-00-msem1k2vhtji.kirk.replit.dev"}
+{"ts": "2025-10-27T13:36:39.099339Z", "event": "primary_healthy", "response_time_ms": 91, "uptime_seconds": null, "dependencies": null}
+{"ts": "2025-10-27T13:36:39.100214Z", "event": "monitor_complete", "ok": true, "healthy": true, "response_time_ms": 91, "consecutive_failures": 0, "failover_active": false}

@@ -744,3 +744,5 @@
 {"ts": "2025-10-27T13:32:32Z", "latency_ms": 7, "ok": true, "code": 200}
 {"ts": "2025-10-27T13:33:33Z", "latency_ms": 7, "ok": true, "code": 200}
 {"ts": "2025-10-27T13:34:33Z", "latency_ms": 12, "ok": true, "code": 200}
+{"ts": "2025-10-27T13:35:36Z", "latency_ms": 3, "ok": false, "code": null}
+{"ts": "2025-10-27T13:36:38Z", "latency_ms": 4, "ok": true, "code": 200}

@@ -108,3 +108,4 @@
 {"event": "scale_decision", "ts": "2025-10-27T14:18:46.971697Z", "current": 1, "desired": 1, "reason": "low_utilization", "dry_run": true}
 {"event": "scale_decision", "ts": "2025-10-27T14:29:02.213825Z", "current": 1, "desired": 1, "reason": "low_utilization", "dry_run": true}
 {"event": "scale_decision", "ts": "2025-10-27T14:39:18.275651Z", "current": 1, "desired": 1, "reason": "low_utilization", "dry_run": true}
+{"event": "scale_decision", "ts": "2025-10-27T14:49:36.178533Z", "current": 1, "desired": 1, "reason": "low_utilization", "dry_run": true}

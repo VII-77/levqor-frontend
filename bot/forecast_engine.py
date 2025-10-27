@@ -6,7 +6,6 @@ Uses historical data to predict future trends
 import os
 from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional
-from notion_client import Client
 import statistics
 
 
@@ -14,7 +13,11 @@ class ForecastEngine:
     """Predictive analytics for revenue and system load"""
     
     def __init__(self, notion_client=None):
-        self.notion = notion_client or Client(auth=os.getenv('NOTION_TOKEN'))
+        if notion_client:
+            self.notion = notion_client
+        else:
+            from bot.notion_api import get_notion_client
+            self.notion = get_notion_client()
         self.forecast_db_id = os.getenv('NOTION_FORECAST_DB_ID')
         self.job_log_db_id = os.getenv('JOB_LOG_DB_ID')
         self.finance_db_id = os.getenv('NOTION_FINANCE_DB_ID')

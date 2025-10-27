@@ -6,7 +6,6 @@ Handles P&L, revenue dashboards, margin calculations, and valuation
 import os
 from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional
-from notion_client import Client
 import statistics
 
 
@@ -14,7 +13,11 @@ class FinanceSystem:
     """Comprehensive finance tracking and reporting"""
     
     def __init__(self, notion_client=None):
-        self.notion = notion_client or Client(auth=os.getenv('NOTION_TOKEN'))
+        if notion_client:
+            self.notion = notion_client
+        else:
+            from bot.notion_api import get_notion_client
+            self.notion = get_notion_client()
         self.finance_db_id = os.getenv('NOTION_FINANCE_DB_ID')
         self.job_log_db_id = os.getenv('JOB_LOG_DB_ID')
         self.client_db_id = os.getenv('NOTION_CLIENT_DB_ID')

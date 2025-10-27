@@ -6,11 +6,6 @@ import json
 from bot.payments import paypal_capture, PAYPAL_ID, PAYPAL_SEC
 from bot.notion_api import get_notion_client
 
-HEADERS = {
-    "Authorization": f"Bearer {os.getenv('NOTION_TOKEN', '')}",
-    "Notion-Version": "2022-06-28",
-    "Content-Type": "application/json"
-}
 JOB_LOG_DB_ID = os.getenv("JOB_LOG_DB_ID", "")
 
 
@@ -44,16 +39,15 @@ def get_property_value(page, prop_name, prop_type):
 
 def update_payment_status(page_id, status):
     try:
-        url = f"https://api.notion.com/v1/pages/{page_id}"
-        payload = {
-            "properties": {
+        client = get_notion_client()
+        client.pages.update(
+            page_id=page_id,
+            properties={
                 "Payment Status": {
                     "select": {"name": status}
                 }
             }
-        }
-        response = requests.patch(url, headers=HEADERS, json=payload, timeout=20)
-        response.raise_for_status()
+        )
         return True
     except Exception as e:
         print(f"[Reconcile] Error updating status for {page_id}: {e}")

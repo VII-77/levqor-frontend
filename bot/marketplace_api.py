@@ -8,7 +8,6 @@ import hashlib
 import secrets
 from datetime import datetime
 from typing import Dict, List, Any, Optional
-from notion_client import Client
 from flask import Request
 
 
@@ -16,7 +15,11 @@ class MarketplaceAPI:
     """Partner API management and quota enforcement"""
     
     def __init__(self, notion_client=None):
-        self.notion = notion_client or Client(auth=os.getenv('NOTION_TOKEN'))
+        if notion_client:
+            self.notion = notion_client
+        else:
+            from bot.notion_api import get_notion_client
+            self.notion = get_notion_client()
         self.partners_db_id = os.getenv('NOTION_PARTNERS_DB_ID')
         self.queue_db_id = os.getenv('AUTOMATION_QUEUE_DB_ID')
         self.job_log_db_id = os.getenv('JOB_LOG_DB_ID')

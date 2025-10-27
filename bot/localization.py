@@ -5,14 +5,17 @@ Translation, multi-currency, and regional compliance
 
 import os
 from typing import Dict, List, Any, Optional
-from notion_client import Client
 
 
 class LocalizationSystem:
     """Multi-language and regional compliance management"""
     
     def __init__(self, notion_client=None):
-        self.notion = notion_client or Client(auth=os.getenv('NOTION_TOKEN'))
+        if notion_client:
+            self.notion = notion_client
+        else:
+            from bot.notion_api import get_notion_client
+            self.notion = get_notion_client()
         self.region_db_id = os.getenv('NOTION_REGION_COMPLIANCE_DB_ID')
         
         # Translation dictionaries (simple approach - production would use i18n library)

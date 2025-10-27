@@ -1,0 +1,91 @@
+# ============================================
+# REPLIT AI AGENT PROMPT — PROMOTE .pythonlibs TO LIVE
+# Goal: install packages discovered in ~/.pythonlibs into the active env, pin versions, verify imports, restart.
+# Why: modules exist locally but are not applied to the live env; ensure deterministic deploys.
+# Impact if ignored: code may fail at runtime due to missing deps.
+# ============================================
+
+set -euo pipefail
+cd /home/runner/workspace
+
+PYLIB="${PYLIB:-$HOME/.pythonlibs}"
+
+echo "=== 1) INVENTORY .pythonlibs PACKAGES ==="
+# Extract Name and Version from dist-info metadata
+tmpreq=/tmp/pythonlibs_requirements.txt
+: > "$tmpreq"
+while IFS= read -r meta; do
+  name=$(rg '^Name:\s*(.+)$' -or '$1' -n --no-line-number "$meta" | head -1 | tr '[:upper:]' '[:lower:]')
+  ver=$(rg '^Version:\s*(.+)$' -or '$1' -n --no-line-number "$meta" | head -1)
+  [[ -n "$name" && -n "$ver" ]] && echo "${name}==${ver}" >> "$tmpreq"
+done < <(find "$PYLIB" -type f -path "*/site-packages/*.dist-info/METADATA" | sort)
+
+sort -u "$tmpreq" -o "$tmpreq"
+echo "Captured $(wc -l < $tmpreq) packages from .pythonlibs"
+head -20 "$tmpreq" || true
+
+echo "=== 2) DIFF AGAINST CURRENT ENV ==="
+pip freeze | sort -u > /tmp/current_freeze.txt || true
+comm -23 "$tmpreq" /tmp/current_freeze.txt > /tmp/missing_from_env.txt || true
+echo "Missing packages count: $(wc -l < /tmp/missing_from_env.txt)"
+cat /tmp/missing_from_env.txt
+
+echo "=== 3) INSTALL MISSING FROM LOCAL CACHE IF POSSIBLE, FALL BACK TO PYPI ==="
+# Try local first
+if [ -s /tmp/missing_from_env.txt ]; then
+  # Attempt local install using wheels/sdists in .pythonlibs if present
+  pip install --no-input --ignore-installed --no-warn-script-location \
+    --no-index --find-links "$PYLIB" -r /tmp/missing_from_env.txt || \
+  pip install --no-input --upgrade -r /tmp/missing_from_env.txt
+else
+  echo "No missing packages."
+fi
+
+echo "=== 4) PIN REQUIREMENTS.TXT WITH UNION SET ==="
+# Merge existing requirements.txt with discovered pins and freeze to lock transitive deps
+touch requirements.txt
+cp requirements.txt /tmp/requirements.prev.txt
+sort -u <(cat requirements.txt; cat "$tmpreq") | sed '/^\s*$/d' > /tmp/requirements.merged.txt
+mv /tmp/requirements.merged.txt requirements.txt
+pip install --no-input -r requirements.txt
+pip freeze | sort -u > requirements.lock
+git add requirements.txt requirements.lock || true
+git commit -m "deps: promote .pythonlibs packages to live and pin versions" || true
+
+echo "=== 5) SMOKE IMPORTS FOR CRITICAL MODULES ==="
+python - <<'PY'
+mods = [
+  "pydantic", "pydantic.version",
+  "googleapiclient.discovery", "googleapiclient.http",
+  "google.oauth2.service_account",
+  "yaml", "requests", "tenacity", "fastapi", "uvicorn",
+]
+bad=[]
+for m in mods:
+    try:
+        __import__(m)
+    except Exception as e:
+        bad.append((m, str(e)))
+if bad:
+    print("FAIL imports:", bad); raise SystemExit(1)
+print("OK: core imports loaded")
+PY
+
+echo "=== 6) RUNTIME VERIFICATION (APP HEALTH) ==="
+# Adjust port/path as your app exposes
+curl -fsS http://localhost:5000/api/health | python -m json.tool
+
+echo "=== 7) RESTART WORKERS TO PICK UP NEW SITE-PACKAGES ==="
+# Replace with your actual restart command if different
+pkill -f gunicorn || true
+sleep 1
+# Example launch; your proc manager may differ:
+nohup python -m bot.main >/tmp/app.out 2>/tmp/app.err & disown
+sleep 3
+curl -fsS http://localhost:5000/api/health | python -m json.tool
+
+echo "=== 8) REPORT WHAT WAS PROMOTED ==="
+comm -23 "$tmpreq" /tmp/current_freeze.txt | tee /tmp/promoted_from_pythonlibs.txt
+echo "Promoted package list saved to /tmp/promoted_from_pythonlibs.txt"
+
+echo "DONE: .pythonlibs packages applied to live env, pinned, verified, and workers restarted."

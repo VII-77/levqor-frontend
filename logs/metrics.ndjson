@@ -38304,3 +38304,5 @@
 {"ts": 1761564196, "route": "health_check", "status": 200, "dur_ms": 45.03}
 {"ts": 1761564236, "route": "health_check", "status": 200, "dur_ms": 25.86}
 {"ts": 1761564248, "route": "root_index", "status": 200, "dur_ms": 0.91}
+{"ts": 1761564551, "route": "root_index", "status": 200, "dur_ms": 3.25}
+{"ts": 1761564853, "route": "root_index", "status": 200, "dur_ms": 1.57}

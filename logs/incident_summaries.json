@@ -1,12 +1,12 @@
 {
-  "ts": "2025-10-27T12:08:12.300022Z",
+  "ts": "2025-10-27T12:38:57.271338Z",
   "period_hours": 24,
-  "events_analyzed": 31976,
+  "events_analyzed": 32198,
   "severity": "high",
-  "top_errors": {},
+  "top_errors": {
+    "primary_unhealthy": 1
+  },
   "recommendations": [
-    "System operating normally - no critical issues",
-    "Continue monitoring P95 latency and success rates",
-    "Review backup integrity on schedule"
+    "Investigate primary_unhealthy: 1 occurrences"
   ]
 }

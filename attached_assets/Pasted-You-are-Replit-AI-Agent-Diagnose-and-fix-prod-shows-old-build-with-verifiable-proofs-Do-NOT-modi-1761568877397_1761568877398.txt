@@ -1,0 +1,84 @@
+You are Replit AI Agent. Diagnose and fix “prod shows old build” with verifiable proofs. Do NOT modify run.py or blueprints. Fail fast.
+
+set -euo pipefail
+PORT="${PORT:-5000}"
+STATIC="static"
+
+echo "== 0) Preconditions =="
+test -f run.py || { echo "x no run.py"; exit 1; }
+test -d "$STATIC" || { echo "x no static/"; exit 1; }
+echo "ok"
+
+echo "== 1) Create live version manifest (static, no code changes) =="
+STAMP_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+COMMIT="$(git rev-parse --short HEAD 2>/dev/null || echo workspace)"
+cat > "$STATIC/version.json" <<JSON
+{"build_utc":"$STAMP_UTC","commit":"$COMMIT","source":"workspace"}
+JSON
+echo "$STAMP_UTC" > "$STATIC/.buildstamp"
+echo "wrote static/version.json and .buildstamp"
+
+echo "== 2) Cache-bust key HTML and assets =="
+BUSTER="$(date -u +%Y%m%dT%H%M%SZ)"
+echo "$BUSTER" > "$STATIC/.cachebuster"
+touch "$STATIC"/{index.html,pricing.html,login.html,workflow.html,dashboard.html,help.html} 2>/dev/null || true
+echo "buster=$BUSTER"
+
+echo "== 3) Single-server sanity: kill dup gunicorn, start clean =="
+pkill -f "gunicorn .*run:app" || true
+sleep 2
+nohup gunicorn -w 1 -k gthread -t 120 --bind 0.0.0.0:"$PORT" run:app \
+  > /tmp/gunicorn.out 2>&1 &
+sleep 2
+
+echo "== 4) Health wait =="
+for i in $(seq 1 30); do
+  code=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:$PORT/health" || true)
+  [ "$code" = "200" ] && break
+  sleep 1
+done
+[ "$code" = "200" ] || { echo "x /health failed"; tail -n 120 /tmp/gunicorn.out; exit 1; }
+echo "health ok"
+
+echo "== 5) Local proofs (content, not codes) =="
+curl -fsS "http://localhost:$PORT/version.json" | tee /tmp/local_version.json
+curl -fsS "http://localhost:$PORT/?v=$BUSTER" | grep -o "<title>.*</title>" | head -1 || { echo "x title"; exit 1; }
+for p in /pricing /login /workflow /dashboard /help; do
+  c=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:$PORT$p?v=$BUSTER")
+  echo "$p -> $c"
+done
+
+echo "== 6) Production proofs =="
+ORIGIN="https://echopilotai.replit.app"
+echo "prod health:"; curl -fsS "$ORIGIN/health" | sed -e 's/.*/&/' || true
+
+echo "prod version.json:"
+if curl -fsS "$ORIGIN/version.json" -o /tmp/prod_version.json ; then
+  cat /tmp/prod_version.json
+  echo "COMPARE (prod vs local):"
+  echo "local : $(jq -r .build_utc /tmp/local_version.json)  commit=$(jq -r .commit /tmp/local_version.json)"
+  echo "prod  : $(jq -r .build_utc /tmp/prod_version.json)  commit=$(jq -r .commit /tmp/prod_version.json)"
+else
+  echo "version.json not yet served by prod (expected until published snapshot is refreshed)."
+fi
+
+echo "prod key routes:"
+for p in / /pricing /login /workflow /dashboard /help ; do
+  c=$(curl -s -o /dev/null -w "%{http_code}" "$ORIGIN$p?v=$BUSTER")
+  echo " $p -> $c"
+done
+
+echo "== 7) Operator summary =="
+echo "LOCAL build_utc:  $STAMP_UTC  commit=$COMMIT"
+if [ -f /tmp/prod_version.json ]; then
+  echo "PROD  build_utc:  $(jq -r .build_utc /tmp/prod_version.json)  commit=$(jq -r .commit /tmp/prod_version.json)"
+  if [ "$(jq -r .build_utc /tmp/prod_version.json)" != "$STAMP_UTC" ]; then
+    echo "→ Workspace is newer than prod. Use Publishing → Redeploy to snapshot the new static/version.json."
+  else
+    echo "→ Prod snapshot matches workspace."
+  fi
+else
+  echo "→ Publish to expose static/version.json and refresh prod snapshot."
+fi
+
+echo "Done."

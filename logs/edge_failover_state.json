@@ -1,6 +1,6 @@
 {
-  "consecutive_failures": 0,
-  "last_check": "2025-10-27T13:16:06.104357Z",
+  "consecutive_failures": 1,
+  "last_check": "2025-10-27T13:31:29.744117Z",
   "failover_active": false,
   "last_failover_time": null
 }

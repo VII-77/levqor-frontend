@@ -1,0 +1,103 @@
+Add this version with /version.json exposure. Safe, idempotent, minimal patch.
+
+Replit AI Agent — EchoPilotAI Full Rebuild + Version Endpoint (Safe Mode)
+
+Objective:
+Rebuild static assets, stamp versions, restart Gunicorn, verify routes, and expose /version.json without overwriting run.py.
+
+Rules:
+- Never replace run.py. Only append a tiny, guarded route if missing.
+- Stop on first failure. Print evidence.
+
+Steps:
+
+1) Preconditions
+   test -f run.py || { echo "x no run.py"; exit 1; }
+   mkdir -p static logs
+
+2) Identify revision
+   STAMP_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+   COMMIT="$(git rev-parse --short HEAD 2>/dev/null || echo workspace)"
+   echo "build=$STAMP_UTC commit=$COMMIT"
+
+3) Build static site if Next.js exists
+   if [ -d marketing-site/app ] || [ -f marketing-site/next.config.mjs ]; then
+     pushd marketing-site >/dev/null
+     (npm ci || npm install)
+     npx next build
+     npx next export
+     popd >/dev/null
+     rsync -a --delete marketing-site/out/ static/
+   else
+     echo "no Next.js app; using existing static/"
+   fi
+
+4) Version stamping
+   cat > static/version.json <<JSON
+{"build_utc":"$STAMP_UTC","commit":"$COMMIT","source":"workspace"}
+JSON
+   echo "BUILD_UTC=$STAMP_UTC COMMIT=$COMMIT" > static/.buildstamp
+   date -u +%Y%m%dT%H%M%SZ > static/.cachebuster
+   echo "version files written"
+
+5) Safe cleanup
+   rm -rf marketing-site/.next marketing-site/out marketing-site/build marketing-site/public/_next static/_next 2>/dev/null || true
+   find . -maxdepth 2 -type f -name "*.lock" -delete 2>/dev/null || true
+
+6) EXPOSE /version.json (guarded, append-only)
+   # only add if route not present
+   if ! grep -q "def _version_json()" run.py ; then
+     cp run.py run.py.bak.$(date +%s)
+     cat >> run.py <<'PY'
+
+# === EchoPilotAI: minimal version endpoint (guarded) ===
+try:
+    from flask import send_from_directory
+    @app.get("/version.json")
+    def _version_json():
+        # serves static/version.json without touching other routes
+        return send_from_directory("static", "version.json", mimetype="application/json")
+except Exception as _e:
+    # do not fail app startup if import context differs
+    pass
+# === /EchoPilotAI guard end ===
+PY
+     echo "appended /version.json route"
+   else
+     echo "/version.json route already present"
+   fi
+
+7) Restart backend
+   PORT="${PORT:-5000}"
+   pkill -f "gunicorn .*run:app" || true
+   sleep 2
+   nohup gunicorn -w 1 -k gthread -t 120 --bind 0.0.0.0:$PORT run:app > /tmp/gunicorn.out 2>&1 &
+
+8) Health wait
+   for i in $(seq 1 40); do
+     code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:$PORT/health || true)
+     [ "$code" = "200" ] && break
+     sleep 1
+   done
+   [ "$code" = "200" ] || { echo "x health failed"; tail -n 120 /tmp/gunicorn.out || true; exit 1; }
+
+9) Verify content and routes
+   chk() { path="$1"; grepq="$2"; body=$(curl -fsS "http://localhost:$PORT$path" || true); echo "$body" | grep -qi "$grepq" && echo "✓ $path" || { echo "x $path"; echo "$body" | head -40; exit 1; }; }
+   chk "/" "<title"
+   chk "/pricing" "<h1"
+   chk "/auth/login" "<form"
+   chk "/app" "<html"
+   curl -fsS http://localhost:$PORT/version.json | jq -c '.' >/dev/null && echo "✓ /version.json" || { echo "x /version.json"; exit 1; }
+
+10) Print versions
+   echo "[buildstamp]"; cat static/.buildstamp
+   echo "[cachebuster]"; cat static/.cachebuster
+   echo "[version.json]"; cat static/version.json
+
+11) Optional cost monitor
+   [ -f scripts/cost-monitor.sh ] && bash scripts/cost-monitor.sh || echo "no cost-monitor.sh"
+
+12) Summary
+   echo "🎉 ALL CHECKS PASSED — EchoPilotAI verified, /version.json exposed, healthy and ready."
+
+Use this as-is in the Replit AI Agent. It appends a tiny guarded route, restarts, and verifies everything, without replacing existing code.

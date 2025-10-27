@@ -1,0 +1,94 @@
+Replit AI Agent — EchoPilotAI Full Rebuild, Sync, and Verification (Safe Mode)
+
+Objective:
+Ensure every EchoPilotAI phase, update, and enhancement is correctly applied in the current deployment. 
+Perform a full clean build, cache-bust, restart, and verification — without touching run.py.
+
+Instructions (follow exactly, fail fast on any error):
+
+1) Preconditions
+   - Confirm run.py exists.
+   - Confirm static/ directory exists or create it.
+   - Create logs/ if missing.
+
+2) Identify workspace revision
+   - Capture current Git short commit hash if available.
+   - Generate UTC timestamp for build.
+   - Print both values.
+
+3) Build static site (if marketing-site present)
+   - If marketing-site/app exists or marketing-site/next.config.mjs present:
+       a) npm ci (or npm install)
+       b) npx next build
+       c) npx next export
+       d) rsync marketing-site/out → static/
+   - If not present, skip build and log: “No Next.js app found, using existing static files.”
+
+4) Version stamping
+   - Write JSON manifest to static/version.json:
+       {
+         "build_utc": "<timestamp>",
+         "commit": "<git commit or workspace>"
+       }
+   - Write BUILD_UTC=<timestamp> and COMMIT=<commit> to static/.buildstamp
+   - Write UTC timestamp to static/.cachebuster
+
+5) Safe cleanup
+   - Remove any old build directories:
+       marketing-site/.next, marketing-site/out, marketing-site/build, marketing-site/public/_next, static/_next
+   - Delete stale lock files (*.lock) in project root.
+   - Do NOT touch run.py or bot/*.py
+
+6) Restart backend safely
+   - Kill any running Gunicorn process.
+   - Sleep 2 seconds.
+   - Start fresh Gunicorn instance:
+       gunicorn -w 1 -k gthread -t 120 --bind 0.0.0.0:$PORT run:app
+   - Redirect logs to /tmp/gunicorn.out.
+
+7) Wait for health
+   - Poll /health (localhost:$PORT) every second up to 40s.
+   - Expect 200 OK.
+   - On failure, print last 120 lines of /tmp/gunicorn.out and exit.
+
+8) Verify content and routes
+   - Verify each route for presence of key markers:
+       / → <title>
+       /pricing → <h1
+       /auth/login → <form
+       /app → <html
+       /health → “healthy”
+   - Optionally check APIs if present:
+       /api/support/ticket → OPTIONS responds OK
+       /api/telemetry/workflows → reachable
+   - For each route print ✓ PASS or x FAIL.
+
+9) Print version files
+   - Output contents of static/.buildstamp, static/.cachebuster, and static/version.json.
+
+10) Cost monitor (optional)
+   - If scripts/cost-monitor.sh exists, run it.
+   - If missing, skip gracefully.
+
+11) Output summary
+   - Print total PASS/FAIL count.
+   - If all checks passed: “🎉 ALL CHECKS PASSED.”
+   - Otherwise, list failing routes and exit non-zero.
+
+12) Final confirmation
+   - Print: “✅ EchoPilotAI verified successfully — build applied, healthy, ready for production.”
+
+Safety rules:
+- Do NOT modify run.py or API logic.
+- Do NOT delete static/, bot/, or database directories.
+- Stop immediately if /health or / route fails.
+- Use explicit echo statements for clarity.
+
+Expected outputs:
+- ✅ static/version.json, .buildstamp, .cachebuster
+- ✅ All key routes return correct HTML or JSON
+- ✅ Health endpoint = 200 OK
+- ✅ Gunicorn running and stable
+- ✅ Cost monitor (if present) reports within budget
+
+End of instructions.

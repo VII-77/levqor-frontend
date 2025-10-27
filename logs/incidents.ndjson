@@ -6,3 +6,4 @@
 {"ts": 1761566021.849659, "ts_iso": "2025-10-27T11:53:41.849660Z", "type": "incident", "severity": "medium", "details": ["System warnings: High CPU: 91.5%"]}
 {"ts": 1761568800.4905567, "ts_iso": "2025-10-27T12:40:00.490558Z", "type": "incident", "severity": "medium", "details": ["System warnings: High CPU: 93.7%"]}
 {"ts": 1761569108.459793, "ts_iso": "2025-10-27T12:45:08.459794Z", "type": "incident", "severity": "medium", "details": ["System warnings: High CPU: 94.1%"]}
+{"ts": 1761571580.0169477, "ts_iso": "2025-10-27T13:26:20.016949Z", "type": "incident", "severity": "medium", "details": ["System warnings: High CPU: 89.2%"]}

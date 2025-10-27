@@ -170,3 +170,15 @@
 {"ts": "2025-10-27T13:16:06.003402Z", "event": "checking_primary", "url": "https://7bcf7cfb-abac-4066-a19e-5fbe1b6c0854-00-msem1k2vhtji.kirk.replit.dev"}
 {"ts": "2025-10-27T13:16:06.102915Z", "event": "primary_healthy", "response_time_ms": 97, "uptime_seconds": null, "dependencies": null}
 {"ts": "2025-10-27T13:16:06.105524Z", "event": "monitor_complete", "ok": true, "healthy": true, "response_time_ms": 97, "consecutive_failures": 0, "failover_active": false}
+{"ts": "2025-10-27T13:21:13.730070Z", "event": "monitor_started", "ok": true}
+{"ts": "2025-10-27T13:21:13.731205Z", "event": "checking_primary", "url": "https://7bcf7cfb-abac-4066-a19e-5fbe1b6c0854-00-msem1k2vhtji.kirk.replit.dev"}
+{"ts": "2025-10-27T13:21:13.839144Z", "event": "primary_healthy", "response_time_ms": 105, "uptime_seconds": null, "dependencies": null}
+{"ts": "2025-10-27T13:21:13.839860Z", "event": "monitor_complete", "ok": true, "healthy": true, "response_time_ms": 105, "consecutive_failures": 0, "failover_active": false}
+{"ts": "2025-10-27T13:26:23.518598Z", "event": "monitor_started", "ok": true}
+{"ts": "2025-10-27T13:26:23.519735Z", "event": "checking_primary", "url": "https://7bcf7cfb-abac-4066-a19e-5fbe1b6c0854-00-msem1k2vhtji.kirk.replit.dev"}
+{"ts": "2025-10-27T13:26:23.655705Z", "event": "primary_healthy", "response_time_ms": 133, "uptime_seconds": null, "dependencies": null}
+{"ts": "2025-10-27T13:26:23.656515Z", "event": "monitor_complete", "ok": true, "healthy": true, "response_time_ms": 133, "consecutive_failures": 0, "failover_active": false}
+{"ts": "2025-10-27T13:31:29.662686Z", "event": "monitor_started", "ok": true}
+{"ts": "2025-10-27T13:31:29.662978Z", "event": "checking_primary", "url": "https://7bcf7cfb-abac-4066-a19e-5fbe1b6c0854-00-msem1k2vhtji.kirk.replit.dev"}
+{"ts": "2025-10-27T13:31:29.743516Z", "event": "primary_unhealthy", "consecutive_failures": 1, "max_failures": 3, "error": "Non-200 response"}
+{"ts": "2025-10-27T13:31:29.744605Z", "event": "monitor_complete", "ok": true, "healthy": false, "response_time_ms": 78, "consecutive_failures": 1, "failover_active": false}

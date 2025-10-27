@@ -3093,3 +3093,10 @@
 {"ts": "2025-10-27T18:39:21.891109Z", "request_id": "bc1ab089-5468-40c9-8e90-1dfc6bcaab8b", "route": "api_status_summary", "method": "GET", "status": 200, "duration_ms": 0.65, "path": "/api/status/summary"}
 {"ts": "2025-10-27T18:39:26.098278Z", "request_id": "2fcf754c-7f26-48c5-a926-4d5527ccdfb7", "route": "landing", "method": "GET", "status": 200, "duration_ms": 0.54, "path": "/"}
 {"ts": "2025-10-27T18:39:26.317211Z", "request_id": "75d262a0-e7cf-4512-9a4b-fff469821599", "route": "landing", "method": "GET", "status": 200, "duration_ms": 0.47, "path": "/"}
+{"ts": "2025-10-27T18:39:51.279705Z", "request_id": "a8a9596f-91b7-4fa9-826e-91fb4f959e0c", "route": "api_status_summary", "method": "GET", "status": 200, "duration_ms": 0.67, "path": "/api/status/summary"}
+{"ts": "2025-10-27T18:39:51.897773Z", "request_id": "b60db74c-7e8e-42b1-bad8-0d2b462721a1", "route": "api_status_summary", "method": "GET", "status": 200, "duration_ms": 0.73, "path": "/api/status/summary"}
+{"ts": "2025-10-27T18:40:21.263640Z", "request_id": "f825845e-97c5-43d6-bf56-c5e91e4eacd5", "route": "api_status_summary", "method": "GET", "status": 200, "duration_ms": 0.92, "path": "/api/status/summary"}
+{"ts": "2025-10-27T18:40:21.896877Z", "request_id": "a899bf95-6a67-407f-9641-8ff4e90bd8ef", "route": "api_status_summary", "method": "GET", "status": 200, "duration_ms": 0.98, "path": "/api/status/summary"}
+{"ts": "2025-10-27T18:40:27.990474Z", "request_id": "4a12d439-e213-429a-b09a-1563c4a5766a", "route": "health_check", "method": "GET", "status": 200, "duration_ms": 51.59, "path": "/health"}
+{"ts": "2025-10-27T18:40:29.243095Z", "request_id": "3ef6a255-6fb4-48c0-a927-4a8d48c1881f", "route": "landing", "method": "GET", "status": 200, "duration_ms": 1.17, "path": "/"}
+{"ts": "2025-10-27T18:40:29.774943Z", "request_id": "4b85f27a-8ea7-4bbe-991d-4defe9ecb8f3", "route": "health_check", "method": "GET", "status": 200, "duration_ms": 93.18, "path": "/health"}

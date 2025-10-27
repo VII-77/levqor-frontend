@@ -644,3 +644,9 @@
 {"ts": "2025-10-27T11:59:54.822214Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
 {"ts": "2025-10-27T12:00:00.453325Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/health", "method": "GET", "ip": "172.31.123.162"}}
 {"ts": "2025-10-27T12:00:01.423134Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/health", "method": "GET", "ip": "172.31.123.162"}}
+{"ts": "2025-10-27T12:00:30.386017Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/health", "method": "GET", "ip": "172.31.123.162"}}
+{"ts": "2025-10-27T12:00:31.431281Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/health", "method": "GET", "ip": "172.31.123.162"}}
+{"ts": "2025-10-27T12:01:00.378310Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/health", "method": "GET", "ip": "172.31.123.162"}}
+{"ts": "2025-10-27T12:01:01.426399Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/health", "method": "GET", "ip": "172.31.123.162"}}
+{"ts": "2025-10-27T12:01:03.037867Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-10-27T12:01:30.370754Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/health", "method": "GET", "ip": "172.31.123.162"}}

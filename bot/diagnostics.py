@@ -163,19 +163,53 @@ def synthetic_bot_job() -> Dict[str, Any]:
         wrapper = NotionClientWrapper()
         client = wrapper.get_client()
         
+        # First check what properties this database actually has
+        try:
+            db_info = client.databases.retrieve(database_id=AUTOMATION_QUEUE_DB_ID)
+            props = db_info.get('properties', {})
+            
+            # Determine which title property to use
+            title_prop = None
+            if 'Task Name' in props:
+                title_prop = 'Task Name'
+            elif 'Job Name' in props:
+                title_prop = 'Job Name'
+            elif 'Task' in props:
+                title_prop = 'Task'
+            elif 'Name' in props:
+                title_prop = 'Name'
+            else:
+                # Find first title property
+                for prop_name, prop_data in props.items():
+                    if prop_data.get('type') == 'title':
+                        title_prop = prop_name
+                        break
+            
+            if not title_prop:
+                return {"ok": False, "error": "No title property found in automation queue database"}
+                
+        except Exception as e:
+            return {"ok": False, "error": f"Cannot access automation queue database: {str(e)}"}
+        
         title = f"[SYNTHETIC TEST] {datetime.utcnow():%Y-%m-%d %H:%M:%SZ}"
         description = "Automated diagnostic test job - please process and verify system health"
         
         payload = {
             "parent": {"database_id": AUTOMATION_QUEUE_DB_ID},
             "properties": {
-                "Task Name": {"title": [{"text": {"content": title}}]},
-                "Description": {"rich_text": [{"text": {"content": description}}]},
-                "Trigger": {"checkbox": True},
-                "Status": {"select": {"name": "New"}},
-                "Task Type": {"select": {"name": "Research"}}
+                title_prop: {"title": [{"text": {"content": title}}]},
             }
         }
+        
+        # Add optional properties if they exist
+        if "Description" in props:
+            payload["properties"]["Description"] = {"rich_text": [{"text": {"content": description}}]}
+        if "Trigger" in props:
+            payload["properties"]["Trigger"] = {"checkbox": True}
+        if "Status" in props:
+            payload["properties"]["Status"] = {"select": {"name": "New"}}
+        if "Task Type" in props:
+            payload["properties"]["Task Type"] = {"select": {"name": "Research"}}
         
         response = client.pages.create(**payload)
         return {"ok": True, "page_id": response["id"], "mode": "bot"}

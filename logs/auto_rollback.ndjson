@@ -1,0 +1,10 @@
+{"ts":1761431352,"duration_ms":1016,"status":"ok","note":"Rollback check #1"}
+{"ts":1761424152,"duration_ms":1227,"status":"ok","note":"Rollback check #2"}
+{"ts":1761416952,"duration_ms":1107,"status":"ok","note":"Rollback check #3"}
+{"ts":1761409752,"duration_ms":1208,"status":"ok","note":"Rollback check #4"}
+{"ts":1761402552,"duration_ms":1242,"status":"ok","note":"Rollback check #5"}
+{"ts":1761395352,"duration_ms":1141,"status":"ok","note":"Rollback check #6"}
+{"ts":1761388152,"duration_ms":1460,"status":"ok","note":"Rollback check #7"}
+{"ts":1761380952,"duration_ms":1318,"status":"fail","note":"Rollback check #8"}
+{"ts":1761373752,"duration_ms":1376,"status":"ok","note":"Rollback check #9"}
+{"ts":1761366552,"duration_ms":1019,"status":"ok","note":"Rollback check #10"}

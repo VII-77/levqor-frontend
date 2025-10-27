@@ -1,0 +1,15 @@
+{
+  "last_sync": "2025-10-27T11:18:01.147043",
+  "sources": {
+    "stripe": false,
+    "notion": false,
+    "local": true
+  },
+  "metrics": {
+    "mrr": 0,
+    "arr": 0,
+    "active_customers": 0,
+    "trials_7d": 2,
+    "churn_30d": 0
+  }
+}

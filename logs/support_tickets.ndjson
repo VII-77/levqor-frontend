@@ -1,0 +1,7 @@
+{"ts": 1761481371, "email": "test@example.com", "subject": "Test ticket", "message": "This is a test message"}
+{"ts": 1761485578, "email": "test@test.com", "subject": "test", "message": "test"}
+{"ts": 1761485744, "email": "test@example.com", "subject": "Verification Test", "message": "Testing from script"}
+{"ts": 1761495731, "email": "test@example.com", "subject": "Test Ticket", "message": "Testing support system"}
+{"ts": 1761496159, "email": "phase-test@example.com", "subject": "Phase 1-5 Verification", "message": "Testing consolidated phases"}
+{"ts": 1761516185, "request_id": "26a71b6d-c584-4273-b424-c0d802c95842", "user_agent": "curl/8.14.1", "url": "http://localhost:5000/api/support/ticket", "email": "test@example.com", "subject": "test", "message": "hello"}
+{"ts": 1761516285, "request_id": "f0732827-6ba0-4c10-84c2-39e70a75bbc2", "user_agent": "curl/8.14.1", "url": "http://localhost:5000/api/support/ticket", "email": "test@example.com", "subject": "smoke test", "message": "hello from smoke test"}

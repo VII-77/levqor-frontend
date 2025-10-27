@@ -1,0 +1,9 @@
+{"ts":1761352900,"email":"user1@example.com","subject":"Help with setup"}
+{"ts":1761439100,"email":"user2@example.com","subject":"Billing question"}
+{"ts":1761439400,"subject":"General inquiry"}
+{"ts": 1761442276, "email": "test@example.com", "subject": "predeploy", "message": "ping"}
+{"ts": 1761442315, "email": "test@example.com", "subject": "predeploy", "message": "ping"}
+{"ts": 1761447860, "email": "test@example.com", "subject": "Test", "message": "Hello"}
+{"ts": 1761448130, "email": "webhook-test@example.com", "subject": "Automated Test", "message": "This is an automated webhook test"}
+{"ts": 1761478275, "email": "test@test.com", "subject": "test", "message": "test"}
+{"ts": 1761478288, "email": "integrity-check@test.com", "subject": "System Check", "message": "Integrity verification test"}

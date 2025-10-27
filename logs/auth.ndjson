@@ -1,0 +1,4 @@
+{"ts": "2025-10-25T21:05:34.966337Z", "event": "customer_lookup_error", "email": "vii7cc@gmail.com", "error": "module 'bot.notion_api' has no attribute 'notion'"}
+{"ts": "2025-10-25T21:05:34.966931Z", "event": "login_failed", "reason": "customer_not_found", "email": "vii7cc@gmail.com", "ip": "127.0.0.1"}
+{"ts": "2025-10-25T21:06:11.035883Z", "event": "customer_lookup_error", "email": "test@example.com", "error": "module 'bot.notion_api' has no attribute 'notion'"}
+{"ts": "2025-10-25T21:06:11.035990Z", "event": "login_failed", "reason": "customer_not_found", "email": "test@example.com", "ip": "127.0.0.1"}

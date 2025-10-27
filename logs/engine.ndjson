@@ -1,0 +1,9 @@
+{"ts": 1761435230, "event": "enqueue", "id": "wf_test", "args": {}}
+{"ts": 1761435230, "event": "start", "id": "wf_test"}
+{"ts": 1761435232, "event": "complete", "id": "wf_test", "duration": 2}
+{"ts": 1761435259, "event": "start", "id": "smoke_test"}
+{"ts": 1761435259, "event": "enqueue", "id": "smoke_test", "args": {}}
+{"ts": 1761435261, "event": "complete", "id": "smoke_test", "duration": 2}
+{"ts": 1761435360, "event": "start", "id": "final_test"}
+{"ts": 1761435360, "event": "enqueue", "id": "final_test", "args": {}}
+{"ts": 1761435362, "event": "complete", "id": "final_test", "duration": 2}

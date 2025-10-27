@@ -1,0 +1,26 @@
+[
+  {
+    "job_id": "ml_job_001",
+    "job_type": "churn_prediction",
+    "status": "completed",
+    "accuracy": 0.87,
+    "runtime_seconds": 45,
+    "timestamp": "2025-10-26T14:45:09.798979Z"
+  },
+  {
+    "job_id": "ml_job_002",
+    "job_type": "revenue_forecast",
+    "status": "completed",
+    "accuracy": 0.92,
+    "runtime_seconds": 62,
+    "timestamp": "2025-10-26T15:45:09.798989Z"
+  },
+  {
+    "job_id": "ml_job_003",
+    "job_type": "customer_segmentation",
+    "status": "running",
+    "accuracy": null,
+    "runtime_seconds": 12,
+    "timestamp": "2025-10-26T16:45:09.798993Z"
+  }
+]

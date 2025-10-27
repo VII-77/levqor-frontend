@@ -1,0 +1,7 @@
+{
+  "personalization": true,
+  "rememberPlan": true,
+  "tipsOnPages": ["pricing","workflow","help"],
+  "thumbFeedback": true,
+  "ctaVariant": "A"
+}

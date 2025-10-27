@@ -1,0 +1,8 @@
+{"ts": "2025-10-25T21:06:21.654942Z", "action": "jwt_missing", "user": "system", "ok": true, "ip": "127.0.0.1", "endpoint": "/api/auth/me", "method": "GET", "details": {"endpoint": "/api/auth/me"}}
+{"ts": "2025-10-25T21:46:13.746530Z", "action": "jwt_missing", "user": "system", "ok": true, "ip": "127.0.0.1", "endpoint": "/api/auth/me", "method": "GET", "details": {"endpoint": "/api/auth/me"}}
+{"ts": "2025-10-25T21:46:13.875695Z", "action": "jwt_missing", "user": "system", "ok": true, "ip": "127.0.0.1", "endpoint": "/api/auth/me", "method": "GET", "details": {"endpoint": "/api/auth/me"}}
+{"ts": "2025-10-25T21:46:14.007021Z", "action": "jwt_missing", "user": "system", "ok": true, "ip": "127.0.0.1", "endpoint": "/api/auth/me", "method": "GET", "details": {"endpoint": "/api/auth/me"}}
+{"ts": "2025-10-25T21:50:17.755248Z", "action": "jwt_missing", "user": "system", "ok": true, "ip": "127.0.0.1", "endpoint": "/api/auth/me", "method": "GET", "details": {"endpoint": "/api/auth/me"}}
+{"ts": "2025-10-25T21:50:17.848132Z", "action": "jwt_missing", "user": "system", "ok": true, "ip": "127.0.0.1", "endpoint": "/api/auth/me", "method": "GET", "details": {"endpoint": "/api/auth/me"}}
+{"ts": "2025-10-25T21:50:18.217614Z", "action": "jwt_missing", "user": "system", "ok": true, "ip": "127.0.0.1", "endpoint": "/api/auth/me", "method": "GET", "details": {"endpoint": "/api/auth/me"}}
+{"ts": "2025-10-26T20:11:40.301969Z", "action": "jwt_missing", "user": "system", "ok": true, "ip": "127.0.0.1", "endpoint": "/api/auth/me", "method": "GET", "details": {"endpoint": "/api/auth/me"}}

@@ -1,0 +1,5 @@
+1:"$Sreact.fragment"
+2:I[97367,["/_next/static/chunks/ff1a16fafef87110.js","/_next/static/chunks/247eb132b7f7b574.js"],"OutletBoundary"]
+3:"$Sreact.suspense"
+0:{"buildId":"VdGkSDcQmwQJTqX9PX4h0","rsc":["$","$1","c",{"children":[["$","article",null,{"className":"card","children":[["$","h1",null,{"children":"Service Level Agreement"}],["$","p",null,{"children":"Effective: 24 Oct 2025"}],["$","h3",null,{"children":"Uptime Commitment"}],["$","p",null,{"children":"99.5% monthly uptime for Pro+ plans (excludes scheduled maintenance)."}],["$","h3",null,{"children":"Support Response"}],["$","ul",null,{"children":[["$","li",null,{"children":"Free: 48 hours email"}],["$","li",null,{"children":"Pro: 24 hours email"}],["$","li",null,{"children":"Business/Enterprise: 4 hours priority"}]]}],["$","h3",null,{"children":"Credits"}],["$","p",null,{"children":"Downtime exceeding SLA: 10% monthly credit per 1% below target."}]]}],null,["$","$L2",null,{"children":["$","$3",null,{"name":"Next.MetadataOutlet","children":"$@4"}]}]]}],"loading":null,"isPartial":false}
+4:null

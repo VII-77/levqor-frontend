@@ -1,0 +1,2 @@
+{"timestamp": "2025-10-26T16:35:59.014593Z", "email": "trial-user@example.com", "event_type": "trial_started", "metadata": {"plan": "pro", "trial_days": 14, "start_date": "2025-10-26T16:35:59.014555Z", "expiry_date": "2025-11-09T16:35:59.014555Z"}}
+{"timestamp": "2025-10-26T16:39:14.813221Z", "email": "journey-test@example.com", "event_type": "trial_started", "metadata": {"plan": "pro", "trial_days": 14, "start_date": "2025-10-26T16:39:14.813075Z", "expiry_date": "2025-11-09T16:39:14.813075Z"}}

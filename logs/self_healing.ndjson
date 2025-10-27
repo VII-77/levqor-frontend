@@ -1,0 +1,1300 @@
+{"ts": "2025-10-25T13:14:14.517847Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T13:14:14.521015Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-25T13:14:14.521208Z", "level": "ERROR", "message": "Health check failed - service restart recommended"}
+{"ts": "2025-10-25T13:14:14.961098Z", "level": "WARN", "message": "Telegram failed: 400"}
+{"ts": "2025-10-25T13:14:14.962757Z", "level": "INFO", "message": "Healing complete: 1 actions taken"}
+{"ts": "2025-10-25T13:14:14.962881Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T13:19:15.439160Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T13:19:15.443315Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-25T13:19:15.443970Z", "level": "ERROR", "message": "Health check failed - service restart recommended"}
+{"ts": "2025-10-25T13:19:15.887860Z", "level": "WARN", "message": "Telegram failed: 400"}
+{"ts": "2025-10-25T13:19:15.889436Z", "level": "INFO", "message": "Healing complete: 1 actions taken"}
+{"ts": "2025-10-25T13:19:15.889610Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T13:24:17.085674Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T13:24:17.089166Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-25T13:24:17.089326Z", "level": "ERROR", "message": "Health check failed - service restart recommended"}
+{"ts": "2025-10-25T13:24:17.536154Z", "level": "WARN", "message": "Telegram failed: 400"}
+{"ts": "2025-10-25T13:24:17.538213Z", "level": "INFO", "message": "Healing complete: 1 actions taken"}
+{"ts": "2025-10-25T13:24:17.538362Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T13:29:17.860749Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T13:29:17.863682Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-25T13:29:17.863847Z", "level": "ERROR", "message": "Health check failed - service restart recommended"}
+{"ts": "2025-10-25T13:29:18.312633Z", "level": "WARN", "message": "Telegram failed: 400"}
+{"ts": "2025-10-25T13:29:18.315277Z", "level": "INFO", "message": "Healing complete: 1 actions taken"}
+{"ts": "2025-10-25T13:29:18.315550Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T13:34:19.663410Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T13:34:19.667262Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-25T13:34:19.667444Z", "level": "ERROR", "message": "Health check failed - service restart recommended"}
+{"ts": "2025-10-25T13:34:20.119134Z", "level": "WARN", "message": "Telegram failed: 400"}
+{"ts": "2025-10-25T13:34:20.120960Z", "level": "INFO", "message": "Healing complete: 1 actions taken"}
+{"ts": "2025-10-25T13:34:20.121133Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T13:39:21.278257Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T13:39:21.280918Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-25T13:39:21.281091Z", "level": "ERROR", "message": "Health check failed - service restart recommended"}
+{"ts": "2025-10-25T13:39:21.723633Z", "level": "WARN", "message": "Telegram failed: 400"}
+{"ts": "2025-10-25T13:39:21.725644Z", "level": "INFO", "message": "Healing complete: 1 actions taken"}
+{"ts": "2025-10-25T13:39:21.725812Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T13:44:23.013261Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T13:44:23.159179Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T13:44:23.161488Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T13:49:23.595508Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T13:49:23.723089Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T13:49:23.723831Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T13:54:24.686860Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T13:54:24.739012Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T13:54:24.740919Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T13:59:25.082893Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T13:59:25.126935Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T13:59:25.127126Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T14:04:25.911746Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T14:04:26.027578Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T14:04:26.027829Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T14:09:27.111867Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T14:09:27.170949Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T14:09:27.171154Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T14:14:28.748383Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T14:14:28.809060Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T14:14:28.809245Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T14:19:29.458065Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T14:19:29.517736Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T14:19:29.518549Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T14:24:30.254732Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T14:24:30.353759Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T14:24:30.353985Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T14:29:30.669559Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T14:29:30.701658Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T14:29:30.701849Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T14:34:31.343791Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T14:34:31.449357Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T14:34:31.450103Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T14:39:32.817388Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T14:39:32.862994Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T14:39:32.863267Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T14:44:33.655029Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T14:44:33.684723Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T14:44:33.684896Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T14:49:34.921653Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T14:49:34.980791Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T14:49:34.981001Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T14:54:36.245180Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T14:54:36.279604Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T14:54:36.279828Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T14:59:37.347427Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T14:59:37.390188Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T14:59:37.391251Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T15:04:37.821797Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T15:04:37.852569Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T15:04:37.852751Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T15:09:38.596194Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T15:09:38.624153Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T15:09:38.624331Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T15:14:39.374824Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T15:14:39.405276Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T15:14:39.405495Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T15:19:40.061701Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T15:19:40.135613Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T15:19:40.135838Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T15:24:41.261823Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T15:24:41.321051Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T15:24:41.322275Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T15:29:42.483088Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T15:29:42.534449Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T15:29:42.534671Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T15:34:43.343660Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T15:34:43.378918Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T15:34:43.379192Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T15:39:44.218093Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T15:39:44.306591Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T15:39:44.306814Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T15:44:45.504574Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T15:44:45.533010Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T15:44:45.533186Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T15:49:46.196330Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T15:49:46.236229Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T15:49:46.236408Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T15:54:46.610602Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T15:54:46.663300Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T15:54:46.663708Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T15:59:47.047520Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T15:59:47.091362Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T15:59:47.091608Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T16:04:47.678348Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T16:04:47.720325Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T16:04:47.720596Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T16:12:23.908007Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T16:12:23.953696Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T16:12:23.953887Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T16:17:24.857824Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T16:17:24.951772Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T16:17:24.953058Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T16:22:25.701970Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T16:22:25.746016Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T16:22:25.746231Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T16:27:26.382002Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T16:27:26.459104Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T16:27:26.459663Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T16:32:27.981906Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T16:32:28.574203Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T16:32:28.574378Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T16:37:29.924065Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T16:37:30.028669Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T16:37:30.029591Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T16:42:31.321514Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T16:42:31.368117Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T16:42:31.368381Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T16:47:32.233912Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T16:47:32.302320Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T16:47:32.302579Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T16:52:33.133394Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T16:52:33.181042Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T16:52:33.181243Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T16:57:34.424327Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T16:57:34.498731Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T16:57:34.499037Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T17:02:35.466793Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T17:02:35.611149Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T17:02:35.611367Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T17:07:36.827736Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T17:07:36.869588Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T17:07:36.869849Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T17:12:37.727290Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T17:12:37.767031Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T17:12:37.767236Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T17:15:53.668000Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T17:15:53.730991Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T17:15:53.731322Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T17:17:38.499509Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T17:17:38.621072Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T17:17:38.621255Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T17:20:54.436086Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T17:20:54.467461Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T17:20:54.467638Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T19:21:37.510315Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T19:21:37.547318Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T19:21:37.547488Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T19:26:38.828275Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T19:26:38.872283Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T19:26:38.872496Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T19:31:39.765580Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T19:31:39.802480Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T19:31:39.802643Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T19:36:40.245073Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T19:36:40.322355Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T19:36:40.322548Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T19:41:40.927661Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T19:41:40.970139Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T19:41:40.970306Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T19:46:41.813154Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T19:46:41.842141Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T19:46:41.842329Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T19:51:42.453130Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T19:51:42.517976Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T19:51:42.518838Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T19:56:43.599270Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T19:56:43.653756Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T19:56:43.654298Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T20:01:44.773396Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T20:01:44.822937Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T20:01:44.823904Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T20:06:45.333709Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T20:06:45.371905Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T20:06:45.372174Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T20:11:46.321313Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T20:11:46.357663Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T20:11:46.357842Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T20:16:47.291078Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T20:16:47.352835Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T20:16:47.355090Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T20:21:47.894504Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T20:21:47.948309Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T20:21:47.949448Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T20:26:48.458359Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T20:26:48.487670Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T20:26:48.487811Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T20:31:49.057205Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T20:31:49.122826Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T20:31:49.123029Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T20:36:49.616803Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T20:36:49.671271Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T20:36:49.671968Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T20:41:50.467154Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T20:41:50.533727Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T20:41:50.533961Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T20:46:51.216651Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T20:46:51.247329Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T20:46:51.247575Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T20:51:51.749062Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T20:51:51.812591Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T20:51:51.812895Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T20:56:52.468941Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T20:56:54.204300Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-25T20:56:54.204523Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T21:01:54.877457Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T21:01:54.961588Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-25T21:01:55.434034Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-25T21:01:55.436162Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-25T21:01:55.436335Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T21:06:56.389135Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T21:06:56.609227Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-25T21:06:57.098084Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-25T21:06:57.101978Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-25T21:06:57.103776Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T21:11:57.781407Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T21:11:57.834845Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-25T21:11:58.327011Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-25T21:11:58.329158Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-25T21:11:58.329343Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T21:16:58.833350Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T21:16:58.898829Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-25T21:16:59.378478Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-25T21:16:59.380455Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-25T21:16:59.380604Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T21:22:00.170174Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T21:22:00.203478Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-25T21:22:00.749115Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-25T21:22:00.750961Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-25T21:22:00.751124Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T21:27:01.675201Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T21:27:01.754318Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-25T21:27:02.249025Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-25T21:27:02.264250Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-25T21:27:02.264775Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T21:32:03.124818Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T21:32:03.160594Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-25T21:32:03.636660Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-25T21:32:03.641252Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-25T21:32:03.645265Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T21:37:04.416913Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T21:37:04.487227Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-25T21:37:04.963684Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-25T21:37:04.966017Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-25T21:37:04.966160Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T21:42:05.613746Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T21:42:05.725303Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-25T21:42:06.317692Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-25T21:42:06.323859Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-25T21:42:06.324021Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T21:47:07.340535Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T21:47:07.398419Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-25T21:47:07.892869Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-25T21:47:07.897508Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-25T21:47:07.897650Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T21:52:08.518847Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T21:52:08.545340Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-25T21:52:09.060710Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-25T21:52:09.067298Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-25T21:52:09.068128Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T21:57:09.443432Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T21:57:09.447162Z", "level": "WARN", "message": "Issues detected: 2"}
+{"ts": "2025-10-25T21:57:09.447359Z", "level": "ERROR", "message": "Health check failed - service restart recommended"}
+{"ts": "2025-10-25T21:57:09.899602Z", "level": "WARN", "message": "Telegram failed: 400"}
+{"ts": "2025-10-25T21:57:09.902087Z", "level": "INFO", "message": "Healing complete: 1 actions taken"}
+{"ts": "2025-10-25T21:57:09.902231Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T22:02:11.012205Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T22:02:11.048249Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-25T22:02:11.532886Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-25T22:02:11.535970Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-25T22:02:11.536639Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T22:07:12.254164Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T22:07:12.293193Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-25T22:07:12.763868Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-25T22:07:12.765842Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-25T22:07:12.765987Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T22:12:13.619093Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T22:12:13.718893Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-25T22:12:14.239271Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-25T22:12:14.243125Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-25T22:12:14.243340Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T22:17:15.258607Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T22:17:15.308692Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-25T22:17:15.782363Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-25T22:17:15.786813Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-25T22:17:15.787887Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T22:22:16.850816Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T22:22:16.881918Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-25T22:22:17.366048Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-25T22:22:17.369852Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-25T22:22:17.370919Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T22:27:17.877765Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T22:27:17.921328Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-25T22:27:18.395559Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-25T22:27:18.399232Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-25T22:27:18.399475Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T22:32:18.912863Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T22:32:18.956130Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-25T22:32:19.432963Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-25T22:32:19.435243Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-25T22:32:19.435481Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T22:37:20.550484Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T22:37:20.612591Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-25T22:37:21.087640Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-25T22:37:21.090056Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-25T22:37:21.090200Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T22:42:21.937026Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T22:42:21.987065Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-25T22:42:22.535619Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-25T22:42:22.537723Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-25T22:42:22.537900Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T22:47:23.215063Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T22:47:23.265365Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-25T22:47:23.750072Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-25T22:47:23.751886Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-25T22:47:23.752043Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T22:52:24.361107Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T22:52:24.424065Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-25T22:52:24.893461Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-25T22:52:24.895164Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-25T22:52:24.895291Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T22:57:25.692583Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T22:57:25.743186Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-25T22:57:26.213432Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-25T22:57:26.215621Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-25T22:57:26.215794Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T23:02:27.100165Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T23:02:27.131356Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-25T23:02:27.591972Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-25T23:02:27.593907Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-25T23:02:27.594194Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T23:07:28.308455Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T23:07:28.354164Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-25T23:07:28.883476Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-25T23:07:28.885222Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-25T23:07:28.885406Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T23:12:29.474404Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T23:12:29.575695Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-25T23:12:30.061161Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-25T23:12:30.063230Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-25T23:12:30.063462Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T23:17:30.616020Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T23:17:30.653741Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-25T23:17:31.117534Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-25T23:17:31.119426Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-25T23:17:31.119592Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T23:22:31.625781Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T23:22:31.680518Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-25T23:22:32.164068Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-25T23:22:32.165871Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-25T23:22:32.166056Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T23:27:32.914748Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T23:27:32.972577Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-25T23:27:33.438945Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-25T23:27:33.440733Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-25T23:27:33.440895Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T23:32:34.540235Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T23:32:34.625050Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-25T23:32:35.105989Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-25T23:32:35.107839Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-25T23:32:35.107975Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T23:37:35.846576Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T23:37:35.922599Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-25T23:37:36.433026Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-25T23:37:36.440654Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-25T23:37:36.442514Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T23:42:37.773738Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T23:42:37.861341Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-25T23:42:38.343216Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-25T23:42:38.347662Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-25T23:42:38.349086Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T23:47:39.041048Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T23:47:44.050365Z", "level": "WARN", "message": "Issues detected: 2"}
+{"ts": "2025-10-25T23:47:44.050632Z", "level": "ERROR", "message": "Health check failed - service restart recommended"}
+{"ts": "2025-10-25T23:47:44.560308Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-25T23:47:44.562421Z", "level": "INFO", "message": "Healing complete: 1 actions taken"}
+{"ts": "2025-10-25T23:47:44.562550Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T23:52:45.233958Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T23:52:45.296140Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-25T23:52:45.765580Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-25T23:52:45.767480Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-25T23:52:45.767611Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-25T23:57:47.033271Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-25T23:57:47.156667Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-25T23:57:47.639139Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-25T23:57:47.640955Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-25T23:57:47.641096Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T00:02:48.721109Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T00:02:48.760915Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T00:02:48.761146Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T00:07:49.765808Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T00:07:49.843321Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T00:07:49.843582Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T00:12:50.611182Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T00:12:50.642643Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T00:12:50.642849Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T00:17:51.363732Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T00:17:51.398039Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T00:17:51.398218Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T00:22:52.602882Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T00:22:52.631928Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T00:22:52.632100Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T00:27:53.195335Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T00:27:53.242193Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T00:27:53.242425Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T00:32:54.061334Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T00:32:54.073302Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-26T00:32:54.074561Z", "level": "ERROR", "message": "Health check failed - service restart recommended"}
+{"ts": "2025-10-26T00:32:54.527708Z", "level": "WARN", "message": "Telegram failed: 400"}
+{"ts": "2025-10-26T00:32:54.538501Z", "level": "INFO", "message": "Healing complete: 1 actions taken"}
+{"ts": "2025-10-26T00:32:54.539105Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T00:37:55.225670Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T00:37:55.255135Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T00:37:55.255316Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T00:42:56.350240Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T00:42:56.419508Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T00:42:56.419734Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T00:47:57.334559Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T00:47:57.425352Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T00:47:57.425574Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T00:52:58.021873Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T00:52:58.076533Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T00:52:58.076898Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T00:57:59.105660Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T00:57:59.139998Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T00:57:59.140210Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T01:02:59.700559Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T01:02:59.747258Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T01:02:59.748901Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T01:08:00.416001Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T01:08:00.463759Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T01:08:00.464355Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T01:13:01.360488Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T01:13:01.441179Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T01:13:01.441828Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T01:18:02.126326Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T01:18:02.158238Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T01:18:02.158446Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T01:23:03.119923Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T01:23:03.171513Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T01:23:03.171690Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T01:28:03.848734Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T01:28:03.925865Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T01:28:03.926028Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T01:33:04.800833Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T01:33:04.878958Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T01:33:04.879271Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T01:38:05.990141Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T01:38:06.032835Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T01:38:06.033025Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T01:43:07.301070Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T01:43:07.919366Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T01:43:07.919910Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T01:48:08.766632Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T01:48:08.814543Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T01:48:08.814726Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T01:53:09.514507Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T01:53:09.589737Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T01:53:09.589945Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T01:58:10.880162Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T01:58:10.976677Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T01:58:10.976857Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T02:03:11.764101Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T02:03:11.807229Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T02:03:11.807445Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T02:08:12.705036Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T02:08:12.765310Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T02:08:12.765518Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T02:13:13.525053Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T02:13:13.573319Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T02:13:13.573735Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T02:18:14.364183Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T02:18:14.453813Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T02:18:14.455439Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T02:23:14.985433Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T02:23:15.026324Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T02:23:15.026510Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T02:28:15.978032Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T02:28:16.019448Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T02:28:16.019715Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T02:33:16.877166Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T02:33:16.945457Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-26T02:33:17.446306Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-26T02:33:17.449936Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-26T02:33:17.450115Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T02:38:18.071843Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T02:38:18.127582Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-26T02:38:18.607095Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-26T02:38:18.611086Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-26T02:38:18.611261Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T02:43:19.275970Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T02:43:19.343429Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-26T02:43:19.813574Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-26T02:43:19.816809Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-26T02:43:19.817342Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T02:48:20.602234Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T02:48:20.631691Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-26T02:48:21.111011Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-26T02:48:21.112965Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-26T02:48:21.113135Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T02:53:21.675255Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T02:53:21.763116Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-26T02:53:22.230900Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-26T02:53:22.234604Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-26T02:53:22.234813Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T02:59:56.508248Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T02:59:56.564434Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-26T02:59:57.032705Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-26T02:59:57.035207Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-26T02:59:57.035354Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T03:04:57.612822Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T03:04:57.681860Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-26T03:04:58.209078Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-26T03:04:58.210908Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-26T03:04:58.211077Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T03:09:59.141889Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T03:09:59.198610Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-26T03:09:59.656122Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-26T03:09:59.657926Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-26T03:09:59.658279Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T03:15:00.393755Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T03:15:00.456941Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-26T03:15:00.924901Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-26T03:15:00.927442Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-26T03:15:00.927583Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T03:20:01.430609Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T03:20:01.477801Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-26T03:20:01.949451Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-26T03:20:01.957413Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-26T03:20:01.957549Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T03:25:02.886927Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T03:25:02.936622Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-26T03:25:03.397978Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-26T03:25:03.399878Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-26T03:25:03.400056Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T03:30:03.937177Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T03:30:03.981530Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-26T03:30:04.461903Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-26T03:30:04.463857Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-26T03:30:04.464003Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T03:35:05.992196Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T03:35:06.118597Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-26T03:35:06.595719Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-26T03:35:06.598624Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-26T03:35:06.598920Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T03:40:07.333974Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T03:40:07.390013Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-26T03:40:07.877736Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-26T03:40:07.879682Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-26T03:40:07.879859Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T03:45:09.048252Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T03:45:09.136842Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-26T03:45:09.621477Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-26T03:45:09.623910Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-26T03:45:09.624044Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T03:50:10.879314Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T03:50:10.942988Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-26T03:50:11.406098Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-26T03:50:11.408012Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-26T03:50:11.408170Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T03:55:12.546611Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T03:55:12.600822Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-26T03:55:13.088286Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-26T03:55:13.090099Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-26T03:55:13.090250Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T04:00:13.516046Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T04:00:13.601625Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-26T04:00:14.074335Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-26T04:00:14.076144Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-26T04:00:14.076291Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T04:05:14.612912Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T04:05:14.645548Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-26T04:05:15.106245Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-26T04:05:15.108608Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-26T04:05:15.108781Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T04:21:27.032940Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T04:21:27.093061Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-26T04:21:27.560458Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-26T04:21:27.566921Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-26T04:21:27.567205Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T04:26:28.094645Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T04:26:28.169959Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-26T04:26:28.730835Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-26T04:26:28.735054Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-26T04:26:28.736498Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T04:31:29.689854Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T04:31:29.737247Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-26T04:31:30.204220Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-26T04:31:30.206259Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-26T04:31:30.206405Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T04:36:30.758073Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T04:36:30.847977Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-26T04:36:31.317439Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-26T04:36:31.326368Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-26T04:36:31.326557Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T04:41:31.769404Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T04:41:31.807118Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-26T04:41:32.312772Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-26T04:41:32.314554Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-26T04:41:32.314717Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T04:46:32.838346Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T04:46:32.881195Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-26T04:46:33.398928Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-26T04:46:33.401435Z", "level": "INFO", "message": "Healing complete: 0 actions taken"}
+{"ts": "2025-10-26T04:46:33.401749Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T04:51:33.804981Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T04:51:33.841556Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T04:51:33.841924Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T04:56:34.413782Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T04:56:34.469508Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T04:56:34.469698Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T05:01:35.682559Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T05:01:35.725295Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T05:01:35.725484Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T11:11:53.314835Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T11:11:53.376279Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T11:11:53.376429Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T11:16:53.854684Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T11:16:53.929969Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T11:16:53.930249Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T11:24:48.490911Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T11:24:48.536412Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T11:24:48.536609Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T11:29:49.176352Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T11:29:49.234890Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T11:29:49.235212Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T11:34:49.852551Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T11:34:49.951439Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T11:34:49.951682Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T11:39:50.734360Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T11:39:50.778106Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T11:39:50.778260Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T11:44:52.110883Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T11:44:52.142874Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T11:44:52.143098Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T11:50:50.540492Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T11:50:50.631674Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T11:50:50.631854Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T11:55:51.436312Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T11:55:51.503243Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T11:55:51.503675Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T12:00:52.151818Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T12:00:52.181238Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T12:00:52.181426Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T12:05:52.654149Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T12:05:52.683319Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T12:05:52.683507Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T12:10:53.304148Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T12:10:53.336995Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T12:10:53.337197Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T12:15:54.218768Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T12:15:54.264090Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T12:15:54.264347Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T12:20:55.585680Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T12:20:55.677888Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T12:20:55.678117Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T12:25:56.644032Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T12:25:56.702916Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T12:25:56.703131Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T12:30:57.792584Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T12:30:57.845623Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T12:30:57.845788Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T12:43:00.900752Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T12:43:00.969159Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T12:43:00.969343Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T12:48:01.832095Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T12:48:01.906665Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T12:48:01.906837Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T12:53:02.616746Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T12:53:02.704673Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T12:53:02.704860Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T13:15:44.386445Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T13:15:44.446327Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T13:15:44.446533Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T13:20:44.859151Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T13:20:44.922698Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T13:20:44.922931Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T13:25:46.031647Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T13:25:46.124772Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T13:25:46.125177Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T13:30:46.492806Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T13:30:46.569625Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T13:30:46.569848Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T13:35:47.449153Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T13:35:47.502272Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T13:35:47.502439Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T13:40:48.098795Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T13:40:48.164136Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T13:40:48.164339Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T13:45:48.971476Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T13:45:49.047973Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T13:45:49.048280Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T13:50:49.748125Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T13:50:49.788174Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T13:50:49.788361Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T13:55:50.940486Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T13:55:51.098815Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T13:55:51.099017Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T14:00:51.516962Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T14:00:51.548750Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T14:00:51.548920Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T14:05:52.297109Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T14:05:52.361112Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T14:05:52.361420Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T14:10:52.669469Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T14:10:52.772690Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T14:10:52.772928Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T14:15:53.264081Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T14:15:53.358005Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T14:15:53.358217Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T14:20:54.189789Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T14:20:54.225309Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T14:20:54.225561Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T14:25:55.142475Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T14:25:55.173304Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T14:25:55.173467Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T14:30:56.212356Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T14:30:56.242403Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T14:30:56.242549Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T14:35:57.136054Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T14:35:57.189489Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T14:35:57.189692Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T14:48:09.958568Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T14:48:10.020075Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T14:48:10.020286Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T14:53:11.392903Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T14:53:11.506320Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T14:53:11.506494Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T15:01:51.307982Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T15:01:51.353713Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T15:01:51.353983Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T15:06:52.209756Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T15:06:52.290701Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T15:06:52.291042Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T15:11:53.293223Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T15:11:53.347179Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T15:11:53.347380Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T15:16:54.242609Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T15:16:54.335883Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T15:16:54.342544Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T15:21:55.178778Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T15:21:55.234773Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T15:21:55.235806Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T15:26:56.187486Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T15:26:56.237752Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T15:26:56.237967Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T15:31:56.642879Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T15:31:56.705767Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T15:31:56.706026Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T15:36:57.560343Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T15:36:57.609770Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T15:36:57.610323Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T15:41:57.914195Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T15:41:57.980141Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T15:41:57.980443Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T16:01:04.501359Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T16:01:04.563012Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T16:01:04.563241Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T16:06:05.157559Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T16:06:05.303341Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T16:06:05.303550Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T16:11:05.773325Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T16:11:05.898867Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T16:11:05.899668Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T16:16:06.830502Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T16:16:06.875272Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T16:16:06.875471Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T16:21:07.512596Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T16:21:07.578114Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T16:21:07.579164Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T16:26:08.062062Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T16:26:08.139555Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T16:26:08.141366Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T16:31:09.162054Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T16:31:09.224111Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T16:31:09.224602Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T16:36:09.911610Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T16:36:09.965907Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T16:36:09.966114Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T16:41:10.610677Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T16:41:10.659964Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T16:41:10.660108Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T16:46:11.670849Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T16:46:11.702064Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T16:46:11.702348Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T16:51:12.326241Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T16:51:12.360438Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T16:51:12.360730Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T16:56:12.789130Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T16:56:12.885586Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T16:56:12.885795Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T17:01:13.230499Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T17:01:13.269949Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T17:01:13.270146Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T17:06:13.912074Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T17:06:13.966136Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T17:06:13.966336Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T17:11:14.736650Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T17:11:14.785178Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T17:11:14.785726Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T17:16:15.758102Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T17:16:15.800826Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T17:16:15.800979Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T17:21:16.593726Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T17:21:17.001169Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T17:21:17.001362Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T17:26:18.249434Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T17:26:18.674340Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T17:26:18.674493Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T17:31:19.153706Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T17:31:19.947534Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T17:31:19.947708Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T17:36:20.637768Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T17:36:21.455715Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T17:36:21.457880Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T17:41:22.306364Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T17:41:22.718689Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T17:41:22.718860Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T17:46:23.863223Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T17:46:26.289227Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T17:46:26.291645Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T17:51:26.938113Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T17:51:31.366397Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T17:51:31.366587Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T17:56:31.988999Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T17:56:36.412794Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T17:56:36.414796Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T18:01:37.333809Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T18:01:37.749356Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T18:01:37.749524Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T18:06:38.574281Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T18:06:38.975314Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T18:06:38.975570Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T18:11:40.111551Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T18:11:40.542537Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T18:11:40.542728Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T18:16:41.153947Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T18:16:41.551484Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T18:16:41.551692Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T18:21:42.600090Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T18:21:45.375698Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T18:21:45.375903Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T18:26:46.071597Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T18:26:48.813711Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T18:26:48.813916Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T18:31:49.716344Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T18:31:50.131658Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T18:31:50.131881Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T18:36:51.040509Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T18:36:51.461401Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T18:36:51.461701Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T18:41:51.964781Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T18:41:52.443521Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T18:41:52.443716Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T18:46:53.237748Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T18:46:53.647895Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T18:46:53.648319Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T18:51:54.052958Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T18:51:54.853741Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T18:51:54.854016Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T18:56:55.985578Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T18:56:56.725355Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T18:56:56.725516Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T19:01:57.644260Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T19:02:00.387079Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T19:02:00.387307Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T19:07:01.071327Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T19:07:01.808699Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T19:07:01.808892Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T19:12:02.082928Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T19:12:02.499759Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T19:12:02.499949Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T19:17:03.312838Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T19:17:03.757538Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T19:17:03.764171Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T19:22:04.736820Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T19:22:05.157193Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T19:22:05.157373Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T19:27:05.879727Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T19:27:10.891541Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-26T19:27:10.891762Z", "level": "ERROR", "message": "Health check failed - service restart recommended"}
+{"ts": "2025-10-26T19:27:11.408360Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-26T19:27:11.412550Z", "level": "INFO", "message": "Healing complete: 1 actions taken"}
+{"ts": "2025-10-26T19:27:11.412771Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T19:32:12.668103Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T19:32:17.677630Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-26T19:32:17.678102Z", "level": "ERROR", "message": "Health check failed - service restart recommended"}
+{"ts": "2025-10-26T19:32:18.199007Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-26T19:32:18.202430Z", "level": "INFO", "message": "Healing complete: 1 actions taken"}
+{"ts": "2025-10-26T19:32:18.202562Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T19:37:19.102535Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T19:37:23.511951Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T19:37:23.512172Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T19:42:24.262527Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T19:42:26.685832Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T19:42:26.686257Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T19:47:27.559300Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T19:47:27.997539Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T19:47:27.997744Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T19:52:28.511242Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T19:52:28.926354Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T19:52:28.926520Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T19:57:29.720187Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T19:57:30.236594Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T19:57:30.237670Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T20:02:31.279115Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T20:02:31.704030Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T20:02:31.704322Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T20:07:32.760643Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T20:07:33.545746Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T20:07:33.545920Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T20:12:33.967411Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T20:12:34.419204Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T20:12:34.419429Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T20:17:34.800252Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T20:17:39.810536Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-26T20:17:39.810786Z", "level": "ERROR", "message": "Health check failed - service restart recommended"}
+{"ts": "2025-10-26T20:17:40.303691Z", "level": "INFO", "message": "Telegram alert sent"}
+{"ts": "2025-10-26T20:17:40.305819Z", "level": "INFO", "message": "Healing complete: 1 actions taken"}
+{"ts": "2025-10-26T20:17:40.306078Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T20:22:40.745840Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T20:22:44.238203Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T20:22:44.238359Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T20:27:44.936310Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T20:27:45.752074Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T20:27:45.759971Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T20:32:46.232009Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T20:32:46.643264Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T20:32:46.643454Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T20:37:47.250773Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T20:37:47.660844Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T20:37:47.672368Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T20:42:48.113624Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T20:42:48.883253Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T20:42:48.883434Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T20:47:49.365185Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T20:47:50.127693Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T20:47:50.128060Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T20:52:50.601811Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T20:52:50.997289Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T20:52:50.997687Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T21:00:36.180351Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T21:00:40.611543Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T21:00:40.611705Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T21:05:41.676099Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T21:05:42.472941Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T21:05:42.473643Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T22:06:55.738494Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T22:06:56.169988Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T22:06:56.170190Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T22:11:57.144971Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T22:11:57.569156Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T22:11:57.569676Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T22:16:58.147424Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T22:16:58.552650Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T22:16:58.552850Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T22:21:59.162250Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T22:22:02.609217Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T22:22:02.609782Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T22:27:03.095982Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T22:27:03.864049Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T22:27:03.864244Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T22:32:05.102878Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T22:32:07.832371Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T22:32:07.832589Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T22:37:08.713936Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T22:37:09.115613Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T22:37:09.115774Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T22:42:09.712434Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T22:42:12.141014Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T22:42:12.141220Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T22:47:12.695760Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T22:47:13.101097Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T22:47:13.101282Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T22:52:13.485134Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T22:52:13.898932Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T22:52:13.899159Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T22:57:14.509588Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T22:57:17.251961Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T22:57:17.252141Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T23:02:18.042158Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T23:02:18.457973Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T23:02:18.458182Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T23:07:18.905343Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T23:07:23.339270Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T23:07:23.339475Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T23:12:24.060686Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T23:12:24.794420Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T23:12:24.794732Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T23:17:25.285497Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T23:17:25.681130Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T23:17:25.681329Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T23:22:26.137455Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T23:22:26.873821Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T23:22:26.874020Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T23:30:30.897935Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T23:30:33.538830Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T23:30:33.539000Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T23:35:34.477677Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T23:35:34.914550Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T23:35:34.914882Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T23:40:36.055721Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T23:40:40.510390Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T23:40:40.510599Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T23:45:41.196576Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T23:45:41.346123Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T23:45:41.346806Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T23:50:42.295789Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T23:50:42.343542Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T23:50:42.343726Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-26T23:55:42.698486Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-26T23:55:42.758647Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-26T23:55:42.758820Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T00:00:43.763210Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T00:00:43.799940Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T00:00:43.800217Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T00:05:44.523737Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T00:05:44.575524Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T00:05:44.575809Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T00:10:45.232878Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T00:10:45.268454Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T00:10:45.268644Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T00:15:46.324438Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T00:15:46.405607Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T00:15:46.406208Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T00:20:47.440817Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T00:20:47.481709Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T00:20:47.481915Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T00:25:48.650564Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T00:25:48.692215Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T00:25:48.692408Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T00:30:49.205492Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T00:30:49.249971Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T00:30:49.250181Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T00:35:49.595438Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T00:35:49.630200Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T00:35:49.630417Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T00:40:50.310137Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T00:40:50.365410Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T00:40:50.365911Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T00:45:51.644141Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T00:45:51.723742Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T00:45:51.728405Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T00:50:52.220762Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T00:50:52.370352Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T00:50:52.370531Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T00:55:52.973757Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T00:55:53.071025Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T00:55:53.071350Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T01:00:53.941887Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T01:00:53.974676Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T01:00:53.974913Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T01:05:54.332893Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T01:05:54.390284Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T01:05:54.390826Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T01:10:54.932740Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T01:10:54.982572Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T01:10:54.982950Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T01:15:55.677667Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T01:15:55.711215Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T01:15:55.711411Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T01:20:57.068725Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T01:20:57.080696Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-27T01:20:57.080938Z", "level": "ERROR", "message": "Health check failed - service restart recommended"}
+{"ts": "2025-10-27T01:20:57.528682Z", "level": "WARN", "message": "Telegram failed: 400"}
+{"ts": "2025-10-27T01:20:57.530392Z", "level": "INFO", "message": "Healing complete: 1 actions taken"}
+{"ts": "2025-10-27T01:20:57.530528Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T01:25:58.275623Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T01:25:58.376046Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T01:25:58.379961Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T01:30:58.772842Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T01:30:58.805151Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T01:30:58.805357Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T01:35:59.243679Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T01:35:59.335663Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T01:35:59.339388Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T01:40:59.833630Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T01:40:59.888781Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T01:40:59.889000Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T01:46:00.371512Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T01:46:00.405086Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T01:46:00.405463Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T01:51:00.831459Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T01:51:00.868648Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T01:51:00.869294Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T01:56:01.587870Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T01:56:01.620615Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T01:56:01.620793Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T02:01:01.929614Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T02:01:01.968192Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T02:01:01.968399Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T02:06:02.394229Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T02:06:02.458984Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T02:06:02.459331Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T02:11:03.081255Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T02:11:03.130869Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T02:11:03.131054Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T02:16:48.603745Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T02:16:48.637128Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T02:16:48.637332Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T02:21:49.219262Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T02:21:49.274808Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T02:21:49.275010Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T02:26:50.065736Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T02:26:50.124869Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T02:26:50.126027Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T02:31:51.034749Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T02:31:51.078540Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T02:31:51.078760Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T02:36:51.829850Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T02:36:51.888796Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T02:36:51.888945Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T02:41:52.772252Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T02:41:52.806638Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T02:41:52.806822Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T02:46:53.581181Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T02:46:53.617607Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T02:46:53.617812Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T02:51:54.297602Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T02:51:54.360468Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T02:51:54.360781Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T02:56:55.427901Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T02:56:55.537026Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T02:56:55.537711Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T03:01:56.330776Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T03:01:56.390567Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T03:01:56.391225Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T03:06:56.927803Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T03:06:56.982654Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T03:06:56.983144Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T03:11:57.974798Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T03:11:58.061767Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T03:11:58.061958Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T03:16:58.659949Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T03:16:58.719760Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T03:16:58.722894Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T03:21:59.977271Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T03:22:00.009137Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T03:22:00.009287Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T03:27:00.975747Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T03:27:01.037804Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T03:27:01.038003Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T03:32:01.738014Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T03:32:01.805593Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T03:32:01.806222Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T03:37:02.812446Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T03:37:02.864054Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T03:37:02.864236Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T03:42:03.981193Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T03:42:04.191056Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T03:42:04.204115Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T03:47:05.682116Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T03:47:05.843853Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T03:47:05.845011Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T03:52:06.303844Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T03:52:06.398137Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T03:52:06.401806Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T03:57:07.406209Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T03:57:07.470230Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T03:57:07.470398Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T04:02:07.993873Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T04:02:08.086579Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T04:02:08.090971Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T04:23:01.373536Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T04:23:01.421914Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T04:23:01.422054Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T04:28:02.162858Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T04:28:02.211179Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T04:28:02.211420Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T04:33:02.871102Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T04:33:02.907676Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T04:33:02.907848Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T04:38:03.448907Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T04:38:03.477221Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T04:38:03.477376Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T04:43:03.868359Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T04:43:03.929630Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T04:43:03.930125Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T04:48:04.667754Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T04:48:04.719209Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T04:48:04.719415Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T04:53:05.201471Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T04:53:05.276758Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T04:53:05.276922Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T04:58:05.815089Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T04:58:05.875567Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T04:58:05.875770Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T05:03:06.792815Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T05:03:06.846560Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T05:03:06.846704Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T09:11:15.536532Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T09:11:15.619361Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T09:11:15.619645Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T09:16:16.338444Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T09:16:16.453422Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T09:16:16.457351Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T09:22:55.793456Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T09:22:55.868838Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T09:22:55.869000Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T09:27:56.301036Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T09:27:56.356792Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T09:27:56.357109Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T09:32:57.281926Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T09:32:57.347658Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T09:32:57.347983Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T09:37:58.593177Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T09:37:58.623966Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T09:37:58.624120Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T09:42:59.219502Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T09:42:59.254827Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T09:42:59.255008Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T09:47:59.854033Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T09:47:59.954470Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T09:47:59.954845Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T09:53:00.496650Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T09:53:00.568987Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T09:53:00.569849Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T09:58:01.391878Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T09:58:01.481029Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T09:58:01.481220Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T10:03:02.805116Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T10:03:02.879059Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T10:03:02.879258Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T10:08:03.912073Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T10:08:04.025000Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T10:08:04.025228Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T10:13:04.859351Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T10:13:04.904521Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T10:13:04.904686Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T10:18:05.338608Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T10:18:05.393947Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T10:18:05.394296Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T10:23:05.937988Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T10:23:05.941981Z", "level": "WARN", "message": "Issues detected: 1"}
+{"ts": "2025-10-27T10:23:05.942271Z", "level": "ERROR", "message": "Health check failed - service restart recommended"}
+{"ts": "2025-10-27T10:23:06.384028Z", "level": "WARN", "message": "Telegram failed: 400"}
+{"ts": "2025-10-27T10:23:06.386104Z", "level": "INFO", "message": "Healing complete: 1 actions taken"}
+{"ts": "2025-10-27T10:23:06.386253Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T10:28:07.498381Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T10:28:07.557375Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T10:28:07.558319Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T10:33:08.413449Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T10:33:08.444748Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T10:33:08.445251Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T10:38:09.096631Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T10:38:09.139215Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T10:38:09.139399Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T10:43:09.577825Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T10:43:09.619547Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T10:43:09.619814Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T10:48:10.242805Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T10:48:10.312446Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T10:48:10.312617Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T10:53:11.118001Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T10:53:11.159126Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T10:53:11.159308Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T10:58:12.036918Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T10:58:12.260627Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T10:58:12.268737Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T11:03:13.183951Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T11:03:13.237153Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T11:03:13.237357Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T11:08:14.402516Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T11:08:14.473275Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T11:08:14.473472Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T11:13:15.103341Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T11:13:15.172576Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T11:13:15.172793Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T11:18:15.643579Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T11:18:15.735106Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T11:18:15.735684Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}
+{"ts": "2025-10-27T11:23:16.110991Z", "level": "INFO", "message": "=== Self-Healing Check Started ==="}
+{"ts": "2025-10-27T11:23:16.169394Z", "level": "INFO", "message": "All checks passed - system healthy"}
+{"ts": "2025-10-27T11:23:16.169615Z", "level": "INFO", "message": "=== Self-Healing Check Complete ==="}

@@ -1,0 +1,3 @@
+{"ts": 1761431324, "name": "test_event", "props": {"page": "test"}, "ip": "127.0.0.1", "ua": "curl/8.14.1"}
+{"ts": 1761431664, "name": "verification_test", "props": {"test": "phase2"}, "ip": "127.0.0.1", "ua": "curl/8.14.1"}
+{"ts": 1761431896, "name": "deployment_test", "props": {"phase": "2-lite"}, "ip": "127.0.0.1", "ua": "curl/8.14.1"}

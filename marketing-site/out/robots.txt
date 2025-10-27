@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: Name:  NEXT_PUBLIC_SITE_URL Value: https://echopilotai.replit.app/sitemap.xml

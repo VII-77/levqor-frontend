@@ -1,0 +1,10 @@
+[
+  {
+    "q": "How do I subscribe?",
+    "a": "Open /pricing and choose a plan."
+  },
+  {
+    "q": "How do I access my account?",
+    "a": "Use /account to reach the Stripe customer portal."
+  }
+]

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Dashboard | EchoPilotAI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #1a202c 0%, #2c5282 50%, #1a202c 100%);
+            min-height: 100vh;
+        }
+    </style>
+</head>
+<body class="text-white">
+    <div class="container mx-auto px-4 py-12 max-w-7xl">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-4xl font-bold mb-4">Analytics Dashboard</h1>
+            <p class="text-gray-400">Unified product, revenue, and reliability metrics</p>
+        </div>
+        
+        <!-- Loading State -->
+        <div id="loading" class="text-center py-12">
+            <div class="text-xl">Loading analytics...</div>
+        </div>
+        
+        <!-- Error State -->
+        <div id="error" class="hidden bg-red-500/20 border border-red-500/50 text-red-300 px-4 py-3 rounded mb-8"></div>
+        
+        <!-- KPI Cards -->
+        <div id="kpi-container" class="hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
+                    <h3 class="text-gray-400 text-sm font-medium mb-2">MRR</h3>
+                    <div class="text-3xl font-bold" id="mrr">—</div>
+                </div>
+                <div class="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
+                    <h3 class="text-gray-400 text-sm font-medium mb-2">ARR</h3>
+                    <div class="text-3xl font-bold" id="arr">—</div>
+                </div>
+                <div class="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
+                    <h3 class="text-gray-400 text-sm font-medium mb-2">Trials (7d)</h3>
+                    <div class="text-3xl font-bold" id="trials">—</div>
+                </div>
+                <div class="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
+                    <h3 class="text-gray-400 text-sm font-medium mb-2">Churn (30d)</h3>
+                    <div class="text-3xl font-bold" id="churn">—</div>
+                </div>
+                <div class="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
+                    <h3 class="text-gray-400 text-sm font-medium mb-2">Tickets (7d)</h3>
+                    <div class="text-3xl font-bold" id="tickets">—</div>
+                </div>
+                <div class="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
+                    <h3 class="text-gray-400 text-sm font-medium mb-2">Uptime (24h)</h3>
+                    <div class="text-3xl font-bold" id="uptime">—</div>
+                </div>
+                <div class="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
+                    <h3 class="text-gray-400 text-sm font-medium mb-2">P95 Latency</h3>
+                    <div class="text-3xl font-bold" id="latency">—</div>
+                </div>
+                <div class="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
+                    <h3 class="text-gray-400 text-sm font-medium mb-2">Errors (24h)</h3>
+                    <div class="text-3xl font-bold" id="errors">—</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadAnalytics() {
+            try {
+                const response = await fetch('/api/analytics/summary');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Update KPIs
+                document.getElementById('mrr').textContent = data.mrr ? `$${data.mrr}` : '—';
+                document.getElementById('arr').textContent = data.arr ? `$${data.arr}` : '—';
+                document.getElementById('trials').textContent = data.trials_7d ?? '—';
+                document.getElementById('churn').textContent = data.churn_30d ?? '—';
+                document.getElementById('tickets').textContent = data.tickets_7d ?? '—';
+                document.getElementById('uptime').textContent = data.uptime_24h !== null ? `${data.uptime_24h}%` : '—';
+                document.getElementById('latency').textContent = data.p95_latency_ms !== null ? `${data.p95_latency_ms}ms` : '—';
+                document.getElementById('errors').textContent = data.errors_24h ?? '—';
+                
+                // Show KPIs
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('kpi-container').classList.remove('hidden');
+                
+            } catch (error) {
+                console.error('Failed to load analytics:', error);
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('error').textContent = `Failed to load analytics: ${error.message}`;
+                document.getElementById('error').classList.remove('hidden');
+            }
+        }
+        
+        // Load on page load
+        loadAnalytics();
+    </script>
+</body>
+</html>

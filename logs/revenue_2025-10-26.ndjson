@@ -1,0 +1,15 @@
+{
+  "timestamp": "2025-10-26T18:59:32Z",
+  "type": "revenue_insight",
+  "active_subscriptions": 0
+0,
+  "mrr_usd": 0,
+  "arr_usd": 0,
+  "churn_rate_pct": 0,
+  "plan_breakdown": {
+    "starter": 0,
+    "pro": 0,
+    "business": 0,
+    "enterprise": 0
+  }
+}

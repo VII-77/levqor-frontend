@@ -1,0 +1,3 @@
+{"kind": "heartbeat", "metrics": {"error_rate": 0.0, "latency_p95_ms": 500}, "plan": ["continue", "learn"], "ts": 1761436501}
+{"kind": "test_high_latency", "metrics": {"error_rate": 0.0, "latency_p95_ms": 2500}, "plan": ["scale_up", "throttle_background"], "ts": 1761436526}
+{"kind": "test", "metrics": {"error_rate": 0.0, "latency_p95_ms": 500}, "plan": ["continue", "learn"], "ts": 1761436553}

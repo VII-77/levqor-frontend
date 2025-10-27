@@ -1,0 +1,53 @@
+{
+  "timestamp": "2025-10-26T18:27:54.900Z",
+  "baseUrl": "http://localhost:5000",
+  "pages": [
+    {
+      "url": "http://localhost:5000/",
+      "violations": [],
+      "passed": true
+    },
+    {
+      "url": "http://localhost:5000/pricing",
+      "violations": [],
+      "passed": true
+    },
+    {
+      "url": "http://localhost:5000/product",
+      "violations": [],
+      "passed": true
+    },
+    {
+      "url": "http://localhost:5000/features",
+      "violations": [],
+      "passed": true
+    },
+    {
+      "url": "http://localhost:5000/workflow",
+      "violations": [],
+      "passed": true
+    },
+    {
+      "url": "http://localhost:5000/help",
+      "violations": [],
+      "passed": true
+    },
+    {
+      "url": "http://localhost:5000/support",
+      "violations": [],
+      "passed": true
+    },
+    {
+      "url": "http://localhost:5000/login",
+      "violations": [],
+      "passed": true
+    }
+  ],
+  "summary": {
+    "total": 0,
+    "critical": 0,
+    "serious": 0,
+    "moderate": 0,
+    "minor": 0
+  }
+}

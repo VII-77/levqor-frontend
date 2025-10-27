@@ -1,0 +1,1411 @@
+<!DOCTYPE html><!--VdGkSDcQmwQJTqX9PX4h0--><html lang="en"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="/_next/static/chunks/a02a596e1ae4ec3f.css" data-precedence="next"/><link rel="preload" as="script" fetchPriority="low" href="/_next/static/chunks/b3586c5fd8b35d78.js"/><script src="/_next/static/chunks/5c1374352376c054.js" async=""></script><script src="/_next/static/chunks/58e77fc17acbf1e7.js" async=""></script><script src="/_next/static/chunks/79c9ac3cb6ca9f96.js" async=""></script><script src="/_next/static/chunks/turbopack-5046fc4072d4b2e5.js" async=""></script><script src="/_next/static/chunks/ff1a16fafef87110.js" async=""></script><script src="/_next/static/chunks/247eb132b7f7b574.js" async=""></script><script src="/_next/static/chunks/1197b2ae6b4fa7c5.js" async=""></script><link rel="canonical" href="https://echopilotai.replit.app"/><link rel="preconnect" href="https://www.googletagmanager.com"/><link rel="dns-prefetch" href="//www.googletagmanager.com"/><link rel="icon" href="/favicon.ico"/><title>Docs • EchoPilotAI | EchoPilotAI</title><meta name="description" content="Automate workflows, process tasks with AI, and scale your revenue with EchoPilotAI intelligent automation platform."/><meta name="author" content="EchoPilotAI"/><meta name="keywords" content="AI automation,workflow automation,business automation,SaaS platform"/><meta name="creator" content="EchoPilotAI"/><meta name="robots" content="index, follow"/><meta property="og:title" content="EchoPilotAI - Intelligent Automation Platform"/><meta property="og:description" content="Automate workflows, process tasks with AI, and scale your revenue."/><meta property="og:url" content="https://echopilotai.replit.app"/><meta property="og:site_name" content="EchoPilotAI"/><meta property="og:locale" content="en_US"/><meta property="og:type" content="website"/><meta name="twitter:card" content="summary_large_image"/><meta name="twitter:title" content="EchoPilotAI"/><meta name="twitter:description" content="Intelligent automation platform powered by AI"/><script src="/_next/static/chunks/a6dad97d9634a72d.js" noModule=""></script></head><body><div hidden=""><!--$--><!--/$--></div><a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-white focus:px-4 focus:py-2 focus:rounded focus:shadow-lg">Skip to content</a><main id="main"><div class="mx-auto max-w-6xl px-4 py-8 grid gap-6 md:grid-cols-[220px_1fr]"><aside class="text-sm space-y-2"><div class="font-semibold">Docs</div><nav class="space-y-1"><a href="/docs">Overview</a><br/><a href="/docs/search">Search</a><br/><a href="/docs/changelog">Changelog</a></nav></aside><section><main class="mx-auto max-w-4xl px-4 py-12 prose prose-invert"><h1>Documentation</h1><p>Last updated: 2025-10-26 00:18 UTC</p><h2>Contents</h2><ul><li><a href="#api-endpoints-flask">API Endpoints (Flask)</a></li><li><a href="#site-pages-next-js">Site Pages (Next.js)</a></li></ul><h2 id="api-endpoints-flask">API Endpoints (Flask)</h2><pre>[
+  {
+    "path": "/affiliates",
+    "handler": "affiliates_dashboard",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/demo-mode",
+    "handler": "api_demo_mode",
+    "file": "run.py"
+  },
+  {
+    "path": "/health",
+    "handler": "health_check",
+    "file": "run.py"
+  },
+  {
+    "path": "/health",
+    "handler": "health",
+    "file": "run.py"
+  },
+  {
+    "path": "/test-simple",
+    "handler": "test_simple",
+    "file": "run.py"
+  },
+  {
+    "path": "/support",
+    "handler": "support",
+    "file": "run.py"
+  },
+  {
+    "path": "/legal/privacy",
+    "handler": "legal_privacy",
+    "file": "run.py"
+  },
+  {
+    "path": "/legal/terms",
+    "handler": "legal_terms",
+    "file": "run.py"
+  },
+  {
+    "path": "/legal/refunds",
+    "handler": "legal_refunds",
+    "file": "run.py"
+  },
+  {
+    "path": "/legal/cookies",
+    "handler": "legal_cookies",
+    "file": "run.py"
+  },
+  {
+    "path": "/ops-report",
+    "handler": "ops_report",
+    "file": "run.py"
+  },
+  {
+    "path": "/payments/debug",
+    "handler": "payments_debug",
+    "file": "run.py"
+  },
+  {
+    "path": "/favicon.ico",
+    "handler": "favicon",
+    "file": "run.py"
+  },
+  {
+    "path": "/auth/login",
+    "handler": "api_lead",
+    "file": "run.py"
+  },
+  {
+    "path": "/sitemap.xml",
+    "handler": "sitemap",
+    "file": "run.py"
+  },
+  {
+    "path": "/robots.txt",
+    "handler": "robots",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/warehouse/status",
+    "handler": "api_warehouse_status",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/warehouse/sync",
+    "handler": "api_warehouse_sync",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/slo/recommendations",
+    "handler": "api_slo_recommendations",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/slo/tune",
+    "handler": "api_slo_tune",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/slo/apply",
+    "handler": "api_slo_apply",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/flags",
+    "handler": "api_flags_list",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/flags/&lt;flag_name&gt;",
+    "handler": "api_flags_get",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/flags/&lt;flag_name&gt;",
+    "handler": "api_flags_update",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/flags/&lt;flag_name&gt;",
+    "handler": "api_flags_delete",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/flags/check/&lt;flag_name&gt;",
+    "handler": "api_flags_check",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/flags/evaluate",
+    "handler": "api_flags_evaluate",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/governance/report",
+    "handler": "api_governance_report",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/governance/analyze",
+    "handler": "api_governance_analyze",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/auth/token",
+    "handler": "api_auth_token",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/auth/refresh",
+    "handler": "api_auth_refresh",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/auth/revoke",
+    "handler": "api_auth_revoke",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/auth/me",
+    "handler": "api_auth_me",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/logs",
+    "handler": "api_logs",
+    "file": "run.py"
+  },
+  {
+    "path": "/metrics",
+    "handler": "metrics_prometheus",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/governance/recommendations",
+    "handler": "api_governance_recommendations",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/analytics/usage",
+    "handler": "api_analytics_usage",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/analytics/event",
+    "handler": "api_analytics_event",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/ops/command",
+    "handler": "api_ops_command",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/ops/commands",
+    "handler": "api_ops_commands",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/tenant/info",
+    "handler": "api_tenant_info",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/tenant/test-access",
+    "handler": "api_tenant_test_access",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/finops/summary",
+    "handler": "api_finops_summary",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/finops/tenants",
+    "handler": "api_finops_tenants",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/audit/chain",
+    "handler": "api_audit_chain",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/compliance/webhook",
+    "handler": "api_compliance_webhook",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/queue/enqueue",
+    "handler": "api_queue_enqueue",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/queue/status",
+    "handler": "api_queue_status",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/growth/referrals",
+    "handler": "api_growth_referrals",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/growth/referral/create",
+    "handler": "api_create_referral",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/growth/payouts/export",
+    "handler": "api_export_payouts",
+    "file": "run.py"
+  },
+  {
+    "path": "/offline.html",
+    "handler": "offline_page",
+    "file": "run.py"
+  },
+  {
+    "path": "/manifest.json",
+    "handler": "pwa_manifest",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/integrations/catalog",
+    "handler": "api_integrations_catalog",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/integrations/install",
+    "handler": "api_install_integration",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/ai/analytics",
+    "handler": "api_ai_analytics",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/ai/model-comparison",
+    "handler": "api_model_comparison",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/predict/load",
+    "handler": "api_predict_load",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/predict/staffing",
+    "handler": "api_staffing_recommendation",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/healing/status",
+    "handler": "api_healing_status",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/marketplace/listings",
+    "handler": "api_marketplace_listings",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/marketplace/purchase",
+    "handler": "api_marketplace_purchase",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/compliance/gdpr-export",
+    "handler": "api_gdpr_export",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/compliance/soc2-report",
+    "handler": "api_soc2_report",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/regions/status",
+    "handler": "api_regions_status",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/partners/dashboard",
+    "handler": "api_partner_dashboard",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/partners/register",
+    "handler": "api_register_partner",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/health",
+    "handler": "api_health",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/platform/status",
+    "handler": "api_platform_status",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/platform/metrics",
+    "handler": "api_platform_metrics",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/platform/phase-report",
+    "handler": "api_phase_report",
+    "file": "run.py"
+  },
+  {
+    "path": "/webhook/stripe",
+    "handler": "webhook_stripe",
+    "file": "run.py"
+  },
+  {
+    "path": "/webhook/paypal",
+    "handler": "webhook_paypal",
+    "file": "run.py"
+  },
+  {
+    "path": "/exec-report",
+    "handler": "exec_report_route",
+    "file": "run.py"
+  },
+  {
+    "path": "/refund",
+    "handler": "refund_route",
+    "file": "run.py"
+  },
+  {
+    "path": "/p95",
+    "handler": "p95_route",
+    "file": "run.py"
+  },
+  {
+    "path": "/backup-config",
+    "handler": "backup_config_route",
+    "file": "run.py"
+  },
+  {
+    "path": "/dsr",
+    "handler": "dsr_route",
+    "file": "run.py"
+  },
+  {
+    "path": "/payments/scan",
+    "handler": "payments_scan_route",
+    "file": "run.py"
+  },
+  {
+    "path": "/jobs/replay",
+    "handler": "jobs_replay_route",
+    "file": "run.py"
+  },
+  {
+    "path": "/forecast/chart",
+    "handler": "forecast_chart_route",
+    "file": "run.py"
+  },
+  {
+    "path": "/finance/revenue",
+    "handler": "finance_revenue_route",
+    "file": "run.py"
+  },
+  {
+    "path": "/finance/pl",
+    "handler": "finance_pl_route",
+    "file": "run.py"
+  },
+  {
+    "path": "/finance/valuation",
+    "handler": "finance_valuation_route",
+    "file": "run.py"
+  },
+  {
+    "path": "/v1/jobs",
+    "handler": "marketplace_submit_job",
+    "file": "run.py"
+  },
+  {
+    "path": "/v1/results/&lt;job_id&gt;",
+    "handler": "marketplace_get_results",
+    "file": "run.py"
+  },
+  {
+    "path": "/v1/stats",
+    "handler": "marketplace_stats",
+    "file": "run.py"
+  },
+  {
+    "path": "/metrics",
+    "handler": "metrics_route",
+    "file": "run.py"
+  },
+  {
+    "path": "/pulse",
+    "handler": "pulse_route",
+    "file": "run.py"
+  },
+  {
+    "path": "/",
+    "handler": "about",
+    "file": "run.py"
+  },
+  {
+    "path": "/dashboard",
+    "handler": "dashboard_v2",
+    "file": "run.py"
+  },
+  {
+    "path": "/portal",
+    "handler": "portal",
+    "file": "run.py"
+  },
+  {
+    "path": "/debug",
+    "handler": "debug_logs",
+    "file": "run.py"
+  },
+  {
+    "path": "/dashboard/v1",
+    "handler": "dashboard_v1",
+    "file": "run.py"
+  },
+  {
+    "path": "/payments",
+    "handler": "payments",
+    "file": "run.py"
+  },
+  {
+    "path": "/os",
+    "handler": "os_dashboard",
+    "file": "run.py"
+  },
+  {
+    "path": "/integrations",
+    "handler": "integrations_hub",
+    "file": "run.py"
+  },
+  {
+    "path": "/landing",
+    "handler": "landing_redirect",
+    "file": "run.py"
+  },
+  {
+    "path": "/home",
+    "handler": "marketing_home",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/feature-flags",
+    "handler": "api_feature_flags",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/growth/referral",
+    "handler": "api_track_referral",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/growth/referrals/&lt;user_id&gt;",
+    "handler": "api_get_referrals",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/growth/onboarding/&lt;user_id&gt;",
+    "handler": "api_get_onboarding",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/growth/onboarding",
+    "handler": "api_update_onboarding",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/i18n/locales",
+    "handler": "api_get_locales",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/i18n/strings/&lt;locale&gt;",
+    "handler": "api_get_strings",
+    "file": "run.py"
+  },
+  {
+    "path": "/workflow/builder",
+    "handler": "workflow_builder_ui",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/ai/generate-workflow",
+    "handler": "api_ai_generate_workflow",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/ai/predict-failures",
+    "handler": "api_predict_failures",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/workflow/node-types",
+    "handler": "api_get_node_types",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/workflow",
+    "handler": "api_create_workflow",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/workflow/&lt;workflow_id&gt;",
+    "handler": "api_get_workflow",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/workflow/&lt;workflow_id&gt;",
+    "handler": "api_update_workflow",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/workflow/&lt;workflow_id&gt;",
+    "handler": "api_delete_workflow",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/workflow/list",
+    "handler": "api_list_workflows",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/workflow/templates",
+    "handler": "api_list_templates",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/workflow/execute/ai",
+    "handler": "api_execute_ai_task",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/status/summary",
+    "handler": "api_status_summary",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/csrf-token",
+    "handler": "api_get_csrf_token",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/supervisor-status",
+    "handler": "api_supervisor_status",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/pulse",
+    "handler": "api_pulse",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/create-test-job",
+    "handler": "api_create_test_job",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/job-log-latest",
+    "handler": "api_job_log_latest",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/flip-paid",
+    "handler": "api_flip_paid",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/metrics-summary",
+    "handler": "api_metrics_summary",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/release-captain",
+    "handler": "api_release_captain",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/public/create-job",
+    "handler": "api_public_create_job",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/public/job-status/&lt;correlation_id&gt;",
+    "handler": "api_public_job_status",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/public/checkout/&lt;correlation_id&gt;",
+    "handler": "api_public_checkout",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/public/after-payment",
+    "handler": "api_public_after_payment",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/public/job-history/&lt;email&gt;",
+    "handler": "api_public_job_history",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/public/send-email",
+    "handler": "api_public_send_email",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/public/support",
+    "handler": "api_public_support",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/public/download/&lt;correlation_id&gt;",
+    "handler": "api_public_download",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/preflight-audit",
+    "handler": "api_preflight_audit",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/self-heal",
+    "handler": "self_heal",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/finance-metrics",
+    "handler": "finance_metrics",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/growth/subscribe",
+    "handler": "growth_subscribe",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/alerts/trigger",
+    "handler": "trigger_alerts",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/optimizer/run",
+    "handler": "run_optimizer",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/exec/report-latest",
+    "handler": "exec_report_latest",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/exec/ingest",
+    "handler": "exec_ingest",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/exec/analyze",
+    "handler": "exec_analyze",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/exec/brief",
+    "handler": "exec_brief",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/exec/email",
+    "handler": "exec_email",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/exec/schedule-daily",
+    "handler": "exec_schedule_daily",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/automations/start",
+    "handler": "automations_start",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/automations/stop",
+    "handler": "automations_stop",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/automations/status",
+    "handler": "automations_status",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/system-health",
+    "handler": "system_health",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/live-ops",
+    "handler": "live_ops_status",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/runtime-costs",
+    "handler": "runtime_costs",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/payments/create-invoice",
+    "handler": "create_payment_invoice",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/payments/webhook",
+    "handler": "stripe_webhook",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/v63/stripe/checkout",
+    "handler": "stripe_checkout_v63",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/checkout",
+    "handler": "api_checkout_direct",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/v63/stripe/portal",
+    "handler": "stripe_portal_v63",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/v63/stripe/usage",
+    "handler": "stripe_usage_v63",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/v63/stripe/webhook",
+    "handler": "stripe_webhook_v63",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/customer/signed-url/&lt;client_id&gt;",
+    "handler": "get_signed_url",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/customer/unsubscribe",
+    "handler": "unsubscribe_email",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/compliance/export-data",
+    "handler": "export_user_data",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/pricing/optimize",
+    "handler": "optimize_pricing",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/growth/referral/new",
+    "handler": "generate_referral",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/audit/report",
+    "handler": "run_audit_report",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/regions/sync",
+    "handler": "sync_regions",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/payments/list",
+    "handler": "api_list_payments",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/ops/sentinel",
+    "handler": "api_ops_sentinel",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/ops/check",
+    "handler": "api_ops_check",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/revenue/intelligence",
+    "handler": "api_revenue_intelligence",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/finance/reconcile",
+    "handler": "api_finance_reconcile",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/governance/check",
+    "handler": "api_governance_check",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/brain/decide",
+    "handler": "run_ops_brain",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/observability/snapshot",
+    "handler": "api_observability_snapshot",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/fraud/check",
+    "handler": "api_fraud_check",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/portal/link",
+    "handler": "api_portal_link",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/email/send",
+    "handler": "api_send_email",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/reports/email",
+    "handler": "api_reports_email",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/payouts/reconcile",
+    "handler": "api_payouts_reconcile",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/churn/score",
+    "handler": "api_churn_score",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/slo/check",
+    "handler": "api_slo_check",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/audit/latest",
+    "handler": "api_audit_latest",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/audit/summary",
+    "handler": "api_audit_summary",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/support/digest",
+    "handler": "api_support_digest",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/flags/get",
+    "handler": "api_flags_get_all",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/flags/set",
+    "handler": "api_flags_set",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/exp/assign",
+    "handler": "api_exp_assign",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/exp/log",
+    "handler": "api_exp_log",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/costs/report",
+    "handler": "api_costs_report",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/incidents/scan",
+    "handler": "api_incidents_scan",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/payments/webhooks",
+    "handler": "api_payments_webhooks",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/payments/refund-last",
+    "handler": "api_payments_refund_last",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/payments/events",
+    "handler": "api_payments_events",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/payments/refund",
+    "handler": "api_payments_refund",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/customer/invoices/&lt;email&gt;",
+    "handler": "api_customer_invoices",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/customer/signed-url/&lt;email&gt;",
+    "handler": "api_customer_signed_url",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/backup/run",
+    "handler": "api_backup_run",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/slo/status",
+    "handler": "api_slo_status",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/ops/analytics",
+    "handler": "api_ops_analytics",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/retries/simulate",
+    "handler": "api_retries_simulate",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/reports/email-daily",
+    "handler": "api_reports_email_daily",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/incidents/summarize",
+    "handler": "api_incidents_summarize",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/slo/budget",
+    "handler": "api_slo_budget",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/slo/rebaseline",
+    "handler": "api_slo_rebaseline",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/incidents/raise",
+    "handler": "api_incidents_raise",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/incidents/summary",
+    "handler": "api_incidents_summary",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/portal/receipts",
+    "handler": "api_portal_receipts",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/portal/download",
+    "handler": "api_portal_download",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/costs/status",
+    "handler": "api_costs_status",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/costs/set-cap",
+    "handler": "api_costs_set_cap",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/scale/status",
+    "handler": "api_scale_status",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/scale/apply",
+    "handler": "api_scale_apply",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/rbac/init",
+    "handler": "api_rbac_init",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/rbac/users",
+    "handler": "api_rbac_users",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/dr/backup",
+    "handler": "api_dr_backup",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/model/route",
+    "handler": "api_model_route",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/finops/report",
+    "handler": "api_finops_report",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/analytics/hub",
+    "handler": "api_analytics_hub",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/maintenance/predict",
+    "handler": "api_predictive_maintenance",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/compliance/check",
+    "handler": "api_compliance_v2",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/governance/advice",
+    "handler": "api_governance_ai",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/tenant/stats",
+    "handler": "api_tenant_stats",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/tenant/billing/&lt;tenant_id&gt;",
+    "handler": "api_tenant_billing",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/anomaly/detect",
+    "handler": "api_anomaly_detection",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/security/scan",
+    "handler": "api_security_scan",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/privacy/consent",
+    "handler": "api_privacy_consent",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/training/audit",
+    "handler": "api_training_audit",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/optimizer/run",
+    "handler": "api_adaptive_optimizer",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/self-heal/run",
+    "handler": "api_self_heal_v2",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/learning/status",
+    "handler": "api_continuous_learning",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/validate/enterprise",
+    "handler": "api_enterprise_validator",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/reports/enterprise",
+    "handler": "api_enterprise_report",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/reports/enterprise/html",
+    "handler": "api_enterprise_report_html",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/validation/html",
+    "handler": "api_validation_report_html",
+    "file": "run.py"
+  },
+  {
+    "path": "/metrics",
+    "handler": "prometheus_metrics",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/observability/slo",
+    "handler": "api_observability_slo",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/observability/latency",
+    "handler": "api_observability_latency",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/ops/telemetry",
+    "handler": "api_ops_telemetry",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/jobs/&lt;job_id&gt;",
+    "handler": "api_job_details",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/event",
+    "handler": "api_event_proxy",
+    "file": "run.py"
+  },
+  {
+    "path": "/lead",
+    "handler": "lead_page",
+    "file": "run.py"
+  },
+  {
+    "path": "/queue",
+    "handler": "queue_page",
+    "file": "run.py"
+  },
+  {
+    "path": "/analytics",
+    "handler": "share_target",
+    "file": "run.py"
+  },
+  {
+    "path": "/api/data",
+    "handler": "check_cross_tenant_access",
+    "file": "bot/tenancy.py"
+  },
+  {
+    "path": "/",
+    "handler": "copy_current_request_context",
+    "file": ".cache/uv/archive-v0/M22qpKPRIrpUHfAHRBkuG/flask/ctx.py"
+  },
+  {
+    "path": "/",
+    "handler": "has_request_context",
+    "file": ".cache/uv/archive-v0/M22qpKPRIrpUHfAHRBkuG/flask/ctx.py"
+  },
+  {
+    "path": "/uploads/&lt;path:name&gt;",
+    "handler": "get_root_path",
+    "file": ".cache/uv/archive-v0/M22qpKPRIrpUHfAHRBkuG/flask/helpers.py"
+  },
+  {
+    "path": "/",
+    "handler": "_endpoint_from_view_func",
+    "file": ".cache/uv/archive-v0/M22qpKPRIrpUHfAHRBkuG/flask/sansio/scaffold.py"
+  },
+  {
+    "path": "/",
+    "handler": "copy_current_request_context",
+    "file": ".cache/uv/archive-v0/RCtNoNFAMQtzKXNVpOus-/flask/ctx.py"
+  },
+  {
+    "path": "/",
+    "handler": "has_request_context",
+    "file": ".cache/uv/archive-v0/RCtNoNFAMQtzKXNVpOus-/flask/ctx.py"
+  },
+  {
+    "path": "/uploads/&lt;path:name&gt;",
+    "handler": "get_root_path",
+    "file": ".cache/uv/archive-v0/RCtNoNFAMQtzKXNVpOus-/flask/helpers.py"
+  },
+  {
+    "path": "/",
+    "handler": "_endpoint_from_view_func",
+    "file": ".cache/uv/archive-v0/RCtNoNFAMQtzKXNVpOus-/flask/sansio/scaffold.py"
+  },
+  {
+    "path": "/",
+    "handler": "copy_current_request_context",
+    "file": ".pythonlibs/lib/python3.11/site-packages/flask/ctx.py"
+  },
+  {
+    "path": "/",
+    "handler": "has_request_context",
+    "file": ".pythonlibs/lib/python3.11/site-packages/flask/ctx.py"
+  },
+  {
+    "path": "/uploads/&lt;path:name&gt;",
+    "handler": "get_root_path",
+    "file": ".pythonlibs/lib/python3.11/site-packages/flask/helpers.py"
+  },
+  {
+    "path": "/",
+    "handler": "_endpoint_from_view_func",
+    "file": ".pythonlibs/lib/python3.11/site-packages/flask/sansio/scaffold.py"
+  }
+]</pre><h2 id="site-pages-next-js">Site Pages (Next.js)</h2><pre>[
+  {
+    "route": "/(feedback)/feedback",
+    "file": "(feedback)/feedback/page.tsx"
+  },
+  {
+    "route": "/(marketing)",
+    "file": "(marketing)/page.tsx"
+  },
+  {
+    "route": "/(marketing)/blog",
+    "file": "(marketing)/blog/page.tsx"
+  },
+  {
+    "route": "/(marketing)/features",
+    "file": "(marketing)/features/page.tsx"
+  },
+  {
+    "route": "/(marketing)/legal/aup",
+    "file": "(marketing)/legal/aup/page.tsx"
+  },
+  {
+    "route": "/(marketing)/legal/cookies",
+    "file": "(marketing)/legal/cookies/page.tsx"
+  },
+  {
+    "route": "/(marketing)/legal/dpa",
+    "file": "(marketing)/legal/dpa/page.tsx"
+  },
+  {
+    "route": "/(marketing)/legal/privacy",
+    "file": "(marketing)/legal/privacy/page.tsx"
+  },
+  {
+    "route": "/(marketing)/legal/refunds",
+    "file": "(marketing)/legal/refunds/page.tsx"
+  },
+  {
+    "route": "/(marketing)/legal/sla",
+    "file": "(marketing)/legal/sla/page.tsx"
+  },
+  {
+    "route": "/(marketing)/legal/terms",
+    "file": "(marketing)/legal/terms/page.tsx"
+  },
+  {
+    "route": "/(marketing)/pricing",
+    "file": "(marketing)/pricing/page.tsx"
+  },
+  {
+    "route": "/(marketing)/product",
+    "file": "(marketing)/product/page.tsx"
+  },
+  {
+    "route": "/admin",
+    "file": "admin/page.tsx"
+  },
+  {
+    "route": "/ai/builder",
+    "file": "ai/builder/page.tsx"
+  },
+  {
+    "route": "/analytics",
+    "file": "analytics/page.tsx"
+  },
+  {
+    "route": "/auth/login",
+    "file": "auth/login/page.tsx"
+  },
+  {
+    "route": "/auth/register",
+    "file": "auth/register/page.tsx"
+  },
+  {
+    "route": "/contact",
+    "file": "contact/page.tsx"
+  },
+  {
+    "route": "/dashboard",
+    "file": "dashboard/page.tsx"
+  },
+  {
+    "route": "/demo",
+    "file": "demo/page.tsx"
+  },
+  {
+    "route": "/docs",
+    "file": "docs/page.tsx"
+  },
+  {
+    "route": "/docs/changelog",
+    "file": "docs/changelog/page.tsx"
+  },
+  {
+    "route": "/docs/search",
+    "file": "docs/search/page.tsx"
+  },
+  {
+    "route": "/help",
+    "file": "help/page.tsx"
+  },
+  {
+    "route": "/login",
+    "file": "login/page.tsx"
+  },
+  {
+    "route": "/ops",
+    "file": "ops/page.tsx"
+  },
+  {
+    "route": "/portal",
+    "file": "portal/page.tsx"
+  },
+  {
+    "route": "/referral",
+    "file": "referral/page.tsx"
+  },
+  {
+    "route": "/status",
+    "file": "status/page.tsx"
+  },
+  {
+    "route": "/support",
+    "file": "support/page.tsx"
+  },
+  {
+    "route": "/workflow",
+    "file": "workflow/page.tsx"
+  }
+]</pre></main><!--$--><!--/$--></section></div></main><footer class="mt-16 border-t"><div class="mx-auto max-w-6xl px-4 py-8 grid gap-4 sm:grid-cols-3 text-sm"><div><div class="font-semibold mb-2">EchoPilotAI</div><div>Autonomous workflows you can trust.</div></div><div class="space-y-1"><div class="font-semibold">Company</div><a href="/product">Product</a><br/><a href="/features">Features</a><br/><a href="/pricing">Pricing</a><br/><a href="/workflow">Workflow</a><br/><a href="/help">Help</a><br/><a href="/support">Support</a><br/><a href="/account">Account</a><br/><a href="/health">Status</a></div><div class="space-y-1"><div class="font-semibold">Legal</div><a href="/legal/terms">Terms</a><br/><a href="/legal/privacy">Privacy</a><br/><a href="/legal/refunds">Refunds</a><br/><a href="/legal/cookies">Cookies</a><br/><a href="/legal/aup">Acceptable Use</a><br/><a href="/legal/dpa">Data Processing</a><br/><a href="/legal/sla">SLA</a></div></div><div class="text-center text-xs text-gray-500 pb-6">© <!-- -->2025<!-- --> EchoPilotAI</div></footer><a href="/support" class="fixed bottom-4 right-4 rounded-full px-4 py-2 bg-black text-white shadow-lg hover:bg-gray-800 z-50">Support</a><script src="/analytics.js" defer=""></script><script src="/_next/static/chunks/b3586c5fd8b35d78.js" id="_R_" async=""></script><script>(self.__next_f=self.__next_f||[]).push([0])</script><script>self.__next_f.push([1,"1:\"$Sreact.fragment\"\n2:I[39756,[\"/_next/static/chunks/ff1a16fafef87110.js\",\"/_next/static/chunks/247eb132b7f7b574.js\"],\"default\"]\n3:I[37457,[\"/_next/static/chunks/ff1a16fafef87110.js\",\"/_next/static/chunks/247eb132b7f7b574.js\"],\"default\"]\n4:I[22016,[\"/_next/static/chunks/1197b2ae6b4fa7c5.js\"],\"\"]\n5:I[67225,[\"/_next/static/chunks/1197b2ae6b4fa7c5.js\"],\"default\"]\n6:I[71208,[\"/_next/static/chunks/1197b2ae6b4fa7c5.js\"],\"default\"]\n7:I[21015,[\"/_next/static/chunks/1197b2ae6b4fa7c5.js\"],\"default\"]\n8:I[40244,[\"/_next/static/chunks/1197b2ae6b4fa7c5.js\"],\"default\"]\n11:I[68027,[\"/_next/static/chunks/ff1a16fafef87110.js\",\"/_next/static/chunks/247eb132b7f7b574.js\"],\"default\"]\n:HL[\"/_next/static/chunks/a02a596e1ae4ec3f.css\",\"style\"]\n"])</script><script>self.__next_f.push([1,"0:{\"P\":null,\"b\":\"VdGkSDcQmwQJTqX9PX4h0\",\"c\":[\"\",\"docs\"],\"q\":\"\",\"i\":false,\"f\":[[[\"\",{\"children\":[\"docs\",{\"children\":[\"__PAGE__\",{}]}]},\"$undefined\",\"$undefined\",true],[[\"$\",\"$1\",\"c\",{\"children\":[[[\"$\",\"link\",\"0\",{\"rel\":\"stylesheet\",\"href\":\"/_next/static/chunks/a02a596e1ae4ec3f.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\",\"nonce\":\"$undefined\"}],[\"$\",\"script\",\"script-0\",{\"src\":\"/_next/static/chunks/1197b2ae6b4fa7c5.js\",\"async\":true,\"nonce\":\"$undefined\"}]],[\"$\",\"html\",null,{\"lang\":\"en\",\"children\":[[\"$\",\"head\",null,{\"children\":[[\"$\",\"meta\",null,{\"name\":\"viewport\",\"content\":\"width=device-width,initial-scale=1\"}],[\"$\",\"link\",null,{\"rel\":\"canonical\",\"href\":\"https://echopilotai.replit.app\"}],[\"$\",\"link\",null,{\"rel\":\"preconnect\",\"href\":\"https://www.googletagmanager.com\"}],[\"$\",\"link\",null,{\"rel\":\"dns-prefetch\",\"href\":\"//www.googletagmanager.com\"}],[\"$\",\"link\",null,{\"rel\":\"icon\",\"href\":\"/favicon.ico\"}]]}],[\"$\",\"body\",null,{\"children\":[[\"$\",\"a\",null,{\"href\":\"#main\",\"className\":\"sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-white focus:px-4 focus:py-2 focus:rounded focus:shadow-lg\",\"children\":\"Skip to content\"}],[\"$\",\"main\",null,{\"id\":\"main\",\"children\":[\"$\",\"$L2\",null,{\"parallelRouterKey\":\"children\",\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L3\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":[[\"$\",\"main\",null,{\"className\":\"mx-auto max-w-3xl px-4 py-16\",\"children\":[[\"$\",\"h1\",null,{\"className\":\"text-2xl font-semibold\",\"children\":\"Page not found\"}],[\"$\",\"p\",null,{\"className\":\"mt-2 text-sm text-gray-600\",\"children\":[\"Try the \",[\"$\",\"a\",null,{\"className\":\"underline\",\"href\":\"/pricing\",\"children\":\"pricing\"}],\" or\",\" \",[\"$\",\"a\",null,{\"className\":\"underline\",\"href\":\"/help\",\"children\":\"help\"}],\" page.\"]}]]}],[]],\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\"}]}],[\"$\",\"footer\",null,{\"className\":\"mt-16 border-t\",\"children\":[[\"$\",\"div\",null,{\"className\":\"mx-auto max-w-6xl px-4 py-8 grid gap-4 sm:grid-cols-3 text-sm\",\"children\":[[\"$\",\"div\",null,{\"children\":[[\"$\",\"div\",null,{\"className\":\"font-semibold mb-2\",\"children\":\"EchoPilotAI\"}],[\"$\",\"div\",null,{\"children\":\"Autonomous workflows you can trust.\"}]]}],[\"$\",\"div\",null,{\"className\":\"space-y-1\",\"children\":[[\"$\",\"div\",null,{\"className\":\"font-semibold\",\"children\":\"Company\"}],[\"$\",\"$L4\",null,{\"href\":\"/product\",\"children\":\"Product\"}],[\"$\",\"br\",null,{}],[\"$\",\"$L4\",null,{\"href\":\"/features\",\"children\":\"Features\"}],[\"$\",\"br\",null,{}],[\"$\",\"$L4\",null,{\"href\":\"/pricing\",\"children\":\"Pricing\"}],[\"$\",\"br\",null,{}],[\"$\",\"$L4\",null,{\"href\":\"/workflow\",\"children\":\"Workflow\"}],[\"$\",\"br\",null,{}],[\"$\",\"$L4\",null,{\"href\":\"/help\",\"children\":\"Help\"}],[\"$\",\"br\",null,{}],[\"$\",\"$L4\",null,{\"href\":\"/support\",\"children\":\"Support\"}],[\"$\",\"br\",null,{}],[\"$\",\"$L4\",null,{\"href\":\"/account\",\"children\":\"Account\"}],[\"$\",\"br\",null,{}],[\"$\",\"$L4\",null,{\"href\":\"/health\",\"children\":\"Status\"}]]}],[\"$\",\"div\",null,{\"className\":\"space-y-1\",\"children\":[[\"$\",\"div\",null,{\"className\":\"font-semibold\",\"children\":\"Legal\"}],[\"$\",\"$L4\",null,{\"href\":\"/legal/terms\",\"children\":\"Terms\"}],[\"$\",\"br\",null,{}],[\"$\",\"$L4\",null,{\"href\":\"/legal/privacy\",\"children\":\"Privacy\"}],[\"$\",\"br\",null,{}],[\"$\",\"$L4\",null,{\"href\":\"/legal/refunds\",\"children\":\"Refunds\"}],[\"$\",\"br\",null,{}],[\"$\",\"$L4\",null,{\"href\":\"/legal/cookies\",\"children\":\"Cookies\"}],[\"$\",\"br\",null,{}],[\"$\",\"$L4\",null,{\"href\":\"/legal/aup\",\"children\":\"Acceptable Use\"}],[\"$\",\"br\",null,{}],[\"$\",\"$L4\",null,{\"href\":\"/legal/dpa\",\"children\":\"Data Processing\"}],[\"$\",\"br\",null,{}],[\"$\",\"$L4\",null,{\"href\":\"/legal/sla\",\"children\":\"SLA\"}]]}]]}],[\"$\",\"div\",null,{\"className\":\"text-center text-xs text-gray-500 pb-6\",\"children\":[\"© \",2025,\" EchoPilotAI\"]}]]}],[\"$\",\"$L5\",null,{}],[\"$\",\"$L6\",null,{}],[\"$\",\"$L7\",null,{}],[\"$\",\"$L8\",null,{}],[\"$\",\"a\",null,{\"href\":\"/support\",\"className\":\"fixed bottom-4 right-4 rounded-full px-4 py-2 bg-black text-white shadow-lg hover:bg-gray-800 z-50\",\"children\":\"Support\"}],[\"$\",\"script\",null,{\"src\":\"/analytics.js\",\"defer\":true}]]}]]}]]}],{\"children\":[[\"$\",\"$1\",\"c\",{\"children\":[null,[\"$\",\"div\",null,{\"className\":\"mx-auto max-w-6xl px-4 py-8 grid gap-6 md:grid-cols-[220px_1fr]\",\"children\":[[\"$\",\"aside\",null,{\"className\":\"text-sm space-y-2\",\"children\":[[\"$\",\"div\",null,{\"className\":\"font-semibold\",\"children\":\"Docs\"}],[\"$\",\"nav\",null,{\"className\":\"space-y-1\",\"children\":[[\"$\",\"a\",null,{\"href\":\"/docs\",\"children\":\"Overview\"}],[\"$\",\"br\",null,{}],[\"$\",\"a\",null,{\"href\":\"/docs/search\",\"children\":\"Search\"}],[\"$\",\"br\",null,{}],[\"$\",\"a\",null,{\"href\":\"/docs/changelog\",\"children\":\"Changelog\"}]]}]]}],[\"$\",\"section\",null,{\"children\":[\"$\",\"$L2\",null,{\"parallelRouterKey\":\"children\",\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L3\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":\"$undefined\",\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\"}]}]]}]]}],{\"children\":[[\"$\",\"$1\",\"c\",{\"children\":[[\"$\",\"main\",null,{\"className\":\"mx-auto max-w-4xl px-4 py-12 prose prose-invert\",\"children\":[[\"$\",\"h1\",null,{\"children\":\"Documentation\"}],[\"$\",\"p\",null,{\"children\":\"Last updated: 2025-10-26 00:18 UTC\"}],[\"$\",\"h2\",null,{\"children\":\"Contents\"}],[\"$\",\"ul\",null,{\"children\":[\"$L9\",\"$La\"]}],\"$Lb\",\"$Lc\",\"$Ld\",\"$Le\"]}],null,\"$Lf\"]}],{},null,false,false]},null,false,false]},null,false,false],\"$L10\",false]],\"m\":\"$undefined\",\"G\":[\"$11\",[]],\"s\":false,\"S\":true}\n"])</script><script>self.__next_f.push([1,"14:I[97367,[\"/_next/static/chunks/ff1a16fafef87110.js\",\"/_next/static/chunks/247eb132b7f7b574.js\"],\"OutletBoundary\"]\n15:\"$Sreact.suspense\"\n17:I[97367,[\"/_next/static/chunks/ff1a16fafef87110.js\",\"/_next/static/chunks/247eb132b7f7b574.js\"],\"ViewportBoundary\"]\n19:I[97367,[\"/_next/static/chunks/ff1a16fafef87110.js\",\"/_next/static/chunks/247eb132b7f7b574.js\"],\"MetadataBoundary\"]\n9:[\"$\",\"li\",null,{\"children\":[\"$\",\"a\",null,{\"href\":\"#api-endpoints-flask\",\"children\":\"API Endpoints (Flask)\"}]}]\na:[\"$\",\"li\",null,{\"children\":[\"$\",\"a\",null,{\"href\":\"#site-pages-next-js\",\"children\":\"Site Pages (Next.js)\"}]}]\nb:[\"$\",\"h2\",null,{\"id\":\"api-endpoints-flask\",\"children\":\"API Endpoints (Flask)\"}]\n12:T66a8,"])</script><script>self.__next_f.push([1,"[\n  {\n    \"path\": \"/affiliates\",\n    \"handler\": \"affiliates_dashboard\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/demo-mode\",\n    \"handler\": \"api_demo_mode\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/health\",\n    \"handler\": \"health_check\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/health\",\n    \"handler\": \"health\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/test-simple\",\n    \"handler\": \"test_simple\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/support\",\n    \"handler\": \"support\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/legal/privacy\",\n    \"handler\": \"legal_privacy\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/legal/terms\",\n    \"handler\": \"legal_terms\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/legal/refunds\",\n    \"handler\": \"legal_refunds\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/legal/cookies\",\n    \"handler\": \"legal_cookies\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/ops-report\",\n    \"handler\": \"ops_report\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/payments/debug\",\n    \"handler\": \"payments_debug\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/favicon.ico\",\n    \"handler\": \"favicon\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/auth/login\",\n    \"handler\": \"api_lead\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/sitemap.xml\",\n    \"handler\": \"sitemap\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/robots.txt\",\n    \"handler\": \"robots\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/warehouse/status\",\n    \"handler\": \"api_warehouse_status\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/warehouse/sync\",\n    \"handler\": \"api_warehouse_sync\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/slo/recommendations\",\n    \"handler\": \"api_slo_recommendations\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/slo/tune\",\n    \"handler\": \"api_slo_tune\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/slo/apply\",\n    \"handler\": \"api_slo_apply\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/flags\",\n    \"handler\": \"api_flags_list\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/flags/\u0026lt;flag_name\u0026gt;\",\n    \"handler\": \"api_flags_get\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/flags/\u0026lt;flag_name\u0026gt;\",\n    \"handler\": \"api_flags_update\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/flags/\u0026lt;flag_name\u0026gt;\",\n    \"handler\": \"api_flags_delete\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/flags/check/\u0026lt;flag_name\u0026gt;\",\n    \"handler\": \"api_flags_check\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/flags/evaluate\",\n    \"handler\": \"api_flags_evaluate\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/governance/report\",\n    \"handler\": \"api_governance_report\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/governance/analyze\",\n    \"handler\": \"api_governance_analyze\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/auth/token\",\n    \"handler\": \"api_auth_token\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/auth/refresh\",\n    \"handler\": \"api_auth_refresh\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/auth/revoke\",\n    \"handler\": \"api_auth_revoke\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/auth/me\",\n    \"handler\": \"api_auth_me\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/logs\",\n    \"handler\": \"api_logs\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/metrics\",\n    \"handler\": \"metrics_prometheus\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/governance/recommendations\",\n    \"handler\": \"api_governance_recommendations\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/analytics/usage\",\n    \"handler\": \"api_analytics_usage\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/analytics/event\",\n    \"handler\": \"api_analytics_event\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/ops/command\",\n    \"handler\": \"api_ops_command\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/ops/commands\",\n    \"handler\": \"api_ops_commands\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/tenant/info\",\n    \"handler\": \"api_tenant_info\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/tenant/test-access\",\n    \"handler\": \"api_tenant_test_access\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/finops/summary\",\n    \"handler\": \"api_finops_summary\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/finops/tenants\",\n    \"handler\": \"api_finops_tenants\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/audit/chain\",\n    \"handler\": \"api_audit_chain\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/compliance/webhook\",\n    \"handler\": \"api_compliance_webhook\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/queue/enqueue\",\n    \"handler\": \"api_queue_enqueue\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/queue/status\",\n    \"handler\": \"api_queue_status\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/growth/referrals\",\n    \"handler\": \"api_growth_referrals\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/growth/referral/create\",\n    \"handler\": \"api_create_referral\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/growth/payouts/export\",\n    \"handler\": \"api_export_payouts\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/offline.html\",\n    \"handler\": \"offline_page\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/manifest.json\",\n    \"handler\": \"pwa_manifest\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/integrations/catalog\",\n    \"handler\": \"api_integrations_catalog\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/integrations/install\",\n    \"handler\": \"api_install_integration\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/ai/analytics\",\n    \"handler\": \"api_ai_analytics\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/ai/model-comparison\",\n    \"handler\": \"api_model_comparison\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/predict/load\",\n    \"handler\": \"api_predict_load\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/predict/staffing\",\n    \"handler\": \"api_staffing_recommendation\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/healing/status\",\n    \"handler\": \"api_healing_status\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/marketplace/listings\",\n    \"handler\": \"api_marketplace_listings\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/marketplace/purchase\",\n    \"handler\": \"api_marketplace_purchase\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/compliance/gdpr-export\",\n    \"handler\": \"api_gdpr_export\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/compliance/soc2-report\",\n    \"handler\": \"api_soc2_report\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/regions/status\",\n    \"handler\": \"api_regions_status\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/partners/dashboard\",\n    \"handler\": \"api_partner_dashboard\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/partners/register\",\n    \"handler\": \"api_register_partner\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/health\",\n    \"handler\": \"api_health\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/platform/status\",\n    \"handler\": \"api_platform_status\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/platform/metrics\",\n    \"handler\": \"api_platform_metrics\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/platform/phase-report\",\n    \"handler\": \"api_phase_report\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/webhook/stripe\",\n    \"handler\": \"webhook_stripe\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/webhook/paypal\",\n    \"handler\": \"webhook_paypal\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/exec-report\",\n    \"handler\": \"exec_report_route\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/refund\",\n    \"handler\": \"refund_route\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/p95\",\n    \"handler\": \"p95_route\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/backup-config\",\n    \"handler\": \"backup_config_route\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/dsr\",\n    \"handler\": \"dsr_route\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/payments/scan\",\n    \"handler\": \"payments_scan_route\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/jobs/replay\",\n    \"handler\": \"jobs_replay_route\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/forecast/chart\",\n    \"handler\": \"forecast_chart_route\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/finance/revenue\",\n    \"handler\": \"finance_revenue_route\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/finance/pl\",\n    \"handler\": \"finance_pl_route\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/finance/valuation\",\n    \"handler\": \"finance_valuation_route\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/v1/jobs\",\n    \"handler\": \"marketplace_submit_job\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/v1/results/\u0026lt;job_id\u0026gt;\",\n    \"handler\": \"marketplace_get_results\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/v1/stats\",\n    \"handler\": \"marketplace_stats\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/metrics\",\n    \"handler\": \"metrics_route\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/pulse\",\n    \"handler\": \"pulse_route\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/\",\n    \"handler\": \"about\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/dashboard\",\n    \"handler\": \"dashboard_v2\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/portal\",\n    \"handler\": \"portal\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/debug\",\n    \"handler\": \"debug_logs\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/dashboard/v1\",\n    \"handler\": \"dashboard_v1\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/payments\",\n    \"handler\": \"payments\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/os\",\n    \"handler\": \"os_dashboard\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/integrations\",\n    \"handler\": \"integrations_hub\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/landing\",\n    \"handler\": \"landing_redirect\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/home\",\n    \"handler\": \"marketing_home\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/feature-flags\",\n    \"handler\": \"api_feature_flags\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/growth/referral\",\n    \"handler\": \"api_track_referral\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/growth/referrals/\u0026lt;user_id\u0026gt;\",\n    \"handler\": \"api_get_referrals\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/growth/onboarding/\u0026lt;user_id\u0026gt;\",\n    \"handler\": \"api_get_onboarding\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/growth/onboarding\",\n    \"handler\": \"api_update_onboarding\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/i18n/locales\",\n    \"handler\": \"api_get_locales\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/i18n/strings/\u0026lt;locale\u0026gt;\",\n    \"handler\": \"api_get_strings\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/workflow/builder\",\n    \"handler\": \"workflow_builder_ui\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/ai/generate-workflow\",\n    \"handler\": \"api_ai_generate_workflow\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/ai/predict-failures\",\n    \"handler\": \"api_predict_failures\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/workflow/node-types\",\n    \"handler\": \"api_get_node_types\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/workflow\",\n    \"handler\": \"api_create_workflow\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/workflow/\u0026lt;workflow_id\u0026gt;\",\n    \"handler\": \"api_get_workflow\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/workflow/\u0026lt;workflow_id\u0026gt;\",\n    \"handler\": \"api_update_workflow\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/workflow/\u0026lt;workflow_id\u0026gt;\",\n    \"handler\": \"api_delete_workflow\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/workflow/list\",\n    \"handler\": \"api_list_workflows\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/workflow/templates\",\n    \"handler\": \"api_list_templates\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/workflow/execute/ai\",\n    \"handler\": \"api_execute_ai_task\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/status/summary\",\n    \"handler\": \"api_status_summary\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/csrf-token\",\n    \"handler\": \"api_get_csrf_token\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/supervisor-status\",\n    \"handler\": \"api_supervisor_status\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/pulse\",\n    \"handler\": \"api_pulse\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/create-test-job\",\n    \"handler\": \"api_create_test_job\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/job-log-latest\",\n    \"handler\": \"api_job_log_latest\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/flip-paid\",\n    \"handler\": \"api_flip_paid\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/metrics-summary\",\n    \"handler\": \"api_metrics_summary\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/release-captain\",\n    \"handler\": \"api_release_captain\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/public/create-job\",\n    \"handler\": \"api_public_create_job\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/public/job-status/\u0026lt;correlation_id\u0026gt;\",\n    \"handler\": \"api_public_job_status\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/public/checkout/\u0026lt;correlation_id\u0026gt;\",\n    \"handler\": \"api_public_checkout\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/public/after-payment\",\n    \"handler\": \"api_public_after_payment\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/public/job-history/\u0026lt;email\u0026gt;\",\n    \"handler\": \"api_public_job_history\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/public/send-email\",\n    \"handler\": \"api_public_send_email\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/public/support\",\n    \"handler\": \"api_public_support\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/public/download/\u0026lt;correlation_id\u0026gt;\",\n    \"handler\": \"api_public_download\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/preflight-audit\",\n    \"handler\": \"api_preflight_audit\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/self-heal\",\n    \"handler\": \"self_heal\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/finance-metrics\",\n    \"handler\": \"finance_metrics\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/growth/subscribe\",\n    \"handler\": \"growth_subscribe\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/alerts/trigger\",\n    \"handler\": \"trigger_alerts\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/optimizer/run\",\n    \"handler\": \"run_optimizer\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/exec/report-latest\",\n    \"handler\": \"exec_report_latest\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/exec/ingest\",\n    \"handler\": \"exec_ingest\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/exec/analyze\",\n    \"handler\": \"exec_analyze\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/exec/brief\",\n    \"handler\": \"exec_brief\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/exec/email\",\n    \"handler\": \"exec_email\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/exec/schedule-daily\",\n    \"handler\": \"exec_schedule_daily\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/automations/start\",\n    \"handler\": \"automations_start\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/automations/stop\",\n    \"handler\": \"automations_stop\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/automations/status\",\n    \"handler\": \"automations_status\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/system-health\",\n    \"handler\": \"system_health\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/live-ops\",\n    \"handler\": \"live_ops_status\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/runtime-costs\",\n    \"handler\": \"runtime_costs\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/payments/create-invoice\",\n    \"handler\": \"create_payment_invoice\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/payments/webhook\",\n    \"handler\": \"stripe_webhook\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/v63/stripe/checkout\",\n    \"handler\": \"stripe_checkout_v63\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/checkout\",\n    \"handler\": \"api_checkout_direct\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/v63/stripe/portal\",\n    \"handler\": \"stripe_portal_v63\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/v63/stripe/usage\",\n    \"handler\": \"stripe_usage_v63\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/v63/stripe/webhook\",\n    \"handler\": \"stripe_webhook_v63\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/customer/signed-url/\u0026lt;client_id\u0026gt;\",\n    \"handler\": \"get_signed_url\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/customer/unsubscribe\",\n    \"handler\": \"unsubscribe_email\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/compliance/export-data\",\n    \"handler\": \"export_user_data\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/pricing/optimize\",\n    \"handler\": \"optimize_pricing\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/growth/referral/new\",\n    \"handler\": \"generate_referral\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/audit/report\",\n    \"handler\": \"run_audit_report\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/regions/sync\",\n    \"handler\": \"sync_regions\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/payments/list\",\n    \"handler\": \"api_list_payments\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/ops/sentinel\",\n    \"handler\": \"api_ops_sentinel\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/ops/check\",\n    \"handler\": \"api_ops_check\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/revenue/intelligence\",\n    \"handler\": \"api_revenue_intelligence\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/finance/reconcile\",\n    \"handler\": \"api_finance_reconcile\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/governance/check\",\n    \"handler\": \"api_governance_check\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/brain/decide\",\n    \"handler\": \"run_ops_brain\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/observability/snapshot\",\n    \"handler\": \"api_observability_snapshot\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/fraud/check\",\n    \"handler\": \"api_fraud_check\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/portal/link\",\n    \"handler\": \"api_portal_link\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/email/send\",\n    \"handler\": \"api_send_email\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/reports/email\",\n    \"handler\": \"api_reports_email\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/payouts/reconcile\",\n    \"handler\": \"api_payouts_reconcile\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/churn/score\",\n    \"handler\": \"api_churn_score\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/slo/check\",\n    \"handler\": \"api_slo_check\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/audit/latest\",\n    \"handler\": \"api_audit_latest\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/audit/summary\",\n    \"handler\": \"api_audit_summary\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/support/digest\",\n    \"handler\": \"api_support_digest\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/flags/get\",\n    \"handler\": \"api_flags_get_all\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/flags/set\",\n    \"handler\": \"api_flags_set\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/exp/assign\",\n    \"handler\": \"api_exp_assign\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/exp/log\",\n    \"handler\": \"api_exp_log\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/costs/report\",\n    \"handler\": \"api_costs_report\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/incidents/scan\",\n    \"handler\": \"api_incidents_scan\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/payments/webhooks\",\n    \"handler\": \"api_payments_webhooks\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/payments/refund-last\",\n    \"handler\": \"api_payments_refund_last\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/payments/events\",\n    \"handler\": \"api_payments_events\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/payments/refund\",\n    \"handler\": \"api_payments_refund\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/customer/invoices/\u0026lt;email\u0026gt;\",\n    \"handler\": \"api_customer_invoices\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/customer/signed-url/\u0026lt;email\u0026gt;\",\n    \"handler\": \"api_customer_signed_url\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/backup/run\",\n    \"handler\": \"api_backup_run\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/slo/status\",\n    \"handler\": \"api_slo_status\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/ops/analytics\",\n    \"handler\": \"api_ops_analytics\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/retries/simulate\",\n    \"handler\": \"api_retries_simulate\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/reports/email-daily\",\n    \"handler\": \"api_reports_email_daily\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/incidents/summarize\",\n    \"handler\": \"api_incidents_summarize\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/slo/budget\",\n    \"handler\": \"api_slo_budget\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/slo/rebaseline\",\n    \"handler\": \"api_slo_rebaseline\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/incidents/raise\",\n    \"handler\": \"api_incidents_raise\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/incidents/summary\",\n    \"handler\": \"api_incidents_summary\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/portal/receipts\",\n    \"handler\": \"api_portal_receipts\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/portal/download\",\n    \"handler\": \"api_portal_download\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/costs/status\",\n    \"handler\": \"api_costs_status\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/costs/set-cap\",\n    \"handler\": \"api_costs_set_cap\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/scale/status\",\n    \"handler\": \"api_scale_status\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/scale/apply\",\n    \"handler\": \"api_scale_apply\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/rbac/init\",\n    \"handler\": \"api_rbac_init\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/rbac/users\",\n    \"handler\": \"api_rbac_users\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/dr/backup\",\n    \"handler\": \"api_dr_backup\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/model/route\",\n    \"handler\": \"api_model_route\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/finops/report\",\n    \"handler\": \"api_finops_report\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/analytics/hub\",\n    \"handler\": \"api_analytics_hub\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/maintenance/predict\",\n    \"handler\": \"api_predictive_maintenance\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/compliance/check\",\n    \"handler\": \"api_compliance_v2\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/governance/advice\",\n    \"handler\": \"api_governance_ai\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/tenant/stats\",\n    \"handler\": \"api_tenant_stats\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/tenant/billing/\u0026lt;tenant_id\u0026gt;\",\n    \"handler\": \"api_tenant_billing\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/anomaly/detect\",\n    \"handler\": \"api_anomaly_detection\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/security/scan\",\n    \"handler\": \"api_security_scan\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/privacy/consent\",\n    \"handler\": \"api_privacy_consent\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/training/audit\",\n    \"handler\": \"api_training_audit\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/optimizer/run\",\n    \"handler\": \"api_adaptive_optimizer\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/self-heal/run\",\n    \"handler\": \"api_self_heal_v2\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/learning/status\",\n    \"handler\": \"api_continuous_learning\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/validate/enterprise\",\n    \"handler\": \"api_enterprise_validator\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/reports/enterprise\",\n    \"handler\": \"api_enterprise_report\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/reports/enterprise/html\",\n    \"handler\": \"api_enterprise_report_html\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/validation/html\",\n    \"handler\": \"api_validation_report_html\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/metrics\",\n    \"handler\": \"prometheus_metrics\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/observability/slo\",\n    \"handler\": \"api_observability_slo\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/observability/latency\",\n    \"handler\": \"api_observability_latency\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/ops/telemetry\",\n    \"handler\": \"api_ops_telemetry\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/jobs/\u0026lt;job_id\u0026gt;\",\n    \"handler\": \"api_job_details\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/event\",\n    \"handler\": \"api_event_proxy\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/lead\",\n    \"handler\": \"lead_page\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/queue\",\n    \"handler\": \"queue_page\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/analytics\",\n    \"handler\": \"share_target\",\n    \"file\": \"run.py\"\n  },\n  {\n    \"path\": \"/api/data\",\n    \"handler\": \"check_cross_tenant_access\",\n    \"file\": \"bot/tenancy.py\"\n  },\n  {\n    \"path\": \"/\",\n    \"handler\": \"copy_current_request_context\",\n    \"file\": \".cache/uv/archive-v0/M22qpKPRIrpUHfAHRBkuG/flask/ctx.py\"\n  },\n  {\n    \"path\": \"/\",\n    \"handler\": \"has_request_context\",\n    \"file\": \".cache/uv/archive-v0/M22qpKPRIrpUHfAHRBkuG/flask/ctx.py\"\n  },\n  {\n    \"path\": \"/uploads/\u0026lt;path:name\u0026gt;\",\n    \"handler\": \"get_root_path\",\n    \"file\": \".cache/uv/archive-v0/M22qpKPRIrpUHfAHRBkuG/flask/helpers.py\"\n  },\n  {\n    \"path\": \"/\",\n    \"handler\": \"_endpoint_from_view_func\",\n    \"file\": \".cache/uv/archive-v0/M22qpKPRIrpUHfAHRBkuG/flask/sansio/scaffold.py\"\n  },\n  {\n    \"path\": \"/\",\n    \"handler\": \"copy_current_request_context\",\n    \"file\": \".cache/uv/archive-v0/RCtNoNFAMQtzKXNVpOus-/flask/ctx.py\"\n  },\n  {\n    \"path\": \"/\",\n    \"handler\": \"has_request_context\",\n    \"file\": \".cache/uv/archive-v0/RCtNoNFAMQtzKXNVpOus-/flask/ctx.py\"\n  },\n  {\n    \"path\": \"/uploads/\u0026lt;path:name\u0026gt;\",\n    \"handler\": \"get_root_path\",\n    \"file\": \".cache/uv/archive-v0/RCtNoNFAMQtzKXNVpOus-/flask/helpers.py\"\n  },\n  {\n    \"path\": \"/\",\n    \"handler\": \"_endpoint_from_view_func\",\n    \"file\": \".cache/uv/archive-v0/RCtNoNFAMQtzKXNVpOus-/flask/sansio/scaffold.py\"\n  },\n  {\n    \"path\": \"/\",\n    \"handler\": \"copy_current_request_context\",\n    \"file\": \".pythonlibs/lib/python3.11/site-packages/flask/ctx.py\"\n  },\n  {\n    \"path\": \"/\",\n    \"handler\": \"has_request_context\",\n    \"file\": \".pythonlibs/lib/python3.11/site-packages/flask/ctx.py\"\n  },\n  {\n    \"path\": \"/uploads/\u0026lt;path:name\u0026gt;\",\n    \"handler\": \"get_root_path\",\n    \"file\": \".pythonlibs/lib/python3.11/site-packages/flask/helpers.py\"\n  },\n  {\n    \"path\": \"/\",\n    \"handler\": \"_endpoint_from_view_func\",\n    \"file\": \".pythonlibs/lib/python3.11/site-packages/flask/sansio/scaffold.py\"\n  }\n]"])</script><script>self.__next_f.push([1,"c:[\"$\",\"pre\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\"$12\"}}]\nd:[\"$\",\"h2\",null,{\"id\":\"site-pages-next-js\",\"children\":\"Site Pages (Next.js)\"}]\n13:T992,"])</script><script>self.__next_f.push([1,"[\n  {\n    \"route\": \"/(feedback)/feedback\",\n    \"file\": \"(feedback)/feedback/page.tsx\"\n  },\n  {\n    \"route\": \"/(marketing)\",\n    \"file\": \"(marketing)/page.tsx\"\n  },\n  {\n    \"route\": \"/(marketing)/blog\",\n    \"file\": \"(marketing)/blog/page.tsx\"\n  },\n  {\n    \"route\": \"/(marketing)/features\",\n    \"file\": \"(marketing)/features/page.tsx\"\n  },\n  {\n    \"route\": \"/(marketing)/legal/aup\",\n    \"file\": \"(marketing)/legal/aup/page.tsx\"\n  },\n  {\n    \"route\": \"/(marketing)/legal/cookies\",\n    \"file\": \"(marketing)/legal/cookies/page.tsx\"\n  },\n  {\n    \"route\": \"/(marketing)/legal/dpa\",\n    \"file\": \"(marketing)/legal/dpa/page.tsx\"\n  },\n  {\n    \"route\": \"/(marketing)/legal/privacy\",\n    \"file\": \"(marketing)/legal/privacy/page.tsx\"\n  },\n  {\n    \"route\": \"/(marketing)/legal/refunds\",\n    \"file\": \"(marketing)/legal/refunds/page.tsx\"\n  },\n  {\n    \"route\": \"/(marketing)/legal/sla\",\n    \"file\": \"(marketing)/legal/sla/page.tsx\"\n  },\n  {\n    \"route\": \"/(marketing)/legal/terms\",\n    \"file\": \"(marketing)/legal/terms/page.tsx\"\n  },\n  {\n    \"route\": \"/(marketing)/pricing\",\n    \"file\": \"(marketing)/pricing/page.tsx\"\n  },\n  {\n    \"route\": \"/(marketing)/product\",\n    \"file\": \"(marketing)/product/page.tsx\"\n  },\n  {\n    \"route\": \"/admin\",\n    \"file\": \"admin/page.tsx\"\n  },\n  {\n    \"route\": \"/ai/builder\",\n    \"file\": \"ai/builder/page.tsx\"\n  },\n  {\n    \"route\": \"/analytics\",\n    \"file\": \"analytics/page.tsx\"\n  },\n  {\n    \"route\": \"/auth/login\",\n    \"file\": \"auth/login/page.tsx\"\n  },\n  {\n    \"route\": \"/auth/register\",\n    \"file\": \"auth/register/page.tsx\"\n  },\n  {\n    \"route\": \"/contact\",\n    \"file\": \"contact/page.tsx\"\n  },\n  {\n    \"route\": \"/dashboard\",\n    \"file\": \"dashboard/page.tsx\"\n  },\n  {\n    \"route\": \"/demo\",\n    \"file\": \"demo/page.tsx\"\n  },\n  {\n    \"route\": \"/docs\",\n    \"file\": \"docs/page.tsx\"\n  },\n  {\n    \"route\": \"/docs/changelog\",\n    \"file\": \"docs/changelog/page.tsx\"\n  },\n  {\n    \"route\": \"/docs/search\",\n    \"file\": \"docs/search/page.tsx\"\n  },\n  {\n    \"route\": \"/help\",\n    \"file\": \"help/page.tsx\"\n  },\n  {\n    \"route\": \"/login\",\n    \"file\": \"login/page.tsx\"\n  },\n  {\n    \"route\": \"/ops\",\n    \"file\": \"ops/page.tsx\"\n  },\n  {\n    \"route\": \"/portal\",\n    \"file\": \"portal/page.tsx\"\n  },\n  {\n    \"route\": \"/referral\",\n    \"file\": \"referral/page.tsx\"\n  },\n  {\n    \"route\": \"/status\",\n    \"file\": \"status/page.tsx\"\n  },\n  {\n    \"route\": \"/support\",\n    \"file\": \"support/page.tsx\"\n  },\n  {\n    \"route\": \"/workflow\",\n    \"file\": \"workflow/page.tsx\"\n  }\n]"])</script><script>self.__next_f.push([1,"e:[\"$\",\"pre\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\"$13\"}}]\nf:[\"$\",\"$L14\",null,{\"children\":[\"$\",\"$15\",null,{\"name\":\"Next.MetadataOutlet\",\"children\":\"$@16\"}]}]\n10:[\"$\",\"$1\",\"h\",{\"children\":[null,[\"$\",\"$L17\",null,{\"children\":\"$@18\"}],[\"$\",\"div\",null,{\"hidden\":true,\"children\":[\"$\",\"$L19\",null,{\"children\":[\"$\",\"$15\",null,{\"name\":\"Next.Metadata\",\"children\":\"$@1a\"}]}]}],null]}]\n"])</script><script>self.__next_f.push([1,"18:[[\"$\",\"meta\",\"0\",{\"charSet\":\"utf-8\"}],[\"$\",\"meta\",\"1\",{\"name\":\"viewport\",\"content\":\"width=device-width, initial-scale=1\"}]]\n"])</script><script>self.__next_f.push([1,"1a:[[\"$\",\"title\",\"0\",{\"children\":\"Docs • EchoPilotAI | EchoPilotAI\"}],[\"$\",\"meta\",\"1\",{\"name\":\"description\",\"content\":\"Automate workflows, process tasks with AI, and scale your revenue with EchoPilotAI intelligent automation platform.\"}],[\"$\",\"meta\",\"2\",{\"name\":\"author\",\"content\":\"EchoPilotAI\"}],[\"$\",\"meta\",\"3\",{\"name\":\"keywords\",\"content\":\"AI automation,workflow automation,business automation,SaaS platform\"}],[\"$\",\"meta\",\"4\",{\"name\":\"creator\",\"content\":\"EchoPilotAI\"}],[\"$\",\"meta\",\"5\",{\"name\":\"robots\",\"content\":\"index, follow\"}],[\"$\",\"meta\",\"6\",{\"property\":\"og:title\",\"content\":\"EchoPilotAI - Intelligent Automation Platform\"}],[\"$\",\"meta\",\"7\",{\"property\":\"og:description\",\"content\":\"Automate workflows, process tasks with AI, and scale your revenue.\"}],[\"$\",\"meta\",\"8\",{\"property\":\"og:url\",\"content\":\"https://echopilotai.replit.app\"}],[\"$\",\"meta\",\"9\",{\"property\":\"og:site_name\",\"content\":\"EchoPilotAI\"}],[\"$\",\"meta\",\"10\",{\"property\":\"og:locale\",\"content\":\"en_US\"}],[\"$\",\"meta\",\"11\",{\"property\":\"og:type\",\"content\":\"website\"}],[\"$\",\"meta\",\"12\",{\"name\":\"twitter:card\",\"content\":\"summary_large_image\"}],[\"$\",\"meta\",\"13\",{\"name\":\"twitter:title\",\"content\":\"EchoPilotAI\"}],[\"$\",\"meta\",\"14\",{\"name\":\"twitter:description\",\"content\":\"Intelligent automation platform powered by AI\"}]]\n16:null\n"])</script></body></html>

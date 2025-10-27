@@ -1,0 +1,5 @@
+1:"$Sreact.fragment"
+2:I[97367,["/_next/static/chunks/ff1a16fafef87110.js","/_next/static/chunks/247eb132b7f7b574.js"],"OutletBoundary"]
+3:"$Sreact.suspense"
+0:{"buildId":"VdGkSDcQmwQJTqX9PX4h0","rsc":["$","$1","c",{"children":[["$","div",null,{"className":"min-h-screen bg-slate-950 text-white","children":["$","main",null,{"className":"max-w-4xl mx-auto px-6 py-20","children":[["$","h1",null,{"className":"text-4xl font-bold mb-6","children":"Blog"}],["$","p",null,{"className":"text-xl text-slate-400 mb-8","children":"Insights, updates, and best practices for AI automation."}],["$","div",null,{"className":"space-y-6","children":[["$","p",null,{"className":"text-slate-300","children":"Stay tuned for articles about automation strategies, platform updates, and customer success stories."}],["$","a",null,{"href":"/","className":"inline-block mt-8 text-blue-400 hover:text-blue-300","children":"← Back to Home"}]]}]]}]}],null,["$","$L2",null,{"children":["$","$3",null,{"name":"Next.MetadataOutlet","children":"$@4"}]}]]}],"loading":null,"isPartial":false}
+4:null

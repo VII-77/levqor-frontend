@@ -1,0 +1,3 @@
+{"timestamp": "2025-10-26T16:36:03.330407Z", "email": "active-user@example.com", "activity_type": "login", "metadata": {"page": null, "referrer": null, "duration_seconds": null}}
+{"timestamp": "2025-10-26T16:39:14.885420Z", "email": "journey-test@example.com", "activity_type": "login", "metadata": {"page": "/dashboard", "referrer": null, "duration_seconds": null}}
+{"timestamp": "2025-10-26T16:39:14.946492Z", "email": "journey-test@example.com", "activity_type": "workflow_created", "metadata": {"page": "/workflow/builder", "referrer": null, "duration_seconds": null}}

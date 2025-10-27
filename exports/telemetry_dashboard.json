@@ -1,0 +1,29 @@
+[
+  {
+    "id": "wf_health",
+    "name": "Health Monitor",
+    "status": "OK",
+    "last_run_ts": 1761481071,
+    "next_run_ts": 1761481671,
+    "latency_ms_p50": 45,
+    "errors_24h": 0
+  },
+  {
+    "id": "wf_scheduler",
+    "name": "Task Scheduler",
+    "status": "OK",
+    "last_run_ts": 1761480771,
+    "next_run_ts": 1761481971,
+    "latency_ms_p50": 120,
+    "errors_24h": 0
+  },
+  {
+    "id": "wf_automation",
+    "name": "Automation Engine",
+    "status": "OK",
+    "last_run_ts": 1761480471,
+    "next_run_ts": 1761482271,
+    "latency_ms_p50": 280,
+    "errors_24h": 1
+  }
+]

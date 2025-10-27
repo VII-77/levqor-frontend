@@ -1,0 +1,15 @@
+{
+  "generated_at": 1761441624,
+  "mrr": {
+    "current": 44.0,
+    "next_30d": 1244.0,
+    "next_90d": 3644.0,
+    "method": "ewma_trend"
+  },
+  "leads": {
+    "current": 1,
+    "next_30d": 2,
+    "next_90d": 3,
+    "method": "ewma_growth"
+  }
+}

@@ -1,0 +1,542 @@
+[
+  {
+    "date": "2025-07-28",
+    "revenue": 10000.0,
+    "customers": 10,
+    "mrr": 8000.0
+  },
+  {
+    "date": "2025-07-29",
+    "revenue": 10200.0,
+    "customers": 10,
+    "mrr": 8160.0
+  },
+  {
+    "date": "2025-07-30",
+    "revenue": 10400.0,
+    "customers": 10,
+    "mrr": 8320.0
+  },
+  {
+    "date": "2025-07-31",
+    "revenue": 10600.0,
+    "customers": 11,
+    "mrr": 8480.0
+  },
+  {
+    "date": "2025-08-01",
+    "revenue": 10800.0,
+    "customers": 11,
+    "mrr": 8640.0
+  },
+  {
+    "date": "2025-08-02",
+    "revenue": 11000.0,
+    "customers": 11,
+    "mrr": 8800.0
+  },
+  {
+    "date": "2025-08-03",
+    "revenue": 11200.0,
+    "customers": 12,
+    "mrr": 8960.0
+  },
+  {
+    "date": "2025-08-04",
+    "revenue": 10700.0,
+    "customers": 12,
+    "mrr": 8560.0
+  },
+  {
+    "date": "2025-08-05",
+    "revenue": 10900.0,
+    "customers": 12,
+    "mrr": 8720.0
+  },
+  {
+    "date": "2025-08-06",
+    "revenue": 11100.0,
+    "customers": 13,
+    "mrr": 8880.0
+  },
+  {
+    "date": "2025-08-07",
+    "revenue": 11300.0,
+    "customers": 13,
+    "mrr": 9040.0
+  },
+  {
+    "date": "2025-08-08",
+    "revenue": 11500.0,
+    "customers": 13,
+    "mrr": 9200.0
+  },
+  {
+    "date": "2025-08-09",
+    "revenue": 11700.0,
+    "customers": 14,
+    "mrr": 9360.0
+  },
+  {
+    "date": "2025-08-10",
+    "revenue": 11900.0,
+    "customers": 14,
+    "mrr": 9520.0
+  },
+  {
+    "date": "2025-08-11",
+    "revenue": 11400.0,
+    "customers": 14,
+    "mrr": 9120.0
+  },
+  {
+    "date": "2025-08-12",
+    "revenue": 11600.0,
+    "customers": 15,
+    "mrr": 9280.0
+  },
+  {
+    "date": "2025-08-13",
+    "revenue": 11800.0,
+    "customers": 15,
+    "mrr": 9440.0
+  },
+  {
+    "date": "2025-08-14",
+    "revenue": 12000.0,
+    "customers": 15,
+    "mrr": 9600.0
+  },
+  {
+    "date": "2025-08-15",
+    "revenue": 12200.0,
+    "customers": 16,
+    "mrr": 9760.0
+  },
+  {
+    "date": "2025-08-16",
+    "revenue": 12400.0,
+    "customers": 16,
+    "mrr": 9920.0
+  },
+  {
+    "date": "2025-08-17",
+    "revenue": 12600.0,
+    "customers": 16,
+    "mrr": 10080.0
+  },
+  {
+    "date": "2025-08-18",
+    "revenue": 12100.0,
+    "customers": 17,
+    "mrr": 9680.0
+  },
+  {
+    "date": "2025-08-19",
+    "revenue": 12300.0,
+    "customers": 17,
+    "mrr": 9840.0
+  },
+  {
+    "date": "2025-08-20",
+    "revenue": 12500.0,
+    "customers": 17,
+    "mrr": 10000.0
+  },
+  {
+    "date": "2025-08-21",
+    "revenue": 12700.0,
+    "customers": 18,
+    "mrr": 10160.0
+  },
+  {
+    "date": "2025-08-22",
+    "revenue": 12900.0,
+    "customers": 18,
+    "mrr": 10320.0
+  },
+  {
+    "date": "2025-08-23",
+    "revenue": 13100.0,
+    "customers": 18,
+    "mrr": 10480.0
+  },
+  {
+    "date": "2025-08-24",
+    "revenue": 13300.0,
+    "customers": 19,
+    "mrr": 10640.0
+  },
+  {
+    "date": "2025-08-25",
+    "revenue": 12800.0,
+    "customers": 19,
+    "mrr": 10240.0
+  },
+  {
+    "date": "2025-08-26",
+    "revenue": 13000.0,
+    "customers": 19,
+    "mrr": 10400.0
+  },
+  {
+    "date": "2025-08-27",
+    "revenue": 13200.0,
+    "customers": 20,
+    "mrr": 10560.0
+  },
+  {
+    "date": "2025-08-28",
+    "revenue": 13400.0,
+    "customers": 20,
+    "mrr": 10720.0
+  },
+  {
+    "date": "2025-08-29",
+    "revenue": 13600.0,
+    "customers": 20,
+    "mrr": 10880.0
+  },
+  {
+    "date": "2025-08-30",
+    "revenue": 13800.0,
+    "customers": 21,
+    "mrr": 11040.0
+  },
+  {
+    "date": "2025-08-31",
+    "revenue": 14000.0,
+    "customers": 21,
+    "mrr": 11200.0
+  },
+  {
+    "date": "2025-09-01",
+    "revenue": 13500.0,
+    "customers": 21,
+    "mrr": 10800.0
+  },
+  {
+    "date": "2025-09-02",
+    "revenue": 13700.0,
+    "customers": 22,
+    "mrr": 10960.0
+  },
+  {
+    "date": "2025-09-03",
+    "revenue": 13900.0,
+    "customers": 22,
+    "mrr": 11120.0
+  },
+  {
+    "date": "2025-09-04",
+    "revenue": 14100.0,
+    "customers": 22,
+    "mrr": 11280.0
+  },
+  {
+    "date": "2025-09-05",
+    "revenue": 14300.0,
+    "customers": 23,
+    "mrr": 11440.0
+  },
+  {
+    "date": "2025-09-06",
+    "revenue": 14500.0,
+    "customers": 23,
+    "mrr": 11600.0
+  },
+  {
+    "date": "2025-09-07",
+    "revenue": 14700.0,
+    "customers": 23,
+    "mrr": 11760.0
+  },
+  {
+    "date": "2025-09-08",
+    "revenue": 14200.0,
+    "customers": 24,
+    "mrr": 11360.0
+  },
+  {
+    "date": "2025-09-09",
+    "revenue": 14400.0,
+    "customers": 24,
+    "mrr": 11520.0
+  },
+  {
+    "date": "2025-09-10",
+    "revenue": 14600.0,
+    "customers": 24,
+    "mrr": 11680.0
+  },
+  {
+    "date": "2025-09-11",
+    "revenue": 14800.0,
+    "customers": 25,
+    "mrr": 11840.0
+  },
+  {
+    "date": "2025-09-12",
+    "revenue": 15000.0,
+    "customers": 25,
+    "mrr": 12000.0
+  },
+  {
+    "date": "2025-09-13",
+    "revenue": 15200.0,
+    "customers": 25,
+    "mrr": 12160.0
+  },
+  {
+    "date": "2025-09-14",
+    "revenue": 15400.0,
+    "customers": 26,
+    "mrr": 12320.0
+  },
+  {
+    "date": "2025-09-15",
+    "revenue": 14900.0,
+    "customers": 26,
+    "mrr": 11920.0
+  },
+  {
+    "date": "2025-09-16",
+    "revenue": 15100.0,
+    "customers": 26,
+    "mrr": 12080.0
+  },
+  {
+    "date": "2025-09-17",
+    "revenue": 15300.0,
+    "customers": 27,
+    "mrr": 12240.0
+  },
+  {
+    "date": "2025-09-18",
+    "revenue": 15500.0,
+    "customers": 27,
+    "mrr": 12400.0
+  },
+  {
+    "date": "2025-09-19",
+    "revenue": 15700.0,
+    "customers": 27,
+    "mrr": 12560.0
+  },
+  {
+    "date": "2025-09-20",
+    "revenue": 15900.0,
+    "customers": 28,
+    "mrr": 12720.0
+  },
+  {
+    "date": "2025-09-21",
+    "revenue": 16100.0,
+    "customers": 28,
+    "mrr": 12880.0
+  },
+  {
+    "date": "2025-09-22",
+    "revenue": 15600.0,
+    "customers": 28,
+    "mrr": 12480.0
+  },
+  {
+    "date": "2025-09-23",
+    "revenue": 15800.0,
+    "customers": 29,
+    "mrr": 12640.0
+  },
+  {
+    "date": "2025-09-24",
+    "revenue": 16000.0,
+    "customers": 29,
+    "mrr": 12800.0
+  },
+  {
+    "date": "2025-09-25",
+    "revenue": 16200.0,
+    "customers": 29,
+    "mrr": 12960.0
+  },
+  {
+    "date": "2025-09-26",
+    "revenue": 16400.0,
+    "customers": 30,
+    "mrr": 13120.0
+  },
+  {
+    "date": "2025-09-27",
+    "revenue": 16600.0,
+    "customers": 30,
+    "mrr": 13280.0
+  },
+  {
+    "date": "2025-09-28",
+    "revenue": 16800.0,
+    "customers": 30,
+    "mrr": 13440.0
+  },
+  {
+    "date": "2025-09-29",
+    "revenue": 16300.0,
+    "customers": 31,
+    "mrr": 13040.0
+  },
+  {
+    "date": "2025-09-30",
+    "revenue": 16500.0,
+    "customers": 31,
+    "mrr": 13200.0
+  },
+  {
+    "date": "2025-10-01",
+    "revenue": 16700.0,
+    "customers": 31,
+    "mrr": 13360.0
+  },
+  {
+    "date": "2025-10-02",
+    "revenue": 16900.0,
+    "customers": 32,
+    "mrr": 13520.0
+  },
+  {
+    "date": "2025-10-03",
+    "revenue": 17100.0,
+    "customers": 32,
+    "mrr": 13680.0
+  },
+  {
+    "date": "2025-10-04",
+    "revenue": 17300.0,
+    "customers": 32,
+    "mrr": 13840.0
+  },
+  {
+    "date": "2025-10-05",
+    "revenue": 17500.0,
+    "customers": 33,
+    "mrr": 14000.0
+  },
+  {
+    "date": "2025-10-06",
+    "revenue": 17000.0,
+    "customers": 33,
+    "mrr": 13600.0
+  },
+  {
+    "date": "2025-10-07",
+    "revenue": 17200.0,
+    "customers": 33,
+    "mrr": 13760.0
+  },
+  {
+    "date": "2025-10-08",
+    "revenue": 17400.0,
+    "customers": 34,
+    "mrr": 13920.0
+  },
+  {
+    "date": "2025-10-09",
+    "revenue": 17600.0,
+    "customers": 34,
+    "mrr": 14080.0
+  },
+  {
+    "date": "2025-10-10",
+    "revenue": 17800.0,
+    "customers": 34,
+    "mrr": 14240.0
+  },
+  {
+    "date": "2025-10-11",
+    "revenue": 18000.0,
+    "customers": 35,
+    "mrr": 14400.0
+  },
+  {
+    "date": "2025-10-12",
+    "revenue": 18200.0,
+    "customers": 35,
+    "mrr": 14560.0
+  },
+  {
+    "date": "2025-10-13",
+    "revenue": 17700.0,
+    "customers": 35,
+    "mrr": 14160.0
+  },
+  {
+    "date": "2025-10-14",
+    "revenue": 17900.0,
+    "customers": 36,
+    "mrr": 14320.0
+  },
+  {
+    "date": "2025-10-15",
+    "revenue": 18100.0,
+    "customers": 36,
+    "mrr": 14480.0
+  },
+  {
+    "date": "2025-10-16",
+    "revenue": 18300.0,
+    "customers": 36,
+    "mrr": 14640.0
+  },
+  {
+    "date": "2025-10-17",
+    "revenue": 18500.0,
+    "customers": 37,
+    "mrr": 14800.0
+  },
+  {
+    "date": "2025-10-18",
+    "revenue": 18700.0,
+    "customers": 37,
+    "mrr": 14960.0
+  },
+  {
+    "date": "2025-10-19",
+    "revenue": 18900.0,
+    "customers": 37,
+    "mrr": 15120.0
+  },
+  {
+    "date": "2025-10-20",
+    "revenue": 18400.0,
+    "customers": 38,
+    "mrr": 14720.0
+  },
+  {
+    "date": "2025-10-21",
+    "revenue": 18600.0,
+    "customers": 38,
+    "mrr": 14880.0
+  },
+  {
+    "date": "2025-10-22",
+    "revenue": 18800.0,
+    "customers": 38,
+    "mrr": 15040.0
+  },
+  {
+    "date": "2025-10-23",
+    "revenue": 19000.0,
+    "customers": 39,
+    "mrr": 15200.0
+  },
+  {
+    "date": "2025-10-24",
+    "revenue": 19200.0,
+    "customers": 39,
+    "mrr": 15360.0
+  },
+  {
+    "date": "2025-10-25",
+    "revenue": 19400.0,
+    "customers": 39,
+    "mrr": 15520.0
+  }
+]

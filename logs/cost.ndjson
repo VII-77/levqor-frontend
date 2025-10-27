@@ -1,0 +1,2 @@
+{"ts": 1761440760, "metrics": {"cpu_percent": 37.0, "ram_mb": 30679.65, "ram_percent": 47.7, "disk_gb": 34.81, "disk_percent": 70.88, "usd_hour": 0.0437, "usd_day": 1.05, "usd_month": 31.44}}
+{"ts": 1761440762, "metrics": {"cpu_percent": 45.0, "ram_mb": 30017.74, "ram_percent": 46.7, "disk_gb": 34.81, "disk_percent": 70.88, "usd_hour": 0.0438, "usd_day": 1.05, "usd_month": 31.55}}

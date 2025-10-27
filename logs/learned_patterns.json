@@ -1,0 +1,7 @@
+{
+  "intake": 4,
+  "collect_stripe_metrics": 4,
+  "sync_crm": 2,
+  "run_health": 4,
+  "export": 4
+}

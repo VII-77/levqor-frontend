@@ -1,0 +1,32 @@
+{
+  "brand": "EchoPilotAI",
+  "support_email": "vii7cc@gmail.com",
+  "sla": "99.9% uptime target",
+  "refund_window_days": 14,
+  "data_retention_days": 365,
+  "gdpr_contact": "vii7cc@gmail.com",
+  "license": "proprietary",
+  "audit": "enabled",
+  "compliance": {
+    "gdpr_enabled": true,
+    "ccpa_enabled": true,
+    "soc2_ready": false,
+    "hipaa_ready": false
+  },
+  "monitoring": {
+    "health_check_interval": 300,
+    "cost_check_interval": 3600,
+    "alert_threshold_usd": 5
+  },
+  "security": {
+    "session_timeout_minutes": 60,
+    "password_min_length": 8,
+    "mfa_enabled": false,
+    "ip_whitelist_enabled": false
+  },
+  "versioning": {
+    "policy_version": "1.0.0",
+    "last_updated": "2025-10-26",
+    "next_review": "2026-01-26"
+  }
+}

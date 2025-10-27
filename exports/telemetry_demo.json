@@ -1,0 +1,29 @@
+[
+  {
+    "id": "wf_101",
+    "name": "Daily Health Check",
+    "status": "ok",
+    "last_run_ts": 1761517470637,
+    "next_run_ts": 1761603872303,
+    "latency_ms_p50": 1438,
+    "errors_24h": 0
+  },
+  {
+    "id": "wf_202",
+    "name": "Stripe Webhook Monitor",
+    "status": "ok",
+    "last_run_ts": 1761517474849,
+    "next_run_ts": 1761603876115,
+    "latency_ms_p50": 1374,
+    "errors_24h": 0
+  },
+  {
+    "id": "wf_303",
+    "name": "Notion Lead Sync",
+    "status": "idle",
+    "last_run_ts": 0,
+    "next_run_ts": 0,
+    "latency_ms_p50": 0,
+    "errors_24h": 0
+  }
+]

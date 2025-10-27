@@ -1,0 +1,4 @@
+{"timestamp": "2025-10-26T16:45:17.589551Z", "event_type": "data_export_requested", "user_email": "compliance-test@example.com", "metadata": {}, "ip_address": "127.0.0.1"}
+{"timestamp": "2025-10-26T16:45:17.589914Z", "event_type": "data_export_completed", "user_email": "compliance-test@example.com", "metadata": {"data_size_bytes": 538}, "ip_address": "127.0.0.1"}
+{"timestamp": "2025-10-26T16:45:17.632246Z", "event_type": "data_deletion_requested", "user_email": "compliance-test@example.com", "metadata": {"reason": "user_request"}, "ip_address": "127.0.0.1"}
+{"timestamp": "2025-10-26T16:45:17.632397Z", "event_type": "data_deletion_queued", "user_email": "compliance-test@example.com", "metadata": {"job_id": "del_20251026164517"}, "ip_address": "127.0.0.1"}

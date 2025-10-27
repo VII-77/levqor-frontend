@@ -4115,3 +4115,6 @@
 {"ts": "2025-10-27T20:42:36.680517Z", "request_id": "69b4f53d-dead-424e-8696-41180f489b3e", "route": "api_health", "method": "GET", "status": 200, "duration_ms": 0.51, "path": "/api/health"}
 {"ts": "2025-10-27T20:42:50.734472Z", "request_id": "12d9641c-e6bc-48ad-bf2d-10ae35e43d47", "route": "landing", "method": "GET", "status": 200, "duration_ms": 0.59, "path": "/"}
 {"ts": "2025-10-27T20:42:50.916955Z", "request_id": "e668920c-86b8-4dd1-9276-02991463230c", "route": "landing", "method": "GET", "status": 200, "duration_ms": 0.44, "path": "/"}
+{"ts": "2025-10-27T20:43:52.020026Z", "request_id": "536bf5ca-ae9a-48b2-8ebf-1703b7fdacac", "route": "health_check", "method": "GET", "status": 200, "duration_ms": 41.18, "path": "/health"}
+{"ts": "2025-10-27T20:43:53.308069Z", "request_id": "eaf7d00b-d5c2-4ab5-9e8f-174c9e00dbb3", "route": "landing", "method": "GET", "status": 200, "duration_ms": 0.48, "path": "/"}
+{"ts": "2025-10-27T20:43:53.685814Z", "request_id": "20e2430a-2ecd-4419-a622-4d9ea7d139b0", "route": "health_check", "method": "GET", "status": 200, "duration_ms": 40.68, "path": "/health"}

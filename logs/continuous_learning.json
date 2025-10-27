@@ -1,7 +1,13 @@
 {
   "ok": true,
-  "ts": "2025-10-27T11:38:13.673298Z",
-  "learnings_count": 0,
-  "learnings": [],
+  "ts": "2025-10-27T13:47:51.945665Z",
+  "learnings_count": 1,
+  "learnings": [
+    {
+      "pattern": "cost_consistency",
+      "learning": "Predictable cost patterns - maintain current model routing",
+      "confidence": 0.9
+    }
+  ],
   "next_cycle": "Apply learnings in 24h"
 }

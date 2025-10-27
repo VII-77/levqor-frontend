@@ -4389,3 +4389,5 @@
 {"ts": "2025-10-27T21:23:00.978884Z", "request_id": "124f02d3-73da-4831-bd27-7ca9ff10dff1", "route": "landing", "method": "GET", "status": 200, "duration_ms": 2.02, "path": "/"}
 {"ts": "2025-10-27T21:23:05.542055Z", "request_id": "dbcd4d9f-fbbf-4d34-a57f-601d1fb2a436", "route": "api_status_summary", "method": "GET", "status": 200, "duration_ms": 1.37, "path": "/api/status/summary"}
 {"ts": "2025-10-27T21:23:06.941964Z", "request_id": "8b3988ed-7f5a-4f59-bd6a-62a2f20f22df", "route": "api_status_summary", "method": "GET", "status": 200, "duration_ms": 0.76, "path": "/api/status/summary"}
+{"ts": "2025-10-27T21:23:35.544523Z", "request_id": "c895c4f8-43a4-4f9b-ac5a-7e943f141463", "route": "api_status_summary", "method": "GET", "status": 200, "duration_ms": 0.7, "path": "/api/status/summary"}
+{"ts": "2025-10-27T21:23:35.936157Z", "request_id": "08e71ac7-073d-4a8e-9923-8daf5e663068", "route": "api_status_summary", "method": "GET", "status": 200, "duration_ms": 0.63, "path": "/api/status/summary"}

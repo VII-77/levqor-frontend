@@ -3609,3 +3609,7 @@
 {"ts": "2025-10-27T19:48:07.632669Z", "request_id": "1a540235-2a5d-4b35-a6f7-8ab604eae398", "route": "login_page", "method": "HEAD", "status": 200, "duration_ms": 0.46, "path": "/auth/login"}
 {"ts": "2025-10-27T19:48:16.891779Z", "request_id": "b9837ed8-f4b3-4884-94be-1c4ae0f1aa20", "route": "landing", "method": "GET", "status": 200, "duration_ms": 0.48, "path": "/"}
 {"ts": "2025-10-27T19:48:21.322454Z", "request_id": "c2f24631-c783-4d45-8202-fa2cbf8644b6", "route": "api_status_summary", "method": "GET", "status": 200, "duration_ms": 1.04, "path": "/api/status/summary"}
+{"ts": "2025-10-27T19:48:51.321870Z", "request_id": "554b1697-fde5-4e39-b545-acafe45d16f9", "route": "api_status_summary", "method": "GET", "status": 200, "duration_ms": 3.28, "path": "/api/status/summary"}
+{"ts": "2025-10-27T19:49:17.135281Z", "request_id": "bfa7afa7-b325-4bc1-a4b5-10d0eef1dc77", "route": "landing", "method": "GET", "status": 200, "duration_ms": 0.62, "path": "/"}
+{"ts": "2025-10-27T19:49:21.326539Z", "request_id": "a6acd5bc-3bd1-4a85-b9c9-90889ed42876", "route": "api_status_summary", "method": "GET", "status": 200, "duration_ms": 1.09, "path": "/api/status/summary"}
+{"ts": "2025-10-27T19:49:51.321601Z", "request_id": "46fc1246-a664-4bd6-8c9b-aa0f856eafe7", "route": "api_status_summary", "method": "GET", "status": 200, "duration_ms": 0.6, "path": "/api/status/summary"}

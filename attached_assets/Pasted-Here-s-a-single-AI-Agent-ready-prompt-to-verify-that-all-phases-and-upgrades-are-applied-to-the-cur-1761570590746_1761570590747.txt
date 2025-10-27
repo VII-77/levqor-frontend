@@ -1,0 +1,162 @@
+Here’s a single, AI-Agent-ready prompt to verify that all phases and upgrades are applied to the current version, repair drift if found, and produce a final parity report.
+
+
+---
+
+Replit AI Agent — Full Phase Parity Audit + Repair (no schema changes, do NOT touch run.py)
+
+Goal: Prove the live deployment exactly matches the latest workspace build and all required features. Detect and fix drift. Produce a clear pass/fail report.
+
+Constraints:
+
+Do NOT edit run.py or delete application code.
+
+Fail fast on errors. Show exact diffs and grep proofs.
+
+Only perform safe rebuild, cache-bust, restart, and publish.
+
+
+Steps:
+
+1. Preconditions
+
+
+
+Verify paths: marketing-site/ (optional), static/ (must), run.py (must).
+
+Print: python --version, node -v || true, pip list | grep gunicorn, ps aux | grep -E "gunicorn|scheduler" | grep -v grep.
+
+
+2. Git + workspace snapshot
+
+
+
+git rev-parse --short HEAD || echo workspace
+git status --porcelain
+find . -maxdepth 1 -type f -name "*.lock"
+
+3. Branding + email invariants
+
+
+
+grep -RInE "EchoPilot( |AI|AI\b|$)" | wc -l
+grep -RIn "EchoPilotAI" | wc -l
+grep -RInE "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}" | grep -vE "node_modules|\.next|static|logs|exports" | sed -n '1,20p'
+
+Expect: only EchoPilotAI, support email vii7cc@gmail.com.
+
+
+4. Legal pages present
+
+
+
+for p in terms privacy refunds cookies aup dpa sla; do
+  test -f static/legal/$p.html && echo "legal/$p.html OK" || echo "legal/$p.html MISSING"
+done
+
+5. Pricing links wired
+
+
+
+Show four envs if present:
+
+
+grep -nH "STARTER_LINK\|PRO_LINK\|BUSINESS_LINK\|ENTERPRISE_LINK" marketing-site/.env.local 2>/dev/null || true
+grep -RIn "https://buy.stripe.com" static | head -6 || true
+
+6. Version markers (prove current build)
+
+
+
+date -u +"BUILD_UTC=%Y-%m-%dT%H:%M:%SZ" | tee static/.buildstamp
+echo "$(date -u +%Y%m%dT%H%M%SZ)" > static/.cachebuster
+echo "{\"build_utc\":\"$(cat static/.buildstamp)\",\"commit\":\"$(git rev-parse --short HEAD 2>/dev/null || echo workspace)\",\"source\":\"workspace\"}" > static/version.json
+
+7. Restart backend cleanly (no code changes)
+
+
+
+PORT="${PORT:-5000}"
+pkill -f "gunicorn .*run:app" || true
+sleep 2
+nohup gunicorn -w 1 -k gthread -t 120 --bind 0.0.0.0:$PORT run:app > /tmp/gunicorn.out 2>&1 &
+for i in $(seq 1 30); do code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:$PORT/health || true); [ "$code" = "200" ] && break; sleep 1; done
+[ "$code" = "200" ] || { echo "x health fail"; tail -n 120 /tmp/gunicorn.out; exit 1; }
+
+8. Local smoke (content, not just 200s)
+
+
+
+chk(){ p="$1"; expect="$2"; body=$(curl -fsS "http://localhost:$PORT$p?v=$(cat static/.cachebuster)" || true); echo "$body" | grep -qi "$expect" && echo "✓ $p" || { echo "✗ $p missing $expect"; exit 1; }; }
+chk "/" "EchoPilotAI"
+chk "/pricing" "<h1"
+chk "/login" "<h1>Login</h1>"
+chk "/workflow" "<h1>Workflow</h1>"
+chk "/dashboard" "Status"
+chk "/help" "<h1>Help Center</h1>"
+for p in /legal/terms /legal/privacy /legal/refunds /legal/cookies /legal/aup /legal/dpa /legal/sla /health; do curl -fsS "http://localhost:$PORT$p" >/dev/null || { echo "✗ $p"; exit 1; }; echo "✓ $p"; done
+
+9. API proofs
+
+
+
+curl -fsS http://localhost:$PORT/api/telemetry/workflows | head -200 || true
+curl -fsS -X POST http://localhost:$PORT/api/support/ticket -H "content-type: application/json" -d '{"email":"test@example.com","subject":"probe","message":"ping"}' | grep -q '"ok":true' && echo "✓ support API" || { echo "✗ support API"; exit 1; }
+tail -n 2 logs/tickets.ndjson 2>/dev/null || true
+
+10. Workflows + logs
+
+
+
+ps aux | grep -E "gunicorn.*run:app|scheduler" | grep -v grep
+tail -n 80 /tmp/gunicorn.out 2>/dev/null || true
+
+11. Production parity (replace ORIGIN if different)
+
+
+
+ORIGIN="https://echopilotai.replit.app"
+curl -fsS "$ORIGIN/health" | jq -c '.' || true
+for r in / /pricing /auth/login /app; do echo -n "$r -> "; curl -s -o /dev/null -w "%{http_code}" "$ORIGIN$r"; echo; done
+
+12. If any parity failure (local OK, prod OLD):
+
+
+
+In terminal, prep fresh snapshot only (no code edits):
+
+
+echo "SNAPSHOT_PREP $(date -u)" | tee static/.publish_ready
+
+Then instruct operator: Open Tools → Publishing → Publish (fresh, not Redeploy). Wait to finish. Re-run step 11 to confirm new timestamp.
+
+
+13. Final report
+
+
+
+Print:
+
+Commit, .buildstamp, .cachebuster values.
+
+List of verified pages and APIs.
+
+Any mismatches and whether fixed.
+
+Whether production now matches local.
+
+
+
+Deliverables:
+
+Terminal transcript of all checks.
+
+Summary line: PHASE PARITY: PASS or FAIL: <reason>.
+
+No changes to run.py. Only cache/version files and safe restart.
+
+
+
+---
+
+Run this as a single task.

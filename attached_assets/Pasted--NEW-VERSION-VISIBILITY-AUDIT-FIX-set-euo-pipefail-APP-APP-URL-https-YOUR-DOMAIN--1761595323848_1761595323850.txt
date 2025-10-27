@@ -1,0 +1,75 @@
+# === NEW VERSION VISIBILITY AUDIT & FIX ===
+set -euo pipefail
+APP="${APP_URL:-https://YOUR.DOMAIN}"   # set if not exported
+echo "Checking $APP"
+
+# 1) BACKEND VERSION PROOF (if your health exposes build)
+echo "--- /api/health"
+curl -fsS "$APP/api/health" | python -m json.tool | rg -n 'build|version|commit' || echo "No version keys; continue."
+
+# 2) FORCE-FETCH INDEX WITHOUT CACHE. Inspect cache headers and content fingerprint.
+echo "--- index.html (no-cache)"
+curl -sS -H 'Cache-Control: no-cache' -D - "$APP" -o /tmp/prod_index.html | sed -n '1,20p'
+echo "--- cache headers"
+rg -n 'Age:|Cache-Control:|ETag:|Last-Modified:' -n /tmp/prod_index.headers || true
+
+# 3) LOCAL BUILD FINGERPRINT. Compare with PROD.
+echo "--- local index fingerprint"
+LOCAL_INDEX=$(rg -l '<title|data-build|data-commit' web/ dist/ build/ 2>/dev/null | head -1 || true)
+if [ -n "$LOCAL_INDEX" ]; then cat "$LOCAL_INDEX" | rg -n '<title|data-build|data-commit' || true; fi
+echo "--- prod index fingerprint"
+rg -n '<title|data-build|data-commit' /tmp/prod_index.html || true
+
+# 4) JS BUNDLE HASH COMPARE. If different, CDN/cache is serving old assets.
+echo "--- bundle URLs in prod"
+BUNDLES=$(rg -No 'src="/[^"]+\.js[^"]*' /tmp/prod_index.html | sed 's/src="//' | head -5 || true)
+echo "$BUNDLES"
+for f in $BUNDLES; do
+  curl -sS -H 'Cache-Control: no-cache' "$APP$f" | shasum -a 256 | awk '{print $1"  '"$f"'"}'
+done
+
+# 5) SERVICE WORKER CHECK. Old SW can pin old app.
+echo "--- service worker"
+curl -sS -I "$APP/sw.js" || true
+# If present, plan to bust SW:
+cat > /tmp/sw-unregister.js <<'JS'
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister()));
+  caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+  console.log('SW and caches cleared');
+}
+JS
+echo "Paste /tmp/sw-unregister.js in browser console if needed."
+
+# 6) SERVER HEADERS FIX: no-store for index.html, long-cache for hashed assets.
+# Nginx example (adjust if using another server):
+cat > /tmp/cache-rules.txt <<'NGINX'
+location = / { add_header Cache-Control "no-store"; }
+location = /index.html { add_header Cache-Control "no-store"; }
+location ~* \.(js|css|png|jpg|svg|woff2)$ { add_header Cache-Control "public, max-age=31536000, immutable"; }
+NGINX
+echo "Apply equivalent cache headers in your server."
+
+# 7) CDN PURGE (if using Cloudflare or similar) — manual step:
+echo "Purge CDN cache for: /, /index.html, and current JS bundles."
+
+# 8) REBUILD FRONTEND WITH VERSION STAMP, RESTART, RETEST.
+if [ -f package.json ]; then
+  export BUILDNO="$(date -u +%Y%m%d.%H%M)-$(git rev-parse --short HEAD 2>/dev/null || echo local)"
+  echo "Injecting build meta: $BUILDNO"
+  # If you have an env injection step, ensure it writes BUILDNO to index/meta.
+  npm ci || npm install
+  npm run build || npm run build:prod || true
+fi
+
+# Restart app (adjust command if different)
+pkill -f gunicorn || true
+nohup gunicorn "bot.app:app" -b 0.0.0.0:5000 >/tmp/app.out 2>/tmp/app.err & disown
+sleep 3
+
+# 9) VERIFY PROD NOW SERVES NEW BUILD (no-cache)
+echo "--- recheck index.html"
+curl -sS -H 'Cache-Control: no-cache' "$APP" -o /tmp/prod_index_new.html
+diff -u /tmp/prod_index.html /tmp/prod_index_new.html || true
+echo "--- health again"
+curl -fsS "$APP/api/health" | python -m json.tool | rg -n 'build|version|commit' || true

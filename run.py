@@ -2625,11 +2625,18 @@ def api_register_partner():
 def api_health():
     """Basic health check endpoint for monitoring"""
     try:
+        # Get real version info
+        commit_hash = git_utils.get_commit_hash() if hasattr(git_utils, 'get_commit_hash') else 'unknown'
+        db_id = os.getenv('AUTOMATION_QUEUE_DB_ID', 'unknown')
+        
         return jsonify({
             'ok': True,
             'status': 'healthy',
             'timestamp': datetime.utcnow().isoformat() + 'Z',
-            'version': '2.0.0'
+            'version': '2.0.0',
+            'commit': commit_hash,
+            'database_id': db_id[-12:] if len(db_id) > 12 else db_id,  # Last 12 chars
+            'uptime_seconds': int(time.time() - metrics_storage.get('app_start_time', time.time()))
         }), 200
     except Exception as e:
         return jsonify({

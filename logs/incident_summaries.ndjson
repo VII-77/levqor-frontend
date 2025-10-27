@@ -56,3 +56,4 @@
 {"ts": "2025-10-27T18:30:07.745501Z", "period_hours": 24, "events_analyzed": 32113, "severity": "high", "top_errors": {"primary_unhealthy": 2}, "recommendations": ["Investigate primary_unhealthy: 2 occurrences"]}
 {"ts": "2025-10-27T19:01:00.640940Z", "period_hours": 24, "events_analyzed": 32496, "severity": "high", "top_errors": {"primary_unhealthy": 2}, "recommendations": ["Investigate primary_unhealthy: 2 occurrences"]}
 {"ts": "2025-10-27T19:31:50.810463Z", "period_hours": 24, "events_analyzed": 32786, "severity": "high", "top_errors": {"primary_unhealthy": 2}, "recommendations": ["Investigate primary_unhealthy: 2 occurrences"]}
+{"ts": "2025-10-27T20:02:41.184152Z", "period_hours": 24, "events_analyzed": 30900, "severity": "high", "top_errors": {"primary_unhealthy": 2}, "recommendations": ["Investigate primary_unhealthy: 2 occurrences"]}

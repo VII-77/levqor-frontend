@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from bot.main import EchoPilotBot
-from flask import Flask, jsonify, send_from_directory, request, make_response, render_template
+from flask import Flask, jsonify, send_from_directory, request, make_response, render_template, redirect
 import threading
 import os
 import json
@@ -3039,6 +3039,21 @@ def dashboard_v2():
 def dashboard_v1():
     """Serve legacy dashboard (fallback)"""
     return send_from_directory('.', 'dashboard.html')
+
+@app.route('/boss')
+def boss():
+    """Redirect to Boss Mode UI (dashboard v2)"""
+    return redirect('/dashboard/v2', code=301)
+
+@app.route('/workflow-builder')
+def workflow_builder_redirect():
+    """Redirect to correct workflow builder path"""
+    return redirect('/workflow/builder', code=301)
+
+@app.route('/docs')
+def docs():
+    """Redirect to documentation (can be updated later)"""
+    return redirect('https://github.com/yourusername/echopilot-docs', code=302)
 
 @app.route('/payments')
 def payments():

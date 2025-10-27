@@ -3625,3 +3625,14 @@
 {"ts": "2025-10-27T19:52:21.335891Z", "request_id": "0b6b4101-3cb7-4caf-80c0-99f97d79bcfb", "route": "health_check", "method": "GET", "status": 200, "duration_ms": 34.22, "path": "/health"}
 {"ts": "2025-10-27T19:52:22.538276Z", "request_id": "a2b96703-a5ec-4415-998c-984830d718a7", "route": "landing", "method": "GET", "status": 200, "duration_ms": 0.57, "path": "/"}
 {"ts": "2025-10-27T19:52:22.880404Z", "request_id": "c050869b-d985-4f78-8876-e15150d95233", "route": "health_check", "method": "GET", "status": 200, "duration_ms": 27.24, "path": "/health"}
+{"ts": "2025-10-27T19:53:05.937951Z", "request_id": "8d6281a3-6b33-4591-b36f-86059c8b742f", "route": "landing", "method": "GET", "status": 200, "duration_ms": 0.84, "path": "/"}
+{"ts": "2025-10-27T19:53:06.085195Z", "request_id": "f59b2ef4-2f0f-4ef9-aca5-b9cec255c66a", "route": "landing", "method": "GET", "status": 200, "duration_ms": 0.62, "path": "/"}
+{"ts": "2025-10-27T19:53:06.264033Z", "request_id": "4d4c3b58-6b47-48f6-a3b9-25c566777d11", "route": "static", "method": "GET", "status": 200, "duration_ms": 0.53, "path": "/static/app.css"}
+{"ts": "2025-10-27T19:53:06.410501Z", "request_id": "1fdbe59e-5a1c-4d2b-ab09-5744163e4248", "route": "landing", "method": "GET", "status": 200, "duration_ms": 1.59, "path": "/"}
+{"ts": "2025-10-27T19:53:06.533814Z", "request_id": "524e9320-b76b-427f-98be-3f801731353d", "route": "static", "method": "GET", "status": 200, "duration_ms": 0.55, "path": "/static/app.css"}
+{"ts": "2025-10-27T19:53:06.700627Z", "request_id": "e3213f49-b9f6-43fd-bf20-26c32ed49db8", "route": "static", "method": "GET", "status": 200, "duration_ms": 0.57, "path": "/static/app.css"}
+{"ts": "2025-10-27T19:53:06.842999Z", "request_id": "78ed185b-51d1-493d-bbe5-18cd3f56813c", "route": "api_status_summary", "method": "GET", "status": 200, "duration_ms": 1.15, "path": "/api/status/summary"}
+{"ts": "2025-10-27T19:53:06.857440Z", "request_id": "65292a1f-4349-4644-a1e5-db4ee3f7e924", "route": "favicon", "method": "GET", "status": 204, "duration_ms": 0.11, "path": "/favicon.ico"}
+{"ts": "2025-10-27T19:53:06.988942Z", "request_id": "2c684f1f-55ca-4c98-bdbe-ea3b9b21d984", "route": "api_status_summary", "method": "GET", "status": 200, "duration_ms": 2.84, "path": "/api/status/summary"}
+{"ts": "2025-10-27T19:53:25.259529Z", "request_id": "4f6f4610-e5e3-4ca5-a78a-1f9ada54be1e", "route": "landing", "method": "GET", "status": 200, "duration_ms": 0.61, "path": "/"}
+{"ts": "2025-10-27T19:53:25.458721Z", "request_id": "510de2db-84b1-4d6c-b312-5cc9e6496a8d", "route": "landing", "method": "GET", "status": 200, "duration_ms": 0.5, "path": "/"}

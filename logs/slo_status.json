@@ -1,40 +1,42 @@
 {
-  "ts": 1761044433.7799199,
-  "ts_iso": "2025-10-21T11:00:33.779920Z",
+  "ts": 1761570040.0308688,
+  "ts_iso": "2025-10-27T13:00:40.030869Z",
   "status": "PASS",
   "breach": false,
   "p95_ms": 0,
   "success_rate": 1.0,
   "details": {
-    "ts": "2025-10-21T11:00:33.654907Z",
+    "ts": "2025-10-27T13:00:39.774148Z",
     "window_days": 30,
-    "overall_status": "OK",
-    "breaches": [],
+    "overall_status": "BREACH",
+    "breaches": [
+      "availability"
+    ],
     "slos": {
       "availability": {
-        "actual_pct": 100.0,
+        "actual_pct": 99.783,
         "target_pct": 99.9,
-        "status": "OK",
-        "success_requests": 47,
-        "total_requests": 47,
+        "status": "BREACH",
+        "success_requests": 1377,
+        "total_requests": 1380,
         "error_budget": {
-          "remaining_pct": 100.0,
-          "consumed_pct": 0.0,
-          "burn_rate_pct_per_day": 0.0,
-          "status": "OK"
+          "remaining_pct": 0,
+          "consumed_pct": 217.39,
+          "burn_rate_pct_per_day": 7.25,
+          "status": "CRITICAL"
         }
       },
       "p95_latency": {
-        "actual_ms": 34.35,
+        "actual_ms": 41.33,
         "target_ms": 800,
         "status": "OK",
-        "sample_count": 47
+        "sample_count": 1380
       },
       "p99_latency": {
-        "actual_ms": 64.82,
+        "actual_ms": 134.53,
         "target_ms": 1200,
         "status": "OK",
-        "sample_count": 47
+        "sample_count": 1380
       },
       "webhook_success": {
         "actual_pct": 100.0,

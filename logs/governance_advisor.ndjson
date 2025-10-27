@@ -52,3 +52,9 @@
 {"ts": "2025-10-27T12:01:02.806286Z", "event": "recommendations_generated", "priority": "medium", "num_recommendations": 5, "num_alerts": 2}
 {"ts": "2025-10-27T12:01:02.806787Z", "event": "report_saved", "path": "logs/governance_report.json"}
 {"ts": "2025-10-27T12:01:02.806960Z", "event": "advisor_complete", "ok": true, "priority": "medium", "num_recommendations": 5, "num_alerts": 2}
+{"ts": "2025-10-27T13:00:31.954362Z", "event": "advisor_started", "ok": true}
+{"ts": "2025-10-27T13:00:31.954609Z", "event": "collecting_metrics", "ok": true}
+{"ts": "2025-10-27T13:00:31.955309Z", "event": "generating_recommendations", "ok": true}
+{"ts": "2025-10-27T13:00:38.352048Z", "event": "recommendations_generated", "priority": "medium", "num_recommendations": 5, "num_alerts": 0}
+{"ts": "2025-10-27T13:00:38.352604Z", "event": "report_saved", "path": "logs/governance_report.json"}
+{"ts": "2025-10-27T13:00:38.353634Z", "event": "advisor_complete", "ok": true, "priority": "medium", "num_recommendations": 5, "num_alerts": 0}

@@ -1,0 +1,16 @@
+{
+  "id": "fa32a97a",
+  "user_id": "default",
+  "name": "New Workflow",
+  "description": "Created from visual builder",
+  "created_at": "2025-10-27T20:19:25.960084",
+  "updated_at": "2025-10-27T20:19:25.960088",
+  "status": "draft",
+  "nodes": [],
+  "edges": [],
+  "settings": {
+    "trigger_type": "manual",
+    "schedule": null,
+    "enabled": false
+  }
+}

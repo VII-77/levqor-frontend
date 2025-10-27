@@ -1,0 +1,85 @@
+# HOTFIX: standardize encoding, rebuild, restart, verify
+
+# 1) FIND ANY RAW USE OF job_id IN URLS
+rg -n 'success_url|cancel_url|job=' -g '!*.git/*'
+rg -n '/job/|job_id' bot/ scripts/ | grep -E 'f".*\?|/job/|params|redirect'
+
+# 2) PATCH: use urlencode for query params, quote for path
+applypatch <<'PATCH'
+*** Begin Patch
+*** Update File: bot/payments.py
+@@
+-from urllib.parse import quote
+-success_url=f"{SUCCESS_URL}?job={quote(job_id, safe='')}&status=success"
+-cancel_url=f"{CANCEL_URL}?job={quote(job_id, safe='')}&status=cancel"
++from urllib.parse import urlencode, quote
++def _qs(d: dict) -> str:
++    return urlencode(d, safe="", doseq=True)
++success_url = f"{SUCCESS_URL}?{_qs({'job': job_id, 'status':'success'})}"
++cancel_url  = f"{CANCEL_URL}?{_qs({'job': job_id, 'status':'cancel'})}"
+*** End Patch
+PATCH
+
+# If any PATH uses the job id (e.g., /jobs/<job_id>), enforce safe path encoding:
+rg -n '/jobs/|<job' bot/ | cat
+# Example helper (only if you have path segments):
+applypatch <<'PATCH'
+*** Begin Patch
+*** Update File: bot/utils/url.py
+@@
++from urllib.parse import quote
++def encode_path(seg: str) -> str:
++    if not isinstance(seg, str) or not seg: raise ValueError("empty path seg")
++    return quote(seg, safe="")  # encode emojis and non-ASCII for path segments
+*** End Patch
+PATCH
+
+# 3) SERVER-SIDE DECODE (avoid double-encoding bugs)
+rg -n 'request\.args.*job' -g '!*.git/*' | cat
+# If needed, normalize:
+applypatch <<'PATCH'
+*** Begin Patch
+*** Update File: bot/routes/payments.py
+@@
+- job_id = request.args.get("job")
++ from urllib.parse import unquote
++ raw = request.args.get("job")
++ job_id = unquote(raw) if raw else None
+*** End Patch
+PATCH
+
+# 4) FRONTEND CHECK (prevent double-encoding)
+rg -n 'encodeURIComponent|job=' web/ src/ || true
+# Replace manual string concat with URLSearchParams:
+# new URL(`${SUCCESS_URL}?${new URLSearchParams({job, status:'success'})}`)
+
+# 5) TEST ENCODING END-TO-END
+python - <<'PY'
+from urllib.parse import urlencode, quote
+jid = "job-αβ🚀-123"
+qs = urlencode({"job": jid, "status":"success"}, safe="", doseq=True)
+assert "job=job-%CE%B1%CE%B2%F0%9F%9A%80-123" in qs
+print("OK query:", qs)
+print("OK path:", "/jobs/"+quote(jid, safe=""))
+PY
+
+# 6) REBUILD FRONTEND IF PRESENT
+[ -f package.json ] && (npm ci || npm install) && (npm run build || npm run build:prod || true)
+
+# 7) RESTART APP
+pkill -f gunicorn || true
+nohup gunicorn "bot.app:app" -b 0.0.0.0:5000 >/tmp/app.out 2>/tmp/app.err & disown
+sleep 3
+
+# 8) VERIFY WITH NON-ASCII JOB ID
+python - <<'PY'
+import os, urllib.parse, requests
+jid="job-αβ🚀-123"
+success = f"{os.getenv('SUCCESS_URL','http://localhost:5000/pay/success')}?"+urllib.parse.urlencode({"job":jid,"status":"success"})
+r = requests.get(success, timeout=5)
+print("GET", r.status_code, r.url)
+assert r.status_code in (200,302)
+PY || (echo "FAIL: check logs in /tmp/app.err"; tail -n 80 /tmp/app.err)
+
+# 9) QUICK LOG TAIL FOR ERRORS
+tail -n 120 /tmp/app.err | rg -n 'error|Traceback|Unicode|ASCII|ValueError' || true

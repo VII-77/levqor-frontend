@@ -20,6 +20,12 @@
   
   // Apply theme to body
   function applyTheme(theme) {
+    // Wait for body to be available
+    if (!document.body) {
+      document.addEventListener('DOMContentLoaded', () => applyTheme(theme));
+      return;
+    }
+    
     if (theme === 'light') {
       document.body.classList.add('light-mode');
       document.documentElement.classList.remove('dark');

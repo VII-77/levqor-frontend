@@ -2811,3 +2811,4 @@
 {"ts": "2025-10-27T19:57:24.002687Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/docs", "method": "GET", "ip": "127.0.0.1"}}
 {"ts": "2025-10-27T19:57:30.634796Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
 {"ts": "2025-10-27T19:57:39.566504Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/health", "method": "GET", "ip": "172.31.88.130"}}
+{"ts": "2025-10-27T19:58:31.230625Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}

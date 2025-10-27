@@ -49,7 +49,7 @@ args = "python3 -u scripts/exec_scheduler.py"
 outputType = "console"
 
 [deployment]
-deploymentTarget = "cloudrun"
+deploymentTarget = "gce"
 run = ["sh", "-c", "gunicorn --bind=0.0.0.0:5000 --reuse-port -w 2 -k gthread -t 120 run:app"]
 
 [[ports]]

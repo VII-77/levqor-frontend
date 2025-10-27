@@ -38322,3 +38322,17 @@
 {"ts": 1761565094, "route": "health_check", "status": 200, "dur_ms": 45.37}
 {"ts": 1761565095, "route": "root_index", "status": 200, "dur_ms": 0.72}
 {"ts": 1761565095, "route": "health_check", "status": 200, "dur_ms": 81.15}
+{"ts": 1761565156, "route": "root_index", "status": 200, "dur_ms": 0.95}
+{"ts": 1761565163, "route": "root_index", "status": 200, "dur_ms": 0.63}
+{"ts": 1761565223, "route": "root_index", "status": 200, "dur_ms": 0.96}
+{"ts": 1761565285, "route": "root_index", "status": 200, "dur_ms": 6.24}
+{"ts": 1761565285, "route": "root_index", "status": 200, "dur_ms": 0.6}
+{"ts": 1761565325, "route": "root_index", "status": 200, "dur_ms": 5.5}
+{"ts": 1761565325, "route": "root_index", "status": 200, "dur_ms": 0.55}
+{"ts": 1761565325, "route": "root_index", "status": 200, "dur_ms": 0.77}
+{"ts": 1761565325, "route": "favicon", "status": 204, "dur_ms": 0.31}
+{"ts": 1761565345, "route": "root_index", "status": 200, "dur_ms": 1.16}
+{"ts": 1761565346, "route": "root_index", "status": 200, "dur_ms": 1.2}
+{"ts": 1761565346, "route": "root_index", "status": 200, "dur_ms": 0.97}
+{"ts": 1761565347, "route": "root_index", "status": 200, "dur_ms": 3.07}
+{"ts": 1761565347, "route": "favicon", "status": 204, "dur_ms": 4.56}

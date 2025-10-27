@@ -854,3 +854,7 @@
 {"ts": "2025-10-27T15:25:38Z", "latency_ms": 22, "ok": true, "code": 200}
 {"ts": "2025-10-27T15:26:41Z", "latency_ms": 22, "ok": true, "code": 200}
 {"ts": "2025-10-27T15:27:41Z", "latency_ms": 18, "ok": true, "code": 200}
+{"ts": "2025-10-27T15:28:41Z", "latency_ms": 12, "ok": true, "code": 200}
+{"ts": "2025-10-27T15:29:44Z", "latency_ms": 13, "ok": true, "code": 200}
+{"ts": "2025-10-27T15:30:46Z", "latency_ms": 13, "ok": true, "code": 200}
+{"ts": "2025-10-27T15:31:47Z", "latency_ms": 11, "ok": true, "code": 200}

@@ -55,3 +55,7 @@ run = ["gunicorn", "--bind=0.0.0.0:5000", "--reuse-port", "-w", "2", "-k", "gthr
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 34933
+externalPort = 3000

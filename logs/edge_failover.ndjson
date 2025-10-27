@@ -94,3 +94,7 @@
 {"ts": "2025-10-27T11:38:15.387042Z", "event": "checking_primary", "url": "https://7bcf7cfb-abac-4066-a19e-5fbe1b6c0854-00-msem1k2vhtji.kirk.replit.dev"}
 {"ts": "2025-10-27T11:38:15.543145Z", "event": "primary_healthy", "response_time_ms": 150, "uptime_seconds": null, "dependencies": null}
 {"ts": "2025-10-27T11:38:15.547686Z", "event": "monitor_complete", "ok": true, "healthy": true, "response_time_ms": 150, "consecutive_failures": 0, "failover_active": false}
+{"ts": "2025-10-27T11:43:27.761069Z", "event": "monitor_started", "ok": true}
+{"ts": "2025-10-27T11:43:27.761757Z", "event": "checking_primary", "url": "https://7bcf7cfb-abac-4066-a19e-5fbe1b6c0854-00-msem1k2vhtji.kirk.replit.dev"}
+{"ts": "2025-10-27T11:43:27.917784Z", "event": "primary_healthy", "response_time_ms": 153, "uptime_seconds": null, "dependencies": null}
+{"ts": "2025-10-27T11:43:27.925034Z", "event": "monitor_complete", "ok": true, "healthy": true, "response_time_ms": 153, "consecutive_failures": 0, "failover_active": false}

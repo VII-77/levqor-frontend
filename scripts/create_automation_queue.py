@@ -36,7 +36,7 @@ def create_automation_queue_database():
     
     print(f"✅ Parent page ID: {parent_page_id}")
     
-    # Define database schema
+    # Define database schema - MUST match what the code expects!
     properties = {
         "Task": {
             "title": {}
@@ -52,14 +52,7 @@ def create_automation_queue_database():
             }
         },
         "Trigger": {
-            "select": {
-                "options": [
-                    {"name": "Manual", "color": "gray"},
-                    {"name": "Scheduled", "color": "blue"},
-                    {"name": "API", "color": "purple"},
-                    {"name": "Webhook", "color": "orange"}
-                ]
-            }
+            "checkbox": {}
         },
         "Priority": {
             "select": {

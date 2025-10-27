@@ -6,6 +6,7 @@ import hashlib
 import time
 import requests
 import stripe
+from urllib.parse import quote
 
 STRIPE_KEY = os.getenv("STRIPE_SECRET_KEY", "").strip()
 STRIPE_WH_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "").strip()
@@ -36,8 +37,8 @@ def stripe_create_checkout(amount_usd: float, job_id: str, client_email: str = N
             "quantity": 1
         }],
         customer_email=client_email or None,
-        success_url=f"{SUCCESS_URL}?job={job_id}&status=success",
-        cancel_url=f"{CANCEL_URL}?job={job_id}&status=cancel",
+        success_url=f"{SUCCESS_URL}?job={quote(job_id)}&status=success",
+        cancel_url=f"{CANCEL_URL}?job={quote(job_id)}&status=cancel",
         metadata={"job_id": job_id}
     )
     return {

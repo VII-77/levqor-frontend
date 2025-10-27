@@ -1,3 +1,0 @@
-module.exports=[66188,a=>{"use strict";var b=a.i(7997);function c(){return(0,b.jsxs)("main",{className:"mx-auto max-w-3xl px-4 py-16",children:[(0,b.jsx)("h1",{className:"text-2xl font-semibold",children:"Page not found"}),(0,b.jsxs)("p",{className:"mt-2 text-sm text-gray-600",children:["Try the ",(0,b.jsx)("a",{className:"underline",href:"/pricing",children:"pricing"})," or"," ",(0,b.jsx)("a",{className:"underline",href:"/help",children:"help"})," page."]})]})}a.s(["default",()=>c])}];
-
-//# sourceMappingURL=app_not-found_tsx_ef35050a._.js.map

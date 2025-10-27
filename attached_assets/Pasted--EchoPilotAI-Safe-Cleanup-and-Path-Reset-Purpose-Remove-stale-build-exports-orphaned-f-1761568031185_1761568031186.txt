@@ -1,0 +1,52 @@
+# === EchoPilotAI: Safe Cleanup and Path Reset ===
+# Purpose: Remove stale build exports, orphaned files, or duplicate route artifacts.
+# Safety: Keeps run.py, blueprints, database, configs, and secrets untouched.
+
+set -euo pipefail
+APP_DIR="marketing-site"
+STATIC_DIR="static"
+CACHE_DIR=".cache"
+LOG_DIR="logs"
+PORT="${PORT:-5000}"
+
+echo "== 1) Confirm safe directories exist =="
+test -f run.py || { echo "❌ Missing run.py"; exit 1; }
+mkdir -p "$STATIC_DIR" "$LOG_DIR"
+
+echo "== 2) List current contents (pre-clean) =="
+ls -lha | grep -E "marketing-site|static|run.py|logs" || true
+
+echo "== 3) Safe cleanup of old builds =="
+# Delete outdated Next.js or static builds that can cause stale deploys
+rm -rf "$APP_DIR/.next" "$APP_DIR/out" "$APP_DIR/build" "$APP_DIR/public/_next" "$STATIC_DIR/_next" || true
+rm -rf "$CACHE_DIR" node_modules/.cache || true
+find "$STATIC_DIR" -type f -name "*.html" -mtime +7 -delete || true
+
+echo "== 4) Remove orphaned temp files and lock files =="
+find . -type f -name "*.lock" -delete || true
+find /tmp -type f -name "gunicorn*" -delete || true
+
+echo "== 5) Keep logs but rotate them =="
+if [ -d "$LOG_DIR" ]; then
+  tar -czf "logs/backup_$(date +%F_%H%M).tar.gz" logs/*.log 2>/dev/null || true
+  find "$LOG_DIR" -type f -name "*.log" -exec truncate -s 0 {} \;
+fi
+
+echo "== 6) Remove duplicate or legacy route files (safe pattern) =="
+find . -type f -name "run_copy*.py" -delete || true
+find . -type f -name "app_copy*.py" -delete || true
+
+echo "== 7) Verify remaining essential structure =="
+tree -L 2 | grep -E "marketing-site|static|run.py|bot|blueprints|logs" || true
+
+echo "== 8) Restart gunicorn (single instance only) =="
+pkill -f "gunicorn .*run:app" || true
+sleep 2
+nohup gunicorn -w 1 -k gthread -t 120 --bind 0.0.0.0:$PORT run:app >/tmp/gunicorn.out 2>&1 &
+
+echo "== 9) Validate after cleanup =="
+curl -fsS http://localhost:$PORT/health || { echo "❌ Health check failed"; exit 1; }
+
+echo "== ✅ CLEANUP COMPLETE =="
+echo "Workspace cleaned, static files refreshed, routes preserved."
+echo "Fresh build recommended: npm run build && npm run export (if Next.js exists)"

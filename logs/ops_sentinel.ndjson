@@ -300,3 +300,11 @@
 {"ts": "2025-10-27T12:09:14.783671Z", "event": "ops_sentinel", "status": "healthy", "cpu_percent": 60.6, "mem_percent": 53.7, "disk_percent": 80.9, "latency_sec": 0.019561290740966797, "warnings": []}
 {"ts": "2025-10-27T12:09:31.820452Z", "event": "ops_sentinel", "status": "healthy", "cpu_percent": 66.2, "mem_percent": 53.1, "disk_percent": 80.9, "latency_sec": 0.007380008697509766, "warnings": []}
 {"ts": "2025-10-27T12:12:20.136765Z", "event": "ops_sentinel", "status": "healthy", "cpu_percent": 66.1, "mem_percent": 52.9, "disk_percent": 80.9, "latency_sec": 0.007140159606933594, "warnings": []}
+{"ts": "2025-10-27T12:14:34.373117Z", "event": "ops_sentinel", "status": "healthy", "cpu_percent": 63.1, "mem_percent": 57.0, "disk_percent": 80.9, "latency_sec": 0.014027118682861328, "warnings": []}
+{"ts": "2025-10-27T12:15:25.322532Z", "event": "ops_sentinel", "status": "healthy", "cpu_percent": 62.6, "mem_percent": 57.8, "disk_percent": 80.9, "latency_sec": 0.008819580078125, "warnings": []}
+{"ts": "2025-10-27T12:18:28.138668Z", "event": "ops_sentinel", "status": "healthy", "cpu_percent": 59.8, "mem_percent": 56.6, "disk_percent": 80.9, "latency_sec": 0.016305208206176758, "warnings": []}
+{"ts": "2025-10-27T12:19:37.184400Z", "event": "ops_sentinel", "status": "healthy", "cpu_percent": 60.6, "mem_percent": 56.6, "disk_percent": 80.9, "latency_sec": 0.0055408477783203125, "warnings": []}
+{"ts": "2025-10-27T12:21:33.493356Z", "event": "ops_sentinel", "status": "critical", "cpu_percent": 87.5, "mem_percent": 57.0, "disk_percent": 80.9, "latency_sec": 0.009586334228515625, "warnings": ["High CPU: 87.5%"]}
+{"ts": "2025-10-27T12:24:36.752026Z", "event": "ops_sentinel", "status": "healthy", "cpu_percent": 84.1, "mem_percent": 56.6, "disk_percent": 80.9, "latency_sec": 0.005988359451293945, "warnings": []}
+{"ts": "2025-10-27T12:24:39.868728Z", "event": "ops_sentinel", "status": "healthy", "cpu_percent": 78.1, "mem_percent": 56.5, "disk_percent": 80.9, "latency_sec": 0.008032798767089844, "warnings": []}
+{"ts": "2025-10-27T12:27:42.162460Z", "event": "ops_sentinel", "status": "healthy", "cpu_percent": 67.8, "mem_percent": 56.9, "disk_percent": 80.9, "latency_sec": 0.00967717170715332, "warnings": []}

@@ -1,5 +1,0 @@
-1:"$Sreact.fragment"
-2:I[97367,["/_next/static/chunks/ff1a16fafef87110.js","/_next/static/chunks/247eb132b7f7b574.js"],"OutletBoundary"]
-3:"$Sreact.suspense"
-0:{"buildId":"VdGkSDcQmwQJTqX9PX4h0","rsc":["$","$1","c",{"children":[["$","article",null,{"className":"card","children":[["$","h1",null,{"children":"Privacy Policy"}],["$","p",null,{"children":"Effective: 24 Oct 2025"}],["$","h3",null,{"children":"Data"}],["$","p",null,{"children":"We collect: account basics, operational logs, Stripe metadata (no card data stored)."}],["$","h3",null,{"children":"Processors"}],["$","p",null,{"children":"Stripe, Notion, Telegram, Replit, GitHub."}],["$","h3",null,{"children":"Rights"}],["$","p",null,{"children":["Access/rectify/delete via ",["$","a",null,{"href":"/contact","children":"/contact"}],"."]}],["$","h3",null,{"children":"Security"}],["$","p",null,{"children":"Encryption at rest and in transit. SOC 2 Type II compliant infrastructure."}]]}],null,["$","$L2",null,{"children":["$","$3",null,{"name":"Next.MetadataOutlet","children":"$@4"}]}]]}],"loading":null,"isPartial":false}
-4:null

@@ -494,3 +494,11 @@
 {"ts": "2025-10-27T20:43:53.572805Z", "event": "checking_primary", "url": "https://7bcf7cfb-abac-4066-a19e-5fbe1b6c0854-00-msem1k2vhtji.kirk.replit.dev"}
 {"ts": "2025-10-27T20:43:53.690965Z", "event": "primary_healthy", "response_time_ms": 116, "uptime_seconds": null, "dependencies": null}
 {"ts": "2025-10-27T20:43:53.691769Z", "event": "monitor_complete", "ok": true, "healthy": true, "response_time_ms": 116, "consecutive_failures": 0, "failover_active": false}
+{"ts": "2025-10-27T20:49:03.106229Z", "event": "monitor_started", "ok": true}
+{"ts": "2025-10-27T20:49:03.109891Z", "event": "checking_primary", "url": "https://7bcf7cfb-abac-4066-a19e-5fbe1b6c0854-00-msem1k2vhtji.kirk.replit.dev"}
+{"ts": "2025-10-27T20:49:03.297619Z", "event": "primary_healthy", "response_time_ms": 185, "uptime_seconds": null, "dependencies": null}
+{"ts": "2025-10-27T20:49:03.298384Z", "event": "monitor_complete", "ok": true, "healthy": true, "response_time_ms": 185, "consecutive_failures": 0, "failover_active": false}
+{"ts": "2025-10-27T20:54:11.011010Z", "event": "monitor_started", "ok": true}
+{"ts": "2025-10-27T20:54:11.012329Z", "event": "checking_primary", "url": "https://7bcf7cfb-abac-4066-a19e-5fbe1b6c0854-00-msem1k2vhtji.kirk.replit.dev"}
+{"ts": "2025-10-27T20:54:11.204794Z", "event": "primary_healthy", "response_time_ms": 188, "uptime_seconds": null, "dependencies": null}
+{"ts": "2025-10-27T20:54:11.205613Z", "event": "monitor_complete", "ok": true, "healthy": true, "response_time_ms": 188, "consecutive_failures": 0, "failover_active": false}

@@ -1,1 +1,3 @@
 {"ts": "2025-10-20T21:08:15.813188Z", "type": "predictive_maintenance_ticket", "failure_type": "CPU", "risk_level": "HIGH", "status": "open", "created_by": "predictive_maintenance_ai"}
+{"ts": "2025-10-27T11:38:13.240496Z", "type": "predictive_maintenance_ticket", "failure_type": "CPU", "risk_level": "HIGH", "status": "open", "created_by": "predictive_maintenance_ai"}
+{"ts": "2025-10-27T11:38:13.240686Z", "type": "predictive_maintenance_ticket", "failure_type": "Disk", "risk_level": "HIGH", "status": "open", "created_by": "predictive_maintenance_ai"}

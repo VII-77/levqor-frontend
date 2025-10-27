@@ -478,3 +478,16 @@
 {"ts": "2025-10-21T12:35:21.845702Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/status/summary", "method": "GET", "ip": "172.31.80.34"}}
 {"ts": "2025-10-27T11:29:11.074842Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
 {"ts": "2025-10-27T11:34:13.694884Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-10-27T11:37:49.260121Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/self-heal", "method": "POST", "ip": "127.0.0.1"}}
+{"ts": "2025-10-27T11:37:54.512511Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/self-heal", "method": "POST", "ip": "127.0.0.1"}}
+{"ts": "2025-10-27T11:37:59.670402Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/supervisor-status", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-10-27T11:37:59.672087Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/regions/sync", "method": "POST", "ip": "127.0.0.1"}}
+{"ts": "2025-10-27T11:37:59.784833Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/supervisor-status", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-10-27T11:37:59.792074Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/brain/decide", "method": "POST", "ip": "127.0.0.1"}}
+{"ts": "2025-10-27T11:38:00.930611Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/brain/decide", "method": "POST", "ip": "127.0.0.1"}}
+{"ts": "2025-10-27T11:38:02.378782Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "172.31.123.162"}}
+{"ts": "2025-10-27T11:38:02.521762Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "172.31.123.162"}}
+{"ts": "2025-10-27T11:38:02.923071Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "172.31.123.162"}}
+{"ts": "2025-10-27T11:38:03.038266Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/brain/decide", "method": "POST", "ip": "127.0.0.1"}}
+{"ts": "2025-10-27T11:38:05.703453Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-10-27T11:38:15.241905Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}

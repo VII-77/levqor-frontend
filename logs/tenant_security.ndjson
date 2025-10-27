@@ -1683,3 +1683,13 @@
 {"ts": "2025-10-27T15:23:35.390019Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
 {"ts": "2025-10-27T15:24:35.597539Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
 {"ts": "2025-10-27T15:25:38.001455Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-10-27T15:26:40.900405Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-10-27T15:26:41.155023Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-10-27T15:26:59.564037Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "172.31.123.162"}}
+{"ts": "2025-10-27T15:26:59.784800Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "172.31.123.162"}}
+{"ts": "2025-10-27T15:27:00.077109Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "172.31.123.162"}}
+{"ts": "2025-10-27T15:27:00.537360Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/status/summary", "method": "GET", "ip": "172.31.123.162"}}
+{"ts": "2025-10-27T15:27:00.684348Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/status/summary", "method": "GET", "ip": "172.31.123.162"}}
+{"ts": "2025-10-27T15:27:30.518949Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/status/summary", "method": "GET", "ip": "172.31.123.162"}}
+{"ts": "2025-10-27T15:27:30.680725Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/status/summary", "method": "GET", "ip": "172.31.123.162"}}
+{"ts": "2025-10-27T15:27:41.460548Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}

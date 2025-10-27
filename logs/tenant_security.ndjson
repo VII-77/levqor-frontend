@@ -1267,3 +1267,12 @@
 {"ts": "2025-10-27T13:39:56.080329Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "172.31.123.162"}}
 {"ts": "2025-10-27T13:39:56.312515Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/status/summary", "method": "GET", "ip": "172.31.123.162"}}
 {"ts": "2025-10-27T13:39:56.537559Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/status/summary", "method": "GET", "ip": "172.31.123.162"}}
+{"ts": "2025-10-27T13:40:11.626427Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "172.31.123.162"}}
+{"ts": "2025-10-27T13:40:12.209580Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/status/summary", "method": "GET", "ip": "172.31.123.162"}}
+{"ts": "2025-10-27T13:40:20.886201Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-10-27T13:40:26.468112Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/status/summary", "method": "GET", "ip": "172.31.123.162"}}
+{"ts": "2025-10-27T13:40:26.618655Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/status/summary", "method": "GET", "ip": "172.31.123.162"}}
+{"ts": "2025-10-27T13:40:42.238825Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/status/summary", "method": "GET", "ip": "172.31.123.162"}}
+{"ts": "2025-10-27T13:40:45.824705Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-10-27T13:40:56.458586Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/status/summary", "method": "GET", "ip": "172.31.123.162"}}
+{"ts": "2025-10-27T13:40:56.636458Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/status/summary", "method": "GET", "ip": "172.31.123.162"}}

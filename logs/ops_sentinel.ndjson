@@ -345,3 +345,4 @@
 {"ts": "2025-10-27T13:35:17.755122Z", "event": "ops_sentinel", "status": "critical", "cpu_percent": 89.4, "mem_percent": 59.3, "disk_percent": 81.0, "latency_sec": 0.030945539474487305, "warnings": ["High CPU: 89.4%"]}
 {"ts": "2025-10-27T13:35:35.637137Z", "event": "ops_sentinel", "status": "critical", "cpu_percent": 64.9, "mem_percent": 58.2, "disk_percent": 81.0, "latency_sec": 999, "warnings": ["High Latency: 999.00s"]}
 {"ts": "2025-10-27T13:38:41.792418Z", "event": "ops_sentinel", "status": "healthy", "cpu_percent": 79.9, "mem_percent": 57.8, "disk_percent": 81.0, "latency_sec": 0.00821542739868164, "warnings": []}
+{"ts": "2025-10-27T13:40:20.895635Z", "event": "ops_sentinel", "status": "critical", "cpu_percent": 85.9, "mem_percent": 60.1, "disk_percent": 81.0, "latency_sec": 0.013531684875488281, "warnings": ["High CPU: 85.9%"]}

@@ -1,12 +1,12 @@
 {
-  "ts": "2025-10-27T13:09:56.054553Z",
+  "ts": "2025-10-27T13:40:45.673397Z",
   "period_hours": 24,
-  "events_analyzed": 32677,
+  "events_analyzed": 31654,
   "severity": "high",
   "top_errors": {
-    "primary_unhealthy": 1
+    "primary_unhealthy": 2
   },
   "recommendations": [
-    "Investigate primary_unhealthy: 1 occurrences"
+    "Investigate primary_unhealthy: 2 occurrences"
   ]
 }

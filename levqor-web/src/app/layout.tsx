@@ -7,11 +7,15 @@ import PageViewTracker from '@/components/PageViewTracker';
 export const metadata: Metadata = {
   title: 'Levqor - Production-Ready Job Orchestration for AI Automation',
   description: 'Levqor — autonomous ops. Stop rebuilding infrastructure. Start building AI features with enterprise-grade job orchestration.',
+  metadataBase: new URL('https://app.levqor.ai'),
+  alternates: {
+    canonical: 'https://app.levqor.ai',
+  },
   openGraph: {
     title: 'Levqor - Production-Ready Job Orchestration for AI Automation',
     description: 'Levqor — autonomous ops. Enterprise-grade job orchestration API with built-in connectors, security, and monitoring.',
     type: 'website',
-    url: 'https://levqor.com',
+    url: 'https://app.levqor.ai',
     siteName: 'Levqor',
     images: [
       {

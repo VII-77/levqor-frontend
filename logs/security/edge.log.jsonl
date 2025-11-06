@@ -15,3 +15,11 @@
 {"ts": 1762399936.1271234, "event": "header_strip", "detail": {"ip": "172.31.112.66", "header": "X-Forwarded-For"}}
 {"ts": 1762400246.5925963, "event": "header_strip", "detail": {"ip": "172.31.112.66", "header": "X-Forwarded-For"}}
 {"ts": 1762400556.7589574, "event": "header_strip", "detail": {"ip": "172.31.112.66", "header": "X-Forwarded-For"}}
+{"ts": 1762400817.6358204, "event": "blocked_ip", "detail": {"ip": "172.31.112.66", "path": "/ops/heartbeat"}}
+{"ts": 1762400817.7675638, "event": "header_strip", "detail": {"ip": "172.31.112.66", "header": "X-Forwarded-For"}}
+{"ts": 1762400818.2881517, "event": "blocked_ip", "detail": {"ip": "172.31.112.66", "path": "/ops/heartbeat"}}
+{"ts": 1762400864.0233057, "event": "header_strip", "detail": {"ip": "172.31.112.66", "header": "X-Forwarded-For"}}
+{"ts": 1762400879.3285706, "event": "blocked_ip", "detail": {"ip": "172.31.112.66", "path": "/ops/heartbeat"}}
+{"ts": 1762400879.3307412, "event": "blocked_ip", "detail": {"ip": "172.31.112.66", "path": "/ops/heartbeat"}}
+{"ts": 1762400943.9970226, "event": "blocked_ip", "detail": {"ip": "172.31.112.66", "path": "/ops/heartbeat"}}
+{"ts": 1762400944.251905, "event": "blocked_ip", "detail": {"ip": "172.31.112.66", "path": "/ops/heartbeat"}}

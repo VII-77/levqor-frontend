@@ -1,0 +1,73 @@
+We’ll fix this fast. Run the single block below and paste the outputs. It isolates front vs backend, env, CORS, and DNS in under 2 minutes.
+
+# ====== SET THESE TWO FIRST ======
+BACKEND="https://<your-backend-domain>"     # e.g. https://api.<domain> or your Replit URL
+FRONTEND="https://<your-frontend-domain>"   # e.g. https://app.<domain> or Vercel URL
+TOKEN="<GOVERNANCE_TOKEN>"
+
+echo "== BACKEND BASIC =="
+curl -fsS ${BACKEND}/ready || echo "[ERR] /ready"
+echo; curl -fsS ${BACKEND}/status || echo "[ERR] /status"
+echo; curl -fsS -H "Authorization: Bearer $TOKEN" ${BACKEND}/ops/selftest || echo "[ERR] /ops/selftest"
+
+echo; echo "== CORS FROM FRONT ORIGIN =="
+curl -sI -H "Origin: ${FRONTEND}" ${BACKEND}/status | egrep -i "HTTP/|access-control-allow-origin|server|date"
+
+echo; echo "== FRONTEND BASIC =="
+curl -sI ${FRONTEND} | egrep -i "HTTP/|server|location|cache|date"
+echo; curl -fsS ${FRONTEND}/ | head -c 400 || echo "[ERR] front /"
+echo; curl -fsS ${FRONTEND}/legal/terms | head -c 200 || echo "[ERR] front /legal/terms"
+
+echo; echo "== FRONTEND → BACKEND WIRING =="
+echo "API_BASE_URL? (frontend env)"; echo ${API_BASE_URL:-"(not set in this shell)"}  # informative
+echo "Try fetching status via frontend origin headers (simulates browser):"
+curl -sI -H "Origin: ${FRONTEND}" ${BACKEND}/status | egrep -i "HTTP/|access-control-allow-origin"
+
+How to read results
+
+Backend fails (/ready or /status errors): backend is the problem → restart backend, check logs, ensure it binds $PORT and is running.
+
+/ops/selftest fails: fix finalizer/selftest; run python3 autoselftest.py and read the last 100 lines of logs/cron_finalizer_*.log.
+
+CORS header missing (access-control-allow-origin absent or not matching FRONTEND): add your frontend domain to the backend CORS allowlist and redeploy:
+
+FastAPI:
+
+ALLOWED_ORIGINS = ["https://app.<domain>", "https://<project>.vercel.app"]
+app.add_middleware(CORSMiddleware, allow_origins=ALLOWED_ORIGINS, allow_methods=["*"], allow_headers=["*"])
+
+Flask:
+
+from flask_cors import CORS
+CORS(app, origins=["https://app.<domain>", "https://<project>.vercel.app"])
+
+
+Frontend 404/blank: on Replit/Node ensure:
+
+Next.js: package.json has "start": "next start -p $PORT -H 0.0.0.0"
+
+Env set in frontend:
+API_BASE_URL, STATUS_URL, SELFTEST_URL, ENABLE_CONSENT=true
+
+If Vercel: check project Environment Variables, redeploy, then test.
+
+
+
+Common root causes and fixes
+
+Wrong URLs: FRONTEND points to old backend → update API_BASE_URL/STATUS_URL/SELFTEST_URL.
+
+CORS: Front loads, API blocked → add frontend origins to backend CORS as above.
+
+Port bind: Front on Replit not binding $PORT/0.0.0.0 → fix start script and restart.
+
+DNS: New domain not propagated → test with the raw Vercel/Replit URL; switch DNS to that for now.
+
+Secrets: Missing GOVERNANCE_TOKEN on backend → /ops/selftest 401 → set secret and restart.
+
+
+If you want me to decide and act:
+
+Fastest live: keep backend where it is. Put frontend on Vercel. Set env to backend URL. Add backend CORS for the Vercel domain. Test.
+
+If you already did Vercel and still see errors, paste the outputs from the block above. I’ll pinpoint the exact failing link and give the one-line fix.

@@ -63,3 +63,8 @@
 {"kind": "failure", "details": {"route": "observer_stall", "message": "System stall detected: 181s"}, "ts": "2025-11-06T03:43:49.358057"}
 {"kind": "failure", "details": {"route": "/__health", "message": "status=500"}, "ts": "2025-11-06T03:44:10.037887"}
 {"kind": "failure", "details": {"route": "/__health", "message": "status=500"}, "ts": "2025-11-06T03:46:10.054231"}
+{"kind": "failure", "details": {"route": "observer_stall", "message": "System stall detected: 181s"}, "ts": "2025-11-06T03:46:50.358622"}
+{"kind": "failure", "details": {"route": "/__health", "message": "status=500"}, "ts": "2025-11-06T03:48:10.060132"}
+{"kind": "failure", "details": {"route": "observer_stall", "message": "System stall detected: 181s"}, "ts": "2025-11-06T03:49:51.359202"}
+{"kind": "failure", "details": {"route": "/__health", "message": "status=500"}, "ts": "2025-11-06T03:50:10.071660"}
+{"kind": "failure", "details": {"route": "/__health", "message": "status=500"}, "ts": "2025-11-06T03:52:10.084904"}

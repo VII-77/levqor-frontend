@@ -148,3 +148,7 @@
 {"ts": "2025-11-06T03:30:11.211390Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/", "status": 200}}
 {"ts": "2025-11-06T03:30:11.857775Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/", "status": 200}}
 {"ts": "2025-11-06T03:31:12.147689Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/", "status": 200}}
+{"ts": "2025-11-06T03:32:09.956450Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/__health", "status": 500}}
+{"ts": "2025-11-06T03:32:14.440115Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/health", "status": 200}}
+{"ts": "2025-11-06T03:32:15.654340Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/", "status": 200}}
+{"ts": "2025-11-06T03:32:16.143267Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/health", "status": 200}}

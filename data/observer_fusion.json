@@ -1,15 +1,15 @@
 {
-  "timestamp": 1762398789.1604872,
+  "timestamp": 1762398909.1612751,
   "health": {
     "ok": false,
     "version": "dev"
   },
   "autonomy": {
     "ok": true,
-    "cpu": 52.7,
-    "mem": 44.3,
-    "uptime": 111,
-    "last_check": "2025-11-06T03:12:09.383767"
+    "cpu": 52.2,
+    "mem": 43.2,
+    "uptime": 113,
+    "last_check": "2025-11-06T03:14:09.385057"
   },
   "overall_ok": false
 }

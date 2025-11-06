@@ -20,3 +20,9 @@
 {"ts": "2025-11-06T02:12:34.479414Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/", "status": 200}}
 {"ts": "2025-11-06T02:12:35.257480Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/", "status": 200}}
 {"ts": "2025-11-06T02:13:35.474589Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/", "status": 200}}
+{"ts": "2025-11-06T02:14:09.515196Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/__health", "status": 500}}
+{"ts": "2025-11-06T02:14:37.247024Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/health", "status": 200}}
+{"ts": "2025-11-06T02:14:38.483106Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/", "status": 200}}
+{"ts": "2025-11-06T02:14:38.839919Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/health", "status": 200}}
+{"ts": "2025-11-06T02:15:41.211550Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/", "status": 200}}
+{"ts": "2025-11-06T02:15:41.899218Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/", "status": 200}}

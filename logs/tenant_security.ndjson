@@ -3364,3 +3364,12 @@
 {"ts": "2025-11-06T02:24:09.571183Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/__health", "method": "GET", "ip": "127.0.0.1"}}
 {"ts": "2025-11-06T02:24:55.792283Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
 {"ts": "2025-11-06T02:24:59.479003Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T02:26:00.124515Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T02:26:09.580365Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/__health", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T02:27:00.325305Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T02:28:02.658427Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T02:28:03.341388Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T02:28:09.589864Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/__health", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T02:29:03.558190Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T02:30:07.066767Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T02:30:09.604402Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/__health", "method": "GET", "ip": "127.0.0.1"}}

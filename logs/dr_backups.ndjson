@@ -1,1 +1,2 @@
 {"ok": true, "ts": "2025-10-21T01:54:08.498040Z", "backup": "backups/dr/dr_backup_20251021_015408.tar.gz", "size_bytes": 384871, "size_mb": 0.37, "bucket": "echopilot-backups"}
+{"ok": true, "ts": "2025-11-06T02:30:05.472799Z", "backup": "backups/dr/dr_backup_20251106_023004.tar.gz", "size_bytes": 2861341, "size_mb": 2.73, "bucket": "echopilot-backups"}

@@ -3429,3 +3429,15 @@
 {"ts": "2025-11-06T03:15:40.626635Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
 {"ts": "2025-11-06T03:16:09.879770Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/__health", "method": "GET", "ip": "127.0.0.1"}}
 {"ts": "2025-11-06T03:16:43.850164Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T03:21:53.431025Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T03:22:09.897905Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/__health", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T03:22:53.891348Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/regions/sync", "method": "POST", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T03:22:54.898246Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/regions/sync", "method": "POST", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T03:22:56.916648Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/regions/sync", "method": "POST", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T03:22:58.113060Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T03:24:00.482230Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T03:24:01.122409Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T03:24:09.907306Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/__health", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T03:25:01.338152Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T03:26:01.653646Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T03:26:09.920337Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/__health", "method": "GET", "ip": "127.0.0.1"}}

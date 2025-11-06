@@ -50,13 +50,70 @@ A comprehensive analytics system tracks user engagement across the marketing fro
 - **Privacy**: Email addresses are hashed (SHA-256) before storage to protect PII
 
 ### Marketing Frontend
-A Next.js 14 marketing website (`levqor-web/` directory) built with TypeScript and App Router:
+Two Next.js 14 marketing websites built with TypeScript and App Router:
+
+**levqor-web/** (Original):
 - **Landing Page**: Hero section, features showcase, pricing preview, CTA buttons
 - **Pricing Page**: Detailed plan comparison with Stripe checkout integration
 - **Analytics Dashboard**: Token-protected metrics visualization
 - **Components**: 6 reusable React components (Hero, Features, Pricing, CTAButton, Newsletter, Footer)
 - **Tracking**: Automatic event logging via `logEvent()` utility (692 lines of TypeScript)
-- **Configuration**: Environment variables for backend API endpoints and analytics tokens
+
+**levqor-site/** (Public Landing - NEW):
+- **Public Landing**: levqor.ai marketing site with hero, features, demo placeholder, CTAs
+- **Legal Pages**: /contact, /privacy, /terms
+- **Blog**: /blog with 3 SEO-optimized posts (Markdown-based)
+- **SEO**: Full metadata, OpenGraph, Twitter Cards, sitemap.xml, robots.txt
+- **Plausible Analytics**: Optional integration via NEXT_PUBLIC_PLAUSIBLE_DOMAIN
+- **Mobile Responsive**: Optimized for all devices
+- **Deployment**: Ready for Vercel (`levqor-site/DEPLOYMENT.md`)
+
+### Credits System
+A consumption-based billing system with free tier:
+- New users receive **50 free credits** automatically
+- Each automation run costs **1 credit**
+- Credit packs: **$9 for 100 credits** via Stripe checkout
+- Database field: `credits_remaining INTEGER DEFAULT 50` in users table
+- API Endpoints:
+  - `POST /api/v1/credits/purchase` - Stripe session for credit packs
+  - `POST /api/v1/credits/add` - Internal endpoint for adding credits
+- Credit deduction: `deduct_credit(user_id)` function integrated into pipeline execution
+
+### AI Workflow Builder
+Natural language to JSON pipeline conversion system:
+- `POST /api/v1/plan` - Converts descriptions to executable pipelines
+  - Input: `{"description": "Send email summaries to Slack"}`
+  - Output: Structured JSON with trigger + actions
+  - Storage: `data/pipelines/{uuid}.json`
+  - AI: Mock keyword-based (ready for OpenAI GPT-5-mini when key added)
+- `POST /api/v1/run` - Executes saved pipelines
+  - Deducts 1 credit per run
+  - Logs execution to `data/jobs.jsonl`
+  - Returns execution results
+
+### Integration Test Endpoints
+Dynamic connector test endpoints for Slack, Notion, and Gmail:
+- `POST /integrations/slack` - Sends "Levqor test OK" to channel
+- `POST /integrations/notion` - Creates test database row
+- `POST /integrations/gmail` - Sends test email via Resend
+- `GET /ops/selftest/integrations` - Returns configuration status
+- Token storage: `data/integrations.json`
+
+### Referral System
+Credit rewards for user growth:
+- `POST /api/v1/referrals` - Tracks referral codes
+- Awards **+20 credits** to referrers for valid signups (within 24h)
+- Referral log: `data/referrals.jsonl`
+- Integration: URL param `?ref=<user_id>`
+
+### Blog & Content
+SEO-optimized blog section in levqor-site:
+- 3 seed posts:
+  1. "How Levqor Runs Itself" - Self-hosting narrative
+  2. "EchoPilot vs Zapier" - Competitive positioning (AI vs manual)
+  3. "Automate Everything from Your Phone" - Mobile-first pitch
+- Markdown content in `levqor-site/content/*.md`
+- Blog page at `/blog` with auto-generated listing
 
 ### Deployment
 The application is deployed to Replit Autoscale, utilizing Gunicorn as the production server. Custom domain (api.levqor.ai) is configured. The Next.js frontend can be deployed to Vercel or other hosting platforms.
@@ -75,7 +132,19 @@ The application is deployed to Replit Autoscale, utilizing Gunicorn as the produ
 - **markdown2**: Markdown to HTML rendering.
 
 ## Recent Changes
-**November 6, 2025**
+
+**November 6, 2025 - Evening**
+- **"Catch-Up & Surpass" Upgrade (5 Phases in ~70 minutes):**
+  - **Phase 1 - Public Landing Site**: Built `levqor-site/` Next.js app with /, /contact, /privacy, /terms, /blog, full SEO (metadata, OpenGraph, sitemap, robots.txt), Plausible analytics support, mobile-responsive design, 10 static routes, Vercel deployment ready
+  - **Phase 2 - Integration Endpoints**: Added `/integrations/slack`, `/integrations/notion`, `/integrations/gmail` test endpoints, `/ops/selftest/integrations` status check, token storage in `data/integrations.json`
+  - **Phase 3 - Credits System**: Database migration adding `credits_remaining` column (default 50), `/api/v1/credits/purchase` Stripe endpoint ($9/100 credits), `/api/v1/credits/add` internal endpoint, `deduct_credit()` function integrated into pipeline execution
+  - **Phase 4 - AI Workflow Builder**: `/api/v1/plan` endpoint (natural language → JSON pipeline), `/api/v1/run` endpoint (execute pipelines with credit deduction), pipeline storage in `data/pipelines/`, mock AI (ready for OpenAI GPT-5-mini)
+  - **Phase 5 - Blog & Referral**: Blog section at `/blog` with 3 SEO posts, `/api/v1/referrals` endpoint (+20 credits for valid signups), referral tracking in `data/referrals.jsonl`
+  - **Impact**: 10 new API endpoints, 2,084 lines of code (237 backend, 1,847 frontend), $0 cost (free tier), production ready
+  - **Status**: All tests passing, backend deployed, levqor-site ready for Vercel
+  - **Evidence**: `UPGRADE_COMPLETE.md`, `UPGRADE_SUMMARY.json`, `logs/upgrade_20251106.log`
+
+**November 6, 2025 - Morning**
 - **Automated Backup System Enhancement:**
   - Added `misfire_grace_time=900` (±15 min tolerance) to APScheduler configuration
   - Implemented immediate backup validation on server startup

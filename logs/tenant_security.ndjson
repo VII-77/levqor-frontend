@@ -3582,3 +3582,5 @@
 {"ts": "2025-11-06T04:18:19.306074Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/status/summary", "method": "GET", "ip": "172.31.67.162"}}
 {"ts": "2025-11-06T04:18:20.454941Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/status/summary", "method": "GET", "ip": "172.31.67.162"}}
 {"ts": "2025-11-06T04:18:25.918698Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T04:18:49.308098Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/status/summary", "method": "GET", "ip": "172.31.67.162"}}
+{"ts": "2025-11-06T04:18:50.424836Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/status/summary", "method": "GET", "ip": "172.31.67.162"}}

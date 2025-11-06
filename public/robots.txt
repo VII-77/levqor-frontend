@@ -1,3 +1,11 @@
 User-agent: *
-Disallow:
-Sitemap: https://levqor.ai/sitemap.xml
+Disallow: /api/
+Disallow: /billing/
+Disallow: /_dev/
+Allow: /public/
+Allow: /public/docs/
+Allow: /public/blog/
+Allow: /health
+Allow: /
+
+Sitemap: https://api.levqor.ai/public/sitemap.xml

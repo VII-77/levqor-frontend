@@ -4412,3 +4412,12 @@
 {"ts": "2025-11-06T02:08:25.023137Z", "request_id": "5d8adcca-781a-4fa3-bc5d-698a06ea42d1", "route": "public_home", "method": "GET", "status": 200, "duration_ms": 2.0, "path": "/"}
 {"ts": "2025-11-06T02:09:27.444348Z", "request_id": "4b1c1c87-daad-4f2f-a141-c394abb5b379", "route": "public_home", "method": "GET", "status": 200, "duration_ms": 1.42, "path": "/"}
 {"ts": "2025-11-06T02:09:29.846926Z", "request_id": "cf665a6b-2124-4676-88f7-e6405ac7b321", "route": "health_check", "method": "GET", "status": 200, "duration_ms": 21.65, "path": "/health"}
+{"ts": "2025-11-06T02:09:31.025226Z", "request_id": "01b236f4-9f0e-4399-93d8-247408348786", "route": "public_home", "method": "GET", "status": 200, "duration_ms": 1.68, "path": "/"}
+{"ts": "2025-11-06T02:09:31.374752Z", "request_id": "a5544dae-7f83-44ff-9c58-9b375a9e494f", "route": "health_check", "method": "GET", "status": 200, "duration_ms": 13.28, "path": "/health"}
+{"ts": "2025-11-06T02:10:09.490576Z", "request_id": "5d0059e9-4ef7-4cb5-90ca-fa1c5e4a9be8", "route": "__health", "method": "GET", "status": 500, "duration_ms": 9.1, "path": "/__health"}
+{"ts": "2025-11-06T02:10:31.914633Z", "request_id": "bd0a7f2e-648a-448a-a2be-4f1acc6cd2b6", "route": "public_home", "method": "GET", "status": 200, "duration_ms": 2.03, "path": "/"}
+{"ts": "2025-11-06T02:11:32.121854Z", "request_id": "f3664376-c482-416a-9514-61cb5f7b5fee", "route": "public_home", "method": "GET", "status": 200, "duration_ms": 1.38, "path": "/"}
+{"ts": "2025-11-06T02:12:09.506762Z", "request_id": "ad27c261-89b9-44b0-b341-095f92125894", "route": "__health", "method": "GET", "status": 500, "duration_ms": 5.95, "path": "/__health"}
+{"ts": "2025-11-06T02:12:34.480229Z", "request_id": "5bdb9ba7-1a24-45b3-8af7-d49ba7175876", "route": "public_home", "method": "GET", "status": 200, "duration_ms": 1.74, "path": "/"}
+{"ts": "2025-11-06T02:12:35.258119Z", "request_id": "d3a9fa81-a549-42cb-b608-e58774b40551", "route": "public_home", "method": "GET", "status": 200, "duration_ms": 1.72, "path": "/"}
+{"ts": "2025-11-06T02:13:35.475232Z", "request_id": "9c9db9ad-7e77-4e91-b70e-4c6fe8ac8153", "route": "public_home", "method": "GET", "status": 200, "duration_ms": 1.4, "path": "/"}

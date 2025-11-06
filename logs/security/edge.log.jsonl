@@ -1,1 +1,2 @@
 {"ts": 1762394661.3592818, "event": "header_strip", "detail": {"ip": "172.31.112.66", "header": "X-Forwarded-For"}}
+{"ts": 1762394971.3618371, "event": "header_strip", "detail": {"ip": "172.31.112.66", "header": "X-Forwarded-For"}}

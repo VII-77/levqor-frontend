@@ -4427,3 +4427,4 @@
 {"ts": "2025-11-06T02:14:38.840748Z", "request_id": "983af6af-fbe5-4a38-8dda-61958067fb87", "route": "health_check", "method": "GET", "status": 200, "duration_ms": 12.24, "path": "/health"}
 {"ts": "2025-11-06T02:15:41.212289Z", "request_id": "e3d0ebce-4516-4d22-9065-fc092430661f", "route": "public_home", "method": "GET", "status": 200, "duration_ms": 1.72, "path": "/"}
 {"ts": "2025-11-06T02:15:41.899990Z", "request_id": "99e33fbe-ad23-4af9-b20b-9271300c0929", "route": "public_home", "method": "GET", "status": 200, "duration_ms": 1.8, "path": "/"}
+{"ts": "2025-11-06T02:18:09.544213Z", "request_id": "01ab2c6c-edf3-4a76-a9eb-9ed12863b2bf", "route": "__health", "method": "GET", "status": 500, "duration_ms": 5.98, "path": "/__health"}

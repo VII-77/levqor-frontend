@@ -23,3 +23,4 @@
 {"ts": 1762400879.3307412, "event": "blocked_ip", "detail": {"ip": "172.31.112.66", "path": "/ops/heartbeat"}}
 {"ts": 1762400943.9970226, "event": "blocked_ip", "detail": {"ip": "172.31.112.66", "path": "/ops/heartbeat"}}
 {"ts": 1762400944.251905, "event": "blocked_ip", "detail": {"ip": "172.31.112.66", "path": "/ops/heartbeat"}}
+{"ts": 1762401173.851971, "event": "header_strip", "detail": {"ip": "172.31.112.66", "header": "X-Forwarded-For"}}

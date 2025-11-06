@@ -3784,3 +3784,9 @@
 {"ts": "2025-11-06T10:34:12.369085Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
 {"ts": "2025-11-06T10:34:13.739124Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/status/summary", "method": "GET", "ip": "172.31.86.2"}}
 {"ts": "2025-11-06T10:34:13.890864Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/status/summary", "method": "GET", "ip": "172.31.86.2"}}
+{"ts": "2025-11-06T10:34:43.731329Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/status/summary", "method": "GET", "ip": "172.31.86.2"}}
+{"ts": "2025-11-06T10:34:43.983789Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/status/summary", "method": "GET", "ip": "172.31.86.2"}}
+{"ts": "2025-11-06T10:35:13.735700Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/status/summary", "method": "GET", "ip": "172.31.86.2"}}
+{"ts": "2025-11-06T10:35:13.900059Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/status/summary", "method": "GET", "ip": "172.31.86.2"}}
+{"ts": "2025-11-06T10:35:14.788423Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T10:35:15.057782Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}

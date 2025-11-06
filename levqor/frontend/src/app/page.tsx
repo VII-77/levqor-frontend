@@ -12,7 +12,7 @@ export default function Home() {
     const fetchStatus = async () => {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://7bcf7cfb-abac-4066-a19e-5fbe1b6c0854-00-msem1k2vhtji.kirk.replit.dev'
-        const response = await fetch(`${apiUrl}/ops/heartbeat`)
+        const response = await fetch(`${apiUrl}/api/status/summary`)
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`)

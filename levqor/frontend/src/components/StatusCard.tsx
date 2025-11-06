@@ -39,6 +39,10 @@ export default function StatusCard({ status, loading, error }: StatusCardProps) 
     )
   }
 
+  const data = status?.data || status
+  const overall = data?.overall || 'unknown'
+  const sloUptime = data?.components?.slo?.current_uptime || 0
+  
   return (
     <div style={{
       background: 'rgba(255,255,255,0.1)',
@@ -55,40 +59,40 @@ export default function StatusCard({ status, loading, error }: StatusCardProps) 
         <div>
           <p style={{ opacity: 0.8, fontSize: '0.875rem', marginBottom: '0.5rem' }}>Status</p>
           <p style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
-            {status?.status === 'ok' ? '✅ Online' : '⚠️ ' + (status?.status || 'Unknown')}
+            {overall === 'healthy' ? '✅ Online' : '⚠️ ' + overall}
           </p>
         </div>
         
         <div>
-          <p style={{ opacity: 0.8, fontSize: '0.875rem', marginBottom: '0.5rem' }}>Uptime</p>
+          <p style={{ opacity: 0.8, fontSize: '0.875rem', marginBottom: '0.5rem' }}>SLO Uptime</p>
           <p style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
-            {status?.uptime ? `${Math.floor(status.uptime / 3600)}h ${Math.floor((status.uptime % 3600) / 60)}m` : 'N/A'}
+            {sloUptime.toFixed(1)}%
           </p>
         </div>
         
         <div>
-          <p style={{ opacity: 0.8, fontSize: '0.875rem', marginBottom: '0.5rem' }}>Tasks Processed</p>
+          <p style={{ opacity: 0.8, fontSize: '0.875rem', marginBottom: '0.5rem' }}>Scheduler</p>
           <p style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
-            {status?.metrics?.total_tasks || 0}
+            {data?.components?.scheduler?.status === 'stopped' ? '⚠️ Stopped' : '✅ Running'}
           </p>
         </div>
         
         <div>
-          <p style={{ opacity: 0.8, fontSize: '0.875rem', marginBottom: '0.5rem' }}>Success Rate</p>
+          <p style={{ opacity: 0.8, fontSize: '0.875rem', marginBottom: '0.5rem' }}>Error Budget</p>
           <p style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
-            {status?.metrics?.success_rate ? `${(status.metrics.success_rate * 100).toFixed(1)}%` : 'N/A'}
+            {data?.components?.slo?.error_budget_remaining?.toFixed(1) || '0'}%
           </p>
         </div>
       </div>
       
-      {status?.timestamp && (
+      {data?.ts && (
         <p style={{
           marginTop: '1.5rem',
           opacity: 0.6,
           fontSize: '0.75rem',
           textAlign: 'center'
         }}>
-          Last updated: {new Date(status.timestamp).toLocaleString()}
+          Last updated: {new Date(data.ts).toLocaleString()}
         </p>
       )}
     </div>

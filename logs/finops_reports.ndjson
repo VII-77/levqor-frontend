@@ -1,0 +1,1 @@
+{"ok": true, "ts": "2025-11-06T04:00:07.163258Z", "period": "monthly", "total_spend_usd": 0.02, "breakdown": {"ai_models": 0.0, "infrastructure": 0.02, "storage": 0.0, "bandwidth": 0.0}, "budget_cap_usd": 50.0, "utilization_pct": 0.04, "forecast_eom_usd": 0.02, "recommendations": ["AI spend under control", "Monitor daily spend trends"]}

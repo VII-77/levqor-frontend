@@ -18,8 +18,26 @@ import time
 import uuid
 from collections import defaultdict
 from pathlib import Path
+from flask_cors import CORS
 
 app = Flask(__name__)
+
+# ===== CORS Configuration for Frontend =====
+ALLOWED_ORIGINS = [
+    "https://levqor-frontend.vercel.app",
+    "https://levqor.vercel.app",
+    "http://localhost:3000",
+    "http://localhost:5000"
+]
+CORS(app, resources={
+    r"/*": {
+        "origins": ALLOWED_ORIGINS,
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization", "X-Dash-Key", "X-CSRF-Token"],
+        "expose_headers": ["Content-Type"],
+        "supports_credentials": True
+    }
+})
 
 # ===== Feature Flags System - Phase 108 =====
 # Migrated to bot.feature_flags module with hot-reload cache

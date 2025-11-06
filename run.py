@@ -115,6 +115,12 @@ def _log_in():
              request.headers.get("X-Forwarded-For", request.remote_addr),
              request.headers.get("User-Agent", "-"))
 
+CORS_ORIGINS = [
+    "https://app.levqor.ai",
+    "https://levqor-web.vercel.app",
+    "https://levqor.ai"
+]
+
 @app.after_request
 def add_headers(r):
     if request.path == "/billing/webhook":
@@ -128,11 +134,16 @@ def add_headers(r):
         r.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         return r
     
-    r.headers["Access-Control-Allow-Origin"] = "https://levqor.ai"
+    origin = request.headers.get("Origin")
+    if origin in CORS_ORIGINS:
+        r.headers["Access-Control-Allow-Origin"] = origin
+    else:
+        r.headers["Access-Control-Allow-Origin"] = CORS_ORIGINS[0]
+    
     r.headers["Access-Control-Allow-Methods"] = "GET,POST,OPTIONS,PATCH"
     r.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Api-Key"
     r.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
-    r.headers["Content-Security-Policy"] = "default-src 'none'; connect-src https://levqor.ai https://api.levqor.ai https://checkout.stripe.com https://js.stripe.com; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"
+    r.headers["Content-Security-Policy"] = "default-src 'none'; connect-src https://levqor.ai https://app.levqor.ai https://api.levqor.ai https://levqor-web.vercel.app https://checkout.stripe.com https://js.stripe.com; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"
     r.headers["Cross-Origin-Opener-Policy"] = "same-origin"
     r.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
     r.headers["X-Content-Type-Options"] = "nosniff"
@@ -153,6 +164,14 @@ def root():
 @app.get("/health")
 def health():
     return jsonify({"ok": True, "ts": int(time())}), 200
+
+@app.get("/ready")
+def ready():
+    return jsonify({"ok": True, "status": "ready", "ts": int(time())}), 200
+
+@app.get("/status")
+def status():
+    return jsonify({"ok": True, "status": "operational", "ts": int(time())}), 200
 
 @app.get("/public/metrics")
 def public_metrics():

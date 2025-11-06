@@ -7,3 +7,7 @@
 {"ts": "2025-11-06T02:06:23.912047Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/", "status": 200}}
 {"ts": "2025-11-06T02:06:24.615862Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/", "status": 200}}
 {"ts": "2025-11-06T02:07:24.799934Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/", "status": 200}}
+{"ts": "2025-11-06T02:08:09.476679Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/__health", "status": 500}}
+{"ts": "2025-11-06T02:08:25.022366Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/", "status": 200}}
+{"ts": "2025-11-06T02:09:27.443682Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/", "status": 200}}
+{"ts": "2025-11-06T02:09:29.845341Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/health", "status": 200}}

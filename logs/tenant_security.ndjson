@@ -3861,3 +3861,4 @@
 {"ts": "2025-11-06T10:51:20.183952Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/status/summary", "method": "GET", "ip": "172.31.86.2"}}
 {"ts": "2025-11-06T10:51:20.817235Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/api/status/summary", "method": "GET", "ip": "172.31.86.2"}}
 {"ts": "2025-11-06T10:51:43.141934Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T10:52:43.416131Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}

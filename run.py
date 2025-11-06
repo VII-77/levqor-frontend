@@ -383,6 +383,54 @@ def ops_health():
         return guard
     return jsonify({"ok": True, "ts": int(time())}), 200
 
+@app.post("/api/v1/connect/<name>")
+def connect(name):
+    """
+    Dynamic connector endpoint - routes to appropriate connector module.
+    Supported connectors: gmail, notion, slack, telegram
+    """
+    guard = require_key()
+    if guard:
+        return guard
+    
+    rate_check = throttle()
+    if rate_check:
+        return rate_check
+    
+    VALID_CONNECTORS = ["gmail", "notion", "slack", "telegram"]
+    
+    if name not in VALID_CONNECTORS:
+        return jsonify({"error": "invalid_connector", "valid": VALID_CONNECTORS}), 400
+    
+    if not request.is_json:
+        return bad_request("Content-Type must be application/json")
+    
+    payload = request.get_json(silent=True) or {}
+    
+    try:
+        module_name = f"{name}_connector"
+        log.info(f"Loading connector: connectors.{module_name}")
+        
+        import importlib
+        connector_module = importlib.import_module(f"connectors.{module_name}")
+        
+        if not hasattr(connector_module, "run_task"):
+            return jsonify({"error": "connector_invalid", "message": f"{module_name} missing run_task function"}), 500
+        
+        result = connector_module.run_task(payload)
+        
+        if "error" in result:
+            return jsonify(result), 400
+        
+        return jsonify({"status": "ok", "connector": name, **result}), 200
+        
+    except ImportError as e:
+        log.exception(f"Failed to import connector: {name}")
+        return jsonify({"error": "import_failed", "connector": name, "message": str(e)}), 500
+    except Exception as e:
+        log.exception(f"Connector execution failed: {name}")
+        return jsonify({"error": "execution_failed", "connector": name, "message": str(e)}), 500
+
 OPENAPI = {
     "openapi": "3.0.0",
     "info": {"title": "Levqor API", "version": VERSION},

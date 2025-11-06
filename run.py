@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory, abort
 from jsonschema import validate, ValidationError, FormatChecker
 from time import time
 from uuid import uuid4
@@ -11,6 +11,7 @@ import sys
 import subprocess
 import stripe
 import notifier
+import markdown2
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 
@@ -140,6 +141,164 @@ def public_metrics():
         "audit_coverage": 100,
         "last_updated": int(time())
     })
+
+@app.get("/public/docs/")
+@app.get("/public/docs/<filename>")
+def serve_docs(filename=None):
+    if filename is None:
+        filename = "index.md"
+    
+    if not filename.endswith(".md"):
+        filename = f"{filename}.md"
+    
+    docs_path = os.path.join(os.getcwd(), "docs", filename)
+    
+    if not os.path.exists(docs_path):
+        abort(404)
+    
+    try:
+        with open(docs_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        html_content = markdown2.markdown(content, extras=["fenced-code-blocks", "tables", "header-ids"])
+        
+        html_template = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Levqor Documentation</title>
+    <style>
+        body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; max-width: 900px; margin: 0 auto; padding: 20px; color: #333; }}
+        h1 {{ border-bottom: 2px solid #eee; padding-bottom: 10px; }}
+        h2 {{ margin-top: 30px; border-bottom: 1px solid #eee; padding-bottom: 5px; }}
+        code {{ background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: 'Courier New', monospace; }}
+        pre {{ background: #f5f5f5; padding: 15px; border-radius: 5px; overflow-x: auto; }}
+        pre code {{ background: none; padding: 0; }}
+        a {{ color: #0066cc; text-decoration: none; }}
+        a:hover {{ text-decoration: underline; }}
+        table {{ border-collapse: collapse; width: 100%; margin: 20px 0; }}
+        th, td {{ border: 1px solid #ddd; padding: 12px; text-align: left; }}
+        th {{ background-color: #f5f5f5; font-weight: bold; }}
+        .nav {{ margin-bottom: 30px; padding: 15px; background: #f9f9f9; border-radius: 5px; }}
+        .nav a {{ margin-right: 20px; }}
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <a href="/public/docs/">Home</a>
+        <a href="/public/docs/api">API Reference</a>
+        <a href="/public/docs/connectors">Connectors</a>
+        <a href="/public/blog/">Blog</a>
+    </div>
+    {html_content}
+</body>
+</html>"""
+        return html_template, 200, {'Content-Type': 'text/html; charset=utf-8'}
+    except Exception as e:
+        log.error(f"Error rendering docs: {e}")
+        abort(500)
+
+@app.get("/public/blog/")
+@app.get("/public/blog/<slug>")
+def serve_blog(slug=None):
+    if slug is None:
+        index_path = os.path.join(os.getcwd(), "blog", "index.json")
+        if not os.path.exists(index_path):
+            abort(404)
+        
+        try:
+            with open(index_path, 'r', encoding='utf-8') as f:
+                index_data = json.load(f)
+            
+            posts_html = ""
+            for post in index_data.get("posts", []):
+                posts_html += f"""
+                <div style="margin: 30px 0; padding: 20px; border: 1px solid #eee; border-radius: 5px;">
+                    <h2><a href="/public/blog/{post['slug']}">{post['title']}</a></h2>
+                    <p style="color: #666; font-size: 14px;">{post['date']} | By {post['author']}</p>
+                    <p>{post['excerpt']}</p>
+                    <p><a href="/public/blog/{post['slug']}">Read more →</a></p>
+                </div>
+                """
+            
+            html_template = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Levqor Blog</title>
+    <style>
+        body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; max-width: 900px; margin: 0 auto; padding: 20px; color: #333; }}
+        h1 {{ border-bottom: 2px solid #eee; padding-bottom: 10px; }}
+        a {{ color: #0066cc; text-decoration: none; }}
+        a:hover {{ text-decoration: underline; }}
+        .nav {{ margin-bottom: 30px; padding: 15px; background: #f9f9f9; border-radius: 5px; }}
+        .nav a {{ margin-right: 20px; }}
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <a href="/public/docs/">Docs</a>
+        <a href="/public/blog/">Blog</a>
+    </div>
+    <h1>Levqor Blog</h1>
+    {posts_html}
+</body>
+</html>"""
+            return html_template, 200, {'Content-Type': 'text/html; charset=utf-8'}
+        except Exception as e:
+            log.error(f"Error rendering blog index: {e}")
+            abort(500)
+    
+    else:
+        if not slug.endswith(".md"):
+            slug = f"{slug}.md"
+        
+        blog_path = os.path.join(os.getcwd(), "blog", slug)
+        
+        if not os.path.exists(blog_path):
+            abort(404)
+        
+        try:
+            with open(blog_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+            
+            html_content = markdown2.markdown(content, extras=["fenced-code-blocks", "tables", "header-ids"])
+            
+            html_template = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Levqor Blog</title>
+    <style>
+        body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; max-width: 900px; margin: 0 auto; padding: 20px; color: #333; }}
+        h1 {{ border-bottom: 2px solid #eee; padding-bottom: 10px; }}
+        h2 {{ margin-top: 30px; border-bottom: 1px solid #eee; padding-bottom: 5px; }}
+        code {{ background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: 'Courier New', monospace; }}
+        pre {{ background: #f5f5f5; padding: 15px; border-radius: 5px; overflow-x: auto; }}
+        pre code {{ background: none; padding: 0; }}
+        a {{ color: #0066cc; text-decoration: none; }}
+        a:hover {{ text-decoration: underline; }}
+        .nav {{ margin-bottom: 30px; padding: 15px; background: #f9f9f9; border-radius: 5px; }}
+        .nav a {{ margin-right: 20px; }}
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <a href="/public/docs/">Docs</a>
+        <a href="/public/blog/">Blog</a>
+    </div>
+    {html_content}
+    <hr>
+    <p><a href="/public/blog/">← Back to blog</a></p>
+</body>
+</html>"""
+            return html_template, 200, {'Content-Type': 'text/html; charset=utf-8'}
+        except Exception as e:
+            log.error(f"Error rendering blog post: {e}")
+            abort(500)
 
 JOBS = {}
 

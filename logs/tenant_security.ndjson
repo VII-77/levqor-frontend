@@ -3468,3 +3468,6 @@
 {"ts": "2025-11-06T03:40:10.000786Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/__health", "method": "GET", "ip": "127.0.0.1"}}
 {"ts": "2025-11-06T03:40:30.118108Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
 {"ts": "2025-11-06T03:41:30.295082Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T03:42:10.007841Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/__health", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T03:42:32.790474Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T03:42:36.416550Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}

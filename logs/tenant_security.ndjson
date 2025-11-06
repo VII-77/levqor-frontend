@@ -3373,3 +3373,7 @@
 {"ts": "2025-11-06T02:29:03.558190Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
 {"ts": "2025-11-06T02:30:07.066767Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
 {"ts": "2025-11-06T02:30:09.604402Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/__health", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T02:31:09.976748Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T02:31:10.631092Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T02:32:09.613905Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/__health", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T02:32:10.886328Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}

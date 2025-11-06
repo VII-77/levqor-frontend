@@ -17,3 +17,5 @@
 {"kind": "failure", "details": {"route": "/__health", "message": "status=500"}, "ts": "2025-11-06T02:28:09.599265"}
 {"kind": "failure", "details": {"route": "observer_stall", "message": "System stall detected: 181s"}, "ts": "2025-11-06T02:28:24.341316"}
 {"kind": "failure", "details": {"route": "/__health", "message": "status=500"}, "ts": "2025-11-06T02:30:09.609164"}
+{"kind": "failure", "details": {"route": "observer_stall", "message": "System stall detected: 181s"}, "ts": "2025-11-06T02:31:25.342371"}
+{"kind": "failure", "details": {"route": "/__health", "message": "status=500"}, "ts": "2025-11-06T02:32:09.617400"}

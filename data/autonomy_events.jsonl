@@ -29,3 +29,4 @@
 {"kind": "failure", "details": {"route": "/__health", "message": "status=500"}, "ts": "2025-11-06T02:58:09.782318"}
 {"kind": "failure", "details": {"route": "observer_stall", "message": "System stall detected: 181s"}, "ts": "2025-11-06T02:58:34.347581"}
 {"kind": "failure", "details": {"route": "/__health", "message": "status=500"}, "ts": "2025-11-06T03:00:09.789470"}
+{"kind": "failure", "details": {"route": "observer_stall", "message": "System stall detected: 181s"}, "ts": "2025-11-06T03:01:35.349232"}

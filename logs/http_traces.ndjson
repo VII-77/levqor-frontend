@@ -4561,3 +4561,11 @@
 {"ts": "2025-11-06T03:36:09.983032Z", "request_id": "1c378bac-18f0-47df-b472-2dd34332057c", "route": "__health", "method": "GET", "status": 500, "duration_ms": 2.56, "path": "/__health"}
 {"ts": "2025-11-06T03:36:22.091681Z", "request_id": "152a6811-c226-4dd3-a0c1-7dee7ecd59e1", "route": "public_home", "method": "GET", "status": 200, "duration_ms": 3.5, "path": "/"}
 {"ts": "2025-11-06T03:36:22.738846Z", "request_id": "a2207775-429d-49fc-b08f-cdd9efa4d1dd", "route": "public_home", "method": "GET", "status": 200, "duration_ms": 1.31, "path": "/"}
+{"ts": "2025-11-06T03:37:24.956483Z", "request_id": "0bc55313-32dc-4fc5-bf4b-f8d1152f3016", "route": "health_check", "method": "GET", "status": 200, "duration_ms": 12.67, "path": "/health"}
+{"ts": "2025-11-06T03:37:26.187982Z", "request_id": "a9818b99-e2f7-4326-82e2-df2406f841aa", "route": "public_home", "method": "GET", "status": 200, "duration_ms": 3.75, "path": "/"}
+{"ts": "2025-11-06T03:37:26.615517Z", "request_id": "5093d9fe-8181-49a4-aa29-0c8133b088f1", "route": "health_check", "method": "GET", "status": 200, "duration_ms": 23.41, "path": "/health"}
+{"ts": "2025-11-06T03:38:09.994421Z", "request_id": "64e5d9d0-bf81-4046-9ce4-e69a8077868e", "route": "__health", "method": "GET", "status": 500, "duration_ms": 3.81, "path": "/__health"}
+{"ts": "2025-11-06T03:38:26.808421Z", "request_id": "91208427-f960-46b6-98cb-574a3311a71c", "route": "public_home", "method": "GET", "status": 200, "duration_ms": 1.88, "path": "/"}
+{"ts": "2025-11-06T03:39:29.176825Z", "request_id": "b4afc7d4-8f19-4d8f-917f-fc991ae6a4a8", "route": "public_home", "method": "GET", "status": 200, "duration_ms": 1.49, "path": "/"}
+{"ts": "2025-11-06T03:39:29.903642Z", "request_id": "d8c2f793-77f7-43f4-9a39-fb04178c3a02", "route": "public_home", "method": "GET", "status": 200, "duration_ms": 1.41, "path": "/"}
+{"ts": "2025-11-06T03:40:10.003391Z", "request_id": "83a6cdc0-e554-4ca2-bcd8-231809c2f0f9", "route": "__health", "method": "GET", "status": 500, "duration_ms": 2.64, "path": "/__health"}

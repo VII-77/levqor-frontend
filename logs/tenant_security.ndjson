@@ -3378,3 +3378,13 @@
 {"ts": "2025-11-06T02:32:09.613905Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/__health", "method": "GET", "ip": "127.0.0.1"}}
 {"ts": "2025-11-06T02:32:10.886328Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
 {"ts": "2025-11-06T02:33:11.118473Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T02:34:09.620065Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/__health", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T02:34:13.437855Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T02:34:14.126180Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T02:35:17.187820Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T02:36:09.639672Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/__health", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T02:36:17.771039Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T02:37:20.203271Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T02:37:20.844390Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T02:38:09.652901Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/__health", "method": "GET", "ip": "127.0.0.1"}}
+{"ts": "2025-11-06T02:38:21.121268Z", "event_type": "tenant_access", "details": {"tenant_id": "default", "path": "/", "method": "GET", "ip": "127.0.0.1"}}

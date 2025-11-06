@@ -60,3 +60,15 @@
 {"ts": "2025-11-06T02:32:09.615621Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/__health", "status": 500}}
 {"ts": "2025-11-06T02:32:10.887295Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/", "status": 200}}
 {"ts": "2025-11-06T02:33:11.119309Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/", "status": 200}}
+{"ts": "2025-11-06T02:34:09.627990Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/__health", "status": 500}}
+{"ts": "2025-11-06T02:34:13.438659Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/", "status": 200}}
+{"ts": "2025-11-06T02:34:14.126979Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/", "status": 200}}
+{"ts": "2025-11-06T02:35:15.936003Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/health", "status": 200}}
+{"ts": "2025-11-06T02:35:17.188759Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/", "status": 200}}
+{"ts": "2025-11-06T02:35:17.548421Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/health", "status": 200}}
+{"ts": "2025-11-06T02:36:09.641491Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/__health", "status": 500}}
+{"ts": "2025-11-06T02:36:17.771955Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/", "status": 200}}
+{"ts": "2025-11-06T02:37:20.204648Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/", "status": 200}}
+{"ts": "2025-11-06T02:37:20.845457Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/", "status": 200}}
+{"ts": "2025-11-06T02:38:09.656888Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/__health", "status": 500}}
+{"ts": "2025-11-06T02:38:21.122078Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/", "status": 200}}

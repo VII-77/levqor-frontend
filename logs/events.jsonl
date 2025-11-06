@@ -2,3 +2,8 @@
 {"ts": "2025-11-06T02:04:19.653239Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/health", "status": 200}}
 {"ts": "2025-11-06T02:04:20.910396Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/", "status": 200}}
 {"ts": "2025-11-06T02:04:21.370210Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/health", "status": 200}}
+{"ts": "2025-11-06T02:05:21.571673Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/", "status": 200}}
+{"ts": "2025-11-06T02:06:09.466641Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/__health", "status": 500}}
+{"ts": "2025-11-06T02:06:23.912047Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/", "status": 200}}
+{"ts": "2025-11-06T02:06:24.615862Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/", "status": 200}}
+{"ts": "2025-11-06T02:07:24.799934Z", "level": "INFO", "msg": "HTTP", "meta": {"path": "/", "status": 200}}

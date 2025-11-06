@@ -7,3 +7,9 @@
 {"kind": "failure", "details": {"route": "observer_stall", "message": "System stall detected: 181s"}, "ts": "2025-11-06T02:13:19.337745"}
 {"kind": "failure", "details": {"route": "/__health", "message": "status=500"}, "ts": "2025-11-06T02:14:09.516955"}
 {"kind": "failure", "details": {"route": "/__health", "message": "status=500"}, "ts": "2025-11-06T02:18:09.545864"}
+{"kind": "failure", "details": {"route": "observer_stall", "message": "System stall detected: 181s"}, "ts": "2025-11-06T02:19:21.339257"}
+{"kind": "failure", "details": {"route": "/__health", "message": "status=500"}, "ts": "2025-11-06T02:20:09.556009"}
+{"kind": "failure", "details": {"route": "/__health", "message": "status=500"}, "ts": "2025-11-06T02:22:09.565354"}
+{"kind": "failure", "details": {"route": "observer_stall", "message": "System stall detected: 181s"}, "ts": "2025-11-06T02:22:22.339845"}
+{"kind": "failure", "details": {"route": "/__health", "message": "status=500"}, "ts": "2025-11-06T02:24:09.575235"}
+{"kind": "failure", "details": {"route": "observer_stall", "message": "System stall detected: 181s"}, "ts": "2025-11-06T02:25:23.340371"}

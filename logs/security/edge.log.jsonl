@@ -1,3 +1,5 @@
 {"ts": 1762394661.3592818, "event": "header_strip", "detail": {"ip": "172.31.112.66", "header": "X-Forwarded-For"}}
 {"ts": 1762394971.3618371, "event": "header_strip", "detail": {"ip": "172.31.112.66", "header": "X-Forwarded-For"}}
 {"ts": 1762395278.8288486, "event": "header_strip", "detail": {"ip": "172.31.112.66", "header": "X-Forwarded-For"}}
+{"ts": 1762395588.9755337, "event": "header_strip", "detail": {"ip": "172.31.112.66", "header": "X-Forwarded-For"}}
+{"ts": 1762395899.8206692, "event": "header_strip", "detail": {"ip": "172.31.112.66", "header": "X-Forwarded-For"}}

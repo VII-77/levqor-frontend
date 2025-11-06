@@ -1,0 +1,8 @@
+{
+  "encryption": "AES256",
+  "data_retention_days": 365,
+  "gdpr": true,
+  "ccpa": true,
+  "auto_backup": true,
+  "last_audit": null
+}

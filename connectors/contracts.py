@@ -13,6 +13,7 @@ class NotionCreate(BaseModel):
 
 
 class SheetsAppend(BaseModel):
+    spreadsheet_id: Optional[str] = Field(None, min_length=20)
     range: str = Field(..., pattern=r"^[A-Za-z0-9_]+![A-Z]+[0-9]*:[A-Z]+[0-9]*$")
     values: List[List[str]] = Field(..., min_length=1)
 

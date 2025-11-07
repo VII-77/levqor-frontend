@@ -2706,18 +2706,22 @@ def action_slack_send():
 
 @app.post("/actions/sheets.append")
 def action_sheets_append():
-    """Append row to Google Sheets"""
+    """Append row to Google Sheets (via Replit Connector)"""
     from connectors.contracts import SheetsAppend
     from connectors.limits import check_quota
     from connectors.masking import mask
+    from connectors.replit_connectors import get_google_sheets_token
     from pydantic import ValidationError
     import base64
     
     start = time()
-    service_account_json = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON")
-    spreadsheet_id = os.environ.get("GOOGLE_SHEETS_SPREADSHEET_ID")
     
-    if not service_account_json or not spreadsheet_id:
+    oauth_token = get_google_sheets_token()
+    service_account_json = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON")
+    spreadsheet_id_from_request = request.get_json(silent=True).get("spreadsheet_id") if request.get_json(silent=True) else None
+    spreadsheet_id = spreadsheet_id_from_request or os.environ.get("GOOGLE_SHEETS_SPREADSHEET_ID")
+    
+    if not oauth_token and not service_account_json:
         return jsonify({"error": "not_configured", "reason": "not_configured"}), 503
     
     user_or_ip = request.headers.get("X-Forwarded-For", "").split(",")[0] or request.remote_addr
@@ -2732,19 +2736,26 @@ def action_sheets_append():
     except ValidationError as e:
         return jsonify({"error": "validation_error", "details": e.errors()}), 400
     
+    if not spreadsheet_id:
+        return jsonify({"error": "spreadsheet_id required in request body or GOOGLE_SHEETS_SPREADSHEET_ID env"}), 400
+    
     try:
-        from google.oauth2 import service_account
         from googleapiclient.discovery import build
         
-        try:
-            creds_json = json.loads(base64.b64decode(service_account_json))
-        except:
-            creds_json = json.loads(service_account_json)
-        
-        credentials = service_account.Credentials.from_service_account_info(
-            creds_json,
-            scopes=['https://www.googleapis.com/auth/spreadsheets']
-        )
+        if oauth_token:
+            from google.oauth2.credentials import Credentials
+            credentials = Credentials(token=oauth_token)
+        else:
+            from google.oauth2 import service_account
+            try:
+                creds_json = json.loads(base64.b64decode(service_account_json))
+            except:
+                creds_json = json.loads(service_account_json)
+            
+            credentials = service_account.Credentials.from_service_account_info(
+                creds_json,
+                scopes=['https://www.googleapis.com/auth/spreadsheets']
+            )
         
         service = build('sheets', 'v4', credentials=credentials)
         
@@ -2770,15 +2781,17 @@ def action_sheets_append():
 
 @app.post("/actions/notion.create")
 def action_notion_create():
-    """Create page in Notion"""
+    """Create page in Notion (via Replit Connector)"""
     from connectors.contracts import NotionCreate
     from connectors.limits import check_quota
     from connectors.masking import mask
+    from connectors.replit_connectors import get_notion_token
     from pydantic import ValidationError
     import requests as http_requests
     
     start = time()
-    api_key = os.environ.get("NOTION_API_KEY")
+    
+    api_key = get_notion_token() or os.environ.get("NOTION_API_KEY")
     
     if not api_key:
         return jsonify({"error": "not_configured", "reason": "not_configured"}), 503
@@ -2919,10 +2932,12 @@ def action_telegram_send():
 @app.get("/actions/health")
 def actions_health():
     """Health check showing which connectors are configured"""
+    from connectors.replit_connectors import get_notion_token, get_google_sheets_token
+    
     connectors = {
         "slack": bool(os.environ.get("SLACK_WEBHOOK_URL")),
-        "notion": bool(os.environ.get("NOTION_API_KEY")),
-        "sheets": bool(os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON") and os.environ.get("GOOGLE_SHEETS_SPREADSHEET_ID")),
+        "notion": bool(get_notion_token() or os.environ.get("NOTION_API_KEY")),
+        "sheets": bool(get_google_sheets_token() or (os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON") and os.environ.get("GOOGLE_SHEETS_SPREADSHEET_ID"))),
         "telegram": bool(os.environ.get("TELEGRAM_BOT_TOKEN")),
         "email": bool(os.environ.get("RESEND_API_KEY"))
     }
@@ -2933,7 +2948,11 @@ def actions_health():
         "status": "ok",
         "connectors": connectors,
         "configured": configured_count,
-        "total": len(connectors)
+        "total": len(connectors),
+        "via_replit": {
+            "notion": bool(get_notion_token()),
+            "sheets": bool(get_google_sheets_token())
+        }
     }), 200
 
 def run_backup_job():

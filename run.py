@@ -3499,9 +3499,87 @@ scheduler.add_job(
     replace_existing=True
 )
 
+def run_daily_cost_report():
+    """Execute daily cost report at 09:00 UTC"""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'scripts/daily_cost_report.py'],
+            capture_output=True,
+            text=True,
+            timeout=60
+        )
+        if result.returncode == 0:
+            log.info(f"Daily cost report completed: {result.stdout[:200]}")
+        else:
+            log.error(f"Daily cost report failed: {result.stderr}")
+    except Exception as e:
+        log.exception(f"Daily cost report job failed: {e}")
+
+def run_spend_guard_check():
+    """Execute spend guard check at 10:00 UTC"""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ['python3', 'monitors/spend_guard.py'],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        if result.returncode == 0:
+            log.info(f"Spend guard check completed: {result.stdout[:200]}")
+        else:
+            log.error(f"Spend guard check failed: {result.stderr}")
+    except Exception as e:
+        log.exception(f"Spend guard check job failed: {e}")
+
+def run_weekly_backup():
+    """Execute weekly backup with checksum on Mondays at 02:00 UTC"""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ['bash', 'scripts/backup_cycle.sh'],
+            capture_output=True,
+            text=True,
+            timeout=300
+        )
+        if result.returncode == 0:
+            log.info(f"Weekly backup completed: {result.stdout[:200]}")
+        else:
+            log.error(f"Weekly backup failed: {result.stderr}")
+    except Exception as e:
+        log.exception(f"Weekly backup job failed: {e}")
+
+scheduler.add_job(
+    func=run_daily_cost_report,
+    trigger=CronTrigger(hour=9, minute=0, timezone='UTC'),
+    id='daily_cost_report',
+    name='Daily Cost Report (09:00 UTC)',
+    replace_existing=True,
+    misfire_grace_time=900
+)
+
+scheduler.add_job(
+    func=run_spend_guard_check,
+    trigger=CronTrigger(hour=10, minute=0, timezone='UTC'),
+    id='spend_guard_check',
+    name='Spend Guard Check (10:00 UTC)',
+    replace_existing=True,
+    misfire_grace_time=600
+)
+
+scheduler.add_job(
+    func=run_weekly_backup,
+    trigger=CronTrigger(day_of_week='mon', hour=2, minute=0, timezone='UTC'),
+    id='weekly_backup',
+    name='Weekly Backup with Checksum (Mon 02:00 UTC)',
+    replace_existing=True,
+    misfire_grace_time=1800
+)
+
 try:
     scheduler.start()
-    log.info("APScheduler started - Backups scheduled for 00:00 and 03:00 UTC")
+    log.info("APScheduler started - All automated tasks scheduled")
     
     log.info("Running initial backup validation...")
     run_backup_job()

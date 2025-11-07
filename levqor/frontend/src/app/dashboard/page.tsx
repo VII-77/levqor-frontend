@@ -187,6 +187,12 @@ export default function DashboardPage() {
         <a href="/pricing" style={styles.upgradeButton}>
           Upgrade Plan
         </a>
+        <button
+          onClick={() => window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_BASE}/billing/portal`}
+          style={styles.billingButton}
+        >
+          Manage Billing
+        </button>
         <a href="https://api.levqor.ai/docs" style={styles.docsButton}>
           API Docs
         </a>
@@ -326,6 +332,16 @@ const styles = {
     textDecoration: 'none',
     fontSize: '1rem',
     fontWeight: 500,
+  },
+  billingButton: {
+    padding: '0.75rem 2rem',
+    backgroundColor: '#059669',
+    color: 'white',
+    border: 'none',
+    borderRadius: '0.375rem',
+    fontSize: '1rem',
+    fontWeight: 500,
+    cursor: 'pointer',
   },
   docsButton: {
     padding: '0.75rem 2rem',

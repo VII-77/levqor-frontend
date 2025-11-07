@@ -2642,82 +2642,299 @@ def support_health():
         log.exception("Support health check failed")
         return jsonify({"inbox": "internal", "status": "error"}), 500
 
+def _log_connector(connector: str, user_or_ip: str, status: str, ms: float, error: str = None):
+    """Log connector usage to logs/connectors.log"""
+    os.makedirs("logs", exist_ok=True)
+    entry = {
+        "ts": time(),
+        "ip": user_or_ip.split(",")[0] if "," in user_or_ip else user_or_ip,
+        "user": "anon",
+        "connector": connector,
+        "status": status,
+        "ms": round(ms, 2),
+        "ids_masked": True
+    }
+    if error:
+        entry["error"] = error[:100]
+    
+    with open("logs/connectors.log", "a") as f:
+        f.write(json.dumps(entry) + "\n")
+
 @app.post("/actions/slack.send")
 def action_slack_send():
     """Send message to Slack via webhook"""
+    from connectors.contracts import SlackSend
+    from connectors.limits import check_quota
+    from connectors.masking import mask
+    from pydantic import ValidationError
+    import requests as http_requests
+    
+    start = time()
     webhook_url = os.environ.get("SLACK_WEBHOOK_URL")
+    
     if not webhook_url:
-        return jsonify({"error": "not_configured", "message": "SLACK_WEBHOOK_URL not set"}), 503
+        return jsonify({"error": "not_configured", "reason": "not_configured"}), 503
     
-    body = request.get_json(silent=True) or {}
-    text = body.get("text", "")
-    
-    if not text:
-        return jsonify({"error": "text required"}), 400
+    user_or_ip = request.headers.get("X-Forwarded-For", "").split(",")[0] or request.remote_addr
     
     try:
-        import requests as http_requests
-        resp = http_requests.post(webhook_url, json={"text": text}, timeout=10)
+        check_quota(user_or_ip, "slack", plan="free")
+    except ValueError as e:
+        return jsonify(json.loads(str(e))), 402
+    
+    try:
+        data = SlackSend(**request.get_json(silent=True) or {})
+    except ValidationError as e:
+        return jsonify({"error": "validation_error", "details": e.errors()}), 400
+    
+    try:
+        payload = {"text": data.text}
+        if data.channel:
+            payload["channel"] = data.channel
+        
+        resp = http_requests.post(webhook_url, json=payload, timeout=10)
         resp.raise_for_status()
-        log.info(f"Slack message sent: {text[:50]}...")
+        
+        elapsed = (time() - start) * 1000
+        _log_connector("slack", user_or_ip, "sent", elapsed, None)
+        
         return jsonify({"status": "sent"}), 200
     except Exception as e:
-        log.exception("Slack send failed")
-        return jsonify({"error": str(e)}), 500
+        elapsed = (time() - start) * 1000
+        _log_connector("slack", user_or_ip, "error", elapsed, str(e)[:100])
+        return jsonify({"error": "upstream_error", "message": str(e)}), 500
 
 @app.post("/actions/sheets.append")
 def action_sheets_append():
     """Append row to Google Sheets"""
-    api_key = os.environ.get("GOOGLE_SHEETS_API_KEY")
-    if not api_key:
-        return jsonify({"error": "not_configured", "message": "GOOGLE_SHEETS_API_KEY not set"}), 503
+    from connectors.contracts import SheetsAppend
+    from connectors.limits import check_quota
+    from connectors.masking import mask
+    from pydantic import ValidationError
+    import base64
     
-    body = request.get_json(silent=True) or {}
-    log.info(f"Sheets append request: sheet_id={body.get('sheet_id', 'N/A')}")
-    return jsonify({"error": "not_configured", "message": "Google Sheets integration stub"}), 503
+    start = time()
+    service_account_json = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON")
+    spreadsheet_id = os.environ.get("GOOGLE_SHEETS_SPREADSHEET_ID")
+    
+    if not service_account_json or not spreadsheet_id:
+        return jsonify({"error": "not_configured", "reason": "not_configured"}), 503
+    
+    user_or_ip = request.headers.get("X-Forwarded-For", "").split(",")[0] or request.remote_addr
+    
+    try:
+        check_quota(user_or_ip, "sheets", plan="free")
+    except ValueError as e:
+        return jsonify(json.loads(str(e))), 402
+    
+    try:
+        data = SheetsAppend(**request.get_json(silent=True) or {})
+    except ValidationError as e:
+        return jsonify({"error": "validation_error", "details": e.errors()}), 400
+    
+    try:
+        from google.oauth2 import service_account
+        from googleapiclient.discovery import build
+        
+        try:
+            creds_json = json.loads(base64.b64decode(service_account_json))
+        except:
+            creds_json = json.loads(service_account_json)
+        
+        credentials = service_account.Credentials.from_service_account_info(
+            creds_json,
+            scopes=['https://www.googleapis.com/auth/spreadsheets']
+        )
+        
+        service = build('sheets', 'v4', credentials=credentials)
+        
+        body = {
+            'values': data.values
+        }
+        
+        result = service.spreadsheets().values().append(
+            spreadsheetId=spreadsheet_id,
+            range=data.range,
+            valueInputOption='RAW',
+            body=body
+        ).execute()
+        
+        elapsed = (time() - start) * 1000
+        _log_connector("sheets", user_or_ip, "appended", elapsed, None)
+        
+        return jsonify({"status": "appended", "updated": result.get('updates', {}).get('updatedRows', 0)}), 200
+    except Exception as e:
+        elapsed = (time() - start) * 1000
+        _log_connector("sheets", user_or_ip, "error", elapsed, str(e)[:100])
+        return jsonify({"error": "upstream_error", "message": str(e)}), 500
 
 @app.post("/actions/notion.create")
 def action_notion_create():
     """Create page in Notion"""
-    api_key = os.environ.get("NOTION_API_KEY")
-    if not api_key:
-        return jsonify({"error": "not_configured", "message": "NOTION_API_KEY not set"}), 503
+    from connectors.contracts import NotionCreate
+    from connectors.limits import check_quota
+    from connectors.masking import mask
+    from pydantic import ValidationError
+    import requests as http_requests
     
-    body = request.get_json(silent=True) or {}
-    log.info(f"Notion create request: title={body.get('title', 'N/A')}")
-    return jsonify({"error": "not_configured", "message": "Notion integration stub"}), 503
+    start = time()
+    api_key = os.environ.get("NOTION_API_KEY")
+    
+    if not api_key:
+        return jsonify({"error": "not_configured", "reason": "not_configured"}), 503
+    
+    user_or_ip = request.headers.get("X-Forwarded-For", "").split(",")[0] or request.remote_addr
+    
+    try:
+        check_quota(user_or_ip, "notion", plan="free")
+    except ValueError as e:
+        return jsonify(json.loads(str(e))), 402
+    
+    try:
+        data = NotionCreate(**request.get_json(silent=True) or {})
+    except ValidationError as e:
+        return jsonify({"error": "validation_error", "details": e.errors()}), 400
+    
+    try:
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Notion-Version": "2022-06-28",
+            "Content-Type": "application/json"
+        }
+        
+        payload = {
+            "parent": {"database_id": data.database_id},
+            "properties": data.props
+        }
+        
+        resp = http_requests.post(
+            "https://api.notion.com/v1/pages",
+            json=payload,
+            headers=headers,
+            timeout=10
+        )
+        resp.raise_for_status()
+        result = resp.json()
+        
+        elapsed = (time() - start) * 1000
+        page_id = result.get("id", "unknown")
+        _log_connector("notion", user_or_ip, "created", elapsed, None)
+        
+        return jsonify({"status": "created", "id": mask(page_id)}), 200
+    except Exception as e:
+        elapsed = (time() - start) * 1000
+        _log_connector("notion", user_or_ip, "error", elapsed, str(e)[:100])
+        return jsonify({"error": "upstream_error", "message": str(e)}), 500
 
 @app.post("/actions/email.send")
 def action_email_send():
     """Send transactional email via Resend"""
+    from connectors.contracts import EmailSend
+    from connectors.limits import check_quota
+    from connectors.masking import mask
+    from pydantic import ValidationError
     from notifier import send_email
     
-    body = request.get_json(silent=True) or {}
-    to_email = body.get("to")
-    subject = body.get("subject", "")
-    text = body.get("text", "")
+    start = time()
+    resend_api_key = os.environ.get("RESEND_API_KEY")
     
-    if not to_email or not subject or not text:
-        return jsonify({"error": "to, subject, and text required"}), 400
+    if not resend_api_key:
+        return jsonify({"error": "not_configured", "reason": "not_configured"}), 503
+    
+    user_or_ip = request.headers.get("X-Forwarded-For", "").split(",")[0] or request.remote_addr
     
     try:
-        send_email(to_email, subject, text)
-        log.info(f"Email sent via Resend to: {to_email[:3]}***")
+        check_quota(user_or_ip, "email", plan="free")
+    except ValueError as e:
+        return jsonify(json.loads(str(e))), 402
+    
+    try:
+        data = EmailSend(**request.get_json(silent=True) or {})
+    except ValidationError as e:
+        return jsonify({"error": "validation_error", "details": e.errors()}), 400
+    
+    try:
+        send_email(data.to, data.subject, data.text)
+        
+        elapsed = (time() - start) * 1000
+        _log_connector("email", user_or_ip, "sent", elapsed, None)
+        
         return jsonify({"status": "sent"}), 200
     except Exception as e:
-        log.exception("Email send failed")
-        return jsonify({"error": str(e)}), 500
+        elapsed = (time() - start) * 1000
+        _log_connector("email", user_or_ip, "error", elapsed, str(e)[:100])
+        return jsonify({"error": "upstream_error", "message": str(e)}), 500
 
 @app.post("/actions/telegram.send")
 def action_telegram_send():
     """Send message via Telegram bot"""
-    bot_token = os.environ.get("TELEGRAM_BOT_TOKEN")
-    if not bot_token:
-        return jsonify({"error": "not_configured", "message": "TELEGRAM_BOT_TOKEN not set"}), 503
+    from connectors.contracts import TelegramSend
+    from connectors.limits import check_quota
+    from connectors.masking import mask
+    from pydantic import ValidationError
+    import requests as http_requests
     
-    body = request.get_json(silent=True) or {}
-    log.info(f"Telegram send request: chat_id={body.get('chat_id', 'N/A')}")
-    return jsonify({"error": "not_configured", "message": "Telegram integration stub"}), 503
+    start = time()
+    bot_token = os.environ.get("TELEGRAM_BOT_TOKEN")
+    default_chat_id = os.environ.get("TELEGRAM_CHAT_ID_DEFAULT")
+    
+    if not bot_token:
+        return jsonify({"error": "not_configured", "reason": "not_configured"}), 503
+    
+    user_or_ip = request.headers.get("X-Forwarded-For", "").split(",")[0] or request.remote_addr
+    
+    try:
+        check_quota(user_or_ip, "telegram", plan="free")
+    except ValueError as e:
+        return jsonify(json.loads(str(e))), 402
+    
+    try:
+        data = TelegramSend(**request.get_json(silent=True) or {})
+    except ValidationError as e:
+        return jsonify({"error": "validation_error", "details": e.errors()}), 400
+    
+    chat_id = data.chat_id or default_chat_id
+    if not chat_id:
+        return jsonify({"error": "chat_id required"}), 400
+    
+    try:
+        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        payload = {
+            "chat_id": chat_id,
+            "text": data.text
+        }
+        
+        resp = http_requests.post(url, json=payload, timeout=10)
+        resp.raise_for_status()
+        
+        elapsed = (time() - start) * 1000
+        _log_connector("telegram", user_or_ip, "sent", elapsed, None)
+        
+        return jsonify({"status": "sent"}), 200
+    except Exception as e:
+        elapsed = (time() - start) * 1000
+        _log_connector("telegram", user_or_ip, "error", elapsed, str(e)[:100])
+        return jsonify({"error": "upstream_error", "message": str(e)}), 500
+
+@app.get("/actions/health")
+def actions_health():
+    """Health check showing which connectors are configured"""
+    connectors = {
+        "slack": bool(os.environ.get("SLACK_WEBHOOK_URL")),
+        "notion": bool(os.environ.get("NOTION_API_KEY")),
+        "sheets": bool(os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON") and os.environ.get("GOOGLE_SHEETS_SPREADSHEET_ID")),
+        "telegram": bool(os.environ.get("TELEGRAM_BOT_TOKEN")),
+        "email": bool(os.environ.get("RESEND_API_KEY"))
+    }
+    
+    configured_count = sum(connectors.values())
+    
+    return jsonify({
+        "status": "ok",
+        "connectors": connectors,
+        "configured": configured_count,
+        "total": len(connectors)
+    }), 200
 
 def run_backup_job():
     """

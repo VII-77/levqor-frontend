@@ -864,6 +864,23 @@ def ops_uptime():
         }
     }), 200 if db_ok else 503
 
+@app.get("/ops/queue_health")
+def ops_queue_health():
+    """Queue health endpoint for monitoring"""
+    try:
+        from job_queue.tasks import get_queue_health
+        health = get_queue_health()
+        status_code = 200 if health['status'] in ['healthy', 'unavailable'] else 503
+        return jsonify(health), status_code
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'error': str(e),
+            'depth': 0,
+            'fail_rate': 0,
+            'retry_count': 0
+        }), 503
+
 @app.get("/api/v1/ops/health")
 def ops_health():
     guard = require_key()

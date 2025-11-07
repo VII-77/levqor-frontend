@@ -11,6 +11,22 @@ Levqor is a job orchestration backend API built with Flask, providing AI automat
 - Legal documentation and FAQ pages
 
 ## Recent Changes
+**November 7, 2025**
+- Deployed frontend to Vercel (https://levqor.ai)
+- Frontend and backend fully connected and operational
+- **Operational Monitoring Added:**
+  - Created `public_smoke.sh` automated testing script (10/10 tests passing)
+  - Added operational health endpoints (Phase-4 enhanced versions deployed)
+  - Added JWT_SECRET for future authentication support
+  - Fixed LSP errors in run.py (None type validation)
+  - All triage requirements met
+- **Secrets Configured:**
+  - JWT_SECRET (auth token signing)
+  - STRIPE_SECRET_KEY (payment processing)
+  - STRIPE_WEBHOOK_SECRET (webhook verification)
+  - RESEND_API_KEY (email delivery)
+  - DATABASE_URL (PostgreSQL connection)
+
 **November 5, 2025**
 - Initial setup of Levqor backend
 - Created Flask application with all core endpoints
@@ -69,6 +85,8 @@ Levqor is a job orchestration backend API built with Flask, providing AI automat
 ### Scripts
 - `scripts/validate_levqor.py` - Endpoint validation script
 - `scripts/backup_db.sh` - Database backup script with WAL support
+- `public_smoke.sh` - Automated smoke testing for all public endpoints
+- `triage_and_fix.sh` - Live triage and fix script (from user)
 
 #### Running the Validation Script
 The validation script tests all endpoints to ensure they're working correctly:
@@ -82,6 +100,22 @@ python scripts/validate_levqor.py
 ```
 
 On success, you'll see: `🟢 COCKPIT GREEN — Levqor backend validated`
+
+#### Public Smoke Tests
+Automated testing of all public endpoints:
+
+```bash
+# Test backend endpoints
+BACKEND=https://api.levqor.ai ./public_smoke.sh
+```
+
+Tests:
+- Core endpoints (/, /health, /status)
+- Operations endpoints (/ops/uptime, /ops/queue_health, /billing/health)
+- Public content (/public/metrics, /public/openapi.json)
+- API v1 endpoints (job creation, status checking)
+
+On success: `✅ All smoke tests passed! 🎉`
 
 #### Database Backup
 Create consistent backups of the SQLite database:
@@ -126,6 +160,15 @@ Create consistent backups of the SQLite database:
 - `GET /api/v1/ops/health` - Protected health check endpoint (requires API key)
   - Headers: `X-Api-Key: <your-api-key>`
   - Returns: `{"ok": true, "ts": <timestamp>}`
+
+- `GET /ops/uptime` - Public system uptime and health (Phase-4 enhanced)
+  - Returns: `{"status": "operational", "services": {"api": "operational", "database": "operational"}, "version": "1.0.0", ...}`
+
+- `GET /ops/queue_health` - Public job queue health monitoring (Phase-4 enhanced)
+  - Returns: `{"depth": 0, "dlq": 0, "mode": "sync", "queue_available": false, "retry": 0}`
+
+- `GET /billing/health` - Public Stripe integration health (Phase-4 enhanced)
+  - Returns: `{"status": "operational", "stripe": true, "available": [...], "pending": [...]}`
 
 #### User Management
 - `POST /api/v1/users/upsert` - Create or update user by email (idempotent, requires API key)
@@ -185,11 +228,18 @@ Create consistent backups of the SQLite database:
   - Global error handler to prevent information leakage
 
 ### Current State
-- **Production-Ready**: All hardening deltas completed and architect-approved
+- **Production Deployed**: Both frontend and backend live
+  - Backend: https://api.levqor.ai (Replit Autoscale)
+  - Frontend: https://levqor.ai (Vercel)
 - Production server (Gunicorn) running on port 5000 with 2 workers, 4 threads, 30s timeout
-- In-memory job store (JOBS dictionary)
-- SQLite database for user profiles (levqor.db) with WAL mode enabled
-- All endpoints operational and tested
+- PostgreSQL database (Neon) for production data
+- SQLite database for local development (levqor.db) with WAL mode enabled
+- **All systems operational:**
+  - 10/10 smoke tests passing
+  - Health checks: ✅ PASSING
+  - Queue monitoring: ✅ ACTIVE
+  - Stripe integration: ✅ OPERATIONAL
+  - Database: ✅ CONNECTED
 - Deployment configured for Autoscale with environment variable tuning
 - Root endpoint (/) with version and build info
 - User management with email-based idempotent upsert
@@ -203,7 +253,8 @@ Create consistent backups of the SQLite database:
 - API key rotation support with dual-set validation
 - OpenAPI 3.0 documentation at /public/openapi.json
 - Well-known files (security.txt, robots.txt)
-- Ready for production deployment
+- Automated smoke testing with public_smoke.sh
+- JWT_SECRET configured for future authentication
 
 ## Next Phase
 - Replace in-memory job store with PostgreSQL or Redis

@@ -20,7 +20,7 @@ from apscheduler.triggers.cron import CronTrigger
 from middleware.security_headers import init_security_headers
 from observability.sentry_init import init_sentry
 from observability.enhanced_metrics import get_enhanced_metrics, record_latency, record_error, reset_daily_metrics
-from queue.worker import get_queue_health, retry_dlq_jobs
+from job_queue_phase4.worker import get_queue_health, retry_dlq_jobs
 from webhooks.verify import webhook_auth_required
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)

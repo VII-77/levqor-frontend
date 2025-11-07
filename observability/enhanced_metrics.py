@@ -64,9 +64,9 @@ def get_enhanced_metrics() -> str:
             p95 = calculate_p95(samples)
             lines.append(f'api_latency_p95_ms{{endpoint="{endpoint}"}} {p95:.2f}')
     
-    # Queue depth (from queue.worker)
+    # Queue depth (from job_queue_phase4.worker)
     try:
-        from queue.worker import get_queue_health
+        from job_queue_phase4.worker import get_queue_health
         health = get_queue_health()
         
         lines.append("# HELP queue_depth Number of jobs in queue")

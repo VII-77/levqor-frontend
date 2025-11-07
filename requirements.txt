@@ -16,3 +16,9 @@ cryptography
 pyjwt
 sentry-sdk[flask]>=1.40.0
 sentry-sdk[flask]
+alembic
+psycopg2-binary
+redis
+rq
+sentry-sdk
+sqlalchemy

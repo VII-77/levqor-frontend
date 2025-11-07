@@ -1744,6 +1744,42 @@ def get_referral_code():
     
     return jsonify({"ref_code": ref_code}), 200
 
+@app.get("/api/usage/summary")
+def get_usage_summary():
+    """Usage summary endpoint for dashboard - no auth required for MVP"""
+    try:
+        db = get_db()
+        today = datetime.now().strftime("%Y-%m-%d")
+        day_7 = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
+        day_30 = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
+        
+        runs_today = db.execute(
+            "SELECT COALESCE(SUM(jobs_run), 0) FROM usage_daily WHERE day = ?",
+            (today,)
+        ).fetchone()[0]
+        
+        runs_7d = db.execute(
+            "SELECT COALESCE(SUM(jobs_run), 0) FROM usage_daily WHERE day >= ?",
+            (day_7,)
+        ).fetchone()[0]
+        
+        runs_30d = db.execute(
+            "SELECT COALESCE(SUM(jobs_run), 0) FROM usage_daily WHERE day >= ?",
+            (day_30,)
+        ).fetchone()[0]
+        
+        return jsonify({
+            "runs_today": int(runs_today),
+            "runs_7d": int(runs_7d),
+            "runs_30d": int(runs_30d),
+            "plan": "free",
+            "renewal_at": None
+        }), 200
+        
+    except Exception as e:
+        log.exception("Usage summary error")
+        return jsonify({"error": str(e)}), 500
+
 @app.post("/api/v1/referrals/capture")
 def capture_referral():
     body = request.get_json(silent=True) or {}
@@ -2553,6 +2589,83 @@ def support_health():
     except Exception as e:
         log.exception("Support health check failed")
         return jsonify({"inbox": "internal", "status": "error"}), 500
+
+@app.post("/actions/slack.send")
+def action_slack_send():
+    """Send message to Slack via webhook"""
+    webhook_url = os.environ.get("SLACK_WEBHOOK_URL")
+    if not webhook_url:
+        return jsonify({"error": "not_configured", "message": "SLACK_WEBHOOK_URL not set"}), 503
+    
+    body = request.get_json(silent=True) or {}
+    text = body.get("text", "")
+    
+    if not text:
+        return jsonify({"error": "text required"}), 400
+    
+    try:
+        import requests as http_requests
+        resp = http_requests.post(webhook_url, json={"text": text}, timeout=10)
+        resp.raise_for_status()
+        log.info(f"Slack message sent: {text[:50]}...")
+        return jsonify({"status": "sent"}), 200
+    except Exception as e:
+        log.exception("Slack send failed")
+        return jsonify({"error": str(e)}), 500
+
+@app.post("/actions/sheets.append")
+def action_sheets_append():
+    """Append row to Google Sheets"""
+    api_key = os.environ.get("GOOGLE_SHEETS_API_KEY")
+    if not api_key:
+        return jsonify({"error": "not_configured", "message": "GOOGLE_SHEETS_API_KEY not set"}), 503
+    
+    body = request.get_json(silent=True) or {}
+    log.info(f"Sheets append request: sheet_id={body.get('sheet_id', 'N/A')}")
+    return jsonify({"error": "not_configured", "message": "Google Sheets integration stub"}), 503
+
+@app.post("/actions/notion.create")
+def action_notion_create():
+    """Create page in Notion"""
+    api_key = os.environ.get("NOTION_API_KEY")
+    if not api_key:
+        return jsonify({"error": "not_configured", "message": "NOTION_API_KEY not set"}), 503
+    
+    body = request.get_json(silent=True) or {}
+    log.info(f"Notion create request: title={body.get('title', 'N/A')}")
+    return jsonify({"error": "not_configured", "message": "Notion integration stub"}), 503
+
+@app.post("/actions/email.send")
+def action_email_send():
+    """Send transactional email via Resend"""
+    from notifier import send_email
+    
+    body = request.get_json(silent=True) or {}
+    to_email = body.get("to")
+    subject = body.get("subject", "")
+    text = body.get("text", "")
+    
+    if not to_email or not subject or not text:
+        return jsonify({"error": "to, subject, and text required"}), 400
+    
+    try:
+        send_email(to_email, subject, text)
+        log.info(f"Email sent via Resend to: {to_email[:3]}***")
+        return jsonify({"status": "sent"}), 200
+    except Exception as e:
+        log.exception("Email send failed")
+        return jsonify({"error": str(e)}), 500
+
+@app.post("/actions/telegram.send")
+def action_telegram_send():
+    """Send message via Telegram bot"""
+    bot_token = os.environ.get("TELEGRAM_BOT_TOKEN")
+    if not bot_token:
+        return jsonify({"error": "not_configured", "message": "TELEGRAM_BOT_TOKEN not set"}), 503
+    
+    body = request.get_json(silent=True) or {}
+    log.info(f"Telegram send request: chat_id={body.get('chat_id', 'N/A')}")
+    return jsonify({"error": "not_configured", "message": "Telegram integration stub"}), 503
 
 def run_backup_job():
     """

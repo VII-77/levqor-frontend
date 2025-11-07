@@ -1377,10 +1377,35 @@ def run_pipeline():
         with open(pipeline_path, "r") as f:
             pipeline = json.load(f)
         
+        # Free plan gate: 1 run per day
+        if user_id:
+            db = get_db()
+            today = datetime.now().strftime("%Y-%m-%d")
+            
+            runs_today = db.execute(
+                "SELECT COALESCE(SUM(jobs_run), 0) FROM usage_daily WHERE user_id = ? AND day = ?",
+                (user_id, today)
+            ).fetchone()[0]
+            
+            if runs_today >= 1:
+                return jsonify({"error": "daily_limit_reached", "message": "Free plan: 1 run/day. Upgrade for unlimited runs."}), 429
+        
         # Deduct credit if user_id provided
         if user_id:
             if not deduct_credit(user_id):
                 return jsonify({"error": "insufficient_credits"}), 402
+            
+            # Track usage
+            db = get_db()
+            today = datetime.now().strftime("%Y-%m-%d")
+            db.execute("""
+                INSERT INTO usage_daily (user_id, day, jobs_run, cost_saving)
+                VALUES (?, ?, 1, 0.5)
+                ON CONFLICT(user_id, day) DO UPDATE SET 
+                    jobs_run = jobs_run + 1,
+                    cost_saving = cost_saving + 0.5
+            """, (user_id, today))
+            db.commit()
         
         # Execute pipeline actions
         results = []

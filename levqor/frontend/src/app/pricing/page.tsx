@@ -16,44 +16,46 @@ export default function PricingPage() {
   return (
     <div style={styles.container}>
       <h1 style={styles.title}>Simple, Transparent Pricing</h1>
-      <p style={styles.subtitle}>Start free, scale as you grow</p>
+      <p style={styles.subtitle}>Start free with 50 credits, no credit card required</p>
 
       <div style={styles.grid}>
         <div style={styles.plan}>
-          <h3 style={styles.planName}>Free</h3>
+          <h3 style={styles.planName}>Free Trial</h3>
           <div style={styles.price}>
             <span style={styles.priceAmount}>$0</span>
             <span style={styles.pricePeriod}>/forever</span>
           </div>
           <ul style={styles.features}>
-            <li>50 free credits</li>
-            <li>Basic automations</li>
+            <li>50 free credits included</li>
+            <li>1 automation run/day</li>
+            <li>All integrations unlocked</li>
             <li>Community support</li>
-            <li>All integrations</li>
+            <li>No credit card required</li>
           </ul>
           <a href="/signup" style={styles.freeButton}>
-            Get Started
+            Start Free Trial
           </a>
         </div>
 
         <div style={{...styles.plan, ...styles.popularPlan}}>
           <div style={styles.popularBadge}>Popular</div>
-          <h3 style={styles.planName}>Credit Pack</h3>
+          <h3 style={styles.planName}>Pay-As-You-Go</h3>
           <div style={styles.price}>
             <span style={styles.priceAmount}>$9</span>
             <span style={styles.pricePeriod}>/100 credits</span>
           </div>
           <ul style={styles.features}>
             <li>100 automation runs</li>
-            <li>Never expires</li>
+            <li>Unlimited daily runs</li>
+            <li>Credits never expire</li>
             <li>Priority support</li>
-            <li>Advanced features</li>
+            <li>Advanced analytics</li>
           </ul>
           <button
             onClick={() => handleCheckout('credit_pack')}
             style={styles.primaryButton}
           >
-            Buy Credits
+            Buy Credits Now
           </button>
         </div>
 

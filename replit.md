@@ -14,6 +14,14 @@ Levqor is a job orchestration backend API built with Flask, providing AI automat
 **November 7, 2025**
 - Deployed frontend to Vercel (https://levqor.ai)
 - Frontend and backend fully connected and operational
+- **Frontend Authentication Built from Scratch:**
+  - Created Next.js 14 app with TypeScript
+  - Integrated NextAuth v5 with Resend magic link authentication
+  - Added protected dashboard with session management
+  - Created sign-in flow with email verification
+  - Using existing RESEND_API_KEY secret (manual integration, not Replit connector)
+  - Frontend source code now available in `levqor-site/` directory
+  - Deployment script: `deploy_frontend.sh`
 - **Operational Monitoring Added:**
   - Created `public_smoke.sh` automated testing script (10/10 tests passing)
   - Added operational health endpoints (Phase-4 enhanced versions deployed)
@@ -24,8 +32,12 @@ Levqor is a job orchestration backend API built with Flask, providing AI automat
   - JWT_SECRET (auth token signing)
   - STRIPE_SECRET_KEY (payment processing)
   - STRIPE_WEBHOOK_SECRET (webhook verification)
-  - RESEND_API_KEY (email delivery)
+  - RESEND_API_KEY (email delivery, used for NextAuth magic links)
   - DATABASE_URL (PostgreSQL connection)
+- **Integration Notes:**
+  - Resend connector (connector:ccfg_resend_01K69QKYK789WN202XSE3QS17V) available but not used
+  - Using manual RESEND_API_KEY secret instead for more control
+  - Future: Consider using Replit integrations for OAuth providers
 
 **November 5, 2025**
 - Initial setup of Levqor backend
@@ -73,6 +85,20 @@ Levqor is a job orchestration backend API built with Flask, providing AI automat
 - `.env.example` - Environment variable template
 - `API_KEY_ROTATION.md` - API key rotation procedure documentation
 
+### Frontend Structure
+- `levqor-site/` - Next.js 14 application with TypeScript
+  - `src/app/` - App Router pages and layouts
+  - `src/app/page.tsx` - Landing page
+  - `src/app/signin/page.tsx` - Sign-in page with email form
+  - `src/app/signin/verify/page.tsx` - Email verification confirmation page
+  - `src/app/dashboard/page.tsx` - Protected dashboard (requires authentication)
+  - `src/auth.ts` - NextAuth v5 configuration with Resend provider
+  - `src/middleware.ts` - Route protection middleware
+  - `package.json` - Next.js dependencies (next 14.2.15, next-auth 5.0.0-beta.22, resend 4.0.1)
+  - `.env.local` - Local development environment variables
+  - `.gitignore` - Git ignore configuration
+- `deploy_frontend.sh` - Vercel deployment script with environment variable setup
+
 ### Public Pages
 - `public/legal/privacy.html` - Privacy policy
 - `public/legal/terms.html` - Terms of service
@@ -87,6 +113,7 @@ Levqor is a job orchestration backend API built with Flask, providing AI automat
 - `scripts/backup_db.sh` - Database backup script with WAL support
 - `public_smoke.sh` - Automated smoke testing for all public endpoints
 - `triage_and_fix.sh` - Live triage and fix script (from user)
+- `deploy_frontend.sh` - Deploy frontend to Vercel with environment variables
 
 #### Running the Validation Script
 The validation script tests all endpoints to ensure they're working correctly:
@@ -230,7 +257,8 @@ Create consistent backups of the SQLite database:
 ### Current State
 - **Production Deployed**: Both frontend and backend live
   - Backend: https://api.levqor.ai (Replit Autoscale)
-  - Frontend: https://levqor.ai (Vercel)
+  - Frontend: https://levqor.ai (Vercel - ready for redeployment with auth)
+  - Frontend source code available in `levqor-site/` directory
 - Production server (Gunicorn) running on port 5000 with 2 workers, 4 threads, 30s timeout
 - PostgreSQL database (Neon) for production data
 - SQLite database for local development (levqor.db) with WAL mode enabled

@@ -1697,6 +1697,85 @@ def create_checkout_session():
         log.exception("Stripe checkout error")
         return jsonify({"error": str(e)}), 400
 
+@app.get("/billing/usage")
+def billing_usage():
+    """Get user billing usage (connector runs, credits consumed)"""
+    user_id = request.args.get("user_id")
+    
+    if not user_id:
+        return jsonify({"error": "user_id required"}), 400
+    
+    user = fetch_user_by_id(user_id)
+    if not user:
+        return jsonify({"error": "user_not_found"}), 404
+    
+    try:
+        import os
+        quota_file = "data/usage_quota.json"
+        if os.path.exists(quota_file):
+            with open(quota_file, 'r') as f:
+                usage_data = json.load(f)
+        else:
+            usage_data = {}
+    except:
+        usage_data = {}
+    
+    connectors = ["slack", "telegram", "email", "notion", "sheets"]
+    connector_usage = {}
+    total_calls = 0
+    
+    for connector in connectors:
+        key = f"{user_id}:{connector}"
+        calls = usage_data.get(key, 0)
+        connector_usage[connector] = calls
+        total_calls += calls
+    
+    return jsonify({
+        "user_id": user_id,
+        "connector_calls": connector_usage,
+        "total_calls": total_calls,
+        "credits_remaining": user.get("credits_remaining", 0),
+        "plan": "free" if user.get("credits_remaining", 0) <= 50 else "paid"
+    }), 200
+
+@app.get("/billing/limits")
+def billing_limits():
+    """Get billing limits and quotas"""
+    user_id = request.args.get("user_id")
+    
+    if not user_id:
+        return jsonify({"error": "user_id required"}), 400
+    
+    user = fetch_user_by_id(user_id)
+    if not user:
+        return jsonify({"error": "user_not_found"}), 404
+    
+    credits = user.get("credits_remaining", 0)
+    plan = "free" if credits <= 50 else "paid"
+    
+    if plan == "free":
+        limits = {
+            "connector_calls_per_day": 1,
+            "workflow_runs_per_day": 1,
+            "max_concurrent_workflows": 1,
+            "api_rate_limit_per_minute": 10
+        }
+    else:
+        limits = {
+            "connector_calls_per_day": -1,
+            "workflow_runs_per_day": -1,
+            "max_concurrent_workflows": 10,
+            "api_rate_limit_per_minute": 100
+        }
+    
+    return jsonify({
+        "user_id": user_id,
+        "plan": plan,
+        "credits_remaining": credits,
+        "limits": limits,
+        "unlimited": plan == "paid"
+    }), 200
+
 @app.post("/billing/webhook")
 def stripe_webhook():
     payload = request.data

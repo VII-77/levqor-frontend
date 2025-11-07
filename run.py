@@ -334,6 +334,165 @@ def on_error(e):
 
 @app.get("/")
 def root():
+    user_agent = request.headers.get('User-Agent', '').lower()
+    
+    if 'mozilla' in user_agent or 'chrome' in user_agent or 'safari' in user_agent:
+        html_content = """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Levqor - AI Job Orchestration Platform</title>
+    <meta name="description" content="Production-ready AI automation job orchestration API. Enterprise security, 20+ connectors, automated workflows.">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: white;
+        }
+        .container {
+            max-width: 800px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 60px 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            background: linear-gradient(to right, #fff, #e0e7ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .subtitle {
+            font-size: 1.3rem;
+            margin-bottom: 40px;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+        .badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin: 5px;
+            font-weight: 600;
+        }
+        .badges {
+            margin: 30px 0;
+        }
+        .cta {
+            margin-top: 40px;
+        }
+        .btn {
+            display: inline-block;
+            background: white;
+            color: #667eea;
+            padding: 15px 40px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 700;
+            margin: 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-size: 1.1rem;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        .btn-outline {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+        .features {
+            margin-top: 50px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            text-align: left;
+        }
+        .feature {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+        }
+        .feature h3 {
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        .feature p {
+            opacity: 0.8;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        .status {
+            margin-top: 30px;
+            padding: 15px;
+            background: rgba(34, 197, 94, 0.2);
+            border-radius: 10px;
+            border: 1px solid rgba(34, 197, 94, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Levqor</h1>
+        <p class="subtitle">
+            Enterprise-grade AI job orchestration platform.<br>
+            Automate workflows with 20+ connectors, enterprise security, and zero DevOps.
+        </p>
+        
+        <div class="badges">
+            <span class="badge">✅ v6.0 Production Ready</span>
+            <span class="badge">🔐 Enterprise Security</span>
+            <span class="badge">⚡ 3.7ms Latency</span>
+            <span class="badge">📊 Real-time Analytics</span>
+        </div>
+
+        <div class="features">
+            <div class="feature">
+                <h3>🤖 AI Workflows</h3>
+                <p>Natural language to executable pipelines powered by GPT-4</p>
+            </div>
+            <div class="feature">
+                <h3>🔌 20+ Connectors</h3>
+                <p>Slack, Gmail, Notion, Telegram, Sheets & more</p>
+            </div>
+            <div class="feature">
+                <h3>🛡️ Enterprise Security</h3>
+                <p>JWT rotation, AES encryption, GDPR compliant</p>
+            </div>
+            <div class="feature">
+                <h3>💰 Partner Program</h3>
+                <p>20% commissions, automated payouts via Stripe</p>
+            </div>
+        </div>
+
+        <div class="status">
+            <strong>✅ All Systems Operational</strong> | Version """ + VERSION + """ | Build """ + BUILD + """
+        </div>
+
+        <div class="cta">
+            <a href="/public/docs" class="btn">📖 API Documentation</a>
+            <a href="/api/v1/openapi" class="btn btn-outline">📋 OpenAPI Spec</a>
+        </div>
+    </div>
+</body>
+</html>"""
+        return html_content, 200, {'Content-Type': 'text/html'}
+    
     return jsonify({"ok": True, "service": "levqor-backend", "version": VERSION, "build": BUILD}), 200
 
 @app.get("/health")

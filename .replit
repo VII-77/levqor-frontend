@@ -2,21 +2,6 @@ modules = ["nodejs-20", "python-3.11"]
 [agent]
 expertMode = true
 
-<<<<<<< HEAD
-=======
-[[ports]]
-localPort = 5000
-externalPort = 80
-
-[[ports]]
-localPort = 41509
-externalPort = 3000
-
-[[ports]]
-localPort = 45713
-externalPort = 3001
-
->>>>>>> 25aacfe (Update postmortem report generation to accept JSON data)
 [workflows]
 runButton = "Project"
 
@@ -44,6 +29,10 @@ waitForPort = 5000
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 38911
+externalPort = 3000
 
 [deployment]
 deploymentTarget = "autoscale"

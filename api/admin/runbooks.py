@@ -3,12 +3,12 @@ from monitors.runbooks import list_runbooks, apply_runbook
 
 bp = Blueprint('admin_runbooks', __name__)
 
-@bp.route('/api/admin/runbooks')
+@bp.route('')
 def list_rb():
     """List all available operational runbooks"""
     return jsonify({"runbooks": list_runbooks()})
 
-@bp.route('/api/admin/runbooks/apply', methods=['POST'])
+@bp.route('/apply', methods=['POST'])
 def apply_rb():
     """Apply a runbook action (dry-run or execute)"""
     data = request.json or {}

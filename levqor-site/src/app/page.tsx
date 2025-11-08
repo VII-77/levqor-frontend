@@ -11,6 +11,18 @@ export default function Home() {
       </p>
       <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '2rem' }}>
         <Link 
+          href="/pricing" 
+          style={{ 
+            padding: '0.75rem 2rem', 
+            background: '#0070f3', 
+            color: 'white', 
+            borderRadius: '6px',
+            fontWeight: '500'
+          }}
+        >
+          Pricing
+        </Link>
+        <Link 
           href="/signin" 
           style={{ 
             padding: '0.75rem 2rem', 

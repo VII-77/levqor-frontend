@@ -690,7 +690,7 @@ app.register_blueprint(discounts_bp)
 
 @app.get("/ops/auto_tune")
 def auto_tune_endpoint():
-    current_p95 = request.args.get("current_p95", type=float)
+    current_p95 = request.args.get("current_p95", type=float, default=100.0)
     current_queue = request.args.get("current_queue", type=int, default=1)
     suggestions = suggest_tuning(current_p95, current_queue)
     return jsonify({"status": "ok", "suggestions": suggestions}), 200

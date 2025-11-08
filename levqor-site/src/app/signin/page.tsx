@@ -1,15 +1,53 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 
 export default function SignIn(){
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const searchParams = useSearchParams();
+  
+  useEffect(() => {
+    const ref = searchParams.get("ref");
+    const campaign = searchParams.get("campaign");
+    const medium = searchParams.get("medium");
+    
+    if (ref) {
+      sessionStorage.setItem("levqor_ref_source", ref);
+      if (campaign) sessionStorage.setItem("levqor_ref_campaign", campaign);
+      if (medium) sessionStorage.setItem("levqor_ref_medium", medium);
+    }
+  }, [searchParams]);
+  
+  async function trackReferral(userEmail: string) {
+    const source = sessionStorage.getItem("levqor_ref_source") || "direct";
+    const campaign = sessionStorage.getItem("levqor_ref_campaign") || "";
+    const medium = sessionStorage.getItem("levqor_ref_medium") || "";
+    
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/referrals/track`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: userEmail, source, campaign, medium })
+      });
+      sessionStorage.removeItem("levqor_ref_source");
+      sessionStorage.removeItem("levqor_ref_campaign");
+      sessionStorage.removeItem("levqor_ref_medium");
+    } catch (err) {
+      console.error("Failed to track referral:", err);
+    }
+  }
   
   async function submit(e: React.FormEvent){
     e.preventDefault();
+    await trackReferral(email);
     await signIn("resend", { email, callbackUrl: "/dashboard" });
     setSubmitted(true);
+  }
+  
+  async function handleOAuthSignIn(provider: string) {
+    await signIn(provider, { callbackUrl: "/dashboard" });
   }
   
   return (
@@ -20,7 +58,7 @@ export default function SignIn(){
         <>
           <div className="space-y-3 mb-6">
             <button 
-              onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+              onClick={() => handleOAuthSignIn("google")}
               className="w-full bg-white hover:bg-gray-50 text-gray-800 font-semibold py-3 px-4 rounded-lg border border-gray-300 transition-colors flex items-center justify-center gap-2"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -33,7 +71,7 @@ export default function SignIn(){
             </button>
             
             <button 
-              onClick={() => signIn("azure-ad", { callbackUrl: "/dashboard" })}
+              onClick={() => handleOAuthSignIn("azure-ad")}
               className="w-full bg-white hover:bg-gray-50 text-gray-800 font-semibold py-3 px-4 rounded-lg border border-gray-300 transition-colors flex items-center justify-center gap-2"
             >
               <svg className="w-5 h-5" viewBox="0 0 23 23">

@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import DashboardTiles from "@/components/DashboardTiles";
+import AnalyticsWidget from "@/components/AnalyticsWidget";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +34,8 @@ export default async function Dashboard(){
             Welcome back, {session.user.email}
           </p>
         </div>
+        
+        <AnalyticsWidget />
         
         {!usage || Object.keys(usage).length === 0 ? (
           <div className="space-y-6">

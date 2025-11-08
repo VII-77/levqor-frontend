@@ -186,11 +186,11 @@ def root():
 
 @app.get("/health")
 def health():
-    return jsonify({"ok": True, "ts": int(time())}), 200
+    return jsonify({"ok": True, "ts": int(time())})
 
 @app.get("/status")
-def api_status():
-    return jsonify({"status": "pass"}), 200
+def system_status():
+    return jsonify({"status": "pass", "timestamp": int(time())})
 
 @app.get("/public/metrics")
 def public_metrics():

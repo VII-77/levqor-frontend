@@ -14,6 +14,10 @@ from datetime import datetime, timedelta
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 log = logging.getLogger("levqor")
 
+BUILD = os.environ.get("BUILD_ID", "dev")
+VERSION = "1.0.0"
+START_TIME = time()
+
 if os.environ.get("SENTRY_DSN"):
     try:
         import sentry_sdk
@@ -36,10 +40,6 @@ app = Flask(__name__,
     static_url_path='/public')
 
 app.config["MAX_CONTENT_LENGTH"] = int(os.environ.get("MAX_CONTENT_LENGTH", 512 * 1024))
-
-BUILD = os.environ.get("BUILD_ID", "dev")
-VERSION = "1.0.0"
-START_TIME = time()
 
 DB_PATH = os.environ.get("SQLITE_PATH", os.path.join(os.getcwd(), "levqor.db"))
 _db_connection = None

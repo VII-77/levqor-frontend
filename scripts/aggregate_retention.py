@@ -33,28 +33,29 @@ def compute_retention_metrics(conn, target_date=None):
     if target_date is None:
         target_date = datetime.utcnow().date()
     
-    target_day = target_date.isoformat()
-    week_ago = (target_date - timedelta(days=7)).isoformat()
-    month_ago = (target_date - timedelta(days=30)).isoformat()
+    target_day_ts = datetime.combine(target_date, datetime.min.time()).timestamp()
+    next_day_ts = datetime.combine(target_date + timedelta(days=1), datetime.min.time()).timestamp()
+    week_ago_ts = datetime.combine(target_date - timedelta(days=7), datetime.min.time()).timestamp()
+    month_ago_ts = datetime.combine(target_date - timedelta(days=30), datetime.min.time()).timestamp()
     
     cursor = conn.cursor()
     
     cursor.execute("""
         SELECT COUNT(DISTINCT id) FROM users
-        WHERE DATE(last_login_at) = ?
-    """, (target_day,))
+        WHERE updated_at >= ? AND updated_at < ?
+    """, (target_day_ts, next_day_ts))
     dau = cursor.fetchone()[0] or 0
     
     cursor.execute("""
         SELECT COUNT(DISTINCT id) FROM users
-        WHERE DATE(last_login_at) >= ? AND DATE(last_login_at) <= ?
-    """, (week_ago, target_day))
+        WHERE updated_at >= ? AND updated_at < ?
+    """, (week_ago_ts, next_day_ts))
     wau = cursor.fetchone()[0] or 0
     
     cursor.execute("""
         SELECT COUNT(DISTINCT id) FROM users
-        WHERE DATE(last_login_at) >= ? AND DATE(last_login_at) <= ?
-    """, (month_ago, target_day))
+        WHERE updated_at >= ? AND updated_at < ?
+    """, (month_ago_ts, next_day_ts))
     mau = cursor.fetchone()[0] or 0
     
     return dau, wau, mau

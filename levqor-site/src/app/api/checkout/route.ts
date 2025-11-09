@@ -1,89 +1,66 @@
-import { NextRequest, NextResponse } from 'next/server';
-import Stripe from 'stripe';
+import { NextResponse } from "next/server";
+import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2025-10-29.clover' });
+// Use stable, recent API version
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, { apiVersion: "2025-10-29.clover" });
 
-const ENV_CHECK = {
-  STARTER: !!process.env.STRIPE_PRICE_STARTER,
-  STARTER_YEAR: !!process.env.STRIPE_PRICE_STARTER_YEAR,
-  PRO: !!process.env.STRIPE_PRICE_PRO,
-  PRO_YEAR: !!process.env.STRIPE_PRICE_PRO_YEAR,
-  ID_STARTER: !!process.env.STRIPE_PRICE_ID_STARTER,
-  ID_PRO: !!process.env.STRIPE_PRICE_ID_PRO,
-};
+// Helper: map plan/term to a price id using only static env references
+function getPriceId(plan: string, term: string): string | undefined {
+  // Newer 4-var scheme
+  const S_SM = process.env.STRIPE_PRICE_STARTER;
+  const S_SY = process.env.STRIPE_PRICE_STARTER_YEAR;
+  const P_PM = process.env.STRIPE_PRICE_PRO;
+  const P_PY = process.env.STRIPE_PRICE_PRO_YEAR;
 
-let schemeLogged = false;
+  // Older 2-var scheme (monthly only), optional *_YEAR for yearly if present
+  const S_ID_M = process.env.STRIPE_PRICE_ID_STARTER;
+  const P_ID_M = process.env.STRIPE_PRICE_ID_PRO;
+  const S_ID_Y = process.env.STRIPE_PRICE_ID_STARTER_YEAR;
+  const P_ID_Y = process.env.STRIPE_PRICE_ID_PRO_YEAR;
 
-function getPriceId(plan: string, term: string): string | null {
-  if (!schemeLogged) {
-    console.log('[Checkout] Environment variables:', ENV_CHECK);
-    schemeLogged = true;
-  }
-
-  if (ENV_CHECK.STARTER && ENV_CHECK.PRO) {
-    console.log('[Checkout] Using 4-var scheme');
-    if (plan === 'starter' && term === 'monthly') return process.env.STRIPE_PRICE_STARTER!;
-    if (plan === 'starter' && term === 'yearly') return process.env.STRIPE_PRICE_STARTER_YEAR!;
-    if (plan === 'pro' && term === 'monthly') return process.env.STRIPE_PRICE_PRO!;
-    if (plan === 'pro' && term === 'yearly') return process.env.STRIPE_PRICE_PRO_YEAR!;
-  } else if (ENV_CHECK.ID_STARTER && ENV_CHECK.ID_PRO) {
-    console.log('[Checkout] Using 2-var scheme');
-    if (plan === 'starter' && term === 'monthly') return process.env.STRIPE_PRICE_ID_STARTER!;
-    if (plan === 'pro' && term === 'monthly') return process.env.STRIPE_PRICE_ID_PRO!;
-    if (term === 'yearly') {
-      return null;
-    }
-  }
-
-  return null;
+  const key = `${plan}-${term}`; // starter-monthly, starter-yearly, pro-monthly, pro-yearly
+  const table: Record<string, string | undefined> = {
+    "starter-monthly": S_SM ?? S_ID_M,
+    "starter-yearly":  S_SY ?? S_ID_Y,
+    "pro-monthly":     P_PM ?? P_ID_M,
+    "pro-yearly":      P_PY ?? P_ID_Y,
+  };
+  return table[key];
 }
 
-async function handleCheckout(plan: string, term: string) {
-  if (!['starter', 'pro'].includes(plan) || !['monthly', 'yearly'].includes(term)) {
-    return NextResponse.json({ error: 'Unknown plan/term' }, { status: 400 });
+async function createSession(plan: string, term: string) {
+  const price = getPriceId(plan, term);
+  if (!price) {
+    // Tell exactly what is missing without leaking values
+    const msg = `Price ID not found for ${plan}-${term}. Check envs: STRIPE_PRICE_* or STRIPE_PRICE_ID_*`;
+    return NextResponse.json({ error: msg }, { status: 400 });
   }
+  const site = process.env.SITE_URL || "https://levqor.ai";
+  const session = await stripe.checkout.sessions.create({
+    mode: "subscription",
+    line_items: [{ price, quantity: 1 }],
+    success_url: `${site}/success`,
+    cancel_url: `${site}/pricing`,
+  });
+  return NextResponse.json({ url: session.url }, { status: 200 });
+}
 
-  const priceId = getPriceId(plan, term);
-
-  if (!priceId) {
-    if (term === 'yearly' && !ENV_CHECK.STARTER_YEAR && !ENV_CHECK.PRO_YEAR) {
-      return NextResponse.json({ error: 'Yearly plan not configured' }, { status: 400 });
-    }
-    return NextResponse.json({ error: `Price ID not found for ${plan}/${term}` }, { status: 400 });
-  }
-
+// POST accepts JSON { plan, term }
+export async function POST(req: Request) {
   try {
-    const session = await stripe.checkout.sessions.create({
-      mode: 'subscription',
-      line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${process.env.SITE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.SITE_URL}/pricing`,
-      allow_promotion_codes: true,
-      billing_address_collection: 'auto',
-      automatic_tax: { enabled: true },
-    });
-
-    return NextResponse.json({ url: session.url });
+    const { plan, term } = await req.json();
+    if (!plan || !term) return NextResponse.json({ error: "Missing plan/term" }, { status: 400 });
+    return await createSession(String(plan), String(term));
   } catch (e: any) {
-    console.error('[Checkout] Stripe error:', e);
-    return NextResponse.json({ error: e.message ?? 'checkout_error' }, { status: 500 });
+    return NextResponse.json({ error: e?.message ?? "handler_failed" }, { status: 500 });
   }
 }
 
-export async function POST(req: NextRequest) {
-  try {
-    const body = await req.json();
-    const plan = (body.plan || '').toLowerCase();
-    const term = (body.term || '').toLowerCase();
-    return handleCheckout(plan, term);
-  } catch (e: any) {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
-  }
-}
-
-export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const plan = (searchParams.get('plan') || '').toLowerCase();
-  const term = (searchParams.get('term') || '').toLowerCase();
-  return handleCheckout(plan, term);
+// GET keeps backward compatibility: /api/checkout?plan=starter&term=monthly
+export async function GET(req: Request) {
+  const u = new URL(req.url);
+  const plan = u.searchParams.get("plan");
+  const term = u.searchParams.get("term");
+  if (!plan || !term) return NextResponse.json({ error: "Missing plan/term" }, { status: 400 });
+  return await createSession(plan, term);
 }

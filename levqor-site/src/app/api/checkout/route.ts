@@ -6,14 +6,16 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2025-10
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const plan = searchParams.get('plan');
-    
-    const priceId = plan === 'pro'
-      ? process.env.STRIPE_PRICE_PRO
-      : process.env.STRIPE_PRICE_STARTER;
+    const plan = (searchParams.get('plan') || 'starter').toLowerCase();
+    const term = (searchParams.get('term') || 'monthly').toLowerCase();
+
+    const priceId =
+      plan === 'pro'
+        ? term === 'yearly' ? process.env.STRIPE_PRICE_PRO_YEAR : process.env.STRIPE_PRICE_PRO
+        : term === 'yearly' ? process.env.STRIPE_PRICE_STARTER_YEAR : process.env.STRIPE_PRICE_STARTER;
 
     if (!priceId) {
-      return NextResponse.json({ error: 'Unknown plan' }, { status: 400 });
+      return NextResponse.json({ error: 'Unknown plan/term' }, { status: 400 });
     }
 
     const session = await stripe.checkout.sessions.create({

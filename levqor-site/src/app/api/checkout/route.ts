@@ -3,7 +3,6 @@ import Stripe from "stripe";
 
 // force dynamic to avoid caching
 export const dynamic = "force-dynamic";
-// Cache bust: 2025-11-10 env var update
 
 function readEnv() {
   return {
@@ -86,7 +85,16 @@ export async function POST(req: Request) {
     if (!session.url) return NextResponse.json({ ok:false, error:"no_session_url" }, { status:500 });
     return NextResponse.json({ ok:true, url:session.url });
   } catch (err:any) {
-    console.error("checkout_error", err);
-    return NextResponse.json({ ok:false, error:String(err?.message ?? err) }, { status:500 });
+    console.error("checkout_error", {
+      message: err?.message,
+      type: err?.type,
+      code: err?.code,
+      param: err?.param,
+      statusCode: err?.statusCode,
+      raw: err?.raw,
+      stack: err?.stack?.substring(0, 500)
+    });
+    const errorDetails = `${err?.type || 'unknown'}: ${err?.message || err}`;
+    return NextResponse.json({ ok:false, error:errorDetails, debug: { code: err?.code, param: err?.param } }, { status:500 });
   }
 }

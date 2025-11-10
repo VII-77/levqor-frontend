@@ -386,27 +386,45 @@ export default function PricingPage() {
         <h2 className="text-2xl font-bold mb-6 text-center">Frequently Asked Questions</h2>
         <div className="space-y-4 max-w-3xl mx-auto">
           <details className="bg-white rounded-xl p-4 shadow">
+            <summary className="cursor-pointer font-medium">Do you offer a free plan?</summary>
+            <p className="mt-2 text-sm text-gray-600">
+              Yes! The Free plan includes 200 runs/month, 2 workflows, and core connectors. Perfect for hobby projects and trying out Levqor.
+            </p>
+          </details>
+          <details className="bg-white rounded-xl p-4 shadow">
             <summary className="cursor-pointer font-medium">What happens after the trial?</summary>
             <p className="mt-2 text-sm text-gray-600">
-              Pro and Business plans include a 7-day free trial. You won't be charged until the trial ends. Cancel anytime during the trial with no charge.
+              Pro and Business plans include a 7-day free trial. You won't be charged until the trial ends. No credit card required for signup if configured. Cancel anytime during the trial with no charge.
+            </p>
+          </details>
+          <details className="bg-white rounded-xl p-4 shadow">
+            <summary className="cursor-pointer font-medium">Can I cancel anytime?</summary>
+            <p className="mt-2 text-sm text-gray-600">
+              Yes! Cancel anytime from your billing dashboard. You'll continue to have access until the end of your billing period, and we'll prorate any unused time to month-end.
+            </p>
+          </details>
+          <details className="bg-white rounded-xl p-4 shadow">
+            <summary className="cursor-pointer font-medium">Do you provide VAT invoices?</summary>
+            <p className="mt-2 text-sm text-gray-600">
+              Yes, VAT-compliant invoices are automatically generated and downloadable in your Billing portal. VAT is calculated automatically at checkout based on your location.
+            </p>
+          </details>
+          <details className="bg-white rounded-xl p-4 shadow">
+            <summary className="cursor-pointer font-medium">Where is my data stored?</summary>
+            <p className="mt-2 text-sm text-gray-600">
+              Data is stored in EU/UK regions by default for GDPR compliance. US region hosting is available on request for Business plans.
+            </p>
+          </details>
+          <details className="bg-white rounded-xl p-4 shadow">
+            <summary className="cursor-pointer font-medium">Can I see the integrations roadmap?</summary>
+            <p className="mt-2 text-sm text-gray-600">
+              Yes! Check our <a href="/docs/integrations" className="text-blue-600 hover:underline">integrations documentation</a>. You can request early access to upcoming connectors from the "Coming Soon" section on this page.
             </p>
           </details>
           <details className="bg-white rounded-xl p-4 shadow">
             <summary className="cursor-pointer font-medium">Can I switch plans later?</summary>
             <p className="mt-2 text-sm text-gray-600">
               Yes! You can upgrade or downgrade at any time. Changes are prorated automatically.
-            </p>
-          </details>
-          <details className="bg-white rounded-xl p-4 shadow">
-            <summary className="cursor-pointer font-medium">Do you offer refunds?</summary>
-            <p className="mt-2 text-sm text-gray-600">
-              We offer a 7-day refund window for first-time purchases if you're not satisfied.
-            </p>
-          </details>
-          <details className="bg-white rounded-xl p-4 shadow">
-            <summary className="cursor-pointer font-medium">How do invoices work?</summary>
-            <p className="mt-2 text-sm text-gray-600">
-              Stripe automatically sends invoices to your email after each payment. You can access all past invoices in your billing portal.
             </p>
           </details>
           <details className="bg-white rounded-xl p-4 shadow">

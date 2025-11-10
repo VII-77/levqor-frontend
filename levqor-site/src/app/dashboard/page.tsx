@@ -39,10 +39,39 @@ export default async function Dashboard(){
         
         {!usage || Object.keys(usage).length === 0 ? (
           <div className="space-y-6">
-            <div className="text-center py-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Get Started with Levqor</h2>
-              <p className="text-gray-600">You haven't created any workflows yet. Let's get started!</p>
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-8 text-center">
+              <div className="text-5xl mb-4">🚀</div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-3">Welcome to Levqor!</h2>
+              <p className="text-lg text-gray-600 mb-6">You're all set. Let's build your first automation.</p>
+              
+              <div className="max-w-md mx-auto bg-white rounded-xl p-6 shadow-sm mb-6">
+                <h3 className="font-semibold text-lg mb-4 text-left">Quick Start Checklist</h3>
+                <div className="space-y-3 text-left">
+                  <div className="flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-full border-2 border-gray-300 flex-shrink-0 mt-0.5"></div>
+                    <div>
+                      <div className="font-medium">Connect your Stripe account</div>
+                      <div className="text-sm text-gray-600">Set up billing to unlock premium features</div>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-full border-2 border-gray-300 flex-shrink-0 mt-0.5"></div>
+                    <div>
+                      <div className="font-medium">Configure your first webhook</div>
+                      <div className="text-sm text-gray-600">Receive events from external services</div>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-full border-2 border-gray-300 flex-shrink-0 mt-0.5"></div>
+                    <div>
+                      <div className="font-medium">Create your first job</div>
+                      <div className="text-sm text-gray-600">Test the automation with a simple workflow</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
+            
             <DashboardTiles />
           </div>
         ) : (

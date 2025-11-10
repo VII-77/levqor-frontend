@@ -3,6 +3,7 @@ import Stripe from "stripe";
 
 // force dynamic to avoid caching
 export const dynamic = "force-dynamic";
+// Cache bust: 2025-11-10 env var update
 
 function readEnv() {
   return {

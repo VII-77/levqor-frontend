@@ -31,3 +31,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Levqor - No secrets or build artifacts
+.env*
+.next
+node_modules
+.vercel
+__pycache__
+*.log
+backups/
+*.sqlite
+*.db
+secret.*

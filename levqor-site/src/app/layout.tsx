@@ -4,33 +4,49 @@ import Link from 'next/link'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Levqor — The self-driven automation engine',
-  description: 'Build powerful workflows that run themselves. No code required. Enterprise-grade automation platform trusted by leading teams.',
+  title: {
+    default: 'Levqor — Automate work. Ship faster. Pay only for results.',
+    template: '%s | Levqor'
+  },
+  description: 'Levqor runs your workflows, monitors failures, and self-heals. Email, Sheets, Slack, CRM, and more. Enterprise-grade automation platform with 99.9% SLA.',
+  keywords: ['automation', 'workflow', 'no-code', 'zapier alternative', 'make.com alternative', 'ai automation', 'self-healing workflows'],
+  authors: [{ name: 'Levqor Technologies' }],
+  creator: 'Levqor',
   openGraph: {
-    title: 'Levqor — The self-driven automation engine',
-    description: 'Build powerful workflows that run themselves. No code required.',
+    title: 'Levqor — Automate work. Ship faster. Pay only for results.',
+    description: 'Self-healing workflows that monitor failures and auto-recover. Connect Email, Sheets, Slack, CRM with no code.',
     url: 'https://levqor.ai',
     siteName: 'Levqor',
     images: [
       {
-        url: '/og.png',
+        url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Levqor - Automation Engine',
+        alt: 'Levqor - Self-Healing Automation Engine',
       },
     ],
-    locale: 'en_US',
+    locale: 'en_GB',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Levqor — The self-driven automation engine',
-    description: 'Build powerful workflows that run themselves. No code required.',
-    images: ['/og.png'],
+    title: 'Levqor — Automate work. Ship faster.',
+    description: 'Self-healing workflows with 99.9% SLA. Connect 50+ apps, no code required.',
+    images: ['/og-image.png'],
+    creator: '@levqor',
   },
   icons: {
-    icon: '/favicon.ico',
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+    ],
     apple: '/apple-touch-icon.png',
+  },
+  manifest: '/site.webmanifest',
+  robots: {
+    index: true,
+    follow: true,
   },
 }
 

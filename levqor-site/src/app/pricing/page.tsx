@@ -344,7 +344,7 @@ export default function PricingPage() {
             {comingSoonConnectors.map((c) => (
               <button
                 key={c.name}
-                onClick={() => setNotifyModal(c)}
+                onClick={() => setNotifyModal({ connector: c.name, eta: c.eta })}
                 className="px-3 py-1 bg-orange-50 text-orange-700 rounded-full text-sm font-medium hover:bg-orange-100 transition-colors"
               >
                 {c.name} • {c.eta}

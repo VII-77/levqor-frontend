@@ -26,7 +26,7 @@ function missingEnv(e: ReturnType<typeof readEnv>) {
 
 function stripeClient(secret?: string) {
   if (!secret) throw new Error("missing STRIPE_SECRET_KEY");
-  return new Stripe(secret, { apiVersion: "2024-06-20" });
+  return new Stripe(secret, { apiVersion: "2024-06-20" as any });
 }
 
 export async function GET() {

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, { apiVersion: "2025-10-29.clover" });
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, { apiVersion: "2024-10-28.acacia" });
 
 function getPriceId(plan: "starter"|"pro"|"business", term: "monthly"|"yearly") {
   const STARTER_M = process.env.STRIPE_PRICE_STARTER;

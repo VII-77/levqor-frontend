@@ -272,6 +272,25 @@ def run_expansion_monitor():
     except Exception as e:
         log.error(f"Expansion monitor error: {e}")
 
+def run_synthetic_checks():
+    """Synthetic endpoint health checks - every 15 min"""
+    log.info("Running synthetic checks...")
+    try:
+        from scripts.monitoring.synthetic_checks import run_synthetic_checks as run_checks
+        run_checks()
+        log.info("✅ Synthetic checks complete")
+    except Exception as e:
+        log.error(f"Synthetic checks error: {e}")
+
+def run_alert_checks():
+    """Alert threshold monitoring - every 5 min"""
+    log.debug("Running alert checks...")
+    try:
+        from scripts.monitoring.alerting import run_alert_checks as run_alerts
+        run_alerts()
+    except Exception as e:
+        log.error(f"Alert checks error: {e}")
+
 def init_scheduler():
     """Initialize and start APScheduler"""
     try:
@@ -413,8 +432,27 @@ def init_scheduler():
             replace_existing=True
         )
         
+        # Go/No-Go Monitoring (v8.0 Prep)
+        scheduler.add_job(
+            run_synthetic_checks,
+            'interval',
+            minutes=15,
+            id='synthetic_checks',
+            name='Synthetic endpoint checks',
+            replace_existing=True
+        )
+        
+        scheduler.add_job(
+            run_alert_checks,
+            'interval',
+            minutes=5,
+            id='alert_checks',
+            name='Alert threshold checks',
+            replace_existing=True
+        )
+        
         scheduler.start()
-        log.info("✅ APScheduler initialized with 16 jobs (including 3 intelligence jobs)")
+        log.info("✅ APScheduler initialized with 18 jobs (including 5 monitoring jobs for Go/No-Go)")
         return scheduler
         
     except ImportError:

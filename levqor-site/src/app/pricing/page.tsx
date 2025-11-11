@@ -194,7 +194,11 @@ export default function PricingPage() {
       {/* Header */}
       <div className="text-center mb-8">
         <h1 className="text-4xl font-bold mb-3">Simple, transparent pricing</h1>
-        <p className="text-gray-600">Choose the plan that fits your automation needs</p>
+        <p className="text-gray-600 mb-2">Choose the plan that fits your automation needs</p>
+        <p className="text-sm">
+          <span className="text-gray-500">14-day free trial on Pro & Business. Cancel anytime. </span>
+          <a href="#faqs" className="text-blue-600 hover:underline">Jump to FAQs →</a>
+        </p>
       </div>
 
       {/* Monthly/Yearly Toggle */}
@@ -382,7 +386,7 @@ export default function PricingPage() {
       </div>
 
       {/* FAQ */}
-      <div className="border-t pt-8">
+      <div id="faqs" className="border-t pt-8">
         <h2 className="text-2xl font-bold mb-6 text-center">Frequently Asked Questions</h2>
         <div className="space-y-4 max-w-3xl mx-auto">
           <details className="bg-white rounded-xl p-4 shadow">

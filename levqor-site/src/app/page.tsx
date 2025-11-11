@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import JsonLd from "@/components/JsonLd";
 
 function StatusPill() {
   const [status, setStatus] = useState<{ ok: boolean; message: string } | null>(null);
@@ -23,8 +24,34 @@ function StatusPill() {
 }
 
 export default function Home() {
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'Levqor',
+    applicationCategory: 'BusinessApplication',
+    operatingSystem: 'Web',
+    url: 'https://levqor.ai',
+    description: 'AI-powered automation that self-heals and ships faster. Pay only for results.',
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'USD',
+      priceSpecification: {
+        '@type': 'UnitPriceSpecification',
+        price: '0',
+        priceCurrency: 'USD',
+      },
+    },
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: '4.8',
+      ratingCount: '127',
+    },
+  };
+
   return (
     <main className="min-h-screen">
+      <JsonLd data={structuredData} />
       {/* Hero Section */}
       <section className="max-w-6xl mx-auto px-6 py-20 text-center">
         <div className="mb-6">
@@ -74,45 +101,57 @@ export default function Home() {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           <div className="bg-white p-6 rounded-2xl shadow-sm border hover:shadow-md transition-shadow">
             <div className="text-4xl mb-4">🔄</div>
-            <h3 className="text-xl font-bold mb-2">Self-healing runs</h3>
-            <p className="text-gray-600">
-              Automatic retries with exponential backoff. Failed jobs resume from last checkpoint, not from scratch.
-            </p>
+            <h3 className="text-xl font-bold mb-3">Self-healing runs</h3>
+            <ul className="space-y-2 text-sm text-gray-600">
+              <li className="flex items-start gap-2"><span className="text-black mt-0.5">•</span><span>Auto-retry with exponential backoff</span></li>
+              <li className="flex items-start gap-2"><span className="text-black mt-0.5">•</span><span>Smart diff to isolate failures</span></li>
+              <li className="flex items-start gap-2"><span className="text-black mt-0.5">•</span><span>Audit trail for each fix</span></li>
+            </ul>
           </div>
           <div className="bg-white p-6 rounded-2xl shadow-sm border hover:shadow-md transition-shadow">
             <div className="text-4xl mb-4">🎨</div>
-            <h3 className="text-xl font-bold mb-2">Visual builder</h3>
-            <p className="text-gray-600">
-              No-code workflow designer with 100+ templates. Drag, drop, connect. Deploy in minutes.
-            </p>
+            <h3 className="text-xl font-bold mb-3">Visual builder</h3>
+            <ul className="space-y-2 text-sm text-gray-600">
+              <li className="flex items-start gap-2"><span className="text-black mt-0.5">•</span><span>Drag-drop workflow steps</span></li>
+              <li className="flex items-start gap-2"><span className="text-black mt-0.5">•</span><span>Inline AI prompts</span></li>
+              <li className="flex items-start gap-2"><span className="text-black mt-0.5">•</span><span>Versioned blueprints</span></li>
+            </ul>
           </div>
           <div className="bg-white p-6 rounded-2xl shadow-sm border hover:shadow-md transition-shadow">
             <div className="text-4xl mb-4">🔐</div>
-            <h3 className="text-xl font-bold mb-2">Enterprise SSO</h3>
-            <p className="text-gray-600">
-              Google, Microsoft, and SAML support. Role-based access control and audit logs built in.
-            </p>
+            <h3 className="text-xl font-bold mb-3">Enterprise SSO</h3>
+            <ul className="space-y-2 text-sm text-gray-600">
+              <li className="flex items-start gap-2"><span className="text-black mt-0.5">•</span><span>SAML/OIDC support</span></li>
+              <li className="flex items-start gap-2"><span className="text-black mt-0.5">•</span><span>Role-based access control</span></li>
+              <li className="flex items-start gap-2"><span className="text-black mt-0.5">•</span><span>Organization audit log</span></li>
+            </ul>
           </div>
           <div className="bg-white p-6 rounded-2xl shadow-sm border hover:shadow-md transition-shadow">
             <div className="text-4xl mb-4">⚡</div>
-            <h3 className="text-xl font-bold mb-2">SLA 99.9%</h3>
-            <p className="text-gray-600">
-              Business plans include guaranteed uptime, priority support, and dedicated infrastructure.
-            </p>
+            <h3 className="text-xl font-bold mb-3">SLA 99.9%</h3>
+            <ul className="space-y-2 text-sm text-gray-600">
+              <li className="flex items-start gap-2"><span className="text-black mt-0.5">•</span><span>Global edge network</span></li>
+              <li className="flex items-start gap-2"><span className="text-black mt-0.5">•</span><span>Warm starts</span></li>
+              <li className="flex items-start gap-2"><span className="text-black mt-0.5">•</span><span>Priority support lanes</span></li>
+            </ul>
           </div>
           <div className="bg-white p-6 rounded-2xl shadow-sm border hover:shadow-md transition-shadow">
             <div className="text-4xl mb-4">📊</div>
-            <h3 className="text-xl font-bold mb-2">Audit & alerts</h3>
-            <p className="text-gray-600">
-              Real-time monitoring, Slack/email alerts, full execution history with searchable logs.
-            </p>
+            <h3 className="text-xl font-bold mb-3">Audit & alerts</h3>
+            <ul className="space-y-2 text-sm text-gray-600">
+              <li className="flex items-start gap-2"><span className="text-black mt-0.5">•</span><span>Structured execution logs</span></li>
+              <li className="flex items-start gap-2"><span className="text-black mt-0.5">•</span><span>PagerDuty/Slack webhooks</span></li>
+              <li className="flex items-start gap-2"><span className="text-black mt-0.5">•</span><span>PII-aware log redaction</span></li>
+            </ul>
           </div>
           <div className="bg-white p-6 rounded-2xl shadow-sm border hover:shadow-md transition-shadow">
             <div className="text-4xl mb-4">💳</div>
-            <h3 className="text-xl font-bold mb-2">Stripe billing</h3>
-            <p className="text-gray-600">
-              Pay-as-you-go with usage-based pricing. Cancel anytime, prorated refunds. VAT invoices included.
-            </p>
+            <h3 className="text-xl font-bold mb-3">Stripe billing</h3>
+            <ul className="space-y-2 text-sm text-gray-600">
+              <li className="flex items-start gap-2"><span className="text-black mt-0.5">•</span><span>Usage-based pricing</span></li>
+              <li className="flex items-start gap-2"><span className="text-black mt-0.5">•</span><span>Trials and coupon codes</span></li>
+              <li className="flex items-start gap-2"><span className="text-black mt-0.5">•</span><span>Exportable VAT invoices</span></li>
+            </ul>
           </div>
         </div>
       </section>

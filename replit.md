@@ -100,6 +100,18 @@ The frontend is built with Next.js 14 and TypeScript, focusing on a clear authen
     - Automation: `scripts/automation/insights_quarterly.py` for scheduled report generation
     - Metrics Tracked: Revenue, MRR, API calls, uptime, integrity runs, net margin
     - Privacy: All data anonymized and aggregated, no PII included
+- **Partner API + Registry - Phase 3 Expansion** (Nov 11, 2025):
+    - Third-party developer partner ecosystem enabling infinite feature growth
+    - Database: `partners` table with verification status, revenue share, and Stripe Connect integration
+    - Modules: `modules/partner_api/` (registry, hooks, auth, notion_sync)
+    - Backend API: `/api/partners/register` (POST), `/api/partners` (GET list), `/api/partners/<id>` (GET/PATCH/DELETE)
+    - Webhook System: Event notifications sent to partner webhook URLs for key events
+    - Partner Authentication: HMAC-based token system for secure partner API access
+    - Notion Integration: Auto-logs partner registrations to NOTION_PARTNER_REGISTRY_DB_ID for transparency
+    - Revenue Sharing: Default 70/30 split, Stripe Connect ready for automated payouts
+    - Security: HTTPS-only webhooks, email uniqueness, soft-delete for deactivation
+    - Verification Workflow: Partners register → pending approval → admin verifies → access granted
+    - Foundation for Phase 4 (Marketplace) and Phase 5 (Governance)
 
 ### Feature Specifications
 - **Job Orchestration**: Intake, status tracking, and simulated completion for development.

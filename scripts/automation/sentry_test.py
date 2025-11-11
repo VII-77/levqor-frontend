@@ -9,11 +9,12 @@ import sys
 
 def test_sentry():
     """Test Sentry error tracking"""
-    sentry_dsn = os.getenv("SENTRY_DSN")
+    sentry_dsn = os.getenv("SENTRY_DSN", "").strip()
     
-    if not sentry_dsn or sentry_dsn.strip() == "":
-        print("❌ SENTRY_DSN not configured or empty")
-        print("ℹ️  Set SENTRY_DSN in Secrets to enable Sentry tracking")
+    if not sentry_dsn or not sentry_dsn.startswith("https://"):
+        print("❌ SENTRY_DSN not configured or invalid")
+        print("ℹ️  Set a valid Sentry DSN in Secrets (should start with https://)")
+        print("ℹ️  Get your DSN from: https://sentry.io/settings/projects/")
         return False
     
     try:

@@ -1,0 +1,149 @@
+name: Post-Deploy Verification
+
+on:
+  deployment_status:
+  workflow_dispatch:
+  schedule:
+    # Run daily at 09:00 UTC during burn-in
+    - cron: '0 9 * * *'
+
+jobs:
+  verify-deployment:
+    name: Verify Production Deployment
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event.deployment_status.state == 'success' || github.event_name == 'schedule'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Wait for deployment propagation
+        if: github.event_name == 'deployment_status'
+        run: sleep 30
+      
+      - name: Check HTML cache freshness
+        run: |
+          chmod +x scripts/check_cache.sh
+          ./scripts/check_cache.sh levqor.ai
+      
+      - name: Check WWW subdomain
+        run: ./scripts/check_cache.sh www.levqor.ai
+      
+      - name: Verify API intelligence endpoints
+        run: |
+          echo "============================================================"
+          echo "API INTELLIGENCE ENDPOINT VERIFICATION"
+          echo "============================================================"
+          
+          CID="ci-verify-$(date +%s)"
+          FAIL=0
+          
+          for endpoint in status anomalies forecasts recommendations health; do
+            echo ""
+            echo "--- Testing: /api/intelligence/$endpoint"
+            
+            RESPONSE=$(curl -s -H "X-Request-ID: $CID" \
+              "https://api.levqor.ai/api/intelligence/$endpoint" || echo '{"error":"failed"}')
+            
+            # Check for meta.correlation_id
+            if echo "$RESPONSE" | jq -e '.meta.correlation_id' > /dev/null 2>&1; then
+              CID_CHECK=$(echo "$RESPONSE" | jq -r '.meta.correlation_id')
+              DUR_CHECK=$(echo "$RESPONSE" | jq -r '.meta.duration_ms')
+              echo "✅ correlation_id: $CID_CHECK"
+              echo "✅ duration_ms: ${DUR_CHECK}ms"
+            else
+              echo "❌ FAIL: No correlation_id in response"
+              echo "$RESPONSE" | jq . || echo "$RESPONSE"
+              FAIL=1
+            fi
+          done
+          
+          if [ $FAIL -eq 1 ]; then
+            echo ""
+            echo "❌ API verification failed"
+            exit 1
+          fi
+          
+          echo ""
+          echo "✅ All API endpoints verified"
+      
+      - name: Check public metrics
+        run: |
+          echo "============================================================"
+          echo "PUBLIC METRICS CHECK"
+          echo "============================================================"
+          
+          curl -s https://api.levqor.ai/public/metrics | jq .
+          
+          # Verify key metrics present
+          METRICS=$(curl -s https://api.levqor.ai/public/metrics)
+          
+          if echo "$METRICS" | jq -e '.uptime_rolling_7d' > /dev/null; then
+            UPTIME=$(echo "$METRICS" | jq -r '.uptime_rolling_7d')
+            echo "✅ Uptime: ${UPTIME}%"
+          else
+            echo "❌ Missing uptime metric"
+            exit 1
+          fi
+      
+      - name: Verify security headers
+        run: |
+          echo "============================================================"
+          echo "SECURITY HEADERS VERIFICATION"
+          echo "============================================================"
+          
+          HEADERS=$(curl -sI https://www.levqor.ai)
+          FAIL=0
+          
+          # Required headers
+          if echo "$HEADERS" | grep -qi "strict-transport-security"; then
+            echo "✅ HSTS present"
+          else
+            echo "❌ HSTS missing"
+            FAIL=1
+          fi
+          
+          if echo "$HEADERS" | grep -qi "x-frame-options"; then
+            echo "✅ X-Frame-Options present"
+          else
+            echo "❌ X-Frame-Options missing"
+            FAIL=1
+          fi
+          
+          if echo "$HEADERS" | grep -qi "x-content-type-options"; then
+            echo "✅ X-Content-Type-Options present"
+          else
+            echo "❌ X-Content-Type-Options missing"
+            FAIL=1
+          fi
+          
+          if [ $FAIL -eq 1 ]; then
+            echo "❌ Security headers check failed"
+            exit 1
+          fi
+          
+          echo "✅ All security headers present"
+      
+      - name: Deployment verification summary
+        if: always()
+        run: |
+          echo "============================================================"
+          echo "DEPLOYMENT VERIFICATION SUMMARY"
+          echo "============================================================"
+          echo "Timestamp: $(date -u)"
+          echo "Deployment: ${{ github.event.deployment_status.target_url || 'Manual/Scheduled' }}"
+          echo ""
+          echo "Tests:"
+          echo "  - HTML cache freshness"
+          echo "  - API intelligence endpoints (5)"
+          echo "  - Public metrics availability"
+          echo "  - Security headers"
+          echo ""
+          echo "Status: Check job status above"
+      
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "⚠️  POST-DEPLOY VERIFICATION FAILED"
+          echo "Manual investigation required"
+          echo "Check logs above for details"

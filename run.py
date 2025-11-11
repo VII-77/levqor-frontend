@@ -166,6 +166,50 @@ def get_db():
         _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_partners_verified ON partners(is_verified)")
         _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_partners_active ON partners(is_active)")
         
+        _db_connection.execute("""
+          CREATE TABLE IF NOT EXISTS listings(
+            id TEXT PRIMARY KEY,
+            partner_id TEXT NOT NULL,
+            name TEXT NOT NULL,
+            description TEXT,
+            category TEXT,
+            price_cents INTEGER NOT NULL DEFAULT 0,
+            is_verified INTEGER NOT NULL DEFAULT 0,
+            is_active INTEGER NOT NULL DEFAULT 1,
+            downloads INTEGER NOT NULL DEFAULT 0,
+            rating REAL,
+            created_at REAL NOT NULL,
+            updated_at REAL NOT NULL,
+            metadata TEXT,
+            FOREIGN KEY (partner_id) REFERENCES partners(id)
+          )
+        """)
+        _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_listings_partner_id ON listings(partner_id)")
+        _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_listings_verified ON listings(is_verified)")
+        _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_listings_category ON listings(category)")
+        
+        _db_connection.execute("""
+          CREATE TABLE IF NOT EXISTS marketplace_orders(
+            id TEXT PRIMARY KEY,
+            listing_id TEXT NOT NULL,
+            partner_id TEXT NOT NULL,
+            user_id TEXT,
+            amount_cents INTEGER NOT NULL,
+            partner_share_cents INTEGER NOT NULL,
+            platform_fee_cents INTEGER NOT NULL,
+            status TEXT NOT NULL DEFAULT 'pending',
+            stripe_payment_intent_id TEXT,
+            created_at REAL NOT NULL,
+            completed_at REAL,
+            FOREIGN KEY (listing_id) REFERENCES listings(id),
+            FOREIGN KEY (partner_id) REFERENCES partners(id),
+            FOREIGN KEY (user_id) REFERENCES users(id)
+          )
+        """)
+        _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_marketplace_orders_listing_id ON marketplace_orders(listing_id)")
+        _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_marketplace_orders_partner_id ON marketplace_orders(partner_id)")
+        _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_marketplace_orders_status ON marketplace_orders(status)")
+        
         _db_connection.execute("PRAGMA journal_mode=WAL")
         _db_connection.execute("PRAGMA synchronous=NORMAL")
         _db_connection.commit()
@@ -874,6 +918,7 @@ from api.developer.sandbox import bp as developer_sandbox_bp
 from api.routes.insights.preview import bp as insights_preview_bp
 from api.routes.insights.report import bp as insights_report_bp
 from modules.partner_api.registry import bp as partner_registry_bp
+from modules.marketplace.listings import bp as marketplace_listings_bp
 
 app.register_blueprint(flags_bp)
 app.register_blueprint(ledger_bp)
@@ -892,6 +937,7 @@ app.register_blueprint(developer_sandbox_bp)
 app.register_blueprint(insights_preview_bp)
 app.register_blueprint(insights_report_bp)
 app.register_blueprint(partner_registry_bp)
+app.register_blueprint(marketplace_listings_bp)
 
 @app.get("/ops/auto_tune")
 def auto_tune_endpoint():

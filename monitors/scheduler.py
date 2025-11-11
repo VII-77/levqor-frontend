@@ -209,6 +209,40 @@ def run_weekly_pulse():
     except Exception as e:
         log.error(f"Weekly pulse error: {e}")
 
+def run_expansion_verifier():
+    """Expansion system verification - nightly"""
+    log.info("Running expansion verifier...")
+    try:
+        result = subprocess.run(
+            ["python3", "scripts/automation/expansion_verifier.py"],
+            capture_output=True,
+            text=True,
+            timeout=60
+        )
+        if result.returncode == 0:
+            log.info("✅ Expansion verification passed")
+        else:
+            log.warning(f"Expansion verifier issues: {result.stdout}")
+    except Exception as e:
+        log.error(f"Expansion verifier error: {e}")
+
+def run_expansion_monitor():
+    """Generate expansion monitor report - weekly Friday"""
+    log.info("Generating expansion monitor...")
+    try:
+        result = subprocess.run(
+            ["python3", "scripts/automation/generate_expansion_monitor.py"],
+            capture_output=True,
+            text=True,
+            timeout=60
+        )
+        if result.returncode == 0:
+            log.info("✅ Expansion monitor generated")
+        else:
+            log.error(f"Expansion monitor failed: {result.stderr}")
+    except Exception as e:
+        log.error(f"Expansion monitor error: {e}")
+
 def init_scheduler():
     """Initialize and start APScheduler"""
     try:
@@ -308,8 +342,24 @@ def init_scheduler():
             replace_existing=True
         )
         
+        scheduler.add_job(
+            run_expansion_verifier,
+            CronTrigger(hour=2, minute=0, timezone='UTC'),
+            id='expansion_verifier',
+            name='Nightly expansion verification',
+            replace_existing=True
+        )
+        
+        scheduler.add_job(
+            run_expansion_monitor,
+            CronTrigger(day_of_week='fri', hour=14, minute=30, timezone='Europe/London'),
+            id='expansion_monitor',
+            name='Weekly expansion monitor',
+            replace_existing=True
+        )
+        
         scheduler.start()
-        log.info("✅ APScheduler initialized with 11 jobs")
+        log.info("✅ APScheduler initialized with 13 jobs")
         return scheduler
         
     except ImportError:

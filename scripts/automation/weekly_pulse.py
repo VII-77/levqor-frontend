@@ -13,6 +13,70 @@ from datetime import datetime, timedelta
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 from server.notion_helper import NotionHelper, notion_title, notion_number, notion_rich_text, notion_date
 
+def get_expansion_metrics():
+    """Collect expansion product metrics"""
+    metrics = {
+        "integrity_runs": 0,
+        "template_sales": 0.0,
+        "api_revenue": 0.0,
+        "white_label_inquiries": 0,
+    }
+    
+    try:
+        # Count Integrity Pack runs from Notion (if configured)
+        notion_integrity_db = os.getenv("NOTION_INTEGRITY_DB_ID", "").strip()
+        if notion_integrity_db:
+            # TODO: Query Notion for integrity runs count (when DB is set up)
+            pass
+        
+        # Get Template Pack sales from Stripe
+        stripe_key = os.getenv("STRIPE_SECRET_KEY", "").strip()
+        if stripe_key:
+            try:
+                headers = {"Authorization": f"Bearer {stripe_key}"}
+                
+                # Get charges for template packs (filter by metadata or description)
+                week_ago = int((datetime.utcnow() - timedelta(days=7)).timestamp())
+                params = {"created[gte]": week_ago, "limit": 100}
+                
+                response = requests.get(
+                    "https://api.stripe.com/v1/charges",
+                    headers=headers,
+                    params=params,
+                )
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    charges = data.get("data", [])
+                    
+                    # Filter for template pack purchases (by description or metadata)
+                    template_charges = [
+                        c for c in charges 
+                        if c.get("paid") and "template" in c.get("description", "").lower()
+                    ]
+                    metrics["template_sales"] = sum(c["amount"] for c in template_charges) / 100
+                    
+                    # Filter for API tier charges
+                    api_charges = [
+                        c for c in charges 
+                        if c.get("paid") and "api" in c.get("description", "").lower()
+                    ]
+                    metrics["api_revenue"] = sum(c["amount"] for c in api_charges) / 100
+                    
+            except Exception as e:
+                print(f"⚠️  Stripe expansion metrics error: {str(e)}")
+        
+        # Count white-label inquiries from Notion (if configured)
+        notion_leads_db = os.getenv("NOTION_AGENCY_LEADS_DB_ID", "").strip()
+        if notion_leads_db:
+            # TODO: Query Notion for agency leads count (when DB is set up)
+            pass
+            
+    except Exception as e:
+        print(f"⚠️  Expansion metrics error: {str(e)}")
+    
+    return metrics
+
 def collect_pulse_data():
     """Collect weekly pulse metrics"""
     try:
@@ -24,6 +88,9 @@ def collect_pulse_data():
             metrics = metrics_response.json()
             uptime_7d = metrics.get("uptime_rolling_7d", 0.0)
         
+        # Get expansion metrics
+        expansion = get_expansion_metrics()
+        
         # TODO: Get actual user metrics from database
         pulse = {
             "week_ending": datetime.utcnow().date().isoformat(),
@@ -33,6 +100,11 @@ def collect_pulse_data():
             "new_signups": 0,  # From users table
             "churn_count": 0,  # Cancelled subscriptions
             "active_users": 0,  # From sessions/activity
+            # Expansion metrics
+            "integrity_runs": expansion["integrity_runs"],
+            "template_sales": expansion["template_sales"],
+            "api_revenue": expansion["api_revenue"],
+            "white_label_inquiries": expansion["white_label_inquiries"],
         }
         
         return pulse
@@ -45,6 +117,11 @@ def generate_summary(pulse):
     """Generate human-readable summary"""
     if not pulse:
         return "Failed to collect pulse data"
+    
+    expansion_total = (
+        pulse['template_sales'] + 
+        pulse['api_revenue']
+    )
     
     summary = f"""
 📊 LEVQOR WEEKLY PULSE
@@ -62,6 +139,13 @@ Week ending: {pulse['week_ending']}
   • New sign-ups: {pulse['new_signups']}
   • Churn: {pulse['churn_count']}
   • Active users: {pulse['active_users']}
+
+🚀 EXPANSION PRODUCTS
+  • Integrity runs: {pulse['integrity_runs']}
+  • Template sales: ${pulse['template_sales']:.2f}
+  • API revenue: ${pulse['api_revenue']:.2f}
+  • White-label inquiries: {pulse['white_label_inquiries']}
+  • Total expansion: ${expansion_total:.2f}
 """
     return summary
 

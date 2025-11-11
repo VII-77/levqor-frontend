@@ -4,6 +4,7 @@ import Link from 'next/link'
 import './globals.css'
 
 export const metadata: Metadata = {
+import JsonLd from "../components/JsonLd";
   metadataBase: new URL('https://levqor.ai'),
   title: {
     default: 'Levqor — Automate work. Ship faster. Pay only for results.',
@@ -60,7 +61,8 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-      </head>
+        <JsonLd />
+  </head>
       <body className="antialiased tracking-tight">
         <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
           <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

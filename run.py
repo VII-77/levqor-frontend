@@ -852,6 +852,8 @@ from ops.admin.postmortem import bp as ops_postmortem_bp
 from monitors.auto_tune import suggest_tuning
 from api.developer.keys import bp as developer_keys_bp
 from api.developer.sandbox import bp as developer_sandbox_bp
+from api.routes.insights.preview import bp as insights_preview_bp
+from api.routes.insights.report import bp as insights_report_bp
 
 app.register_blueprint(flags_bp)
 app.register_blueprint(ledger_bp)
@@ -867,6 +869,8 @@ app.register_blueprint(ops_runbooks_bp)
 app.register_blueprint(ops_postmortem_bp)
 app.register_blueprint(developer_keys_bp)
 app.register_blueprint(developer_sandbox_bp)
+app.register_blueprint(insights_preview_bp)
+app.register_blueprint(insights_report_bp)
 
 @app.get("/ops/auto_tune")
 def auto_tune_endpoint():

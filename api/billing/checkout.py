@@ -4,16 +4,22 @@ Creates checkout sessions for Developer Portal tier upgrades
 """
 import os
 from flask import Blueprint, request, jsonify
-import stripe
 
 bp = Blueprint("billing_checkout", __name__, url_prefix="/api/billing")
 
-stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "").strip()
+try:
+    import stripe
+    stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "").strip()
+    STRIPE_AVAILABLE = True
+except ImportError:
+    STRIPE_AVAILABLE = False
 
-PRICE_MAP = {
-    "pro": os.environ.get("STRIPE_PRICE_DEV_PRO", "").strip(),
-    "enterprise": os.environ.get("STRIPE_PRICE_DEV_ENTERPRISE", "").strip(),
-}
+def get_price_map():
+    """Get price IDs from environment"""
+    return {
+        "pro": os.environ.get("STRIPE_PRICE_DEV_PRO", "").strip(),
+        "enterprise": os.environ.get("STRIPE_PRICE_DEV_ENTERPRISE", "").strip(),
+    }
 
 @bp.post("/checkout")
 def create_checkout_session():
@@ -30,14 +36,18 @@ def create_checkout_session():
       "url": "https://checkout.stripe.com/..."
     }
     """
+    if not STRIPE_AVAILABLE:
+        return jsonify({"error": "stripe_not_configured"}), 500
+    
     try:
         data = request.get_json() or {}
-        tier = data.get("tier")
+        tier = data.get("tier", "")
         
-        if tier not in PRICE_MAP:
+        price_map = get_price_map()
+        if tier not in price_map:
             return jsonify({"error": "invalid_tier"}), 400
         
-        price_id = PRICE_MAP.get(tier, "")
+        price_id = price_map.get(tier, "")
         if not price_id:
             return jsonify({"error": "price_not_configured"}), 500
         

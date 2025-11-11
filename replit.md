@@ -78,16 +78,28 @@ The frontend is built with Next.js 14 and TypeScript, focusing on a clear authen
     - Database: `developer_keys` and `api_usage_log` tables for key management and analytics
     - Backend API: `/api/developer/keys` (POST/GET/DELETE), `/api/developer/usage` for quota tracking
     - Sandbox API: Mock endpoints at `/api/sandbox/*` (jobs, metrics, users) for safe testing
+    - Billing: `/api/billing/checkout` for Stripe checkout session creation
     - Rate Limiting: Automatic quota enforcement per tier with 429 responses when exceeded
     - Three Tiers:
         - Sandbox: 1,000 calls/month - Free
         - Pro: 10,000 calls/month - $19/month (STRIPE_PRICE_DEV_PRO)
         - Enterprise: Unlimited - $199/month (STRIPE_PRICE_DEV_ENTERPRISE)
-    - Frontend: `/developer` landing, `/developer/keys` management UI, `/developer/docs` interactive documentation
+    - Frontend: `/developer` landing with upgrade flow, `/developer/keys` management UI, `/developer/docs` interactive documentation
     - OpenAPI Spec: Complete API documentation at `/public/openapi.json`
     - Notion Integration: API key creation/revocation auto-logged to NOTION_API_KEYS_DB_ID
     - Security: JWT-based authentication for key management, x-api-key header for sandbox API calls
     - Revenue Target: $35k ARR from developer tiers (100 sandbox → 50 Pro → 5 Enterprise by Month 3)
+- **Data Insights + Reports - Phase 2 Expansion** (Nov 11, 2025):
+    - Thought-leadership data product with anonymized platform insights
+    - Modules: `modules/data_insights/` (aggregator, report_builder, uploader)
+    - Backend API: `/api/insights/preview` (GET aggregated KPIs), `/api/insights/report` (POST generate PDF)
+    - Data Sources: API usage, integrity runs, revenue, uptime from existing telemetry
+    - PDF Reports: Generated via reportlab with quarterly metrics summary
+    - Google Drive: Auto-upload with shareable public links (requires DRIVE_SERVICE_ACCOUNT_JSON)
+    - Frontend: `/insights/data` page with metric cards and report generation UI
+    - Automation: `scripts/automation/insights_quarterly.py` for scheduled report generation
+    - Metrics Tracked: Revenue, MRR, API calls, uptime, integrity runs, net margin
+    - Privacy: All data anonymized and aggregated, no PII included
 
 ### Feature Specifications
 - **Job Orchestration**: Intake, status tracking, and simulated completion for development.

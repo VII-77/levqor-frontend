@@ -4,6 +4,7 @@ Automatically attempts to fix detected issues
 """
 import os
 import subprocess
+import json
 from datetime import datetime
 from typing import Optional, Dict
 import sqlite3

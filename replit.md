@@ -112,6 +112,32 @@ The frontend is built with Next.js 14 and TypeScript, focusing on a clear authen
     - Security: HTTPS-only webhooks, email uniqueness, soft-delete for deactivation
     - Verification Workflow: Partners register → pending approval → admin verifies → access granted
     - Foundation for Phase 4 (Marketplace) and Phase 5 (Governance)
+- **Marketplace + Stripe Connect - Phase 4 Expansion** (Nov 11, 2025):
+    - Partner-built modules and integrations marketplace with automated revenue sharing
+    - Database: `listings` and `marketplace_orders` tables for catalog and transaction tracking
+    - Modules: `modules/marketplace/` (listings, payouts, notion_sync)
+    - Backend API: `/api/marketplace/listings` (GET/POST/PATCH/DELETE), partner earnings tracking
+    - Stripe Connect: Automated 70/30 revenue split and payout processing
+    - Categories: Automation, Templates, Integrations, Modules, Workflows
+    - Listing Management: Verification workflow, download tracking, ratings system
+    - Order Processing: Revenue split calculation, Stripe Payment Intent integration
+    - Payout System: Automated transfers to partner Stripe Connect accounts
+    - Frontend: `/marketplace` page with category filtering, partner CTA
+    - Notion Integration: Auto-logs listings to NOTION_MARKETPLACE_CATALOG_DB_ID and sales to NOTION_MARKETPLACE_SALES_DB_ID
+    - Revenue Potential: 30% platform fee on all marketplace sales
+- **Governance & Auditing - Phase 5 Expansion** (Nov 11, 2025):
+    - Security and compliance framework for partner ecosystem
+    - Policy Engine: JSON-based governance rules (revenue share, API restrictions, thresholds)
+    - Audit System: Automated partner compliance checks and reporting
+    - Review Cycle: Quarterly partner reviews with automated notifications
+    - Modules: `modules/governance/` (audit, review_cycle, policy.json)
+    - Audit Checks: Webhook HTTPS enforcement, rating thresholds, listing compliance
+    - Review Tracking: 90-day review cycles, overdue partner identification
+    - Automated Jobs: `scripts/automation/partner_audit.py` for scheduled audits
+    - Database: `audit_logs` table for audit history tracking
+    - Webhook Notifications: Partners receive audit and review notifications
+    - Notion Integration: Audit logs to NOTION_AUDIT_LOGS_DB_ID
+    - Compliance: Ensures partner ecosystem maintains security and quality standards
 
 ### Feature Specifications
 - **Job Orchestration**: Intake, status tracking, and simulated completion for development.

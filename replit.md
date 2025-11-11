@@ -52,6 +52,18 @@ The frontend is built with Next.js 14 and TypeScript, focusing on a clear authen
     - Sentry Test: Weekly error tracking health verification
     - Weekly Pulse: Friday summary of uptime, revenue, users, and churn
     - All automation integrated into APScheduler (scripts/automation/*.py)
+- **Expansion: Integrity + Finalizer Pack** (Nov 11, 2025):
+    - E2E integrity testing system with 10 comprehensive checks
+    - Finalizer validation with 12 deployment readiness checks
+    - PDF evidence report generation via reportlab
+    - Stripe product configured (One-time: $49, Monthly: $19)
+    - Complete CLI runner and documentation
+    - Revenue-ready sellable feature for enterprise customers
+- **Notion Integration** (Nov 11, 2025):
+    - Helper module for Notion API integration
+    - Automation scripts updated to log to Notion databases
+    - System Health Log, Cost Dashboard, and Pulse tracking
+    - Test script for verifying Notion connectivity
 
 ### Feature Specifications
 - **Job Orchestration**: Intake, status tracking, and simulated completion for development.
@@ -73,3 +85,5 @@ The frontend is built with Next.js 14 and TypeScript, focusing on a clear authen
 - **SQLite**: Local development database.
 - **Sentry**: Error tracking and performance monitoring.
 - **Stripe**: Payment processing integration (health endpoint exists, full integration planned).
+- **reportlab**: PDF generation library for Integrity Pack evidence reports.
+- **Notion**: Workspace integration for logging automation results and metrics.

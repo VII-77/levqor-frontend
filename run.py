@@ -110,6 +110,43 @@ def get_db():
           )
         """)
         
+        _db_connection.execute("""
+          CREATE TABLE IF NOT EXISTS developer_keys(
+            id TEXT PRIMARY KEY,
+            user_id TEXT NOT NULL,
+            key_hash TEXT UNIQUE NOT NULL,
+            key_prefix TEXT NOT NULL,
+            tier TEXT NOT NULL DEFAULT 'sandbox',
+            is_active INTEGER NOT NULL DEFAULT 1,
+            calls_used INTEGER NOT NULL DEFAULT 0,
+            calls_limit INTEGER NOT NULL DEFAULT 1000,
+            reset_at REAL NOT NULL,
+            created_at REAL NOT NULL,
+            last_used_at REAL,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+          )
+        """)
+        _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_developer_keys_user_id ON developer_keys(user_id)")
+        _db_connection.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_developer_keys_key_hash ON developer_keys(key_hash)")
+        _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_developer_keys_tier ON developer_keys(tier)")
+        
+        _db_connection.execute("""
+          CREATE TABLE IF NOT EXISTS api_usage_log(
+            id TEXT PRIMARY KEY,
+            key_id TEXT NOT NULL,
+            user_id TEXT NOT NULL,
+            endpoint TEXT NOT NULL,
+            method TEXT NOT NULL,
+            status_code INTEGER NOT NULL,
+            response_time_ms INTEGER,
+            created_at REAL NOT NULL,
+            FOREIGN KEY (key_id) REFERENCES developer_keys(id),
+            FOREIGN KEY (user_id) REFERENCES users(id)
+          )
+        """)
+        _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_api_usage_log_key_id ON api_usage_log(key_id)")
+        _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_api_usage_log_created_at ON api_usage_log(created_at)")
+        
         _db_connection.execute("PRAGMA journal_mode=WAL")
         _db_connection.execute("PRAGMA synchronous=NORMAL")
         _db_connection.commit()
@@ -812,6 +849,8 @@ from ops.admin.insights import bp as ops_insights_bp
 from ops.admin.runbooks import bp as ops_runbooks_bp
 from ops.admin.postmortem import bp as ops_postmortem_bp
 from monitors.auto_tune import suggest_tuning
+from api.developer.keys import bp as developer_keys_bp
+from api.developer.sandbox import bp as developer_sandbox_bp
 
 app.register_blueprint(flags_bp)
 app.register_blueprint(ledger_bp)
@@ -824,6 +863,8 @@ app.register_blueprint(admin_postmortem_bp)
 app.register_blueprint(ops_insights_bp)
 app.register_blueprint(ops_runbooks_bp)
 app.register_blueprint(ops_postmortem_bp)
+app.register_blueprint(developer_keys_bp)
+app.register_blueprint(developer_sandbox_bp)
 
 @app.get("/ops/auto_tune")
 def auto_tune_endpoint():

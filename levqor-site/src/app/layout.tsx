@@ -2,9 +2,11 @@ import type { Metadata } from 'next'
 import { Providers } from '@/components/providers'
 import Link from 'next/link'
 import './globals.css'
+import JsonLd from '@/components/JsonLd'
+
+// Force cache clear - deployment timestamp: 2025-11-11T12:20
 
 export const metadata: Metadata = {
-import JsonLd from "../components/JsonLd";
   metadataBase: new URL('https://levqor.ai'),
   title: {
     default: 'Levqor — Automate work. Ship faster. Pay only for results.',

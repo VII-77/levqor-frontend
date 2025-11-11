@@ -4,6 +4,7 @@ import Link from 'next/link'
 import './globals.css'
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://levqor.ai'),
   title: {
     default: 'Levqor — Automate work. Ship faster. Pay only for results.',
     template: '%s | Levqor'

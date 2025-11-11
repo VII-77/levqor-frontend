@@ -9,7 +9,7 @@ function StatusPill() {
   useEffect(() => {
     fetch("https://api.levqor.ai/health")
       .then((res) => res.json())
-      .then((data) => setStatus({ ok: data.status === "healthy", message: "All systems operational" }))
+      .then((data) => setStatus({ ok: data.status === "healthy" || data.ok === true, message: "All systems operational" }))
       .catch(() => setStatus({ ok: false, message: "Checking status..." }));
   }, []);
 

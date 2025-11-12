@@ -5,7 +5,7 @@ export default auth((req) => {
   const isAuthenticated = !!req.auth
   const pathname = req.nextUrl.pathname
 
-  const protectedPaths = ['/dashboard', '/admin']
+  const protectedPaths = ['/dashboard', '/admin', '/workflow']
   const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path))
 
   if (isProtectedPath && !isAuthenticated) {

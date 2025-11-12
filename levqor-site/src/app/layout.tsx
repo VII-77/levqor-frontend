@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Providers } from '@/components/providers'
 import Link from 'next/link'
 import './globals.css'
+import '../styles/tokens.css'
 
 // Force cache clear - deployment timestamp: 2025-11-11T12:32
 

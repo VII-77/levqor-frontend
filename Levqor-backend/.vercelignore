@@ -1,0 +1,22 @@
+# Python backend
+*.py
+*.pyc
+__pycache__/
+run.py
+modules/
+api/
+scripts/
+monitors/
+ops/
+public/
+.pythonlibs/
+levqor.db
+*.sql
+
+# Root configs
+requirements.txt
+Procfile
+gunicorn.conf.py
+
+# Only deploy levqor-site/
+!levqor-site/

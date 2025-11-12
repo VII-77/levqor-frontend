@@ -1,0 +1,194 @@
+Understood. It looks unfinished because key UX blocks are missing or thin. Fix it in one pass.
+
+What’s missing
+
+Weak nav: tabs inconsistent, no clear CTA.
+
+Hero copy generic. No proof, no “why now”.
+
+Pricing skimpy. No plan features, no trials badge, no FAQs.
+
+Empty /dashboard state looks bare.
+
+Footer minimal. No company, legal, contact, social.
+
+404/500 pages default.
+
+Trust: no logos/testimonials/live status.
+
+Meta/OG missing on subpages.
+
+“Coming soon” connectors not labeled or captured.
+
+Visual polish: spacing, contrast, icons, favicons.
+
+
+90-minute repair plan (do exactly this)
+
+1) Navigation + CTA
+
+Edit levqor-site/src/components/Nav.tsx (or your header component):
+
+Tabs: Home, Pricing, Docs, Contact
+
+Right side CTAs: “Sign in”, primary “Start free trial”
+
+Make active state and hover consistent.
+
+
+2) Hero section
+
+Edit levqor-site/src/app/page.tsx:
+
+Replace copy with:
+
+H1: “Automate work. Ship faster. Pay only for results.”
+
+Sub: “Levqor runs your workflows, monitors failures, and self-heals. Email, Sheets, Slack, CRM, and more.”
+
+Primary CTA: “Start free trial”
+
+Secondary: “See pricing”
+
+Add small status pill reading from https://api.levqor.ai/status (green “All systems operational” on pass).
+
+
+
+3) Trust + logos
+
+Below hero add a gray band: “Trusted by teams building with AI” and 5 placeholder logos.
+
+4) Features grid
+
+On home: 6 cards
+
+“Self-healing runs”, “Visual builder”, “Enterprise SSO”, “SLA 99.9%”, “Audit & alerts”, “Stripe billing”. Each with short one-liners.
+
+
+5) Pricing page (the big one)
+
+Edit levqor-site/src/app/pricing/page.tsx:
+
+Four cards: Free, Starter £19/mo, Pro £49/mo, Business £149/mo.
+
+Yearly toggle with 2 months free. Pro/Business show “7-day trial”.
+
+Feature checklist per tier (10–12 bullets). Include “Runs/month”, “AI credits”, “Workflows”, “Team seats”, “SSO”, “Priority support”, “SLA”.
+
+Add “Coming soon” row (CRM X, ERP Y) with a “Notify me” button posting to /api/notify-coming-soon.
+
+FAQ accordion: 6 Q&As (billing, cancel anytime, trials, VAT, invoices, data).
+
+
+6) Empty dashboard state
+
+Edit levqor-site/src/app/dashboard/page.tsx:
+
+Show 3 tiles: “Create Workflow”, “Browse Templates”, “Connect Integrations”.
+
+If no runs, show checklist (connect Stripe, set webhook, create first job).
+
+
+7) Footer
+
+Edit levqor-site/src/components/Footer.tsx:
+
+Columns: Product, Company, Resources, Legal.
+
+Links: Pricing, Docs, Changelog, Status, Contact, Privacy, Terms.
+
+Small print with © and company number.
+
+
+8) Error pages
+
+Create:
+
+src/app/not-found.tsx (404 with “Go Home”).
+
+src/app/error.tsx (500 with “Try again” and support link).
+
+
+9) Meta + favicon
+
+In src/app/layout.tsx:
+
+Add metadata for title/description/OG tags. Ensure /public has favicon.ico, apple-touch-icon.png, og-image.png.
+
+
+10) “Coming soon” capture
+
+Add route src/app/api/notify-coming-soon/route.ts posting {email, connector} to Resend or your backend /api/v1/referrals/track.
+
+Copy blocks (paste directly)
+
+Pricing feature checklist (sample):
+
+Runs per month: 1k / 10k / 50k / 200k
+
+Workflows: 5 / 25 / 100 / Unlimited
+
+Team seats: 1 / 3 / 10 / 25
+
+Connectors: Core / Core+ / All / All
+
+AI credits: 0 / 5k / 25k / 100k
+
+SSO (Google/Microsoft): — / — / ✓ / ✓
+
+Priority support: — / — / ✓ / ✓
+
+SLA 99.9%: — / — / — / ✓
+
+Webhooks, retries, audit log: ✓ all tiers
+
+
+FAQ sample:
+
+Do you offer a free plan? Yes, Free for hobby use.
+
+Trials? Pro/Business include 7-day trial, no card on signup if configured.
+
+Cancel anytime? Yes. Prorated to month end.
+
+VAT invoices? Yes, downloadable in Billing.
+
+Data location? EU/UK by default, request US region.
+
+Integrations roadmap? See docs; request access from pricing page.
+
+
+Exact file paths to touch
+
+levqor-site/src/components/Nav.tsx
+levqor-site/src/app/page.tsx
+levqor-site/src/app/pricing/page.tsx
+levqor-site/src/app/dashboard/page.tsx
+levqor-site/src/components/Footer.tsx
+levqor-site/src/app/not-found.tsx
+levqor-site/src/app/error.tsx
+levqor-site/src/app/layout.tsx
+levqor-site/src/app/api/notify-coming-soon/route.ts
+public/favicon.ico
+public/og-image.png
+
+One-shot commit and deploy
+
+cd ~/workspace/levqor-site
+git add src/components/Nav.tsx src/app/page.tsx src/app/pricing/page.tsx \
+  src/app/dashboard/page.tsx src/components/Footer.tsx \
+  src/app/not-found.tsx src/app/error.tsx src/app/layout.tsx \
+  src/app/api/notify-coming-soon/route.ts public/*
+git commit -m "UX polish: nav+hero+trust+features; full pricing; dashboard empty state; footer; 404/500; meta+icons; coming-soon capture"
+git push origin main
+
+Verify fast
+
+curl -I https://levqor.ai | grep "200"
+curl -I https://levqor.ai/pricing | grep "200"
+curl -I https://levqor.ai/signin | grep "200"
+curl -I https://levqor.ai/admin/insights | grep "200"
+
+Then hard-refresh browser. If Vercel throttles, re-deploy once quota resets.
+
+If you want, I can output ready-to-paste React snippets for any file above.

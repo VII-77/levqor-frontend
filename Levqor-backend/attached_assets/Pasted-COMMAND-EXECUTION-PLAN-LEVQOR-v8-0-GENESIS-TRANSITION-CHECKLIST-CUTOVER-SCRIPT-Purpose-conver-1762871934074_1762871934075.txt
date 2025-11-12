@@ -1,0 +1,234 @@
+COMMAND EXECUTION PLAN — LEVQOR v8.0 “GENESIS” TRANSITION CHECKLIST + CUTOVER SCRIPT
+Purpose: convert the now-intelligent Levqor v7.0 core into a fully multi-tenant enterprise SaaS without downtime or data loss. This bridges the single-tenant environment to the hard-isolated, per-tenant model.
+
+
+---
+
+I. PREPARATION (WEEK 0–1)
+
+1. Snapshot & Freeze
+
+# Create full database and Drive snapshot
+pg_dump levqor_main > backups/pre_genesis_dump.sql
+cp -r /mnt/data/config /mnt/data/backups/config_$(date +%F)
+
+Why: guarantees rollback point.
+Impact if ignored: irreversible schema drift risk.
+
+2. Enable Dual-Mode Support
+
+export TENANCY_MODE=dual
+
+Allows v7.0 logic to run alongside new tenant engine.
+
+3. Define Migration Map
+
+tenant_000 → legacy single tenant (“Levqor Core”)
+
+All current users assigned under this tenant by default.
+
+
+
+---
+
+II. SCHEMA & DATA LAYER (WEEK 1–2)
+
+4. Create Tenant Master Tables
+
+CREATE TABLE tenants (id UUID PRIMARY KEY, name TEXT, plan TEXT, region TEXT, created_at TIMESTAMP);
+CREATE TABLE tenant_map (user_id UUID, tenant_id UUID, role TEXT, created_at TIMESTAMP);
+
+5. Generate Tenant 000 Record
+
+INSERT INTO tenants VALUES ('000-CORE','Levqor Core','enterprise','eu-west-1',NOW());
+UPDATE users SET tenant_id='000-CORE';
+
+6. Schema Split
+
+# Option A: Schema-per-tenant
+CREATE SCHEMA tenant_000;
+# Copy existing tables:
+pg_dump -n public | sed 's/public/tenant_000/' | psql
+
+Benefit: isolates each tenant without re-deploying DBs.
+Impact if ignored: data cross-contamination risk.
+
+
+---
+
+III. BACKEND MIGRATION (WEEK 2–3)
+
+7. Add Tenant Context Middleware
+
+# middleware/tenant_context.py
+def tenant_context(request):
+    tid = request.headers.get("x-tenant-id") or "000-CORE"
+    set_tenant_connection(tid)
+
+8. Modify ORM Calls All queries prepend schema switch:
+
+with tenant_context(tid):
+    db.table("jobs").insert({...})
+
+9. Provisioning APIs Implement /api/tenants endpoints (create/suspend/delete/rotate).
+Verified already in v8.0 spec.
+
+
+---
+
+IV. BILLING & STRIPE INTEGRATION (WEEK 3–4)
+
+10. Create Tenant-Specific Products
+
+Levqor Core
+
+Levqor Pro
+
+Levqor Enterprise
+
+
+Each mapped to tenant limits in modules/policy/policies.json.
+
+11. Assign Customers Existing Stripe customer → tenant_000.
+New tenants → auto-created via /api/billing/provision.
+
+12. Usage Reporting Nightly job tenant_metering.py → uploads per-tenant usage to Stripe.
+
+
+---
+
+V. ORG ADMIN UI (WEEK 4–5)
+
+13. Deploy /org pages
+
+/org: tenant overview
+
+/org/members: user management
+
+/org/settings: plan, limits, region, backups
+
+/org/audit: recent events
+
+
+14. RBAC Roles: owner, admin, operator, auditor, viewer.
+Policy engine loads limits per plan.
+
+
+---
+
+VI. SSO, COMPLIANCE & DR (WEEK 5–6)
+
+15. Integrate SSO SAML + OIDC modules → per-tenant configuration under /org/settings/sso.
+
+16. Compliance Streams Audit logs exported to tenant’s SIEM via webhook.
+
+17. Disaster Recovery Nightly tenant-scoped backups:
+
+pg_dump --schema=tenant_001 > backups/tenant_001_$(date +%F).sql
+
+Replica promotion tested once per region.
+
+
+---
+
+VII. FEDERATION & GOVERNANCE (WEEK 6–7)
+
+18. Activate Federation Hub Opt-in metrics shared to Core → anonymized Insights.
+
+19. Policy Enforcement Quarterly audit job cross-checks each tenant’s integrity, billing, and compliance.
+
+20. AI Risk Feedback Loop Governance AI from v7.0 evaluates tenants’ compliance scores → adjusts policy weights.
+
+
+---
+
+VIII. CUTOVER (WEEK 7–8)
+
+21. Switch to Hard Multi-Tenancy
+
+export TENANCY_MODE=multi
+
+22. Validate Tenancy Isolation
+
+# Tenant A should not see Tenant B data
+curl -H "x-tenant-id: tenant_A" /api/jobs
+
+Expected: 403 Forbidden.
+
+23. Decommission Legacy Public Schema After 14 days stable:
+
+DROP SCHEMA public CASCADE;
+
+
+---
+
+IX. VALIDATION MATRIX
+
+Test	Expected Result
+
+Tenant API create/suspend/delete	Works; audit logged
+Cross-tenant access	Denied
+Billing reconciliation	Stripe & DB totals match
+SSO login	SAML + OIDC success
+Audit stream	Events reach SIEM
+DR restore	Recovery <30 min
+Federation sync	Telemetry visible in Core
+
+
+
+---
+
+X. ROLLBACK PLAN
+
+1. TENANCY_MODE=single
+
+
+2. Restore from pre_genesis_dump.sql
+
+
+3. Disable tenant middleware and APIs
+
+
+4. Restart backend services
+
+
+
+
+---
+
+XI. SUCCESS CRITERIA
+
+Zero data leakage between tenants
+
+Per-tenant Stripe billing verified
+
+SSO and RBAC functional
+
+DR drill successful
+
+Audit + compliance dashboards stable
+
+Cost baseline unchanged (< $10/day core ops)
+
+
+
+---
+
+OUTCOME
+
+After cutover, Levqor will operate as a multi-tenant, enterprise-ready SaaS:
+
+Each organization isolated by schema/DB
+
+Per-tenant billing, limits, and compliance streams
+
+Integrated AI governance from v7.0 ensuring continuous optimization
+
+Ready for federation expansion (v9.0 “Constellation”)
+
+
+
+---
+
+Next Action:
+Once initial tenants are provisioned and verified, execute the Constellation Federation Enablement block to interconnect them under global governance.

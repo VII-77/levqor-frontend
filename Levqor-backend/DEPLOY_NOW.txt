@@ -1,0 +1,53 @@
+═══════════════════════════════════════════════════════════
+🚀 3-TIER PRICING - READY TO DEPLOY
+═══════════════════════════════════════════════════════════
+
+✅ COMPLETED (Automated):
+───────────────────────────────────────────────────────────
+• Stripe: 3 products + 6 prices created
+  - Starter: £19/mo, £190/yr
+  - Pro: £49/mo, £490/yr
+  - Business: £149/mo, £1490/yr
+
+• Vercel: 6 environment variables configured
+  - STRIPE_PRICE_STARTER (updated)
+  - STRIPE_PRICE_STARTER_YEAR (updated)
+  - STRIPE_PRICE_PRO (updated)
+  - STRIPE_PRICE_PRO_YEAR (updated)
+  - STRIPE_PRICE_BUSINESS (new)
+  - STRIPE_PRICE_BUSINESS_YEAR (new)
+
+• Code: levqor-site/src/app/api/checkout/route.ts
+  - Supports 3 tiers with monthly/yearly
+  - No errors, builds successfully
+
+═══════════════════════════════════════════════════════════
+📝 RUN THESE COMMANDS IN YOUR SHELL TERMINAL:
+═══════════════════════════════════════════════════════════
+
+cd ~/workspace/levqor-site
+git add src/app/api/checkout/route.ts
+git commit -m "Pricing: add Business tier (£149/mo, £1490/yr) + clean checkout API"
+git push origin main
+
+═══════════════════════════════════════════════════════════
+⏳ THEN WAIT 3 MINUTES AND TEST:
+═══════════════════════════════════════════════════════════
+
+curl -s 'https://levqor.ai/api/checkout?plan=starter&term=monthly'
+curl -s 'https://levqor.ai/api/checkout?plan=pro&term=yearly'
+curl -s 'https://levqor.ai/api/checkout?plan=business&term=monthly'
+
+Expected response:
+{"ok":true,"url":"https://checkout.stripe.com/c/pay/cs_test_...","plan":"...","term":"..."}
+
+═══════════════════════════════════════════════════════════
+✅ SUCCESS CRITERIA:
+═══════════════════════════════════════════════════════════
+
+All 3 tiers return Stripe checkout URLs:
+✓ Starter (£19/mo or £190/yr)
+✓ Pro (£49/mo or £490/yr)
+✓ Business (£149/mo or £1490/yr)
+
+═══════════════════════════════════════════════════════════

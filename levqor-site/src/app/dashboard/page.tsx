@@ -1,4 +1,5 @@
-import { auth } from "@/auth";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/auth";
 import { redirect } from "next/navigation";
 import DashboardTiles from "@/components/DashboardTiles";
 import AnalyticsWidget from "@/components/AnalyticsWidget";
@@ -17,7 +18,7 @@ async function getUsage(){
 }
 
 export default async function Dashboard(){
-  const session = await auth();
+  const session = await getServerSession(authOptions);
   
   if(!session?.user){
     redirect('/signin');

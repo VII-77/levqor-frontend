@@ -1,6 +1,6 @@
-import { withAuth } from "next-auth/middleware";
+import { withAuthMiddleware } from "next-auth/middleware";
 
-export default withAuth({
+export default withAuthMiddleware({
   pages: { signIn: "/signin" },
 });
 

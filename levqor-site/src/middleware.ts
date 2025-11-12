@@ -1,20 +1,9 @@
-import { auth } from "@/auth"
-import { NextResponse } from "next/server"
+import { withAuth } from "next-auth/middleware";
 
-export default auth((req) => {
-  const isAuthenticated = !!req.auth
-  const pathname = req.nextUrl.pathname
-
-  const protectedPaths = ['/dashboard', '/admin', '/workflow']
-  const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path))
-
-  if (isProtectedPath && !isAuthenticated) {
-    return NextResponse.redirect(new URL('/signin', req.url))
-  }
-
-  return NextResponse.next()
-})
+export default withAuth({
+  pages: { signIn: "/signin" },
+});
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
-}
+  matcher: ["/workflow"],
+};

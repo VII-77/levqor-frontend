@@ -1,8 +1,5 @@
-import { withAuthMiddleware } from "next-auth/middleware";
-
-export default withAuthMiddleware({
-  pages: { signIn: "/signin" },
-});
+// NextAuth v4 middleware
+export { default } from "next-auth/middleware";
 
 export const config = {
   matcher: ["/workflow"],

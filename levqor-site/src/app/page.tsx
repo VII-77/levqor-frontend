@@ -54,30 +54,40 @@ export default function Home() {
       <JsonLd data={structuredData} />
       
       {/* Hero Section */}
-      <section className="max-w-6xl mx-auto px-6 py-20 text-center">
-        <div className="mb-6">
-          <StatusPill />
+      <section className="max-w-6xl mx-auto px-4 pt-16 pb-10">
+        <div className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs">
+          <span className="h-2 w-2 rounded-full bg-green-500" />
+          Genesis v8.0 · Self-healing automation
         </div>
-        <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
-          Automate work. Ship faster.<br />Pay only for results.
+        <h1 className="mt-6 text-4xl sm:text-6xl font-bold tracking-tight">
+          Automate work. <span className="opacity-80">Ship faster.</span>
         </h1>
-        <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
-          Levqor runs your workflows, monitors failures, and self-heals. Email, Sheets, Slack, CRM, and more.
+        <p className="mt-4 max-w-2xl text-lg text-neutral-600">
+          Run workflows, monitor failures, and self-heal. Email, Sheets, Slack, CRM.
         </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link
-            href="/signin"
-            className="px-8 py-4 bg-black text-white rounded-xl font-semibold hover:bg-gray-800 transition-colors text-lg"
-          >
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link href="/signin" className="rounded-xl px-4 py-2 bg-black text-white hover:bg-gray-800 transition">
             Start free trial
           </Link>
-          <Link
-            href="/pricing"
-            className="px-8 py-4 border-2 border-black rounded-xl font-semibold hover:bg-gray-50 transition-colors text-lg"
-          >
+          <Link href="/pricing" className="rounded-xl px-4 py-2 border hover:bg-gray-50 transition">
             See pricing
           </Link>
         </div>
+      </section>
+
+      {/* Feature Tiles */}
+      <section className="max-w-6xl mx-auto px-4 grid sm:grid-cols-2 lg:grid-cols-4 gap-4 pb-14">
+        {[
+          ["Self-healing runs", "Auto-retry with backoff"],
+          ["Visual builder", "Drag-drop steps"],
+          ["Smart diff", "Isolate failures fast"],
+          ["Audit trail", "Each fix recorded"]
+        ].map(([t, s]) => (
+          <div key={t} className="rounded-2xl border p-4">
+            <div className="text-base font-semibold">{t}</div>
+            <div className="text-sm text-neutral-600">{s}</div>
+          </div>
+        ))}
       </section>
 
       {/* Trust Band */}

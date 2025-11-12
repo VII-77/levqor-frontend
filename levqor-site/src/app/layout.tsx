@@ -12,49 +12,29 @@ export const revalidate = 0;
 export const metadata: Metadata = {
   metadataBase: new URL('https://levqor.ai'),
   title: {
-    default: 'Levqor — Automate work. Ship faster. Pay only for results.',
-    template: '%s | Levqor'
+    default: 'Levqor — Automate work. Ship faster.',
+    template: '%s · Levqor'
   },
-  description: 'Levqor runs your workflows, monitors failures, and self-heals. Email, Sheets, Slack, CRM, and more. Enterprise-grade automation platform with 99.9% SLA.',
-  keywords: ['automation', 'workflow', 'no-code', 'zapier alternative', 'make.com alternative', 'ai automation', 'self-healing workflows'],
-  authors: [{ name: 'Levqor Technologies' }],
-  creator: 'Levqor',
+  description: 'Levqor runs your workflows, monitors failures, and self-heals. Email, Sheets, Slack, CRM.',
+  keywords: ['automation', 'ai workflows', 'self-healing', 'levqor'],
   openGraph: {
-    title: 'Levqor — Automate work. Ship faster. Pay only for results.',
-    description: 'Self-healing workflows that monitor failures and auto-recover. Connect Email, Sheets, Slack, CRM with no code.',
+    type: 'website',
     url: 'https://levqor.ai',
     siteName: 'Levqor',
-    images: [
-      {
-        url: '/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: 'Levqor - Self-Healing Automation Engine',
-      },
-    ],
-    locale: 'en_GB',
-    type: 'website',
+    title: 'Automate work. Ship faster.',
+    description: 'Pay only for results.',
+    images: [{ url: '/og.jpg', width: 1200, height: 630 }]
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Levqor — Automate work. Ship faster.',
-    description: 'Self-healing workflows with 99.9% SLA. Connect 50+ apps, no code required.',
-    images: ['/og-image.png'],
+    site: '@levqor',
     creator: '@levqor',
+    images: ['/og.jpg']
   },
   icons: {
-    icon: [
-      { url: '/favicon.ico' },
-      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
-      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
-    ],
-    apple: '/apple-touch-icon.png',
-  },
-  manifest: '/site.webmanifest',
-  robots: {
-    index: true,
-    follow: true,
-  },
+    icon: '/favicon.ico',
+    apple: '/apple-touch-icon.png'
+  }
 }
 
 export default function RootLayout({

@@ -2,12 +2,11 @@
 import { useEffect, useState } from 'react';
 import { useSession, signIn } from 'next-auth/react';
 
-type Flow = { id: string; name: string; status: 'healthy' | 'degraded' | 'failed'; runs: number };
+type Flow = { id: string; name: string; status: string; runs?: number };
 
 export default function Page() {
-  const { status, data } = useSession();
+  const { status } = useSession();
   const [items, setItems] = useState<Flow[] | null>(null);
-  const [err, setErr] = useState<string>('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -19,54 +18,46 @@ export default function Page() {
     (async () => {
       try {
         const res = await fetch('/api/workflows', { cache: 'no-store' });
-        if (!res.ok) throw new Error(String(res.status));
-        const json = await res.json();
-        const mapped: Flow[] = Array.isArray(json?.items)
-          ? json.items.map((x: any) => ({
-              id: String(x.id || x.name),
-              name: x.name || 'Flow',
-              status: x.status || 'healthy',
-              runs: Number(x.runs || 0),
-            }))
-          : [];
-        setItems(mapped);
-      } catch (e: any) {
-        setErr(e?.message || 'error');
+        if (res.status === 401) return;
+        const { items: data = [] } = await res.json().catch(() => ({ items: [] }));
+        setItems(data);
+      } catch (e) {
+        setItems([]);
       } finally {
         setLoading(false);
       }
     })();
   }, [status]);
 
-  if (status === 'loading' || loading) return <div className="max-w-6xl mx-auto px-6 py-12">Loading workflows…</div>;
-  if (err) return <div className="max-w-6xl mx-auto px-6 py-12 text-sm opacity-80">Error: {err}</div>;
+  if (status === 'loading' || loading) {
+    return (
+      <main className="max-w-6xl mx-auto px-4 py-8">
+        <h1 className="text-2xl font-semibold mb-4">Workflows</h1>
+        <div className="h-24 rounded-2xl border animate-pulse bg-gray-50" />
+      </main>
+    );
+  }
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-12 space-y-6">
-      <h1 className="text-2xl font-bold">Workflows</h1>
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {items?.map((f) => (
-          <a
-            key={f.id}
-            href={`/workflow/${encodeURIComponent(f.id)}`}
-            className="rounded-2xl bg-white p-4 border border-gray-200 hover:border-gray-300 hover:shadow-md transition"
-          >
-            <div className="flex items-center justify-between">
-              <div className="font-medium">{f.name}</div>
-              <span className="text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-700">{f.status}</span>
+    <main className="max-w-6xl mx-auto px-4 py-8">
+      <h1 className="text-2xl font-semibold mb-4">Workflows</h1>
+      {!items || items.length === 0 ? (
+        <div className="rounded-2xl border p-6 text-sm text-neutral-600">
+          No workflows yet. Create one from the builder.
+        </div>
+      ) : (
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {items.map((w: Flow) => (
+            <div key={w.id} className="rounded-2xl border p-4 hover:shadow-md transition">
+              <div className="text-base font-semibold">{w.name || 'Workflow'}</div>
+              <div className="text-xs mt-1 opacity-70">{w.status || 'idle'}</div>
+              {w.runs !== undefined && (
+                <div className="text-sm mt-2 text-neutral-600">{w.runs} runs</div>
+              )}
             </div>
-            <div className="mt-2 text-sm text-gray-600">{f.runs} runs this week</div>
-          </a>
-        ))}
-      </div>
-      {items && items.length === 0 && (
-        <div className="text-center py-12 text-gray-500">
-          <p className="mb-4">No workflows yet</p>
-          <a href="/docs" className="text-blue-600 hover:underline">
-            Learn how to create your first workflow
-          </a>
+          ))}
         </div>
       )}
-    </div>
+    </main>
   );
 }

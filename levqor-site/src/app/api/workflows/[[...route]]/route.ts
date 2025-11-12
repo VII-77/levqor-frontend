@@ -3,11 +3,19 @@ import { NextResponse } from "next/server";
 import { authOptions } from "../../auth/[...nextauth]/route";
 
 export async function GET() {
-  const session = await getServerSession(authOptions as any);
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    const session = await getServerSession(authOptions as any);
+    if (!session) {
+      console.log("No session");
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-  const r = await fetch("https://api.levqor.ai/api/intelligence/recommendations", { cache: "no-store" });
-  if (!r.ok) return NextResponse.json({ error: "upstream" }, { status: 502 });
-  const data = await r.json();
-  return NextResponse.json({ items: data });
+    const upstream = await fetch("https://api.levqor.ai/api/intelligence/recommendations");
+    const text = await upstream.text();
+    console.log("Upstream status:", upstream.status, "body:", text.slice(0, 100));
+    return NextResponse.json({ status: upstream.status, body: text });
+  } catch (e: any) {
+    console.error("Workflows route error", e);
+    return NextResponse.json({ error: e?.message || "Internal error" }, { status: 500 });
+  }
 }

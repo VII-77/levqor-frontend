@@ -45,3 +45,8 @@ backups/
 .env
 .vercel
 .env*.local
+
+# backups
+levqor-backup.tar.gz
+*.sql.gz
+backups/

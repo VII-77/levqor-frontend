@@ -43,3 +43,14 @@ backups/
 *.sqlite
 *.db
 secret.*
+
+# Backup and temporary files
+*.bak
+*.bak.*
+*.backup
+*~
+.vercel-trigger
+.vercel-rebuild
+
+# Large bundles
+*.bundle

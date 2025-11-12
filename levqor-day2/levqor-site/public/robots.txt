@@ -1,7 +1,0 @@
-# Levqor - AI Job Orchestration Platform
-User-agent: *
-Allow: /
-Disallow: /api/
-
-# Sitemaps
-Sitemap: https://levqor.ai/sitemap.xml

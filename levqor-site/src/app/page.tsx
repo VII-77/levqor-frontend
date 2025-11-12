@@ -50,11 +50,11 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen px-4">
       <JsonLd data={structuredData} />
       
       {/* Hero Section */}
-      <section className="max-w-6xl mx-auto px-4 pt-16 pb-10">
+      <section className="max-w-6xl mx-auto pt-16 pb-10">
         <div className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs">
           <span className="h-2 w-2 rounded-full bg-green-500" />
           Genesis v8.0 · Self-healing automation
@@ -76,7 +76,7 @@ export default function Home() {
       </section>
 
       {/* Feature Tiles */}
-      <section className="max-w-6xl mx-auto px-4 grid sm:grid-cols-2 lg:grid-cols-4 gap-4 pb-14">
+      <section className="max-w-6xl mx-auto grid sm:grid-cols-2 lg:grid-cols-4 gap-4 pb-14">
         {[
           ["Self-healing runs", "Auto-retry with backoff"],
           ["Visual builder", "Drag-drop steps"],
@@ -91,7 +91,7 @@ export default function Home() {
       </section>
 
       {/* Trust Band */}
-      <section className="bg-gray-100 py-12">
+      <section className="bg-gray-100 py-12 -mx-4">
         <div className="max-w-6xl mx-auto px-6 text-center">
           <p className="text-sm text-gray-600 mb-6 font-medium uppercase tracking-wide">
             Trusted by teams building with AI
@@ -168,11 +168,13 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="bg-black text-white py-20">
+      <section className="bg-black text-white py-20 -mx-4">
         <div className="max-w-4xl mx-auto px-6 text-center">
-          <h2 className="text-4xl font-bold mb-6">Ready to automate your workflow?</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            Ready to automate your workflows?
+          </h2>
           <p className="text-xl text-gray-300 mb-8">
-            Join hundreds of teams shipping faster with Levqor. Start free, no credit card required.
+            Start building with Levqor today. No credit card required.
           </p>
           <Link
             href="/signin"

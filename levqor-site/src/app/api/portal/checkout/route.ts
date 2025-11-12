@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid tier' }, { status: 400 });
     }
     
-    const apiBase = process.env.NEXT_PUBLIC_API_BASE || 'https://api.levqor.ai';
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://api.levqor.ai';
     
     const response = await fetch(`${apiBase}/api/billing/checkout`, {
       method: 'POST',

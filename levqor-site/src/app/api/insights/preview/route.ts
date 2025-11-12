@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
-    const apiBase = process.env.NEXT_PUBLIC_API_BASE || 'https://api.levqor.ai';
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://api.levqor.ai';
     
     const response = await fetch(`${apiBase}/api/insights/preview`, {
       cache: 'no-store',

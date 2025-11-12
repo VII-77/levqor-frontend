@@ -13,7 +13,7 @@ The frontend is built with Next.js 14 and TypeScript, featuring a clear authenti
 
 ### Technical Implementations
 - **Backend Core**: Flask application managing API endpoints, job intake, status tracking, and health monitoring, deployed with Gunicorn.
-- **Frontend Core**: Next.js 14 application utilizing `src/app/` for App Router pages and NextAuth v5 for authentication.
+- **Frontend Core**: Next.js 14 application utilizing `src/app/` for App Router pages and NextAuth v4 for authentication.
 - **Job Management**: In-memory storage for jobs, with future plans for PostgreSQL or Redis integration.
 - **User Management**: Idempotent email-based user management with an SQLite database for local development and PostgreSQL for production.
 - **Security**:
@@ -56,7 +56,7 @@ The frontend is built with Next.js 14 and TypeScript, featuring a clear authenti
 
 ### Feature Specifications
 - **Job Orchestration**: Intake, status tracking, and simulated completion.
-- **User Authentication**: NextAuth v5 with Resend magic link.
+- **User Authentication**: NextAuth v4 with Resend magic link.
 - **API Security**: API key system, rate limiting, and input validation.
 - **Operational Visibility**: Health endpoints, Sentry, and automated summaries.
 - **Scalability**: Designed for production with Gunicorn and Autoscale, with planned database/queue enhancements.
@@ -68,7 +68,7 @@ The frontend is built with Next.js 14 and TypeScript, featuring a clear authenti
 - **requests**: HTTP requests.
 - **Next.js**: Frontend framework.
 - **TypeScript**: Frontend language.
-- **NextAuth v5**: Authentication library.
+- **NextAuth v4**: Authentication library.
 - **Resend**: Email API.
 - **PostgreSQL (Neon)**: Production database.
 - **SQLite**: Local development database.

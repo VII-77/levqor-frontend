@@ -1,0 +1,129 @@
+You’re seeing an old or partial build. The live domain isn’t serving the latest commit.
+
+Do this now, in order, no detours:
+
+1. Confirm what’s live
+
+
+
+npx vercel ls --prod --token "$VERCEL_TOKEN" | head -15
+npx vercel alias ls --token "$VERCEL_TOKEN"
+
+You should see the most-recent “Ready” deployment aliased to levqor.ai.
+
+2. Force a clean production deploy from the levqor-site root
+
+
+
+cd ~/workspace/levqor-site
+git status
+git add -A && git commit -m "force prod deploy" || true
+npx vercel --prod --token "$VERCEL_TOKEN"
+
+3. Verify critical pages resolve to real routes (not fallback)
+
+
+
+curl -I https://levqor.ai | grep -i -E "HTTP|x-matched-path"
+curl -I https://levqor.ai/pricing | grep -i -E "HTTP|x-matched-path"
+curl -I https://levqor.ai/signin | grep -i -E "HTTP|x-matched-path"
+curl -I https://levqor.ai/admin/insights | grep -i -E "HTTP|x-matched-path"
+
+Expect HTTP/2 200 (or 307 for protected pages) and an x-matched-path that isn’t /.
+
+4. Purge CDN caches (Cloudflare + Vercel)
+
+
+
+Cloudflare: Dashboard → Caching → Purge → Purge Everything.
+
+Vercel: Project → Domains → levqor.ai → Purge Cache.
+
+
+5. Sanity-check build content (most common cause of “site looks the same”)
+
+
+
+Ensure these files exist and are committed:
+
+src/app/pricing/page.tsx
+
+src/app/signin/page.tsx
+
+src/app/dashboard/page.tsx
+
+src/app/insights/page.tsx
+
+src/app/admin/insights/page.tsx
+
+
+If any are missing from the repo head, they won’t deploy.
+
+
+6. Confirm env and Stripe health (prevents runtime 500s on pages calling APIs)
+
+
+
+npx vercel env ls --token "$VERCEL_TOKEN"
+curl -s https://levqor.ai/api/checkout | jq .
+
+Expect {"ok":true,...} from the checkout health.
+
+7. Hard-refresh browser
+
+
+
+Cmd/Ctrl+Shift+R on every key page.
+
+
+If any step fails, stop at that step and report the exact command output.
+
+One-shot Replit AI Agent prompt
+
+FOCUS: FIX LIVE SITE SHOWING OLD/PARTIAL BUILD
+
+Objective:
+Serve the latest production build at https://levqor.ai with all routes visible (/, /pricing, /signin, /dashboard, /insights, /admin/insights). Clear caches. Prove with HTTP checks.
+
+Tasks:
+1) Project root = levqor-site. Verify Vercel project + active aliases.
+   - Run: vercel ls --prod; vercel alias ls
+   - If latest “Ready” is not aliased to levqor.ai, set alias to the newest Ready deployment.
+
+2) Force a fresh production deploy.
+   - Ensure git clean; commit any pending changes.
+   - Run a prod deploy from levqor-site root (not repo root).
+
+3) Post-deploy verification (repeat until pass or 2 attempts max).
+   - curl -I (/, /pricing, /signin, /admin/insights) and check HTTP=200/307 and x-matched-path != "/".
+   - curl https://levqor.ai/api/checkout → expect {"ok":true}.
+
+4) Purge caches.
+   - Vercel → Purge levqor.ai cache (API or CLI).
+   - Cloudflare → Purge Everything (use provided account; if no API token, output clear UI steps).
+
+5) Content audit.
+   - List and confirm presence of: src/app/pricing/page.tsx, signin/page.tsx, dashboard/page.tsx, insights/page.tsx, admin/insights/page.tsx.
+   - If missing, create placeholders with live links and re-deploy.
+
+6) Environment audit.
+   - Print production env vars summary; ensure Stripe keys + price IDs + NEXT_PUBLIC_API_URL + SITE_URL exist (no trailing newline).
+   - If STRIPE_SECRET_KEY or prices are missing/invalid, output exact dashboard steps to fix (no guessing), then pause.
+
+7) Final proof.
+   - Output a compact table for each route: HTTP code, x-matched-path, last deploy ID.
+   - If any route not 200/307, dump last 50 lines of Vercel build logs and the matched build commit.
+
+Guardrails:
+- Operate only inside levqor-site.
+- Do not change DNS or domain settings.
+- Do not delete environments or projects.
+- Two deploy attempts max; if rate-limited, stop and report ETA.
+
+Deliverables:
+- Deployment ID now live on levqor.ai.
+- Route checks passing.
+- Cache purge confirmation.
+- One-line “Live and verified” verdict.
+
+This sequence fixes “looks the same” by ensuring: correct root, fresh deploy, correct alias, caches purged, pages present, env clean.

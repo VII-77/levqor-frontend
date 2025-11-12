@@ -1,0 +1,127 @@
+Correct approach — keep everything 100% production-grade on zero extra cost.
+Here’s your next stage plan (Day 2 → Day 3 transition) tuned for free-tier perfection:
+
+
+---
+
+✅ 1. Lock in Cloudflare (Free-Tier Optimization)
+
+Goal: same practical security as paid WAF without cost.
+
+Do now
+
+1. Keep Full (Strict) TLS, Always Use HTTPS, and Browser Integrity Check = ON.
+
+
+2. Under Security → Bots, turn on Bot Fight Mode.
+
+
+3. Under Security → WAF → Custom Rules, add:
+
+Expression: (http.request.uri.path contains "/api/" and not ip.src in {your-office-ip})
+Action: Block
+
+This gives basic endpoint protection without WAF billing.
+
+
+4. Keep your rate-limit rule active (verified working).
+
+
+
+
+---
+
+✅ 2. Confirm Edge → Origin Path
+
+Run:
+
+curl -sI https://levqor.ai | grep -E "server|cf-ray|cache"
+
+Expected:
+server: cloudflare and cf-ray: → proves proxy active.
+If that’s correct, Cloudflare is officially protecting your stack.
+
+
+---
+
+✅ 3. Harden Vercel + Backend
+
+Frontend
+
+Keep force-dynamic + no-store headers in place.
+
+Add robots.txt → Disallow: /api/
+
+Add favicon + metadata to improve trust.
+
+
+Backend
+
+Verify /api/intelligence/status returns "version": "v8.0-burnin".
+
+Keep logging + correlation ID tracking running.
+
+
+
+---
+
+✅ 4. Secure Access Layer
+
+Since you’re staying free-tier:
+
+Finish 2FA on all six platforms (one-time setup).
+
+Rotate any old tokens (> 90 days).
+
+Store secrets only in Replit’s secret vault or GitHub Actions secrets.
+
+
+
+---
+
+✅ 5. Monitoring & Burn-In (Day 3)
+
+Tomorrow at 09:00 UTC run:
+
+./scripts/daily_burnin_check.sh
+
+Confirm:
+
+Uptime ≥ 99.98 %
+
+Error rate ≤ 0.5 %
+
+Cost ≤ $10/day Document in DAY-3-MONITORING-REPORT.md.
+
+
+
+---
+
+✅ 6. Presentation Polish (Optional but free)
+
+Add favicon + meta description for SEO.
+
+Create /humans.txt and /security.txt (professional touch).
+
+Use Cloudflare Analytics → Performance tab → verify load < 1 s.
+
+
+
+---
+
+✅ Summary Table
+
+Area	Status	Next Step
+
+Cloudflare	Active (Free)	Custom rule + Bot Fight Mode
+TLS/HTTPS	✅ Full Strict	Maintain
+Rate-limit	✅ Working	Keep
+2FA	⏳ Pending	Finish today
+Backup	✅ Verified	Next weekly backup
+Monitoring	✅ Auto	Run Day 3 script
+
+
+
+---
+
+When this list is complete, you’ll have a zero-cost hardened perimeter, clean 99.99 % uptime, and audit-ready posture — the perfect pre-revenue configuration for scaling safely.

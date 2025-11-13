@@ -1,0 +1,454 @@
+Got it. I’ll:
+
+1. Sanity-check all the prices (DFY + subscription, monthly + yearly)
+
+
+2. Then give you one final Replit AI Agent prompt that bakes all of this in and tells the agent to double-check everything.
+
+
+
+
+---
+
+1) How the prices actually hang together
+
+A. Done-For-You (DFY – one-time)
+
+We currently have:
+
+Tier	Price	Workflows	Delivery	Support	Approx £ per workflow
+
+Starter	£99	1	48 hours	7 days	£99 / workflow
+Professional	£249	3	3–4 days	30 days + monitoring	~£83 / workflow
+Enterprise	£599	7	7 days	30 days + dashboard	~£85 / workflow
+
+
+Why this makes sense:
+
+Starter is “test us cheaply”: £99 for 1 workflow.
+
+Professional gives a genuine volume discount: 3 workflows for £249 → you’re effectively charging less per workflow if they commit more money (good for them, good for you).
+
+Enterprise is the “serious buyer” tier. 7 workflows for £599 is still reasonable per workflow, but the real value here is:
+
+More moving parts to maintain
+
+Monitoring + dashboard
+
+Higher perceived value
+
+
+
+So DFY is internally consistent:
+
+No stupid underpricing like 7 workflows for less than 3.
+
+Discounts roughly scale with commitment.
+
+
+If you want pure maths:
+
+Starter: £99/workflow
+
+Professional: ~£83/workflow
+
+Enterprise: ~£85/workflow (but with stronger add-ons)
+
+
+I’m keeping these exactly as they are – they’re defensible, simple to understand, and they make you money without being ridiculous.
+
+
+---
+
+B. Subscriptions (recurring)
+
+We now have 4 subscription tiers:
+
+Tier	Monthly	Yearly	“Months charged” (yearly ÷ monthly)	Positioning
+
+Starter	£29/mo	£290/yr	10 months → 2 months free	Solo / very small teams
+Growth	£79/mo	£790/yr	10 months → 2 months free	Small teams scaling
+Pro	£149/mo	£1,490/yr	10 months → 2 months free	Serious operations, multiple flows
+Business	£299/mo	£2,990/yr	10 months → 2 months free	“We run your ops” level
+
+
+So yearly = 10 × monthly for all tiers.
+
+That gives you a clear, standard SaaS line:
+“Pay yearly and get 2 months free.”
+
+These numbers are:
+
+Not “cheap toy” pricing (so people take you seriously).
+
+Not insanely high compared to typical automation / ops tools.
+
+Laddered so that:
+
+Starter is entry,
+
+Growth is for “we’re using this seriously now”,
+
+Pro & Business are for teams that rely on Levqor as core infra.
+
+
+
+DFY vs Subscription relationship:
+
+A Pro DFY project at £249 is a one-time build.
+
+A Growth or Pro subscription at £79/£149 per month is an ongoing relationship:
+
+Monitoring
+
+Iterations
+
+Additional workflows over time
+
+
+
+That balance works:
+
+You’re not giving away DFY for pennies.
+
+Monthly tiers are high enough to matter, but not insane for businesses.
+
+
+I’m keeping these exact prices and standardizing messaging to:
+
+DFY = one-time build
+
+Subscription = ongoing platform + support with 2 months free yearly.
+
+
+
+---
+
+2) Final Replit AI Agent Prompt (covers EVERYTHING, including price checks)
+
+Copy–paste this as-is into Replit AI Agent:
+
+You are Levqor’s Lead Engineer + Product Ops. Your mission: **verify and finalize Levqor’s dual pricing system (DFY + Subscription)** so the app is truly “ready to take money” with the correct prices, correct text, and correct Stripe mappings – without breaking anything.
+
+You have full access to this Replit workspace. Follow ALL steps carefully, and DO NOT skip verification.
+
+====================================
+PHASE 0 – PROJECT + GOAL
+====================================
+
+Goal:
+- Levqor must have:
+  - A working **dual pricing model**:
+    - DFY (one-time, Stripe `mode: "payment"`)
+    - Subscription (monthly/yearly, Stripe `mode: "subscription"`)
+  - Prices in code and on UI matching EXACTLY what we want.
+  - Stripe env var mappings clean and correct.
+  - `/pricing`, `/success`, `/cancel`, `/api/checkout` all working and consistent.
+
+Target prices (these are FINAL, do NOT change them):
+
+1) DFY (DONE-FOR-YOU, ONE-TIME)
+- Starter:      £99       – 1 workflow, 48-hour delivery, 7 days support
+- Professional: £249      – 3 workflows, 3–4 days delivery, 30 days support + monitoring
+- Enterprise:   £599      – 7 workflows, 7 days delivery, 30 days support + dashboard
+
+2) SUBSCRIPTIONS (RECURRING)
+- Starter:   £29/mo   or £290/yr  (2 months free)
+- Growth:    £79/mo   or £790/yr  (2 months free)
+- Pro:       £149/mo  or £1,490/yr (2 months free)
+- Business:  £299/mo  or £2,990/yr (2 months free)
+
+If you find ANYTHING different in the code or UI, FIX IT to match the above table.
+
+====================================
+PHASE 1 – DISCOVER PRICING + CHECKOUT CODE
+====================================
+
+1. Go to the frontend project:
+   - `cd ~/workspace/levqor-site`
+
+2. Open and INSPECT these files:
+   - `src/config/pricing.ts`
+   - `src/app/pricing/page.tsx`
+   - `src/app/api/checkout/route.ts`
+   - `src/app/success/page.tsx`
+   - `src/app/cancel/page.tsx`
+   - `src/app/signin/page.tsx`
+
+3. For each of these, answer for yourself (and later in a comment at the bottom of pricing.ts):
+
+   - Do DFY prices in code match:
+     - Starter £99
+     - Professional £249
+     - Enterprise £599
+
+   - Do subscription prices in code match:
+     - Starter £29 & £290
+     - Growth £79 & £790
+     - Pro £149 & £1,490
+     - Business £299 & £2,990
+
+   - Are the following **plan keys** used consistently everywhere:
+     - DFY plans: `"starter" | "professional" | "enterprise"`
+     - Subscription plans: `"starter" | "growth" | "pro" | "business"`
+
+   - Does `/api/checkout`:
+     - Accept `mode: "dfy" | "subscription"`?
+     - Use `mode: "payment"` for DFY and `mode: "subscription"` for subs?
+     - Map each plan to the correct env var?
+
+4. If any mismatches exist (prices, plan names, mode, or env var keys):
+   - FIX the code.
+   - Keep logic simple and explicit.
+   - DO NOT introduce new plan names or weird mapping.
+
+====================================
+PHASE 2 – ENV VAR MAPPING + SANITY
+====================================
+
+1. In the backend or config, locate env var usage for Stripe price IDs.
+   - You SHOULD see something like:
+     - Subscription:
+       - `STRIPE_PRICE_STARTER`
+       - `STRIPE_PRICE_STARTER_YEAR`
+       - `STRIPE_PRICE_GROWTH`
+       - `STRIPE_PRICE_GROWTH_YEAR`
+       - `STRIPE_PRICE_PRO`
+       - `STRIPE_PRICE_PRO_YEAR`
+       - `STRIPE_PRICE_BUSINESS`
+       - `STRIPE_PRICE_BUSINESS_YEAR`
+     - DFY:
+       - `STRIPE_PRICE_DFY_STARTER`
+       - `STRIPE_PRICE_DFY_PROFESSIONAL`
+       - `STRIPE_PRICE_DFY_ENTERPRISE`
+
+2. In `src/config/pricing.ts`:
+   - Make sure each plan has an explicit mapping to ONE env var for each billing model:
+     - DFY plan → ONE DFY env var.
+     - Subscription plan & term → ONE subscription env var.
+
+3. At the **BOTTOM** of `src/config/pricing.ts`, add a clear comment block that prints a console-friendly summary, for example:
+
+   ```ts
+   // DEBUG PRICING SUMMARY (keep this comment up to date):
+   // DFY:
+   //  - Starter:      £99       (env: STRIPE_PRICE_DFY_STARTER)
+   //  - Professional: £249      (env: STRIPE_PRICE_DFY_PROFESSIONAL)
+   //  - Enterprise:   £599      (env: STRIPE_PRICE_DFY_ENTERPRISE)
+   //
+   // Subscription (monthly / yearly, 2 months free):
+   //  - Starter:   £29/mo   | £290/yr  (env: STRIPE_PRICE_STARTER / STRIPE_PRICE_STARTER_YEAR)
+   //  - Growth:    £79/mo   | £790/yr  (env: STRIPE_PRICE_GROWTH / STRIPE_PRICE_GROWTH_YEAR)
+   //  - Pro:       £149/mo  | £1,490/yr (env: STRIPE_PRICE_PRO / STRIPE_PRICE_PRO_YEAR)
+   //  - Business:  £299/mo  | £2,990/yr (env: STRIPE_PRICE_BUSINESS / STRIPE_PRICE_BUSINESS_YEAR)
+
+4. DO NOT hard-code actual Stripe IDs; just ensure the code EXPECTS the env vars with those names.
+
+
+
+==================================== PHASE 3 – PRICING PAGE UI CONSISTENCY
+
+Your job now is to make sure the /pricing page:
+
+1. Displays EXACTLY these numbers in the UI:
+
+DFY section:
+
+£99
+
+£249
+
+£599
+
+
+Subscription section:
+
+Monthly: £29 / £79 / £149 / £299
+
+Yearly:  £290 / £790 / £1,490 / £2,990
+
+Clearly show “2 months free” or equivalent text for yearly.
+
+
+
+
+2. Shows sensible feature/perk differences that match the price:
+
+DFY higher tiers should clearly show:
+
+More workflows
+
+Faster or reasonable delivery windows
+
+Longer support / monitoring
+
+
+Subscription higher tiers should show:
+
+More workflows
+
+Better response times
+
+More support / optimization / “managed” feel
+
+
+
+
+3. All “Get started” / “Buy” buttons on /pricing:
+
+Call the checkout function, NOT just link to /signin.
+
+For DFY buttons → call checkout with { mode: "dfy", plan: "<plan>" }.
+
+For subscription buttons → call checkout with { mode: "subscription", plan: "<plan>", term: "<monthly|yearly>" }.
+
+
+
+4. Add or keep a clear copy line somewhere like:
+
+For DFY section: “One-time build – fixed price, no subscription.”
+
+For subscription section: “Ongoing platform + support – billed monthly or yearly (2 months free on yearly).”
+
+
+
+
+==================================== PHASE 4 – CHECKOUT API BEHAVIOUR
+
+In src/app/api/checkout/route.ts:
+
+1. Verify:
+
+It reads the request JSON with mode, plan, and optional term.
+
+It branches correctly:
+
+if mode === "dfy" → use Stripe Checkout with mode: "payment".
+
+if mode === "subscription" → use Stripe Checkout with mode: "subscription".
+
+
+
+
+2. Verify for every plan name:
+
+"starter", "professional", "enterprise" → DFY env vars.
+
+"starter", "growth", "pro", "business" → Subscription env vars.
+
+
+
+3. Make sure error messages are:
+
+Clear for missing env vars (e.g. “DFY Starter price not configured – contact support.”)
+
+Not leaking secrets.
+
+
+
+4. Add a simple safe GET handler (if not already present) that:
+
+Returns JSON like:
+
+Which modes are available.
+
+Which env vars appear missing.
+
+
+Does NOT reveal values, only which are set vs missing.
+
+
+
+
+==================================== PHASE 5 – SUCCESS + CANCEL PAGES
+
+1. src/app/success/page.tsx:
+
+Ensure it handles both flows:
+
+DFY: shows copy like “We’ll start building your workflows; expect delivery within X days”.
+
+Subscription: shows copy like “Your subscription is active; you’ll get access + onboarding”.
+
+
+If there’s a type query param (dfy vs subscription), honour it.
+
+CTA buttons:
+
+“Back to homepage”
+
+“Sign in to your dashboard”
+
+
+
+
+2. src/app/cancel/page.tsx:
+
+Confirm message says clearly: payment not processed, you have NOT been charged.
+
+Provide links:
+
+Back to pricing
+
+Contact support
+
+
+
+
+
+==================================== PHASE 6 – LOCAL VERIFICATION
+
+1. Run a production-style build:
+
+cd ~/workspace/levqor-site
+
+npm run build
+
+If build fails, FIX the errors. Do not ignore them.
+
+
+
+2. Start dev server (if needed) or rely on the existing workflow.
+
+
+3. VERIFY, using actual HTTP requests (not assumptions):
+
+curl -sI http://localhost:5000/pricing | head -5
+
+Expect 200 OK.
+
+
+curl -s http://localhost:5000/pricing | grep -E "£99|£249|£599|£29|£79|£149|£299" | head -20
+
+Confirm all prices appear in the HTML.
+
+
+Optionally test POST body shape (no real Stripe call if keys missing – just ensure the route behaves correctly and returns structured JSON).
+
+
+
+4. DO NOT touch live secrets. Only confirm the code is correct and ready.
+
+
+
+==================================== PHASE 7 – FINAL DEV NOTE FOR THE USER
+
+At the end, in a new comment in src/config/pricing.ts, add a short note like:
+
+// DEV NOTE (Replit Agent):
+// - Pricing verified on <DATE>.
+// - DFY: 99 / 249 / 599 one-time aligned with 1 / 3 / 7 workflows.
+// - Subscription: 29 / 79 / 149 / 299 monthly with 2 months free yearly.
+// - All plan keys and env var names consistent across pricing.ts, /pricing, and /api/checkout.
+// - Ready for Stripe IDs to be configured in Vercel/Replit env vars.
+
+Make NO other “creative” changes beyond what’s needed to:
+
+Match the exact price table above
+
+Keep plan names consistent
+
+Ensure checkout and pages work.
+
+
+That prompt tells the agent to **audit all prices, all mappings, and all routes at the same time**, and to keep everything aligned with the exact DFY + subscription numbers we agreed.

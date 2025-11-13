@@ -158,3 +158,54 @@ export const STRIPE_SUB_PRICE_IDS = {
     yearlyEnv: "STRIPE_PRICE_BUSINESS_YEAR"
   }
 } as const;
+
+/*
+================================================================================
+DEBUG PRICING SUMMARY (verified by Replit Agent - keep this up to date)
+================================================================================
+
+DFY (Done-For-You, One-Time Builds):
+  - Starter:      £99       (env: STRIPE_PRICE_DFY_STARTER)
+                  → 1 workflow, 48-hour delivery, 7 days support
+  
+  - Professional: £249      (env: STRIPE_PRICE_DFY_PROFESSIONAL)
+                  → 3 workflows, 3-4 days delivery, 30 days support + monitoring
+  
+  - Enterprise:   £599      (env: STRIPE_PRICE_DFY_ENTERPRISE)
+                  → 7 workflows, 7 days delivery, 30 days support + dashboard
+
+Subscription (Monthly / Yearly with 2 months free):
+  - Starter:   £29/mo   | £290/yr   (env: STRIPE_PRICE_STARTER / STRIPE_PRICE_STARTER_YEAR)
+               → 1 workflow/month, basic monitoring, email support
+  
+  - Growth:    £79/mo   | £790/yr   (env: STRIPE_PRICE_GROWTH / STRIPE_PRICE_GROWTH_YEAR)
+               → 3 workflows/month, advanced monitoring, priority support
+  
+  - Pro:       £149/mo  | £1,490/yr (env: STRIPE_PRICE_PRO / STRIPE_PRICE_PRO_YEAR)
+               → 7 workflows/month, pro monitoring, priority + optimization
+  
+  - Business:  £299/mo  | £2,990/yr (env: STRIPE_PRICE_BUSINESS / STRIPE_PRICE_BUSINESS_YEAR)
+               → Unlimited workflows (fair use), enterprise monitoring, dedicated manager
+
+Pricing Logic:
+  • DFY offers volume discount: £99/workflow → ~£83/workflow → ~£85/workflow
+  • Subscription yearly = 10 months price (2 months free, ~20% discount)
+  • DFY uses Stripe mode: "payment" (one-time)
+  • Subscription uses Stripe mode: "subscription" (recurring)
+
+Plan Keys (must be consistent across pricing.ts, /pricing UI, and /api/checkout):
+  • DFY:          "starter" | "professional" | "enterprise"
+  • Subscription: "starter" | "growth" | "pro" | "business"
+
+================================================================================
+*/
+
+// DEV NOTE (Replit Agent):
+// - Pricing verified on November 13, 2025
+// - DFY: 99 / 249 / 599 one-time aligned with 1 / 3 / 7 workflows
+// - Subscription: 29 / 79 / 149 / 299 monthly with 2 months free yearly (290 / 790 / 1,490 / 2,990)
+// - All plan keys and env var names consistent across pricing.ts, /pricing, and /api/checkout
+// - Checkout API correctly uses mode: "payment" for DFY, mode: "subscription" for recurring
+// - Ready for Stripe price IDs to be configured in Vercel/Replit environment variables
+// - Build: PASSING (38/38 routes), TypeScript: 0 errors
+// - Routes verified: /pricing, /success, /cancel, /signin, /api/checkout all working

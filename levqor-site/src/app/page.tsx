@@ -33,7 +33,7 @@ export default function Home() {
     applicationCategory: 'BusinessApplication',
     operatingSystem: 'Web',
     url: 'https://levqor.ai',
-    description: 'AI-powered automations built for your business in 48 hours. Fixed pricing. Money-back guarantee.',
+    description: 'Genesis v8.0 - Self-healing automation that fixes itself. Built for operators, founders, and teams who can\'t afford downtime.',
     offers: {
       '@type': 'AggregateOffer',
       lowPrice: '99',
@@ -51,14 +51,14 @@ export default function Home() {
     <>
       <JsonLd data={structuredData} />
       
-      {/* Navigation Header */}
-      <header className="sticky top-0 z-50 bg-slate-950/80 backdrop-blur-md border-b border-slate-800">
+      {/* Header Navigation */}
+      <header className="sticky top-0 z-50 bg-slate-950/80 backdrop-blur-md border-b border-slate-800/60">
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-8">
             <Logo />
             <div className="hidden md:flex gap-6">
-              <Link href="#pricing" className="text-sm text-slate-300 hover:text-white transition">Pricing</Link>
-              <Link href="#how-it-works" className="text-sm text-slate-300 hover:text-white transition">How it Works</Link>
+              <Link href="/" className="text-sm text-slate-300 hover:text-white transition">Home</Link>
+              <Link href="/pricing" className="text-sm text-slate-300 hover:text-white transition">Pricing</Link>
               <Link href="/docs" className="text-sm text-slate-300 hover:text-white transition">Docs</Link>
             </div>
           </div>
@@ -66,8 +66,8 @@ export default function Home() {
             <Link href="/signin" className="hidden sm:block text-sm text-slate-300 hover:text-white transition">
               Sign in
             </Link>
-            <Link href="/signin" className="px-5 py-2.5 bg-white text-black rounded-xl font-semibold hover:bg-slate-100 transition">
-              Start Free Audit
+            <Link href="/pricing" className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-900 rounded-lg font-semibold transition">
+              Start free trial
             </Link>
           </div>
         </nav>
@@ -76,375 +76,223 @@ export default function Home() {
       <main className="min-h-screen bg-slate-950">
         {/* Hero Section */}
         <section className="max-w-6xl mx-auto px-4 pt-20 pb-16">
-          <div className="max-w-4xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-400 font-medium mb-6">
+          <div className="max-w-4xl mx-auto text-center">
+            {/* Genesis v8.0 Badge */}
+            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-200 mb-6">
               <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+              Genesis v8.0
+            </div>
+            
+            {/* Main Headline */}
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight mb-6 text-slate-50">
+              Automate work. Ship faster.
+            </h1>
+            
+            {/* Subheadline */}
+            <p className="text-lg sm:text-xl text-slate-300 mb-10 max-w-2xl mx-auto leading-relaxed">
+              Levqor runs your workflows, detects failures, and self-heals in minutes so you don't have to babysit your ops.
+            </p>
+            
+            {/* Hero CTAs */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+              <Link 
+                href="/pricing" 
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-slate-900 rounded-lg font-semibold transition-all shadow-lg hover:shadow-xl text-lg"
+              >
+                Start free trial
+              </Link>
+              <button 
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 border border-slate-700 text-slate-100 hover:border-emerald-400/60 hover:bg-slate-900/60 rounded-lg font-semibold transition-all text-lg"
+              >
+                View demo
+              </button>
+            </div>
+
+            <div className="inline-flex items-center gap-2">
               <StatusPill />
             </div>
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight mb-6 text-white">
-              Automate Work. <span className="text-slate-400">Save Time.</span> Grow Faster.
-            </h1>
-            <p className="text-xl text-slate-300 mb-8 max-w-2xl">
-              Get AI-powered automations built for your business in 48 hours. 
-              Fixed pricing. No developers. No complexity.
+          </div>
+        </section>
+
+        {/* Genesis Feature Tiles - 4 Tiles */}
+        <section className="max-w-6xl mx-auto px-4 py-12">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {/* Tile 1: Self-healing */}
+            <div className="rounded-2xl bg-gradient-to-br from-emerald-500/20 to-blue-500/20 border border-emerald-500/30 p-6 hover:from-emerald-500/40 hover:to-blue-500/40 transition-all duration-300">
+              <div className="text-4xl mb-4">🔁</div>
+              <h3 className="text-lg font-bold text-white mb-2">Self-healing workflows</h3>
+              <p className="text-sm text-slate-300 leading-relaxed">
+                Detects failures automatically and retries, rolls back, or routes to backups.
+              </p>
+            </div>
+
+            {/* Tile 2: Visual Builder */}
+            <div className="rounded-2xl bg-gradient-to-br from-violet-500/20 to-purple-500/20 border border-violet-500/30 p-6 hover:from-violet-500/40 hover:to-purple-500/40 transition-all duration-300">
+              <div className="text-4xl mb-4">🎨</div>
+              <h3 className="text-lg font-bold text-white mb-2">Visual builder</h3>
+              <p className="text-sm text-slate-300 leading-relaxed">
+                Design automations with a clean, visual canvas instead of 50 browser tabs.
+              </p>
+            </div>
+
+            {/* Tile 3: Intelligence Engine */}
+            <div className="rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 border border-amber-500/30 p-6 hover:from-amber-500/40 hover:to-orange-500/40 transition-all duration-300">
+              <div className="text-4xl mb-4">🧠</div>
+              <h3 className="text-lg font-bold text-white mb-2">Intelligence engine</h3>
+              <p className="text-sm text-slate-300 leading-relaxed">
+                Understands context, picks the safest path, and recommends improvements.
+              </p>
+            </div>
+
+            {/* Tile 4: Connect Everything */}
+            <div className="rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 p-6 hover:from-cyan-500/40 hover:to-blue-500/40 transition-all duration-300">
+              <div className="text-4xl mb-4">🔗</div>
+              <h3 className="text-lg font-bold text-white mb-2">Connect everything</h3>
+              <p className="text-sm text-slate-300 leading-relaxed">
+                Email, Sheets, Drive, CRM, Stripe, webhooks, and your own APIs.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Trust / Social Proof Section */}
+        <section className="max-w-6xl mx-auto px-4 py-16 text-center">
+          <p className="text-lg text-slate-400 mb-8">
+            Built for operators, founders, and teams who can't afford downtime.
+          </p>
+          <div className="flex flex-wrap justify-center gap-8 text-slate-600 text-sm font-medium">
+            <span>Trusted by innovative teams</span>
+          </div>
+        </section>
+
+        {/* Pricing Preview Section */}
+        <section id="pricing" className="max-w-6xl mx-auto px-4 py-20">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-white">Done-for-you pricing</h2>
+            <p className="text-lg text-slate-400 max-w-2xl mx-auto">
+              We build it. You use it. Fixed pricing. 48-hour delivery.
             </p>
-            
-            {/* Primary CTAs */}
-            <div className="flex flex-wrap gap-4 mb-8">
-              <Link 
-                href="/signin" 
-                className="inline-flex items-center gap-2 px-8 py-4 bg-white text-black rounded-xl font-bold hover:bg-slate-100 transition-all shadow-lg hover:shadow-xl text-lg"
-              >
-                Start Free Audit
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            {/* Starter Tier */}
+            <div className="rounded-2xl bg-slate-900/50 border border-slate-800 p-8 hover:border-emerald-400/50 transition-all">
+              <div className="mb-6">
+                <h3 className="text-xl font-bold text-white mb-2">Starter</h3>
+                <div className="flex items-baseline gap-1 mb-4">
+                  <span className="text-4xl font-bold text-white">£99</span>
+                </div>
+                <p className="text-sm text-slate-400">Perfect for your first automation.</p>
+              </div>
+              <ul className="space-y-3 mb-8 text-sm text-slate-300">
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-400 mt-0.5">✓</span>
+                  <span>1 workflow</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-400 mt-0.5">✓</span>
+                  <span>Up to 3 tools (e.g. Email + Sheets + CRM)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-400 mt-0.5">✓</span>
+                  <span>Basic monitoring</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-400 mt-0.5">✓</span>
+                  <span>Email support for 7 days</span>
+                </li>
+              </ul>
+              <Link href="/pricing" className="block w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-semibold text-center transition">
+                Get started
               </Link>
-              <Link 
-                href="#pricing" 
-                className="inline-flex items-center gap-2 px-8 py-4 border-2 border-slate-700 text-white rounded-xl font-semibold hover:bg-slate-900 transition-all text-lg"
-              >
-                See Pricing
+            </div>
+
+            {/* Professional Tier - Featured */}
+            <div className="rounded-2xl bg-slate-900/50 border-2 border-emerald-500/50 p-8 relative">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                <span className="bg-emerald-500 text-slate-900 px-4 py-1 rounded-full text-xs font-bold">POPULAR</span>
+              </div>
+              <div className="mb-6">
+                <h3 className="text-xl font-bold text-white mb-2">Professional</h3>
+                <div className="flex items-baseline gap-1 mb-4">
+                  <span className="text-4xl font-bold text-white">£249</span>
+                </div>
+                <p className="text-sm text-slate-400">For founders and teams who want reliability.</p>
+              </div>
+              <ul className="space-y-3 mb-8 text-sm text-slate-300">
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-400 mt-0.5">✓</span>
+                  <span>Up to 3 workflows</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-400 mt-0.5">✓</span>
+                  <span>Up to 6 tools</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-400 mt-0.5">✓</span>
+                  <span>Self-healing on critical steps</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-400 mt-0.5">✓</span>
+                  <span>Priority support for 30 days</span>
+                </li>
+              </ul>
+              <Link href="/pricing" className="block w-full py-3 px-4 bg-emerald-500 hover:bg-emerald-400 text-slate-900 rounded-lg font-semibold text-center transition">
+                Get started
               </Link>
             </div>
 
-            <p className="text-sm text-slate-400">
-              No commitments. No pressure. Money-back guarantee.
-            </p>
-          </div>
-        </section>
-
-        {/* Value Props */}
-        <section className="max-w-6xl mx-auto px-4 pb-16">
-          <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-8">
-            <h2 className="text-2xl font-bold text-center mb-8 text-white">Why businesses choose Levqor</h2>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div className="flex items-start gap-3">
-                <div className="text-2xl">⚡</div>
-                <div>
-                  <h3 className="font-bold text-white mb-1">48-hour delivery</h3>
-                  <p className="text-sm text-slate-300">Built and deployed in 2 days, not 2 weeks</p>
+            {/* Enterprise Tier */}
+            <div className="rounded-2xl bg-slate-900/50 border border-slate-800 p-8 hover:border-emerald-400/50 transition-all">
+              <div className="mb-6">
+                <h3 className="text-xl font-bold text-white mb-2">Enterprise</h3>
+                <div className="flex items-baseline gap-1 mb-4">
+                  <span className="text-4xl font-bold text-white">£599</span>
                 </div>
+                <p className="text-sm text-slate-400">When automation is mission-critical.</p>
               </div>
-              <div className="flex items-start gap-3">
-                <div className="text-2xl">💷</div>
-                <div>
-                  <h3 className="font-bold text-white mb-1">Fixed pricing</h3>
-                  <p className="text-sm text-slate-300">£99, £249, or £599. No hidden costs</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="text-2xl">✅</div>
-                <div>
-                  <h3 className="font-bold text-white mb-1">Money-back guarantee</h3>
-                  <p className="text-sm text-slate-300">Not happy? Full refund, no questions</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="text-2xl">📊</div>
-                <div>
-                  <h3 className="font-bold text-white mb-1">Real-time monitoring</h3>
-                  <p className="text-sm text-slate-300">Track every automation with live dashboards</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="text-2xl">🎓</div>
-                <div>
-                  <h3 className="font-bold text-white mb-1">Zero learning curve</h3>
-                  <p className="text-sm text-slate-300">We build it. You use it. That's it</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="text-2xl">🔧</div>
-                <div>
-                  <h3 className="font-bold text-white mb-1">Built-for-you</h3>
-                  <p className="text-sm text-slate-300">Not DIY templates. Real custom automation</p>
-                </div>
-              </div>
+              <ul className="space-y-3 mb-8 text-sm text-slate-300">
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-400 mt-0.5">✓</span>
+                  <span>Up to 7 workflows</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-400 mt-0.5">✓</span>
+                  <span>Advanced routing and fallbacks</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-400 mt-0.5">✓</span>
+                  <span>Monitoring dashboard</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-400 mt-0.5">✓</span>
+                  <span>30 days of hands-on support</span>
+                </li>
+              </ul>
+              <Link href="/pricing" className="block w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-semibold text-center transition">
+                Get started
+              </Link>
             </div>
           </div>
         </section>
 
-        {/* Pricing Tiles */}
-        <section id="pricing" className="max-w-6xl mx-auto px-4 pb-16">
-          <h2 className="text-4xl font-bold text-center mb-4 text-white">Simple, transparent pricing</h2>
-          <p className="text-center text-slate-400 mb-12 max-w-2xl mx-auto">
-            Choose the package that fits your needs. All include money-back guarantee.
-          </p>
-          
-          <div className="grid md:grid-cols-3 gap-6">
-            {/* £99 Package */}
-            <div className="bg-slate-900/50 border-2 border-blue-500/30 rounded-2xl p-8 hover:bg-slate-900 hover:border-blue-500/50 transition-all group relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              <div className="relative">
-                <div className="text-blue-400 font-bold text-sm mb-2">STARTER</div>
-                <div className="text-5xl font-bold text-white mb-2">£99</div>
-                <div className="text-slate-400 text-sm mb-6">48-Hour Automation</div>
-                <ul className="space-y-3 mb-8">
-                  <li className="flex items-start gap-2 text-slate-300">
-                    <span className="text-blue-400 mt-0.5">✓</span>
-                    <span>For one repetitive task</span>
-                  </li>
-                  <li className="flex items-start gap-2 text-slate-300">
-                    <span className="text-blue-400 mt-0.5">✓</span>
-                    <span>Delivered in 48 hours</span>
-                  </li>
-                  <li className="flex items-start gap-2 text-slate-300">
-                    <span className="text-blue-400 mt-0.5">✓</span>
-                    <span>Money-back guarantee</span>
-                  </li>
-                  <li className="flex items-start gap-2 text-slate-300">
-                    <span className="text-blue-400 mt-0.5">✓</span>
-                    <span>7 days support included</span>
-                  </li>
-                </ul>
-                <Link href="/signin" className="block w-full py-3 bg-blue-500 text-white text-center rounded-xl font-semibold hover:bg-blue-600 transition">
-                  Get Started
-                </Link>
-              </div>
-            </div>
-
-            {/* £249 Package */}
-            <div className="bg-slate-900/50 border-2 border-violet-500/50 rounded-2xl p-8 hover:bg-slate-900 hover:border-violet-500/70 transition-all group relative overflow-hidden scale-105 shadow-2xl shadow-violet-500/20">
-              <div className="absolute top-4 right-4 bg-violet-500 text-white text-xs font-bold px-3 py-1 rounded-full">POPULAR</div>
-              <div className="absolute inset-0 bg-gradient-to-br from-violet-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              <div className="relative">
-                <div className="text-violet-400 font-bold text-sm mb-2">PROFESSIONAL</div>
-                <div className="text-5xl font-bold text-white mb-2">£249</div>
-                <div className="text-slate-400 text-sm mb-6">Workflow Buildout</div>
-                <ul className="space-y-3 mb-8">
-                  <li className="flex items-start gap-2 text-slate-300">
-                    <span className="text-violet-400 mt-0.5">✓</span>
-                    <span>Automate multiple steps</span>
-                  </li>
-                  <li className="flex items-start gap-2 text-slate-300">
-                    <span className="text-violet-400 mt-0.5">✓</span>
-                    <span>Emails, CRM, WhatsApp</span>
-                  </li>
-                  <li className="flex items-start gap-2 text-slate-300">
-                    <span className="text-violet-400 mt-0.5">✓</span>
-                    <span>2–4 day delivery</span>
-                  </li>
-                  <li className="flex items-start gap-2 text-slate-300">
-                    <span className="text-violet-400 mt-0.5">✓</span>
-                    <span>14 days support included</span>
-                  </li>
-                </ul>
-                <Link href="/signin" className="block w-full py-3 bg-violet-500 text-white text-center rounded-xl font-semibold hover:bg-violet-600 transition">
-                  Get Started
-                </Link>
-              </div>
-            </div>
-
-            {/* £599 Package */}
-            <div className="bg-slate-900/50 border-2 border-emerald-500/30 rounded-2xl p-8 hover:bg-slate-900 hover:border-emerald-500/50 transition-all group relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              <div className="relative">
-                <div className="text-emerald-400 font-bold text-sm mb-2">ENTERPRISE</div>
-                <div className="text-5xl font-bold text-white mb-2">£599</div>
-                <div className="text-slate-400 text-sm mb-6">AI Automation System</div>
-                <ul className="space-y-3 mb-8">
-                  <li className="flex items-start gap-2 text-slate-300">
-                    <span className="text-emerald-400 mt-0.5">✓</span>
-                    <span>End-to-end automation</span>
-                  </li>
-                  <li className="flex items-start gap-2 text-slate-300">
-                    <span className="text-emerald-400 mt-0.5">✓</span>
-                    <span>Decision-based workflows</span>
-                  </li>
-                  <li className="flex items-start gap-2 text-slate-300">
-                    <span className="text-emerald-400 mt-0.5">✓</span>
-                    <span>Monitoring + self-healing</span>
-                  </li>
-                  <li className="flex items-start gap-2 text-slate-300">
-                    <span className="text-emerald-400 mt-0.5">✓</span>
-                    <span>7-day delivery + 30 days support</span>
-                  </li>
-                </ul>
-                <Link href="/signin" className="block w-full py-3 bg-emerald-500 text-white text-center rounded-xl font-semibold hover:bg-emerald-600 transition">
-                  Get Started
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Social Proof */}
-        <section className="bg-slate-900/50 border-y border-slate-800 py-12">
-          <div className="max-w-6xl mx-auto px-6 text-center">
-            <p className="text-2xl font-bold text-white mb-2">
-              Trusted by local businesses, freelancers, and agencies
-            </p>
-            <p className="text-slate-400 mb-8">
-              Real ROI. Real time saved.
-            </p>
-            <div className="flex flex-wrap justify-center gap-6 opacity-60">
-              {["TechCorp", "DataFlow", "AutoScale", "CloudSync", "DevOps Pro", "StartupLab"].map((logo) => (
-                <div key={logo} className="bg-slate-800/50 px-6 py-3 rounded-lg border border-slate-700 font-bold text-slate-300">
-                  {logo}
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Use Cases */}
-        <section className="max-w-6xl mx-auto px-4 py-20">
-          <h2 className="text-4xl font-bold text-center mb-4 text-white">What can you automate?</h2>
-          <p className="text-center text-slate-400 mb-12 max-w-2xl mx-auto">
-            From simple tasks to complex workflows, we've got you covered
-          </p>
-          
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-slate-900/50 border border-slate-800 p-6 rounded-2xl hover:bg-slate-900 hover:border-blue-500/30 transition-all">
-              <div className="text-3xl mb-3">📧</div>
-              <h3 className="text-xl font-bold mb-3 text-white">Email & Lead Follow-up</h3>
-              <p className="text-slate-300 text-sm mb-4">Automatically respond to leads, send follow-ups, and update your CRM. Never miss a hot lead again.</p>
-              <div className="text-xs text-slate-500">E-commerce • Agencies • Coaches</div>
-            </div>
-            
-            <div className="bg-slate-900/50 border border-slate-800 p-6 rounded-2xl hover:bg-slate-900 hover:border-violet-500/30 transition-all">
-              <div className="text-3xl mb-3">💬</div>
-              <h3 className="text-xl font-bold mb-3 text-white">WhatsApp & Customer Service</h3>
-              <p className="text-slate-300 text-sm mb-4">Auto-reply to common questions, send order updates, handle bookings. 24/7 customer service.</p>
-              <div className="text-xs text-slate-500">Salons • Restaurants • Trades</div>
-            </div>
-            
-            <div className="bg-slate-900/50 border border-slate-800 p-6 rounded-2xl hover:bg-slate-900 hover:border-emerald-500/30 transition-all">
-              <div className="text-3xl mb-3">📊</div>
-              <h3 className="text-xl font-bold mb-3 text-white">Invoicing & Admin</h3>
-              <p className="text-slate-300 text-sm mb-4">Generate invoices, send payment reminders, update spreadsheets. Free up 6+ hours per week.</p>
-              <div className="text-xs text-slate-500">Freelancers • Local Businesses</div>
-            </div>
-            
-            <div className="bg-slate-900/50 border border-slate-800 p-6 rounded-2xl hover:bg-slate-900 hover:border-amber-500/30 transition-all">
-              <div className="text-3xl mb-3">🗓️</div>
-              <h3 className="text-xl font-bold mb-3 text-white">Scheduling & Bookings</h3>
-              <p className="text-slate-300 text-sm mb-4">Sync calendars, send reminders, handle cancellations. Automated end-to-end.</p>
-              <div className="text-xs text-slate-500">Estate Agents • Healthcare • Services</div>
-            </div>
-          </div>
-        </section>
-
-        {/* How It Works */}
-        <section id="how-it-works" className="max-w-6xl mx-auto px-4 py-20">
-          <h2 className="text-4xl font-bold text-center mb-4 text-white">How it works</h2>
-          <p className="text-center text-slate-400 mb-16 max-w-2xl mx-auto">
-            From free audit to live automation in just 48 hours
-          </p>
-          
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="relative">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="flex items-center justify-center w-12 h-12 bg-blue-500/20 border-2 border-blue-500 rounded-full text-blue-400 font-bold text-xl">
-                  1
-                </div>
-                <h3 className="text-xl font-bold text-white">Free Audit</h3>
-              </div>
-              <p className="text-slate-300 text-sm leading-relaxed">
-                Tell us about your repetitive tasks. We'll identify 2-3 automations that will save you the most time. No commitment required.
-              </p>
-            </div>
-            
-            <div className="relative">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="flex items-center justify-center w-12 h-12 bg-violet-500/20 border-2 border-violet-500 rounded-full text-violet-400 font-bold text-xl">
-                  2
-                </div>
-                <h3 className="text-xl font-bold text-white">We Build It</h3>
-              </div>
-              <p className="text-slate-300 text-sm leading-relaxed">
-                Choose your package (£99, £249, or £599). We build your custom automation and deliver it in 48 hours. Fully tested and ready to use.
-              </p>
-            </div>
-            
-            <div className="relative">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="flex items-center justify-center w-12 h-12 bg-emerald-500/20 border-2 border-emerald-500 rounded-full text-emerald-400 font-bold text-xl">
-                  3
-                </div>
-                <h3 className="text-xl font-bold text-white">You Save Time</h3>
-              </div>
-              <p className="text-slate-300 text-sm leading-relaxed">
-                Your automation runs 24/7. We monitor it, fix issues automatically, and help you expand to more workflows as you grow.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Testimonials */}
-        <section className="bg-slate-900/50 border-y border-slate-800 py-16">
-          <div className="max-w-6xl mx-auto px-4">
-            <h2 className="text-3xl font-bold text-center mb-12 text-white">What clients say</h2>
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="bg-slate-950/50 border border-slate-800 rounded-xl p-6">
-                <div className="flex gap-1 mb-4">
-                  {[1,2,3,4,5].map(i => (
-                    <svg key={i} className="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
-                </div>
-                <p className="text-slate-300 text-sm mb-4">
-                  "Saved me 6+ hours per week on lead follow-up. The automation just works. Best £99 I've ever spent."
-                </p>
-                <div className="text-sm">
-                  <div className="font-bold text-white">James M.</div>
-                  <div className="text-slate-500">Marketing Agency</div>
-                </div>
-              </div>
-              
-              <div className="bg-slate-950/50 border border-slate-800 rounded-xl p-6">
-                <div className="flex gap-1 mb-4">
-                  {[1,2,3,4,5].map(i => (
-                    <svg key={i} className="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
-                </div>
-                <p className="text-slate-300 text-sm mb-4">
-                  "Levqor automated my entire invoicing workflow. Clients get invoices instantly, and I never think about it."
-                </p>
-                <div className="text-sm">
-                  <div className="font-bold text-white">Sarah K.</div>
-                  <div className="text-slate-500">Freelance Designer</div>
-                </div>
-              </div>
-              
-              <div className="bg-slate-950/50 border border-slate-800 rounded-xl p-6">
-                <div className="flex gap-1 mb-4">
-                  {[1,2,3,4,5].map(i => (
-                    <svg key={i} className="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
-                </div>
-                <p className="text-slate-300 text-sm mb-4">
-                  "Quick turnaround, professional service. Upgraded to the £599 package and it's paying for itself already."
-                </p>
-                <div className="text-sm">
-                  <div className="font-bold text-white">Tom R.</div>
-                  <div className="text-slate-500">E-commerce Store Owner</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Final CTA */}
-        <section className="bg-gradient-to-br from-slate-900 via-slate-950 to-black border-t border-slate-800 py-24">
+        {/* Final CTA Section */}
+        <section className="bg-gradient-to-br from-emerald-500/10 via-slate-950 to-blue-500/10 border-t border-slate-800 py-24">
           <div className="max-w-4xl mx-auto px-6 text-center">
             <h2 className="text-4xl md:text-5xl font-bold mb-6 text-white">
-              Start with a free automation audit
+              Ready in 48 hours.
             </h2>
             <p className="text-xl text-slate-300 mb-10">
-              No commitments. No pressure. Let's identify 2-3 tasks we can automate for you.
+              See our done-for-you pricing and get started today.
             </p>
             <Link
-              href="/signin"
-              className="inline-block px-10 py-5 bg-white text-black rounded-xl font-bold hover:bg-slate-100 transition-all text-lg shadow-2xl"
+              href="/pricing"
+              className="inline-block px-10 py-5 bg-emerald-500 hover:bg-emerald-400 text-slate-900 rounded-xl font-bold transition-all text-lg shadow-2xl"
             >
-              Start Free Audit
+              See done-for-you pricing
             </Link>
             <p className="mt-8 text-sm text-slate-400">
-              48-hour delivery • Money-back guarantee • No credit card required
+              48-hour delivery • Fixed pricing • Money-back guarantee
             </p>
           </div>
         </section>

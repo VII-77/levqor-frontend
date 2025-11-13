@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Providers } from "@/components/providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -15,9 +16,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-slate-950 text-slate-50 antialiased tracking-tight">
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
 }
-// FORCE GIT CHANGE 1763048429

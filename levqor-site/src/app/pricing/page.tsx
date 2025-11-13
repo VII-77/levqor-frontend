@@ -1,37 +1,45 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
+import { dfyPlans, subscriptionPlans } from "@/config/pricing";
 
-type Plan = "starter" | "pro" | "business";
+type Plan = "starter" | "professional" | "enterprise" | "growth" | "pro" | "business";
+type Mode = "dfy" | "subscription";
+type Term = "monthly" | "yearly";
 
 export default function Pricing() {
-  const [loading, setLoading] = useState<Plan | null>(null);
+  const [loading, setLoading] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [subscriptionTerm, setSubscriptionTerm] = useState<Term>("monthly");
 
-  const handleCheckout = async (plan: Plan) => {
-    setLoading(plan);
-    
+  const handleCheckout = async (params: { mode: Mode; plan: Plan; term?: Term }) => {
+    const { mode, plan, term } = params;
+    const loadingKey = `${mode}-${plan}-${term || ""}`;
+    setLoading(loadingKey);
+    setError(null);
+
     try {
+      const body = mode === "dfy" 
+        ? { mode, plan }
+        : { mode, plan, term };
+
       const response = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          plan,
-          term: "monthly",
-          addons: []
-        })
+        body: JSON.stringify(body)
       });
 
       const data = await response.json();
-      
+
       if (data.ok && data.url) {
         window.location.href = data.url;
       } else {
-        alert(`Checkout error: ${data.error || "Unknown error"}`);
+        setError(data.error || "Checkout failed. Please try again or contact support.");
         setLoading(null);
       }
-    } catch (error) {
-      console.error("Checkout failed:", error);
-      alert("Failed to start checkout. Please try again or contact support.");
+    } catch (err) {
+      console.error("Checkout error:", err);
+      setError("Failed to start checkout. Please try again or contact support@levqor.ai");
       setLoading(null);
     }
   };
@@ -55,203 +63,232 @@ export default function Pricing() {
         </nav>
       </header>
 
-      <div className="max-w-6xl mx-auto px-4 py-16">
+      <div className="max-w-7xl mx-auto px-4 py-16">
+        {/* Error Display */}
+        {error && (
+          <div className="max-w-3xl mx-auto mb-8 p-4 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
+            {error}
+          </div>
+        )}
+
         {/* Page Header */}
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-200 mb-6">
             <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            Done-for-you automation
+            Choose your path
           </div>
           <h1 className="text-4xl sm:text-5xl font-bold mb-6 text-white">
-            Fixed pricing. 48-hour delivery.
+            Pricing that works for you
           </h1>
-          <p className="text-xl text-slate-400 max-w-2xl mx-auto">
-            We build it. You use it. No hidden fees, no surprises. Choose your package and we'll deliver in 48 hours.
+          <p className="text-xl text-slate-400 max-w-3xl mx-auto">
+            One-time builds or ongoing automation? Monthly or yearly? Pick the plan that fits your workflow.
           </p>
         </div>
 
-        {/* Pricing Cards */}
-        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto mb-16">
-          {/* Starter Tier */}
-          <div className="rounded-2xl bg-slate-900/50 border border-slate-800 p-8 hover:border-emerald-400/50 transition-all">
-            <div className="mb-6">
-              <h3 className="text-2xl font-bold text-white mb-2">Starter</h3>
-              <div className="flex items-baseline gap-1 mb-4">
-                <span className="text-5xl font-bold text-white">£99</span>
-                <span className="text-slate-400 text-sm">/mo</span>
-              </div>
-              <p className="text-slate-400">Perfect for your first automation.</p>
-            </div>
-            
-            <div className="mb-8">
-              <p className="text-sm text-slate-300 mb-4">One workflow, delivered in 48 hours.</p>
-            </div>
-
-            <ul className="space-y-3 mb-8 text-sm text-slate-300">
-              <li className="flex items-start gap-2">
-                <span className="text-emerald-400 mt-0.5 font-bold">✓</span>
-                <span>1 workflow</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-emerald-400 mt-0.5 font-bold">✓</span>
-                <span>Up to 3 tools (e.g. Email + Sheets + CRM)</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-emerald-400 mt-0.5 font-bold">✓</span>
-                <span>Basic monitoring</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-emerald-400 mt-0.5 font-bold">✓</span>
-                <span>Email support for 7 days</span>
-              </li>
-            </ul>
-
-            <button 
-              onClick={() => handleCheckout("starter")}
-              disabled={loading !== null}
-              className="block w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-semibold text-center transition disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading === "starter" ? "Loading..." : "Get Starter"}
-            </button>
+        {/* SECTION 1: Done-For-You (One-Time) */}
+        <section className="mb-20">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-white">Done-for-you builds</h2>
+            <p className="text-lg text-slate-400 max-w-2xl mx-auto">
+              We build it. You use it. Fixed price, delivered in days.
+            </p>
           </div>
 
-          {/* Professional Tier - Featured */}
-          <div className="rounded-2xl bg-slate-900/50 border-2 border-emerald-500/50 p-8 relative transform scale-105">
-            <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-              <span className="bg-emerald-500 text-slate-900 px-4 py-1 rounded-full text-xs font-bold uppercase">Most Popular</span>
-            </div>
-            
-            <div className="mb-6">
-              <h3 className="text-2xl font-bold text-white mb-2">Professional</h3>
-              <div className="flex items-baseline gap-1 mb-4">
-                <span className="text-5xl font-bold text-white">£249</span>
-                <span className="text-slate-400 text-sm">/mo</span>
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {dfyPlans.map((plan, idx) => (
+              <div
+                key={plan.id}
+                className={`rounded-2xl bg-slate-900/50 border p-8 hover:border-emerald-400/50 transition-all ${
+                  idx === 1 ? "border-2 border-emerald-500/50 relative" : "border-slate-800"
+                }`}
+              >
+                {idx === 1 && (
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                    <span className="bg-emerald-500 text-slate-900 px-4 py-1 rounded-full text-xs font-bold uppercase">
+                      Most popular
+                    </span>
+                  </div>
+                )}
+
+                <div className="mb-6">
+                  <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
+                  <div className="flex items-baseline gap-1 mb-4">
+                    <span className="text-5xl font-bold text-white">£{plan.priceGBP}</span>
+                    <span className="text-slate-400 text-sm">one-time</span>
+                  </div>
+                  <p className="text-slate-400 text-sm mb-2">
+                    {plan.workflows} workflow{plan.workflows > 1 ? "s" : ""} • {plan.delivery}
+                  </p>
+                  <p className="text-slate-300 text-sm">{plan.support}</p>
+                </div>
+
+                <ul className="space-y-3 mb-8 text-sm text-slate-300">
+                  {plan.features.map((feature, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <span className="text-emerald-400 mt-0.5 font-bold">✓</span>
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <button
+                  onClick={() => handleCheckout({ mode: "dfy", plan: plan.id })}
+                  disabled={loading !== null}
+                  className={`block w-full py-3 px-4 rounded-lg font-semibold text-center transition disabled:opacity-50 disabled:cursor-not-allowed ${
+                    idx === 1
+                      ? "bg-emerald-500 hover:bg-emerald-400 text-slate-900 shadow-lg"
+                      : "bg-slate-800 hover:bg-slate-700 text-white"
+                  }`}
+                >
+                  {loading === `dfy-${plan.id}-` ? "Loading..." : `Get ${plan.name} DFY`}
+                </button>
               </div>
-              <p className="text-slate-400">For founders and teams who want reliability.</p>
-            </div>
-            
-            <div className="mb-8">
-              <p className="text-sm text-slate-300 mb-4">We design and ship your core automations in 2–4 days.</p>
-            </div>
+            ))}
+          </div>
+        </section>
 
-            <ul className="space-y-3 mb-8 text-sm text-slate-300">
-              <li className="flex items-start gap-2">
-                <span className="text-emerald-400 mt-0.5 font-bold">✓</span>
-                <span>Up to 3 workflows</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-emerald-400 mt-0.5 font-bold">✓</span>
-                <span>Up to 6 tools</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-emerald-400 mt-0.5 font-bold">✓</span>
-                <span>Self-healing on critical steps</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-emerald-400 mt-0.5 font-bold">✓</span>
-                <span>Priority support for 30 days</span>
-              </li>
-            </ul>
+        {/* SECTION 2: Ongoing Subscriptions */}
+        <section>
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-white">Ongoing automation plans</h2>
+            <p className="text-lg text-slate-400 max-w-2xl mx-auto mb-6">
+              Continuous workflow creation, monitoring, and support. Cancel anytime.
+            </p>
 
-            <button 
-              onClick={() => handleCheckout("pro")}
-              disabled={loading !== null}
-              className="block w-full py-3 px-4 bg-emerald-500 hover:bg-emerald-400 text-slate-900 rounded-lg font-bold text-center transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading === "pro" ? "Loading..." : "Get Professional"}
-            </button>
+            {/* Monthly / Yearly Toggle */}
+            <div className="inline-flex items-center gap-2 p-1 bg-slate-900 border border-slate-800 rounded-lg">
+              <button
+                onClick={() => setSubscriptionTerm("monthly")}
+                className={`px-6 py-2 rounded-md font-semibold text-sm transition ${
+                  subscriptionTerm === "monthly"
+                    ? "bg-emerald-500 text-slate-900"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => setSubscriptionTerm("yearly")}
+                className={`px-6 py-2 rounded-md font-semibold text-sm transition ${
+                  subscriptionTerm === "yearly"
+                    ? "bg-emerald-500 text-slate-900"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                Yearly
+                <span className="ml-2 text-xs opacity-80">(save ~20%)</span>
+              </button>
+            </div>
           </div>
 
-          {/* Enterprise Tier */}
-          <div className="rounded-2xl bg-slate-900/50 border border-slate-800 p-8 hover:border-emerald-400/50 transition-all">
-            <div className="mb-6">
-              <h3 className="text-2xl font-bold text-white mb-2">Enterprise</h3>
-              <div className="flex items-baseline gap-1 mb-4">
-                <span className="text-5xl font-bold text-white">£599</span>
-                <span className="text-slate-400 text-sm">/mo</span>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+            {subscriptionPlans.map((plan, idx) => (
+              <div
+                key={plan.id}
+                className={`rounded-2xl bg-slate-900/50 border p-6 hover:border-emerald-400/50 transition-all ${
+                  idx === 2 ? "border-2 border-emerald-500/50 relative" : "border-slate-800"
+                }`}
+              >
+                {idx === 2 && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <span className="bg-emerald-500 text-slate-900 px-3 py-1 rounded-full text-xs font-bold uppercase">
+                      Best value
+                    </span>
+                  </div>
+                )}
+
+                <div className="mb-6">
+                  <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
+                  <div className="flex items-baseline gap-1 mb-4">
+                    <span className="text-4xl font-bold text-white">
+                      £{subscriptionTerm === "monthly" ? plan.monthlyGBP : plan.yearlyGBP}
+                    </span>
+                    <span className="text-slate-400 text-sm">/{subscriptionTerm === "monthly" ? "mo" : "yr"}</span>
+                  </div>
+                  <p className="text-slate-300 text-sm">
+                    {typeof plan.workflowsPerMonth === "number" 
+                      ? `${plan.workflowsPerMonth} workflow${plan.workflowsPerMonth > 1 ? "s" : ""}/mo`
+                      : plan.workflowsPerMonth}
+                  </p>
+                </div>
+
+                <ul className="space-y-2 mb-8 text-xs text-slate-300">
+                  {plan.features.map((feature, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <span className="text-emerald-400 mt-0.5 font-bold">✓</span>
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <button
+                  onClick={() => handleCheckout({ mode: "subscription", plan: plan.id, term: subscriptionTerm })}
+                  disabled={loading !== null}
+                  className={`block w-full py-3 px-4 rounded-lg font-semibold text-center text-sm transition disabled:opacity-50 disabled:cursor-not-allowed ${
+                    idx === 2
+                      ? "bg-emerald-500 hover:bg-emerald-400 text-slate-900 shadow-lg"
+                      : "bg-slate-800 hover:bg-slate-700 text-white"
+                  }`}
+                >
+                  {loading === `subscription-${plan.id}-${subscriptionTerm}` 
+                    ? "Loading..." 
+                    : `Get ${plan.name}`}
+                </button>
               </div>
-              <p className="text-slate-400">When automation is mission-critical.</p>
-            </div>
-            
-            <div className="mb-8">
-              <p className="text-sm text-slate-300 mb-4">Deep integration, monitoring, and a 7-day build window.</p>
-            </div>
-
-            <ul className="space-y-3 mb-8 text-sm text-slate-300">
-              <li className="flex items-start gap-2">
-                <span className="text-emerald-400 mt-0.5 font-bold">✓</span>
-                <span>Up to 7 workflows</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-emerald-400 mt-0.5 font-bold">✓</span>
-                <span>Advanced routing and fallbacks</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-emerald-400 mt-0.5 font-bold">✓</span>
-                <span>Monitoring dashboard</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-emerald-400 mt-0.5 font-bold">✓</span>
-                <span>30 days of hands-on support</span>
-              </li>
-            </ul>
-
-            <button 
-              onClick={() => handleCheckout("business")}
-              disabled={loading !== null}
-              className="block w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-semibold text-center transition disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading === "business" ? "Loading..." : "Get Enterprise"}
-            </button>
+            ))}
           </div>
-        </div>
+        </section>
 
         {/* FAQ Section */}
-        <div className="max-w-3xl mx-auto">
+        <section className="mt-20 max-w-3xl mx-auto">
           <h2 className="text-3xl font-bold text-white mb-8 text-center">Frequently asked questions</h2>
-          
+
           <div className="space-y-6">
             <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
-              <h3 className="text-lg font-bold text-white mb-2">How does the 48-hour delivery work?</h3>
+              <h3 className="text-lg font-bold text-white mb-2">What's the difference between DFY and subscriptions?</h3>
               <p className="text-slate-300 text-sm">
-                Once you select a package and complete payment, we'll schedule a quick kickoff call to understand your workflow. 
-                Within 48 hours, your automation will be built, tested, and ready to use.
+                <strong>Done-for-you (DFY)</strong> is a one-time payment where we build your workflows and deliver them in 48 hours to 7 days.
+                You get the workflows plus support for 7-30 days depending on your tier.
+                <br /><br />
+                <strong>Subscriptions</strong> give you ongoing workflow creation, monitoring, self-healing, and continuous support.
+                Perfect if you need regular automation work or want us to manage everything long-term.
               </p>
             </div>
 
             <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
-              <h3 className="text-lg font-bold text-white mb-2">What if I need changes after delivery?</h3>
+              <h3 className="text-lg font-bold text-white mb-2">Can I upgrade or switch plans?</h3>
               <p className="text-slate-300 text-sm">
-                All packages include support. Starter gets 7 days, Professional gets 30 days, and Enterprise gets 30 days of hands-on support. 
-                We'll help you tweak and optimize your workflows.
+                Yes. You can upgrade from DFY to a subscription, or switch between subscription tiers anytime.
+                Contact us at <a href="mailto:support@levqor.ai" className="text-emerald-400 hover:underline">support@levqor.ai</a> for plan changes.
               </p>
             </div>
 
             <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
-              <h3 className="text-lg font-bold text-white mb-2">Do I need to pay monthly after this?</h3>
+              <h3 className="text-lg font-bold text-white mb-2">Do you offer refunds?</h3>
               <p className="text-slate-300 text-sm">
-                Yes, these are monthly subscriptions that include ongoing maintenance, monitoring, and support. 
-                Your workflows run on our infrastructure with self-healing capabilities.
+                Yes, we offer a 14-day money-back guarantee for both DFY and subscription plans.
+                See our <Link href="/refunds" className="text-emerald-400 hover:underline">refund policy</Link> for details.
               </p>
             </div>
 
             <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
-              <h3 className="text-lg font-bold text-white mb-2">Can I upgrade later?</h3>
+              <h3 className="text-lg font-bold text-white mb-2">What happens after I pay?</h3>
               <p className="text-slate-300 text-sm">
-                Absolutely. If you start with Starter and need more workflows, we can upgrade you to Professional or Enterprise. 
-                You'll only pay the difference.
+                <strong>For DFY:</strong> We'll email you within 24 hours to schedule a kickoff call, then build and deliver your workflows within the stated timeframe.
+                <br /><br />
+                <strong>For subscriptions:</strong> You'll get access to our dashboard and we'll onboard you within 24 hours to start creating your workflows.
               </p>
             </div>
           </div>
-        </div>
+        </section>
 
         {/* CTA Section */}
         <div className="mt-20 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">
-            Ready to automate your work?
+            Still have questions?
           </h2>
           <p className="text-lg text-slate-400 mb-8">
-            Choose your package and we'll have your automation running in 48 hours.
+            Email us at <a href="mailto:support@levqor.ai" className="text-emerald-400 hover:underline">support@levqor.ai</a> or check our <Link href="/docs" className="text-emerald-400 hover:underline">documentation</Link>.
           </p>
           <button
             onClick={() => {
@@ -259,7 +296,7 @@ export default function Pricing() {
             }}
             className="inline-block px-10 py-5 bg-emerald-500 hover:bg-emerald-400 text-slate-900 rounded-xl font-bold transition-all text-lg shadow-2xl"
           >
-            Choose your plan
+            Back to top
           </button>
         </div>
       </div>

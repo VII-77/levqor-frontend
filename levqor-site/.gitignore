@@ -54,3 +54,4 @@ secret.*
 
 # Large bundles
 *.bundle
+.env.production

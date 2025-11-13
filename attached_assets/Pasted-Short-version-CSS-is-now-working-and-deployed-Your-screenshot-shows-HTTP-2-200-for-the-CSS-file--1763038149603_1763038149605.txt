@@ -1,0 +1,231 @@
+Short version:
+CSS is now working and deployed. Your screenshot shows:
+
+HTTP/2 200 for the CSS file
+
+content-type: text/css
+
+A real compiled asset: /_next/static/css/742e609eaceb4bff.css
+
+
+So the browser is getting CSS.
+The reason the site still looks like a Word doc is: the React page itself is basically plain HTML with almost no Tailwind classes. The pipeline is fixed; the design was never actually implemented in src/app/page.tsx and the sign-in page.
+
+So the next step is not “fix CSS” anymore — it’s “rewrite the homepage + signin UI with Tailwind so it actually looks like Genesis v8.”
+
+Below is a Replit AI Agent prompt that does exactly that.
+
+
+---
+
+You are a senior Next.js 14 + Tailwind CSS engineer working in a production repo.
+
+GOAL
+- The site is www.levqor.ai, project folder: ~/workspace/levqor-site
+- Tailwind CSS v3 and PostCSS are already installed and working (CSS asset 200 / text/css).
+- The problem: the UI is still plain because the React pages use minimal styling.
+- Your job: IMPLEMENT the full Genesis v8 marketing UI + a polished Sign-in UI using Tailwind, then verify, commit, and push to main.
+
+HARD RULES
+1. Work ONLY in ~/workspace/levqor-site.
+2. Before and after changes, ALWAYS:
+   - Run `git status`
+   - Show `git diff --stat` for modified files.
+3. After changes, ALWAYS run:
+   - `npm run lint` (or `npm run lint || echo "lint failed"` if necessary)
+   - `npm run build`
+4. NEVER assume something “should work” – VERIFY:
+   - Use `curl` to fetch HTML and CSS and grep for expected markers.
+   - Confirm CSS asset returns HTTP/2 200 and `content-type: text/css`.
+5. Keep env vars and secrets untouched.
+6. If any command fails, STOP and fix it; do not continue blindly.
+
+STEP 0 — SANITY CHECK
+1. `cd ~/workspace/levqor-site`
+2. `git status`
+3. Confirm:
+   - On branch `main`.
+   - Working tree clean (except maybe the Tailwind files already committed).
+   - If there are untracked/uncommitted files, show them and reason before proceeding.
+
+STEP 1 — VERIFY TAILWIND PIPELINE (READ-ONLY)
+1. Open and briefly inspect:
+   - `package.json` (devDependencies should include tailwindcss, postcss, autoprefixer).
+   - `tailwind.config.js`
+   - `postcss.config.js`
+   - `src/app/globals.css`
+   - `src/app/layout.tsx`
+2. Confirm EXPECTED state:
+   - `globals.css` includes `@tailwind base;`, `@tailwind components;`, `@tailwind utilities;`.
+   - `layout.tsx` imports `"./globals.css"` exactly once.
+   - `tailwind.config.js` content array includes `"./src/app/**/*.{js,ts,jsx,tsx,mdx}"` and `"./src/components/**/*.{js,ts,jsx,tsx,mdx}"`.
+3. DO NOT change the pipeline unless it's clearly broken. The CSS asset is already 200, so this should just be a read check.
+
+STEP 2 — IMPLEMENT GENESIS V8 HOMEPAGE UI
+Target file: `src/app/page.tsx`
+
+1. Open the current `src/app/page.tsx` and BACK IT UP inline:
+   - Copy its entire current contents into a block comment at the bottom of the file or make a separate backup file `src/app/page.legacy.tsx`.
+2. Replace the default export with a fully designed, responsive Genesis v8 landing page using Tailwind.
+
+Design requirements (implement in real code, not pseudo):
+- Overall:
+  - Use a dark theme (e.g. `bg-slate-950 text-slate-50`) on `<body>` via `layout.tsx` or the main page container.
+  - Max width container centered: `max-w-5xl mx-auto px-4 py-12` (or similar).
+- Navbar (top):
+  - Left: "Levqor" logo text (for now, just stylized text; keep it ready for a real logo later).
+  - Right: links: "Home", "Pricing", "Docs", "Contact", plus a "Sign in" and a primary "Start free trial" button.
+  - Use Tailwind classes for spacing/gap, e.g. `flex items-center justify-between gap-4 py-4`.
+- Hero:
+  - Small badge above title: `Genesis v8.0 · Self-healing automation` with a subtle rounded pill, gradient background.
+  - H1: "Automate work. Ship faster."
+  - Subheading explaining value in one or two sentences.
+  - Primary CTA: "Start free trial"
+  - Secondary CTA: "See pricing"
+  - On desktop, hero can be split into two columns; on mobile, stacked.
+- Feature tiles:
+  - Grid (2 or 3 columns on desktop, 1 column on mobile) of feature cards:
+    - Examples: "Self-healing runs", "Auto-retry with backoff", "Visual builder", "Smart diff", "Isolate failures fast", "Audit trail".
+  - Cards should have subtle borders or backgrounds (e.g. `bg-slate-900/60 border border-slate-800 rounded-xl p-4`).
+- Logos / social proof:
+  - A row of 4–6 fake company names (e.g. TechCorp, DataFlow, etc.) with muted text.
+- Deep-dive sections:
+  - Section "Why teams choose Levqor" with 2–3 vertical feature blocks, each with a heading and supporting text.
+- Footer:
+  - Simple footer with "© {currentYear} Levqor. All rights reserved." and links to "Privacy" and "Terms".
+
+IMPORTANT:
+- Use real Tailwind utility classes everywhere (no inline style objects).
+- Use semantic HTML (section, header, main, footer).
+- Make sure the layout is mobile-first and looks good on small screens.
+
+STEP 3 — IMPLEMENT POLISHED SIGN-IN UI
+Target file: `src/app/signin/page.tsx` (create it if it does not exist).
+
+1. Create/replace the page with a centered card layout:
+   - Full-screen container: `min-h-screen flex items-center justify-center bg-slate-950`.
+   - Card: `w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900/80 p-6 space-y-4 shadow-lg`.
+2. Inside the card:
+   - Title: "Sign in to Levqor"
+   - Subtitle: "Choose a provider to continue."
+   - Two primary buttons:
+     - "Continue with Google"
+     - "Continue with Microsoft"
+   - Under those buttons, a lighter "magic link" section:
+     - Label: "Or get a one-time sign-in link"
+     - Email input (type="email") and a button "Send magic link" (hook it up to the existing NextAuth email provider route if available; if not, make the button non-functional but clearly marked as TODO in a comment).
+   - Tiny text at the bottom: "By continuing, you agree to our Terms and Privacy Policy." with links to `/terms` and `/privacy` (even if those pages are not yet implemented).
+3. Behavior:
+   - For OAuth buttons, link to the existing auth routes:
+     - If you’re using NextAuth, typical endpoints would be:
+       - `/api/auth/signin/google`
+       - `/api/auth/signin/azure-ad` (or whatever provider slug is configured)
+     - Use `<Link>` or `<button onClick={() => signIn('google')}>` depending on what is already wired in this repo. Inspect existing auth setup to choose the correct method (DO NOT reinvent NextAuth configuration).
+   - Keep TS/JS strictness satisfied (no any-typed components, export default function SignInPage() { ... }).
+
+STEP 4 — ENSURE LAYOUT APPLIES GLOBAL STYLES
+Target file: `src/app/layout.tsx`
+
+1. Confirm:
+   - `import "./globals.css";`
+   - The `<body>` element has a class that sets the background + text colors and font, for example:
+     - `className="bg-slate-950 text-slate-50 antialiased"`
+   - If a custom font via `next/font` is already set up, keep using it and just append Tailwind classes.
+
+2. Ensure there is a `<main>` wrapper around page content in the layout or in each page for consistent spacing.
+
+STEP 5 — LOCAL VERIFICATION
+1. From the project root:
+
+   ```bash
+   cd ~/workspace/levqor-site
+
+   npm run lint || echo "lint failed"
+   npm run build
+
+2. If lint fails, FIX the issues (type errors, unused imports, etc.) until you get a clean or at least acceptable state for production.
+
+
+3. After a successful build, run a static check using curl to ensure Tailwind classes and CSS are present:
+
+# Check headers
+curl -sSI https://www.levqor.ai | grep -Ei "HTTP/|x-vercel-cache|age:"
+
+# Grab homepage HTML from local dev if there is a dev server, OR just check built .next HTML.
+# For production verification after deploy, we will re-run curl against the live URL.
+
+
+
+NOTE: You don’t need to start a dev server in this task; focus on build + static verification. The user will do visual checks in the browser.
+
+STEP 6 — COMMIT & PUSH
+
+1. Show git diff --stat.
+
+
+2. If the diff only includes the intended files:
+
+src/app/page.tsx
+
+src/app/signin/page.tsx
+
+src/app/layout.tsx (if modified)
+
+plus any minor supporting files,
+
+
+then commit:
+
+git add src/app/page.tsx src/app/signin/page.tsx src/app/layout.tsx
+git status
+git commit -m "feat(ui): Genesis v8 marketing page and styled sign-in"
+git push origin main
+
+
+3. If there are unexpected extra files, explain why, clean them up, and THEN commit.
+
+
+
+STEP 7 — PRODUCTION VERIFICATION (READ-ONLY) You CANNOT open a browser, but you CAN give the user exact commands to run and what to expect.
+
+1. In your final message to the user, instruct them to:
+
+Wait for Vercel to auto-deploy the new main commit.
+
+Then run from Replit shell:
+
+curl -sSI https://www.levqor.ai | grep -Ei "HTTP/|x-vercel-cache|age:"
+
+ASSET=$(curl -sS https://www.levqor.ai | grep -Eo "/_next/static/css/[A-Za-z0-9._-]+\.css" | head -1)
+echo "CSS Asset: $ASSET"
+
+test -n "$ASSET" && curl -sSI "https://www.levqor.ai$ASSET" | head -10
+
+And then visually check www.levqor.ai in the browser for:
+
+Dark background
+
+Colored feature tiles
+
+Proper spacing, nav, and Genesis v8 badge
+
+Centered, card-style sign-in page.
+
+
+
+
+2. In your final response, summarize:
+
+Exactly which files were changed.
+
+A brief description of the new UI.
+
+That Tailwind CSS is fully active and styling is visible via the new class-based markup.
+
+
+
+
+END OF TASK If any step fails or something unexpected happens, STOP, explain clearly, and propose a safe fallback instead of forcing progress.
+
+Run that prompt in Replit AI Agent.  
+Once it’s done and pushed, we’ll do one last Vercel redeploy check and a final visual pass.0

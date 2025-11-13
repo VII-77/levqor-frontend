@@ -47,39 +47,7 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
       </head>
-      <body className="antialiased tracking-tight">
-        <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
-          <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <Link href="/" className="text-2xl font-bold text-black hover:text-gray-700 transition">
-                Levqor
-              </Link>
-              <div className="hidden md:flex items-center gap-8">
-                <Link href="/" className="text-gray-700 hover:text-black font-medium transition">
-                  Home
-                </Link>
-                <Link href="/pricing" className="text-gray-700 hover:text-black font-medium transition">
-                  Pricing
-                </Link>
-                <Link href="/docs" className="text-gray-700 hover:text-black font-medium transition">
-                  Docs
-                </Link>
-                <Link href="/contact" className="text-gray-700 hover:text-black font-medium transition">
-                  Contact
-                </Link>
-              </div>
-              <div className="flex items-center gap-4">
-                <Link href="/signin" className="text-gray-700 hover:text-black font-medium transition">
-                  Sign in
-                </Link>
-                <Link href="/signin" className="px-5 py-2.5 bg-black text-white rounded-xl font-semibold hover:bg-gray-800 transition">
-                  Start free trial
-                </Link>
-              </div>
-            </div>
-          </nav>
-        </header>
-
+      <body className="bg-slate-950 text-slate-50 antialiased tracking-tight">
         <Providers>
           {children}
         </Providers>

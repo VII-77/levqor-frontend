@@ -16,8 +16,8 @@ function StatusPill() {
   if (!status) return null;
 
   return (
-    <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${status.ok ? "bg-green-50 text-green-700" : "bg-yellow-50 text-yellow-700"}`}>
-      <span className={`w-2 h-2 rounded-full ${status.ok ? "bg-green-500" : "bg-yellow-500"}`}></span>
+    <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium ${status.ok ? "bg-green-500/20 text-green-400 border border-green-500/30" : "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"}`}>
+      <span className={`w-2 h-2 rounded-full ${status.ok ? "bg-green-400 animate-pulse" : "bg-yellow-400"}`}></span>
       {status.message}
     </div>
   );
@@ -54,36 +54,41 @@ export default function Home() {
       <JsonLd data={structuredData} />
       
       {/* Navigation Header */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b">
+      <header className="sticky top-0 z-50 bg-slate-950/80 backdrop-blur-md border-b border-slate-800">
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-8">
-            <Link href="/" className="text-xl font-bold">
+            <Link href="/" className="text-xl font-bold text-white">
               Levqor
             </Link>
             <div className="hidden md:flex gap-6">
-              <Link href="/pricing" className="text-sm text-gray-600 hover:text-black transition">Pricing</Link>
-              <Link href="/docs" className="text-sm text-gray-600 hover:text-black transition">Docs</Link>
-              <Link href="/contact" className="text-sm text-gray-600 hover:text-black transition">Contact</Link>
+              <Link href="/pricing" className="text-sm text-slate-300 hover:text-white transition">Pricing</Link>
+              <Link href="/docs" className="text-sm text-slate-300 hover:text-white transition">Docs</Link>
+              <Link href="/contact" className="text-sm text-slate-300 hover:text-white transition">Contact</Link>
             </div>
           </div>
-          <Link href="/signin" className="px-4 py-2 text-sm font-medium rounded-lg border hover:bg-gray-50 transition">
-            Sign in
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link href="/signin" className="text-sm text-slate-300 hover:text-white transition">
+              Sign in
+            </Link>
+            <Link href="/signin" className="px-5 py-2.5 bg-white text-black rounded-xl font-semibold hover:bg-slate-100 transition">
+              Start free trial
+            </Link>
+          </div>
         </nav>
       </header>
 
-      <main className="min-h-screen">
+      <main className="min-h-screen bg-slate-950">
         {/* Hero Section */}
         <section className="max-w-6xl mx-auto px-4 pt-20 pb-16">
           <div className="max-w-4xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-3 py-1 text-xs text-green-700 font-medium mb-6">
-              <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-400 font-medium mb-6">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
               Genesis v8.0 · Self-healing automation
             </div>
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight mb-6">
-              Automate work. <span className="text-gray-500">Ship faster.</span>
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight mb-6 text-white">
+              Automate work. <span className="text-slate-400">Ship faster.</span>
             </h1>
-            <p className="text-xl text-gray-600 mb-8 max-w-2xl">
+            <p className="text-xl text-slate-300 mb-8 max-w-2xl">
               Self-healing automation for workflows, monitoring, alerts, and runbooks. 
               Email, Sheets, Slack, CRM.
             </p>
@@ -92,15 +97,15 @@ export default function Home() {
             <div className="flex flex-wrap gap-4 mb-6">
               <Link 
                 href="/signin" 
-                className="inline-flex items-center gap-2 px-6 py-3 bg-black text-white rounded-xl font-semibold hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-white text-black rounded-xl font-semibold hover:bg-slate-100 transition-all shadow-lg hover:shadow-xl"
               >
                 Start free trial
               </Link>
               <Link 
-                href="/contact" 
-                className="inline-flex items-center gap-2 px-6 py-3 border-2 border-gray-200 rounded-xl font-semibold hover:bg-gray-50 transition-all"
+                href="/pricing" 
+                className="inline-flex items-center gap-2 px-6 py-3 border-2 border-slate-700 text-white rounded-xl font-semibold hover:bg-slate-900 transition-all"
               >
-                Book a demo
+                See pricing
               </Link>
             </div>
 
@@ -108,7 +113,7 @@ export default function Home() {
             <div className="flex flex-wrap gap-3">
               <Link 
                 href="/signin" 
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm bg-slate-900 border border-slate-700 text-slate-200 rounded-lg hover:bg-slate-800 transition"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -120,7 +125,7 @@ export default function Home() {
               </Link>
               <Link 
                 href="/signin?method=magic-link" 
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm bg-slate-900 border border-slate-700 text-slate-200 rounded-lg hover:bg-slate-800 transition"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -134,41 +139,41 @@ export default function Home() {
         {/* Colorful Feature Tiles */}
         <section className="max-w-6xl mx-auto px-4 pb-16">
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="rounded-2xl p-6 bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 hover:shadow-lg transition-all">
+            <div className="rounded-2xl p-6 bg-gradient-to-br from-blue-500/20 to-blue-600/10 border border-blue-500/30 hover:shadow-xl hover:shadow-blue-500/10 transition-all">
               <div className="text-2xl mb-3">🔄</div>
-              <h3 className="text-lg font-bold mb-2 text-gray-900">Self-healing runs</h3>
-              <p className="text-sm text-gray-700">Auto-retry with backoff. No manual intervention.</p>
+              <h3 className="text-lg font-bold mb-2 text-white">Self-healing runs</h3>
+              <p className="text-sm text-slate-300">Auto-retry with backoff. No manual intervention.</p>
             </div>
             
-            <div className="rounded-2xl p-6 bg-gradient-to-br from-violet-50 to-violet-100 border border-violet-200 hover:shadow-lg transition-all">
+            <div className="rounded-2xl p-6 bg-gradient-to-br from-violet-500/20 to-violet-600/10 border border-violet-500/30 hover:shadow-xl hover:shadow-violet-500/10 transition-all">
               <div className="text-2xl mb-3">🎨</div>
-              <h3 className="text-lg font-bold mb-2 text-gray-900">Visual builder</h3>
-              <p className="text-sm text-gray-700">Drag-drop steps. No wall of YAML.</p>
+              <h3 className="text-lg font-bold mb-2 text-white">Visual builder</h3>
+              <p className="text-sm text-slate-300">Drag-drop steps. No wall of YAML.</p>
             </div>
             
-            <div className="rounded-2xl p-6 bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200 hover:shadow-lg transition-all">
+            <div className="rounded-2xl p-6 bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 border border-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/10 transition-all">
               <div className="text-2xl mb-3">🔍</div>
-              <h3 className="text-lg font-bold mb-2 text-gray-900">Smart diff</h3>
-              <p className="text-sm text-gray-700">Isolate failures fast with intelligent comparison.</p>
+              <h3 className="text-lg font-bold mb-2 text-white">Smart diff</h3>
+              <p className="text-sm text-slate-300">Isolate failures fast with intelligent comparison.</p>
             </div>
             
-            <div className="rounded-2xl p-6 bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200 hover:shadow-lg transition-all">
+            <div className="rounded-2xl p-6 bg-gradient-to-br from-amber-500/20 to-amber-600/10 border border-amber-500/30 hover:shadow-xl hover:shadow-amber-500/10 transition-all">
               <div className="text-2xl mb-3">📋</div>
-              <h3 className="text-lg font-bold mb-2 text-gray-900">Audit trail</h3>
-              <p className="text-sm text-gray-700">Each fix recorded. Full transparency.</p>
+              <h3 className="text-lg font-bold mb-2 text-white">Audit trail</h3>
+              <p className="text-sm text-slate-300">Each fix recorded. Full transparency.</p>
             </div>
           </div>
         </section>
 
         {/* Trust Band */}
-        <section className="bg-gradient-to-r from-gray-50 to-gray-100 py-12">
+        <section className="bg-slate-900/50 border-y border-slate-800 py-12">
           <div className="max-w-6xl mx-auto px-6 text-center">
-            <p className="text-sm text-gray-600 mb-6 font-medium uppercase tracking-wide">
-              Trusted by teams building with AI
+            <p className="text-sm text-slate-400 mb-6 font-medium uppercase tracking-wide">
+              Trusted by teams that can't afford downtime
             </p>
             <div className="flex flex-wrap justify-center gap-8 opacity-60">
               {["TechCorp", "DataFlow", "AutoScale", "CloudSync", "DevOps Pro"].map((logo) => (
-                <div key={logo} className="bg-white px-6 py-3 rounded-lg shadow-sm font-bold text-gray-700">
+                <div key={logo} className="bg-slate-800/50 px-6 py-3 rounded-lg border border-slate-700 font-bold text-slate-300">
                   {logo}
                 </div>
               ))}
@@ -178,98 +183,98 @@ export default function Home() {
 
         {/* Features Grid */}
         <section className="max-w-6xl mx-auto px-4 py-20">
-          <h2 className="text-4xl font-bold text-center mb-4">Why teams choose Levqor</h2>
-          <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
+          <h2 className="text-4xl font-bold text-center mb-4 text-white">Why teams choose Levqor</h2>
+          <p className="text-center text-slate-400 mb-12 max-w-2xl mx-auto">
             Built for self-healing automation with enterprise-grade reliability
           </p>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="bg-gradient-to-br from-blue-50 to-white p-6 rounded-2xl border border-blue-100 hover:shadow-xl transition-all">
+            <div className="bg-slate-900/50 border border-slate-800 p-6 rounded-2xl hover:bg-slate-900 hover:border-blue-500/30 transition-all group">
               <div className="text-4xl mb-4">🔄</div>
-              <h3 className="text-xl font-bold mb-3">Self-healing runs</h3>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li className="flex items-start gap-2"><span className="text-blue-500 mt-0.5">✓</span><span>Auto-retry with exponential backoff</span></li>
-                <li className="flex items-start gap-2"><span className="text-blue-500 mt-0.5">✓</span><span>Smart diff to isolate failures</span></li>
-                <li className="flex items-start gap-2"><span className="text-blue-500 mt-0.5">✓</span><span>Audit trail for each fix</span></li>
+              <h3 className="text-xl font-bold mb-3 text-white">Self-healing runs</h3>
+              <ul className="space-y-2 text-sm text-slate-300">
+                <li className="flex items-start gap-2"><span className="text-blue-400 mt-0.5">✓</span><span>Auto-retry with exponential backoff</span></li>
+                <li className="flex items-start gap-2"><span className="text-blue-400 mt-0.5">✓</span><span>Smart diff to isolate failures</span></li>
+                <li className="flex items-start gap-2"><span className="text-blue-400 mt-0.5">✓</span><span>Audit trail for each fix</span></li>
               </ul>
             </div>
             
-            <div className="bg-gradient-to-br from-violet-50 to-white p-6 rounded-2xl border border-violet-100 hover:shadow-xl transition-all">
+            <div className="bg-slate-900/50 border border-slate-800 p-6 rounded-2xl hover:bg-slate-900 hover:border-violet-500/30 transition-all group">
               <div className="text-4xl mb-4">🎨</div>
-              <h3 className="text-xl font-bold mb-3">Visual builder</h3>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li className="flex items-start gap-2"><span className="text-violet-500 mt-0.5">✓</span><span>Drag-drop workflow steps</span></li>
-                <li className="flex items-start gap-2"><span className="text-violet-500 mt-0.5">✓</span><span>Inline AI prompts</span></li>
-                <li className="flex items-start gap-2"><span className="text-violet-500 mt-0.5">✓</span><span>Versioned blueprints</span></li>
+              <h3 className="text-xl font-bold mb-3 text-white">Visual builder</h3>
+              <ul className="space-y-2 text-sm text-slate-300">
+                <li className="flex items-start gap-2"><span className="text-violet-400 mt-0.5">✓</span><span>Drag-drop workflow steps</span></li>
+                <li className="flex items-start gap-2"><span className="text-violet-400 mt-0.5">✓</span><span>Inline AI prompts</span></li>
+                <li className="flex items-start gap-2"><span className="text-violet-400 mt-0.5">✓</span><span>Versioned blueprints</span></li>
               </ul>
             </div>
             
-            <div className="bg-gradient-to-br from-emerald-50 to-white p-6 rounded-2xl border border-emerald-100 hover:shadow-xl transition-all">
+            <div className="bg-slate-900/50 border border-slate-800 p-6 rounded-2xl hover:bg-slate-900 hover:border-emerald-500/30 transition-all group">
               <div className="text-4xl mb-4">🔐</div>
-              <h3 className="text-xl font-bold mb-3">Enterprise SSO</h3>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li className="flex items-start gap-2"><span className="text-emerald-500 mt-0.5">✓</span><span>SAML/OIDC support</span></li>
-                <li className="flex items-start gap-2"><span className="text-emerald-500 mt-0.5">✓</span><span>Role-based access control</span></li>
-                <li className="flex items-start gap-2"><span className="text-emerald-500 mt-0.5">✓</span><span>Organization audit log</span></li>
+              <h3 className="text-xl font-bold mb-3 text-white">Enterprise SSO</h3>
+              <ul className="space-y-2 text-sm text-slate-300">
+                <li className="flex items-start gap-2"><span className="text-emerald-400 mt-0.5">✓</span><span>SAML/OIDC support</span></li>
+                <li className="flex items-start gap-2"><span className="text-emerald-400 mt-0.5">✓</span><span>Role-based access control</span></li>
+                <li className="flex items-start gap-2"><span className="text-emerald-400 mt-0.5">✓</span><span>Organization audit log</span></li>
               </ul>
             </div>
             
-            <div className="bg-gradient-to-br from-amber-50 to-white p-6 rounded-2xl border border-amber-100 hover:shadow-xl transition-all">
+            <div className="bg-slate-900/50 border border-slate-800 p-6 rounded-2xl hover:bg-slate-900 hover:border-amber-500/30 transition-all group">
               <div className="text-4xl mb-4">⚡</div>
-              <h3 className="text-xl font-bold mb-3">SLA 99.9%</h3>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li className="flex items-start gap-2"><span className="text-amber-500 mt-0.5">✓</span><span>Global edge network</span></li>
-                <li className="flex items-start gap-2"><span className="text-amber-500 mt-0.5">✓</span><span>Warm starts</span></li>
-                <li className="flex items-start gap-2"><span className="text-amber-500 mt-0.5">✓</span><span>Priority support lanes</span></li>
+              <h3 className="text-xl font-bold mb-3 text-white">SLA 99.9%</h3>
+              <ul className="space-y-2 text-sm text-slate-300">
+                <li className="flex items-start gap-2"><span className="text-amber-400 mt-0.5">✓</span><span>Global edge network</span></li>
+                <li className="flex items-start gap-2"><span className="text-amber-400 mt-0.5">✓</span><span>Warm starts</span></li>
+                <li className="flex items-start gap-2"><span className="text-amber-400 mt-0.5">✓</span><span>Priority support lanes</span></li>
               </ul>
             </div>
             
-            <div className="bg-gradient-to-br from-rose-50 to-white p-6 rounded-2xl border border-rose-100 hover:shadow-xl transition-all">
+            <div className="bg-slate-900/50 border border-slate-800 p-6 rounded-2xl hover:bg-slate-900 hover:border-rose-500/30 transition-all group">
               <div className="text-4xl mb-4">📊</div>
-              <h3 className="text-xl font-bold mb-3">Audit & alerts</h3>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li className="flex items-start gap-2"><span className="text-rose-500 mt-0.5">✓</span><span>Structured execution logs</span></li>
-                <li className="flex items-start gap-2"><span className="text-rose-500 mt-0.5">✓</span><span>PagerDuty/Slack webhooks</span></li>
-                <li className="flex items-start gap-2"><span className="text-rose-500 mt-0.5">✓</span><span>PII-aware log redaction</span></li>
+              <h3 className="text-xl font-bold mb-3 text-white">Audit & alerts</h3>
+              <ul className="space-y-2 text-sm text-slate-300">
+                <li className="flex items-start gap-2"><span className="text-rose-400 mt-0.5">✓</span><span>Structured execution logs</span></li>
+                <li className="flex items-start gap-2"><span className="text-rose-400 mt-0.5">✓</span><span>PagerDuty/Slack webhooks</span></li>
+                <li className="flex items-start gap-2"><span className="text-rose-400 mt-0.5">✓</span><span>PII-aware log redaction</span></li>
               </ul>
             </div>
             
-            <div className="bg-gradient-to-br from-cyan-50 to-white p-6 rounded-2xl border border-cyan-100 hover:shadow-xl transition-all">
+            <div className="bg-slate-900/50 border border-slate-800 p-6 rounded-2xl hover:bg-slate-900 hover:border-cyan-500/30 transition-all group">
               <div className="text-4xl mb-4">💳</div>
-              <h3 className="text-xl font-bold mb-3">Stripe billing</h3>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li className="flex items-start gap-2"><span className="text-cyan-500 mt-0.5">✓</span><span>Usage-based pricing</span></li>
-                <li className="flex items-start gap-2"><span className="text-cyan-500 mt-0.5">✓</span><span>Trials and coupon codes</span></li>
-                <li className="flex items-start gap-2"><span className="text-cyan-500 mt-0.5">✓</span><span>Exportable VAT invoices</span></li>
+              <h3 className="text-xl font-bold mb-3 text-white">Stripe billing</h3>
+              <ul className="space-y-2 text-sm text-slate-300">
+                <li className="flex items-start gap-2"><span className="text-cyan-400 mt-0.5">✓</span><span>Usage-based pricing</span></li>
+                <li className="flex items-start gap-2"><span className="text-cyan-400 mt-0.5">✓</span><span>Trials and coupon codes</span></li>
+                <li className="flex items-start gap-2"><span className="text-cyan-400 mt-0.5">✓</span><span>Exportable VAT invoices</span></li>
               </ul>
             </div>
           </div>
         </section>
 
         {/* CTA Section */}
-        <section className="bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white py-24">
+        <section className="bg-gradient-to-br from-slate-900 via-slate-950 to-black border-t border-slate-800 py-24">
           <div className="max-w-4xl mx-auto px-6 text-center">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-white">
               Ready to automate your workflows?
             </h2>
-            <p className="text-xl text-gray-300 mb-10">
+            <p className="text-xl text-slate-300 mb-10">
               Start building with Levqor today. No credit card required.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Link
                 href="/signin"
-                className="inline-block px-8 py-4 bg-white text-black rounded-xl font-semibold hover:bg-gray-100 transition-all text-lg shadow-2xl"
+                className="inline-block px-8 py-4 bg-white text-black rounded-xl font-semibold hover:bg-slate-100 transition-all text-lg shadow-2xl"
               >
-                Get started with Levqor
+                Start free trial
               </Link>
               <Link
                 href="/pricing"
-                className="inline-block px-8 py-4 bg-transparent border-2 border-white text-white rounded-xl font-semibold hover:bg-white hover:text-black transition-all text-lg"
+                className="inline-block px-8 py-4 bg-transparent border-2 border-slate-600 text-white rounded-xl font-semibold hover:bg-slate-900 transition-all text-lg"
               >
                 See pricing
               </Link>
             </div>
-            <p className="mt-8 text-sm text-gray-400">
+            <p className="mt-8 text-sm text-slate-400">
               No long-term contracts. Cancel anytime.
             </p>
           </div>

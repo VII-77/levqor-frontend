@@ -4,24 +4,24 @@ import Link from "next/link";
 
 export default function SignIn() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100 flex items-center justify-center px-4 py-12">
+    <main className="min-h-screen bg-slate-950 flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         {/* Logo & Header */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-block">
-            <h2 className="text-3xl font-bold mb-2">Levqor</h2>
+            <h2 className="text-3xl font-bold mb-2 text-white">Levqor</h2>
           </Link>
-          <h1 className="text-2xl font-semibold text-gray-900 mb-2">Sign in to Levqor</h1>
-          <p className="text-sm text-gray-600">Access your workflows and run history.</p>
+          <h1 className="text-2xl font-semibold text-white mb-2">Sign in to Levqor</h1>
+          <p className="text-sm text-slate-400">Access your workflows and run history.</p>
         </div>
 
         {/* Sign-in Card */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-lg">
+        <div className="bg-slate-900/80 backdrop-blur border border-slate-800 rounded-2xl p-8 shadow-2xl">
           <div className="space-y-4">
             {/* Google Sign-in */}
             <button 
               onClick={() => signIn("google", { callbackUrl: "/workflow" })} 
-              className="w-full flex items-center justify-center gap-3 rounded-xl border-2 border-gray-200 py-3 px-4 hover:bg-gray-50 hover:border-gray-300 transition-all font-medium"
+              className="w-full flex items-center justify-center gap-3 rounded-xl border-2 border-slate-700 bg-slate-800/50 text-white py-3 px-4 hover:bg-slate-800 hover:border-slate-600 transition-all font-medium"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -35,7 +35,7 @@ export default function SignIn() {
             {/* Microsoft Sign-in */}
             <button 
               onClick={() => signIn("azure-ad", { callbackUrl: "/workflow" })} 
-              className="w-full flex items-center justify-center gap-3 rounded-xl border-2 border-gray-200 py-3 px-4 hover:bg-gray-50 hover:border-gray-300 transition-all font-medium"
+              className="w-full flex items-center justify-center gap-3 rounded-xl border-2 border-slate-700 bg-slate-800/50 text-white py-3 px-4 hover:bg-slate-800 hover:border-slate-600 transition-all font-medium"
             >
               <svg className="w-5 h-5" viewBox="0 0 23 23">
                 <path fill="#f35325" d="M0 0h11v11H0z"/>
@@ -49,16 +49,16 @@ export default function SignIn() {
             {/* Divider */}
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200"></div>
+                <div className="w-full border-t border-slate-700"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-gray-500">or</span>
+                <span className="px-4 bg-slate-900/80 text-slate-400">or</span>
               </div>
             </div>
 
             {/* Magic Link (Coming Soon) */}
             <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="block text-sm font-medium text-slate-300">
                 Email address
               </label>
               <input
@@ -66,11 +66,11 @@ export default function SignIn() {
                 type="email"
                 placeholder="you@company.com"
                 disabled
-                className="w-full rounded-xl border-2 border-gray-200 py-3 px-4 text-gray-400 bg-gray-50 cursor-not-allowed"
+                className="w-full rounded-xl border-2 border-slate-700 bg-slate-800/50 py-3 px-4 text-slate-500 cursor-not-allowed"
               />
               <button
                 disabled
-                className="w-full rounded-xl border-2 border-gray-200 bg-gray-100 py-3 px-4 text-gray-400 font-medium cursor-not-allowed"
+                className="w-full rounded-xl border-2 border-slate-700 bg-slate-800/30 py-3 px-4 text-slate-500 font-medium cursor-not-allowed"
               >
                 Get magic link (coming soon)
               </button>
@@ -78,17 +78,17 @@ export default function SignIn() {
           </div>
 
           {/* Footer */}
-          <p className="mt-8 text-xs text-gray-500 text-center">
+          <p className="mt-8 text-xs text-slate-400 text-center">
             By continuing, you agree to our{" "}
-            <Link href="/terms" className="underline hover:text-gray-900">Terms</Link>
+            <Link href="/terms" className="underline hover:text-white">Terms</Link>
             {" "}and{" "}
-            <Link href="/privacy" className="underline hover:text-gray-900">Privacy Policy</Link>.
+            <Link href="/privacy" className="underline hover:text-white">Privacy Policy</Link>.
           </p>
         </div>
 
         {/* Back to home */}
         <div className="mt-6 text-center">
-          <Link href="/" className="text-sm text-gray-600 hover:text-gray-900 transition">
+          <Link href="/" className="text-sm text-slate-400 hover:text-white transition">
             ← Back to home
           </Link>
         </div>

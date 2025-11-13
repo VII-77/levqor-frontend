@@ -1,3 +1,2 @@
 {
-  "ignoreCommand": "node -e \"const b=process.env.VERCEL_GIT_COMMIT_REF; const t=process.env.VERCEL_GIT_COMMIT_TAG; process.exit( (b==='main' || t) ? 0 : 1 )\""
 }

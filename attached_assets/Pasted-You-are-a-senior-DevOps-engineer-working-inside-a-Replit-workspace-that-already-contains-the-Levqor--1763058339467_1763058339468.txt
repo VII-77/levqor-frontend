@@ -1,0 +1,120 @@
+You are a senior DevOps engineer working inside a Replit workspace that already contains the Levqor frontend repo.
+
+GOAL
+- Fix the critical issues discovered in the DevOps audit:
+  1) Remove the broken `ignoreCommand` in `vercel.json` that is canceling deployments.
+  2) Remove `.env.production` from Git and ensure it is ignored going forward (NEXTAUTH_SECRET is rotated manually by the human in Vercel).
+  3) Clean up any stray Git locks.
+  4) Optionally remove obviously stale duplicate folders.
+  5) Re-verify that Vercel deploys are no longer being canceled.
+- You MUST show commands and key outputs for every step and stop if anything looks risky.
+
+ABSOLUTE RULES
+- Do NOT touch or print any secret values. Only work with filenames and variable names.
+- Do NOT rewrite Git history automatically (no filter-branch/filter-repo). Only remove the tracked file from HEAD and future commits.
+- Do NOT delete directories that contain anything not clearly a duplicate copy of `levqor-site` unless you are 100% certain.
+
+STEP 0 — ENTER PROJECT
+1. Show current directory and contents:
+   - Run: `pwd` and `ls`
+2. If you are not already inside `levqor-site`, run:
+   - `cd levqor-site`
+   - Then `pwd` and `ls` again.
+3. Confirm:
+   - `.git` exists
+   - `package.json` exists
+   - `vercel.json` exists (or not)
+
+STEP 1 — FIX BROKEN VERCEL ignoreCommand
+1. Show current `vercel.json`:
+   - `cat vercel.json || echo "NO_VERCEL_JSON"`
+2. If `vercel.json` contains an `"ignoreCommand"` that cancels deployments for `main`:
+   - Replace it with a minimal config that does **not** ignore anything for now:
+     - `printf '{\n}\n' > vercel.json`
+3. Show the new `vercel.json` content to confirm the change.
+4. Stage the change:
+   - `git add vercel.json`
+
+STEP 2 — REMOVE TRACKED .env.production FROM GIT
+(The human has already rotated NEXTAUTH_SECRET in Vercel; you just clean Git.)
+
+1. Check if `.env.production` is tracked:
+   - `git ls-files .env.production || echo "NOT_TRACKED"`
+2. If it is tracked:
+   - `git rm --cached .env.production`
+3. Ensure `.env.production` will be ignored going forward:
+   - If `.gitignore` exists:
+     - Append a line if missing:
+       - `grep -qxF '.env.production' .gitignore || echo '.env.production' >> .gitignore`
+   - If `.gitignore` does not exist:
+     - `echo '.env.production' > .gitignore`
+4. Stage changes:
+   - `git add .gitignore || true`
+
+STEP 3 — CLEAN UP GIT LOCKS (IF PRESENT)
+1. Check for lock:
+   - `ls .git/index.lock 2>/dev/null || echo "NO_LOCK"`
+2. If it exists:
+   - `rm -f .git/index.lock`
+   - Then run `git status` and show the output to confirm repo health.
+
+STEP 4 — OPTIONAL DUPLICATE FOLDER CLEANUP
+(Only if obviously safe. If unsure, SKIP and just report.)
+
+1. From the workspace root (one level above `levqor-site`), list directories:
+   - `cd .. && ls`
+2. If you see `Levqor-backend/` or `levqor-fresh/` that clearly contain old copies of the same project:
+   - For each, show: `ls Levqor-backend/` and/or `ls levqor-fresh/`
+3. If they are clearly duplicates / backups (e.g. contain another `levqor-site` and nothing unique):
+   - REMOVE THEM FROM GIT BUT NOT FROM LOCAL DISK:
+     - `git rm -r --cached Levqor-backend/ 2>/dev/null || true`
+     - `git rm -r --cached levqor-fresh/ 2>/dev/null || true`
+   - NOTE: if they are not part of the current repo root, just report what you see and do nothing.
+4. Add ignore rules to `.gitignore` at the repo root (the one that tracks `levqor-site`):
+   - Append, if not already present:
+     - `Levqor-backend/`
+     - `levqor-fresh/`
+
+STEP 5 — COMMIT AND PUSH FIXES
+1. Back inside the actual repo root (where `.git` lives), show:
+   - `git status`
+2. If there are staged changes (vercel.json, .env.production removal, .gitignore, optional folder removals):
+   - Commit with a clear message:
+     - `git commit -m "fix: unblock Vercel deploys and remove tracked env file"`
+3. Push to `main`:
+   - `git push origin main`
+4. Show confirmation of push.
+
+STEP 6 — VERIFY NEW DEPLOYMENT ON VERCEL
+(You cannot click the button, but you can guide and verify with curl.)
+
+1. After push, print a short instruction for the human:
+   - “Open Vercel → levqor-site → Deployments → Redeploy latest commit to Production (disable build cache).”
+2. Once the human confirms redeploy was triggered, run:
+   - `curl -sS -o /tmp/page.html -w "%{http_code}\n" https://www.levqor.ai`
+   - Show the HTTP status code (expect 200).
+   - Then:
+     - `grep -i "bg-slate-950" /tmp/page.html || echo "body class not found"`
+3. Summarize:
+   - Whether deployment is now in READY state (based on user input + behavior).
+   - Whether the new dark theme body class appears in HTML.
+
+STEP 7 — FINAL REPORT
+Produce a concise report with sections:
+
+A) WHAT I CHANGED
+   - List files modified (vercel.json, .env.production tracking, .gitignore, optional folders).
+   - Show final `vercel.json` and `.gitignore` (without secrets).
+
+B) WHAT THE HUMAN MUST STILL DO
+   - Confirm you have:
+     - Rotated NEXTAUTH_SECRET in Vercel (already instructed).
+     - Updated Cloudflare API token with correct scopes in Replit secrets.
+   - Triggered a production redeploy in the Vercel dashboard.
+
+C) VERIFICATION SUMMARY
+   - Git status: clean/not clean.
+   - Last push: succeeded/failed.
+   - Production URL check: HTTP status, and whether dark theme class is present.
+
+Do not stop after the first success; complete all steps and then print the report.

@@ -1,0 +1,333 @@
+You are the Replit AI Agent operating inside my Levqor frontend project.
+
+## ROLE & RULES
+
+- You are acting as senior full-stack engineer + compliance implementer.
+- Tech stack: Next.js 14 (App Router), TypeScript, Tailwind CSS v3, dark “Genesis v8” theme.
+- Repo: **levqor-site / levqor-frontend** (Next.js app for www.levqor.ai).
+- Backend: https://api.levqor.ai (already live; do NOT change).
+- Auth: NextAuth v4, Google + Microsoft OAuth (email magic link is OK as UI only for now).
+- Pricing: Done-for-you model: **£99 / £249 / £599** (keep as is).
+
+**Agent operating rules (MUST FOLLOW):**
+1. Always verify with real checks: `npm run build`, `curl`, `grep`, `ls`, `cat`, etc.
+2. Never assume “should work” – prove it with actual output (HTML, headers, status codes).
+3. Do not remove or break existing backend/auth/Stripe logic.
+4. Do not deploy or push git; just prepare code. I will deploy.
+5. Be surgical: only touch the files you need.
+6. If something is unclear, prefer minimal safe default over guessing.
+
+---
+
+## GOAL
+
+Make Levqor’s frontend **legally safer**, **visually consistent**, and **link-complete** by:
+
+1. Enhancing the **/signin** page (UX + legal text).
+2. Adding full **legal/compliance pages** (UK/GDPR-aware templates).
+3. Adding a **cookie banner** wired to the new cookie policy page.
+4. Updating the **footer** to link all core pages.
+5. Finding and fixing or replacing **broken internal links**.
+6. Keeping everything on the existing **Genesis v8 dark theme** with Tailwind.
+
+This work must be compatible with:
+- UK (London) context
+- GBP pricing
+- Stripe, NextAuth, Google OAuth
+- GDPR / UK GDPR basics (high-level, template only; not real legal advice).
+
+---
+
+## PHASE 0 – QUICK PROJECT RECON
+
+1. Move to project root and inspect structure:
+
+   - `cd ~/workspace/levqor-site || cd ~/workspace/levqor-frontend || pwd`
+   - `ls`
+   - `ls src`
+   - `ls src/app`
+   - `ls src/components`
+
+2. Confirm Tailwind & app router:
+
+   - `cat tailwind.config.js`
+   - `cat postcss.config.js`
+   - `ls src/app | sed 's/$/\\//'`
+
+3. Show key existing files (READ ONLY, no edits yet):
+
+   - `sed -n '1,200p' src/app/layout.tsx`
+   - `sed -n '1,260p' src/app/page.tsx`
+   - `sed -n '1,260p' src/app/signin/page.tsx || echo "no signin page"`
+   - `ls src/app/pricing && sed -n "1,260p" src/app/pricing/page.tsx 2>/dev/null || echo "no pricing page"`
+   - `ls src/components && sed -n "1,260p" src/components/Footer.tsx 2>/dev/null || echo "no Footer.tsx"`
+
+4. Print current routes so you know the landscape:
+
+   - Use `find src/app -maxdepth 3 -name "page.tsx" | sort`
+
+Do **not** change anything in this phase; just understand structure.
+
+---
+
+## PHASE 1 – SIGN-IN PAGE ENHANCEMENT
+
+### 1.1 Create or enhance `/signin` page
+
+If `src/app/signin/page.tsx` does not exist, create it. If it exists, enhance it.
+
+Requirements:
+- Dark Genesis v8 styling (bg-slate-950, matching homepage).
+- Centered card with:
+  - Title: “Sign in to Levqor”
+  - Subtitle: “Secure access to your automation workspace.”
+  - Button: “Continue with Google”
+  - Button: “Continue with Microsoft”
+  - Optional: disabled “Magic link (coming soon)” field/button (UI only).
+- Below the buttons add this text (with links):
+
+  - “By continuing, you agree to our **Terms of Service** and **Privacy Policy**.”
+  - Terms link: `/terms`
+  - Privacy link: `/privacy`
+
+Technical notes:
+- Use `"use client"` at the top.
+- Use Next.js `Link` from `next/link`.
+- Buttons should be visually clear, full width on mobile, with proper Tailwind classes.
+- DO NOT change actual NextAuth configuration here – this is UI only.
+
+Implementation:
+- Edit `src/app/signin/page.tsx` to meet all above requirements.
+- Keep existing sign-in functionality intact (if there are handlers/hooks, keep them).
+
+---
+
+## PHASE 2 – LEGAL / COMPLIANCE PAGES
+
+Create **new pages** under `src/app`:
+
+1. `src/app/privacy/page.tsx`      → Privacy Policy
+2. `src/app/terms/page.tsx`        → Terms of Service
+3. `src/app/cookies/page.tsx`      → Cookie Policy
+4. `src/app/refunds/page.tsx`      → Refund & Cancellation Policy
+5. `src/app/security/page.tsx`     → Security & Data Protection
+6. `src/app/legal/data-processing/page.tsx` → Data Processing Addendum (DPA) (short form)
+
+All pages must:
+
+- Use the same Genesis v8 dark theme:
+  - Top-level wrapper: `className="min-h-screen bg-slate-950 text-slate-50"`
+  - Content container: `max-w-3xl mx-auto px-4 py-12 space-y-6`
+- Use `<main>` with `<h1>`, sections with `<h2>`, and paragraphs `<p>`.
+
+Content requirements (high-level, template style, non-legal advice):
+
+- Mention:
+  - Levqor (as the service name).
+  - UK/Europe and UK GDPR context (e.g. “If you are in the UK or EU…”).
+  - Data types: account details, usage logs, error reports, payment info handled by Stripe.
+  - Third-party processors: Stripe, Vercel, Replit, Neon, Cloudflare, Resend (if already referenced), Google/Microsoft for auth.
+  - Retention basics (e.g. keep logs for X months, payment records for tax).
+  - User rights: access, correction, deletion (subject to legal limits).
+  - Disclaimers: “This is not legal advice. You are responsible for your own use of the platform.”
+  - Automation disclosure: the system performs automated monitoring, alerting, and workflow execution.
+
+Specific notes per page:
+
+- **Privacy Policy**:
+  - Sections: Who we are; Data we collect; How we use it; Legal basis; Processors; Data retention; Your rights; Contact.
+  - Contact: `support@levqor.ai` and `security@levqor.ai`.
+
+- **Terms of Service**:
+  - Sections: Use of service; Account responsibilities; Acceptable use (no abuse, spam, illegal workflows); Payment and billing; No guarantees/limitations of liability (template level); Termination; Governing law (England & Wales); Dispute resolution (simple clause).
+
+- **Cookie Policy**:
+  - Explain essential vs. analytics cookies.
+  - Note that some cookies are necessary for login and security.
+  - Tie into the cookie banner (see Phase 3).
+
+- **Refund Policy**:
+  - Reflect done-for-you workflow model:
+    - Clarify that work involves configuration and engineering time.
+    - State a clear, reasonable refund stance (e.g. limited refund window or no refunds after delivery start, depending on your preference).
+    - Make the policy conservative but not hostile.
+  - Do NOT promise unrealistic guarantees.
+
+- **Security**:
+  - Explain: encryption in transit (HTTPS), limited access, logs, backups.
+  - Mention that no system is 100% secure and users must secure their own accounts (2FA, strong passwords etc.).
+
+- **Data Processing Addendum (DPA)**:
+  - Short form:
+    - Clarify roles (Levqor as processor in some cases, controller in others).
+    - Reference main Terms and Privacy.
+    - Mention that more formal DPA can be provided on request.
+  - This is a high-level template, not a formal contract.
+
+Important:
+- Do NOT claim full legal compliance.
+- Include a simple line in Privacy + Terms + DPA:
+
+  > “This document is a standard template and does not constitute legal advice.”
+
+---
+
+## PHASE 3 – COOKIE BANNER
+
+Create a simple cookie banner that:
+
+- Appears on first visit.
+- Stores consent in `localStorage` (key like `levqor_cookie_consent`).
+- After user clicks “Accept”, the banner hides and stays hidden.
+- Links to `/cookies`.
+
+Implementation steps:
+
+1. Create `src/components/CookieBanner.tsx`:
+
+   - `"use client"` at the top.
+   - Use `useState` and `useEffect` to load/save consent from `localStorage`.
+   - Render a bottom fixed banner, something like:
+
+     - Text: “We use essential and analytics cookies to run Levqor. See our Cookie Policy for details.”
+     - Button: “Accept”
+     - Link: “Cookie Policy” → `/cookies`.
+
+   - Dark theme styles consistent with Genesis v8: slate backgrounds, emerald or blue accent button.
+
+2. Wire into layout:
+
+   - Open `src/app/layout.tsx`.
+   - Import `CookieBanner` from `@/components/CookieBanner` (adjust path if needed).
+   - Render `<CookieBanner />` near the bottom of the body (but inside `<body>`).
+
+3. Ensure it does not interfere with sign-in forms (z-index high enough, but not covering core content on small screens).
+
+---
+
+## PHASE 4 – FOOTER & NAV LINKS
+
+Ensure `Footer.tsx` (or equivalent) exists and includes:
+
+- Levqor brand name.
+- © year line (use current year if convenient).
+- Links (use `next/link`):
+
+  - `/pricing`
+  - `/signin`
+  - `/terms`
+  - `/privacy`
+  - `/cookies`
+  - `/refunds`
+  - `/security`
+  - `/legal/data-processing`
+  - `/contact` (if route exists; otherwise add a simple contact page or remove link)
+
+Steps:
+
+1. If `src/components/Footer.tsx` exists, update it:
+   - Ensure a flex layout with wrap on mobile.
+   - Tailwind dark theme classes.
+   - Add the above links.
+
+2. Ensure `layout.tsx` uses `<Footer />` once at the bottom of the main layout.
+
+3. If `/contact` route doesn’t exist but is linked:
+   - Either create `src/app/contact/page.tsx` (simple contact info page with support email).
+   - Or remove the link; choose whichever keeps UX clean and consistent.
+
+---
+
+## PHASE 5 – BROKEN LINK AUDIT & FIX
+
+Systematically find internal links and make sure they resolve:
+
+1. Run:
+
+   - `rg "href=\\\"/" src/app src/components || echo "no hrefs found"`
+   - `rg "Link " src/app src/components || echo "no Link components"`
+
+2. List all internal paths referenced:
+
+   - `/pricing`
+   - `/signin`
+   - `/docs` (if any)
+   - `/contact`
+   - `/demo`
+   - `/workflow`
+   - etc.
+
+3. For each internal path:
+
+   - If there is a `src/app/<slug>/page.tsx` (or nested route) → OK.
+   - If NOT, do one of:
+     - If it’s clearly a future feature we are not ready to expose:
+       - Change nav/footer link to a real existing page (e.g. `/contact` or `/pricing`).
+     - If it’s a simple content page we can add quickly (docs/placeholder/demo/contact):
+       - Create a small dark-theme page with “Coming soon” or high-level description.
+       - Example: `src/app/docs/page.tsx` with “Levqor documentation is coming soon. For now, contact support@levqor.ai.”
+
+4. Specifically ensure `/workflow` and `/api/workflows` handling:
+
+   - Do NOT delete any existing `/workflow` page or `/api/workflows` route.
+   - Just confirm they compile and do not link to non-existent pages.
+
+---
+
+## PHASE 6 – BUILD & LOCAL VERIFICATION
+
+1. Type check & build:
+
+   - `npm run lint 2>&1 || echo "lint failed (note output above)"`
+   - `npm run build 2>&1 | tail -80`
+
+   If build fails:
+   - Show full error context (`tail -200`).
+   - Fix issues, re-run until `npm run build` passes.
+
+2. Static asset check (optional but ideal if a dev server is running):
+
+   - If you can run dev server: `npm run dev` in separate process.
+   - Then:
+
+     - `curl -sSI http://localhost:3000 | head -10`
+     - `curl -sS http://localhost:3000 | grep -o "Genesis v8" | head -5 || echo "no Genesis v8 in HTML"`
+     - `curl -sS http://localhost:3000/signin | grep -o "Sign in to Levqor" | head -5 || echo "no signin heading"`
+     - `curl -sS http://localhost:3000/privacy | grep -o "Privacy Policy" | head -5 || echo "no privacy heading"`
+     - `curl -sS http://localhost:3000/terms | grep -o "Terms of Service" | head -5 || echo "no terms heading"`
+
+   - If you cannot run dev server here, skip curl but ensure build passes.
+
+---
+
+## PHASE 7 – FINAL SUMMARY FOR ME
+
+At the end, DO NOT deploy.  
+Instead, output a clear summary for me including:
+
+1. **Files created** (full paths).
+2. **Files modified** (full paths).
+3. A one-line summary for each new/changed page:
+   - `/signin`
+   - `/privacy`
+   - `/terms`
+   - `/cookies`
+   - `/refunds`
+   - `/security`
+   - `/legal/data-processing`
+   - any new `/contact`, `/docs`, `/demo`, etc.
+4. Any internal links you removed or changed.
+5. Exact commands I should run to commit and deploy (for my reference only), e.g.:
+
+   - `cd ~/workspace/levqor-site`
+   - `git status`
+   - `git add <list of files>`
+   - `git commit -m "feat: add legal pages, cookie banner, and improved signin UX"`
+   - `git push origin main`
+
+6. Call out any remaining TODOs or legal caveats, e.g.:
+   - “These policies are templates, not legal advice.”
+   - “Consider having a solicitor review before launch.”
+
+Execute all phases now, in order, and show me the final summary when done.
+```0

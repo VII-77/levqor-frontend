@@ -10,27 +10,28 @@ export default function Footer() {
           <div>
             <h3 className="text-white font-bold mb-4">Product</h3>
             <ul className="space-y-2">
-              <li><Link href="/#pricing" className="text-slate-400 hover:text-white transition text-sm">Pricing</Link></li>
+              <li><Link href="/pricing" className="text-slate-400 hover:text-white transition text-sm">Pricing</Link></li>
               <li><Link href="/docs" className="text-slate-400 hover:text-white transition text-sm">Documentation</Link></li>
-              <li><Link href="/signin" className="text-slate-400 hover:text-white transition text-sm">Start Free Audit</Link></li>
+              <li><Link href="/signin" className="text-slate-400 hover:text-white transition text-sm">Sign In</Link></li>
             </ul>
           </div>
           
           <div>
             <h3 className="text-white font-bold mb-4">Company</h3>
             <ul className="space-y-2">
-              <li><Link href="/about" className="text-slate-400 hover:text-white transition text-sm">About</Link></li>
               <li><Link href="/contact" className="text-slate-400 hover:text-white transition text-sm">Contact</Link></li>
               <li><Link href="/security" className="text-slate-400 hover:text-white transition text-sm">Security</Link></li>
             </ul>
           </div>
           
           <div>
-            <h3 className="text-white font-bold mb-4">Resources</h3>
+            <h3 className="text-white font-bold mb-4">Legal</h3>
             <ul className="space-y-2">
-              <li><Link href="/faq" className="text-slate-400 hover:text-white transition text-sm">FAQ</Link></li>
               <li><Link href="/terms" className="text-slate-400 hover:text-white transition text-sm">Terms</Link></li>
               <li><Link href="/privacy" className="text-slate-400 hover:text-white transition text-sm">Privacy</Link></li>
+              <li><Link href="/cookies" className="text-slate-400 hover:text-white transition text-sm">Cookies</Link></li>
+              <li><Link href="/refunds" className="text-slate-400 hover:text-white transition text-sm">Refunds</Link></li>
+              <li><Link href="/legal/data-processing" className="text-slate-400 hover:text-white transition text-sm">DPA</Link></li>
             </ul>
           </div>
           
@@ -40,10 +41,10 @@ export default function Footer() {
               Start automating your business in 48 hours.
             </p>
             <Link 
-              href="/signin" 
-              className="inline-block px-4 py-2 bg-white text-black rounded-lg font-semibold hover:bg-slate-100 transition text-sm"
+              href="/pricing" 
+              className="inline-block px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-900 rounded-lg font-semibold transition text-sm"
             >
-              Free Audit →
+              View Pricing →
             </Link>
           </div>
         </div>

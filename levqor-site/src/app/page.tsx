@@ -50,140 +50,231 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen px-4">
+    <>
       <JsonLd data={structuredData} />
       
-      {/* Hero Section */}
-      <section className="max-w-6xl mx-auto pt-16 pb-10">
-        <div className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs">
-          <span className="h-2 w-2 rounded-full bg-green-500" />
-          Genesis v8.0 · Self-healing automation
-        </div>
-        <h1 className="mt-6 text-4xl sm:text-6xl font-bold tracking-tight">
-          Automate work. <span className="opacity-80">Ship faster.</span>
-        </h1>
-        <p className="mt-4 max-w-2xl text-lg text-neutral-600">
-          Run workflows, monitor failures, and self-heal. Email, Sheets, Slack, CRM.
-        </p>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Link href="/signin" className="rounded-xl px-4 py-2 bg-black text-white hover:bg-gray-800 transition">
-            Start free trial
-          </Link>
-          <Link href="/pricing" className="rounded-xl px-4 py-2 border hover:bg-gray-50 transition">
-            See pricing
-          </Link>
-        </div>
-      </section>
-
-      {/* Feature Tiles */}
-      <section className="max-w-6xl mx-auto grid sm:grid-cols-2 lg:grid-cols-4 gap-4 pb-14">
-        {[
-          ["Self-healing runs", "Auto-retry with backoff"],
-          ["Visual builder", "Drag-drop steps"],
-          ["Smart diff", "Isolate failures fast"],
-          ["Audit trail", "Each fix recorded"]
-        ].map(([t, s]) => (
-          <div key={t} className="rounded-2xl border p-4">
-            <div className="text-base font-semibold">{t}</div>
-            <div className="text-sm text-neutral-600">{s}</div>
+      {/* Navigation Header */}
+      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b">
+        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-8">
+            <Link href="/" className="text-xl font-bold">
+              Levqor
+            </Link>
+            <div className="hidden md:flex gap-6">
+              <Link href="/pricing" className="text-sm text-gray-600 hover:text-black transition">Pricing</Link>
+              <Link href="/docs" className="text-sm text-gray-600 hover:text-black transition">Docs</Link>
+              <Link href="/contact" className="text-sm text-gray-600 hover:text-black transition">Contact</Link>
+            </div>
           </div>
-        ))}
-      </section>
+          <Link href="/signin" className="px-4 py-2 text-sm font-medium rounded-lg border hover:bg-gray-50 transition">
+            Sign in
+          </Link>
+        </nav>
+      </header>
 
-      {/* Trust Band */}
-      <section className="bg-gray-100 py-12 -mx-4">
-        <div className="max-w-6xl mx-auto px-6 text-center">
-          <p className="text-sm text-gray-600 mb-6 font-medium uppercase tracking-wide">
-            Trusted by teams building with AI
+      <main className="min-h-screen">
+        {/* Hero Section */}
+        <section className="max-w-6xl mx-auto px-4 pt-20 pb-16">
+          <div className="max-w-4xl">
+            <div className="inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-3 py-1 text-xs text-green-700 font-medium mb-6">
+              <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+              Genesis v8.0 · Self-healing automation
+            </div>
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight mb-6">
+              Automate work. <span className="text-gray-500">Ship faster.</span>
+            </h1>
+            <p className="text-xl text-gray-600 mb-8 max-w-2xl">
+              Self-healing automation for workflows, monitoring, alerts, and runbooks. 
+              Email, Sheets, Slack, CRM.
+            </p>
+            
+            {/* Primary CTAs */}
+            <div className="flex flex-wrap gap-4 mb-6">
+              <Link 
+                href="/signin" 
+                className="inline-flex items-center gap-2 px-6 py-3 bg-black text-white rounded-xl font-semibold hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl"
+              >
+                Start free trial
+              </Link>
+              <Link 
+                href="/contact" 
+                className="inline-flex items-center gap-2 px-6 py-3 border-2 border-gray-200 rounded-xl font-semibold hover:bg-gray-50 transition-all"
+              >
+                Book a demo
+              </Link>
+            </div>
+
+            {/* Auth CTAs */}
+            <div className="flex flex-wrap gap-3">
+              <Link 
+                href="/signin" 
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                Sign in with Google
+              </Link>
+              <Link 
+                href="/signin?method=magic-link" 
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                Get magic link
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* Colorful Feature Tiles */}
+        <section className="max-w-6xl mx-auto px-4 pb-16">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="rounded-2xl p-6 bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 hover:shadow-lg transition-all">
+              <div className="text-2xl mb-3">🔄</div>
+              <h3 className="text-lg font-bold mb-2 text-gray-900">Self-healing runs</h3>
+              <p className="text-sm text-gray-700">Auto-retry with backoff. No manual intervention.</p>
+            </div>
+            
+            <div className="rounded-2xl p-6 bg-gradient-to-br from-violet-50 to-violet-100 border border-violet-200 hover:shadow-lg transition-all">
+              <div className="text-2xl mb-3">🎨</div>
+              <h3 className="text-lg font-bold mb-2 text-gray-900">Visual builder</h3>
+              <p className="text-sm text-gray-700">Drag-drop steps. No wall of YAML.</p>
+            </div>
+            
+            <div className="rounded-2xl p-6 bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200 hover:shadow-lg transition-all">
+              <div className="text-2xl mb-3">🔍</div>
+              <h3 className="text-lg font-bold mb-2 text-gray-900">Smart diff</h3>
+              <p className="text-sm text-gray-700">Isolate failures fast with intelligent comparison.</p>
+            </div>
+            
+            <div className="rounded-2xl p-6 bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200 hover:shadow-lg transition-all">
+              <div className="text-2xl mb-3">📋</div>
+              <h3 className="text-lg font-bold mb-2 text-gray-900">Audit trail</h3>
+              <p className="text-sm text-gray-700">Each fix recorded. Full transparency.</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Trust Band */}
+        <section className="bg-gradient-to-r from-gray-50 to-gray-100 py-12">
+          <div className="max-w-6xl mx-auto px-6 text-center">
+            <p className="text-sm text-gray-600 mb-6 font-medium uppercase tracking-wide">
+              Trusted by teams building with AI
+            </p>
+            <div className="flex flex-wrap justify-center gap-8 opacity-60">
+              {["TechCorp", "DataFlow", "AutoScale", "CloudSync", "DevOps Pro"].map((logo) => (
+                <div key={logo} className="bg-white px-6 py-3 rounded-lg shadow-sm font-bold text-gray-700">
+                  {logo}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Features Grid */}
+        <section className="max-w-6xl mx-auto px-4 py-20">
+          <h2 className="text-4xl font-bold text-center mb-4">Why teams choose Levqor</h2>
+          <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
+            Built for self-healing automation with enterprise-grade reliability
           </p>
-          <div className="flex flex-wrap justify-center gap-8 opacity-60">
-            {["TechCorp", "DataFlow", "AutoScale", "CloudSync", "DevOps Pro"].map((logo) => (
-              <div key={logo} className="bg-white px-6 py-3 rounded-lg shadow-sm font-bold text-gray-700">
-                {logo}
-              </div>
-            ))}
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="bg-gradient-to-br from-blue-50 to-white p-6 rounded-2xl border border-blue-100 hover:shadow-xl transition-all">
+              <div className="text-4xl mb-4">🔄</div>
+              <h3 className="text-xl font-bold mb-3">Self-healing runs</h3>
+              <ul className="space-y-2 text-sm text-gray-600">
+                <li className="flex items-start gap-2"><span className="text-blue-500 mt-0.5">✓</span><span>Auto-retry with exponential backoff</span></li>
+                <li className="flex items-start gap-2"><span className="text-blue-500 mt-0.5">✓</span><span>Smart diff to isolate failures</span></li>
+                <li className="flex items-start gap-2"><span className="text-blue-500 mt-0.5">✓</span><span>Audit trail for each fix</span></li>
+              </ul>
+            </div>
+            
+            <div className="bg-gradient-to-br from-violet-50 to-white p-6 rounded-2xl border border-violet-100 hover:shadow-xl transition-all">
+              <div className="text-4xl mb-4">🎨</div>
+              <h3 className="text-xl font-bold mb-3">Visual builder</h3>
+              <ul className="space-y-2 text-sm text-gray-600">
+                <li className="flex items-start gap-2"><span className="text-violet-500 mt-0.5">✓</span><span>Drag-drop workflow steps</span></li>
+                <li className="flex items-start gap-2"><span className="text-violet-500 mt-0.5">✓</span><span>Inline AI prompts</span></li>
+                <li className="flex items-start gap-2"><span className="text-violet-500 mt-0.5">✓</span><span>Versioned blueprints</span></li>
+              </ul>
+            </div>
+            
+            <div className="bg-gradient-to-br from-emerald-50 to-white p-6 rounded-2xl border border-emerald-100 hover:shadow-xl transition-all">
+              <div className="text-4xl mb-4">🔐</div>
+              <h3 className="text-xl font-bold mb-3">Enterprise SSO</h3>
+              <ul className="space-y-2 text-sm text-gray-600">
+                <li className="flex items-start gap-2"><span className="text-emerald-500 mt-0.5">✓</span><span>SAML/OIDC support</span></li>
+                <li className="flex items-start gap-2"><span className="text-emerald-500 mt-0.5">✓</span><span>Role-based access control</span></li>
+                <li className="flex items-start gap-2"><span className="text-emerald-500 mt-0.5">✓</span><span>Organization audit log</span></li>
+              </ul>
+            </div>
+            
+            <div className="bg-gradient-to-br from-amber-50 to-white p-6 rounded-2xl border border-amber-100 hover:shadow-xl transition-all">
+              <div className="text-4xl mb-4">⚡</div>
+              <h3 className="text-xl font-bold mb-3">SLA 99.9%</h3>
+              <ul className="space-y-2 text-sm text-gray-600">
+                <li className="flex items-start gap-2"><span className="text-amber-500 mt-0.5">✓</span><span>Global edge network</span></li>
+                <li className="flex items-start gap-2"><span className="text-amber-500 mt-0.5">✓</span><span>Warm starts</span></li>
+                <li className="flex items-start gap-2"><span className="text-amber-500 mt-0.5">✓</span><span>Priority support lanes</span></li>
+              </ul>
+            </div>
+            
+            <div className="bg-gradient-to-br from-rose-50 to-white p-6 rounded-2xl border border-rose-100 hover:shadow-xl transition-all">
+              <div className="text-4xl mb-4">📊</div>
+              <h3 className="text-xl font-bold mb-3">Audit & alerts</h3>
+              <ul className="space-y-2 text-sm text-gray-600">
+                <li className="flex items-start gap-2"><span className="text-rose-500 mt-0.5">✓</span><span>Structured execution logs</span></li>
+                <li className="flex items-start gap-2"><span className="text-rose-500 mt-0.5">✓</span><span>PagerDuty/Slack webhooks</span></li>
+                <li className="flex items-start gap-2"><span className="text-rose-500 mt-0.5">✓</span><span>PII-aware log redaction</span></li>
+              </ul>
+            </div>
+            
+            <div className="bg-gradient-to-br from-cyan-50 to-white p-6 rounded-2xl border border-cyan-100 hover:shadow-xl transition-all">
+              <div className="text-4xl mb-4">💳</div>
+              <h3 className="text-xl font-bold mb-3">Stripe billing</h3>
+              <ul className="space-y-2 text-sm text-gray-600">
+                <li className="flex items-start gap-2"><span className="text-cyan-500 mt-0.5">✓</span><span>Usage-based pricing</span></li>
+                <li className="flex items-start gap-2"><span className="text-cyan-500 mt-0.5">✓</span><span>Trials and coupon codes</span></li>
+                <li className="flex items-start gap-2"><span className="text-cyan-500 mt-0.5">✓</span><span>Exportable VAT invoices</span></li>
+              </ul>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Features Grid */}
-      <section className="max-w-6xl mx-auto px-6 py-20">
-        <h2 className="text-3xl font-bold text-center mb-12">Why teams choose Levqor</h2>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <div className="bg-white p-6 rounded-2xl shadow-sm border hover:shadow-md transition-shadow">
-            <div className="text-4xl mb-4">🔄</div>
-            <h3 className="text-xl font-bold mb-3">Self-healing runs</h3>
-            <ul className="space-y-2 text-sm text-gray-600">
-              <li className="flex items-start gap-2"><span className="text-black mt-0.5">•</span><span>Auto-retry with exponential backoff</span></li>
-              <li className="flex items-start gap-2"><span className="text-black mt-0.5">•</span><span>Smart diff to isolate failures</span></li>
-              <li className="flex items-start gap-2"><span className="text-black mt-0.5">•</span><span>Audit trail for each fix</span></li>
-            </ul>
+        {/* CTA Section */}
+        <section className="bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white py-24">
+          <div className="max-w-4xl mx-auto px-6 text-center">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+              Ready to automate your workflows?
+            </h2>
+            <p className="text-xl text-gray-300 mb-10">
+              Start building with Levqor today. No credit card required.
+            </p>
+            <div className="flex flex-wrap justify-center gap-4">
+              <Link
+                href="/signin"
+                className="inline-block px-8 py-4 bg-white text-black rounded-xl font-semibold hover:bg-gray-100 transition-all text-lg shadow-2xl"
+              >
+                Get started with Levqor
+              </Link>
+              <Link
+                href="/pricing"
+                className="inline-block px-8 py-4 bg-transparent border-2 border-white text-white rounded-xl font-semibold hover:bg-white hover:text-black transition-all text-lg"
+              >
+                See pricing
+              </Link>
+            </div>
+            <p className="mt-8 text-sm text-gray-400">
+              No long-term contracts. Cancel anytime.
+            </p>
           </div>
-          <div className="bg-white p-6 rounded-2xl shadow-sm border hover:shadow-md transition-shadow">
-            <div className="text-4xl mb-4">🎨</div>
-            <h3 className="text-xl font-bold mb-3">Visual builder</h3>
-            <ul className="space-y-2 text-sm text-gray-600">
-              <li className="flex items-start gap-2"><span className="text-black mt-0.5">•</span><span>Drag-drop workflow steps</span></li>
-              <li className="flex items-start gap-2"><span className="text-black mt-0.5">•</span><span>Inline AI prompts</span></li>
-              <li className="flex items-start gap-2"><span className="text-black mt-0.5">•</span><span>Versioned blueprints</span></li>
-            </ul>
-          </div>
-          <div className="bg-white p-6 rounded-2xl shadow-sm border hover:shadow-md transition-shadow">
-            <div className="text-4xl mb-4">🔐</div>
-            <h3 className="text-xl font-bold mb-3">Enterprise SSO</h3>
-            <ul className="space-y-2 text-sm text-gray-600">
-              <li className="flex items-start gap-2"><span className="text-black mt-0.5">•</span><span>SAML/OIDC support</span></li>
-              <li className="flex items-start gap-2"><span className="text-black mt-0.5">•</span><span>Role-based access control</span></li>
-              <li className="flex items-start gap-2"><span className="text-black mt-0.5">•</span><span>Organization audit log</span></li>
-            </ul>
-          </div>
-          <div className="bg-white p-6 rounded-2xl shadow-sm border hover:shadow-md transition-shadow">
-            <div className="text-4xl mb-4">⚡</div>
-            <h3 className="text-xl font-bold mb-3">SLA 99.9%</h3>
-            <ul className="space-y-2 text-sm text-gray-600">
-              <li className="flex items-start gap-2"><span className="text-black mt-0.5">•</span><span>Global edge network</span></li>
-              <li className="flex items-start gap-2"><span className="text-black mt-0.5">•</span><span>Warm starts</span></li>
-              <li className="flex items-start gap-2"><span className="text-black mt-0.5">•</span><span>Priority support lanes</span></li>
-            </ul>
-          </div>
-          <div className="bg-white p-6 rounded-2xl shadow-sm border hover:shadow-md transition-shadow">
-            <div className="text-4xl mb-4">📊</div>
-            <h3 className="text-xl font-bold mb-3">Audit & alerts</h3>
-            <ul className="space-y-2 text-sm text-gray-600">
-              <li className="flex items-start gap-2"><span className="text-black mt-0.5">•</span><span>Structured execution logs</span></li>
-              <li className="flex items-start gap-2"><span className="text-black mt-0.5">•</span><span>PagerDuty/Slack webhooks</span></li>
-              <li className="flex items-start gap-2"><span className="text-black mt-0.5">•</span><span>PII-aware log redaction</span></li>
-            </ul>
-          </div>
-          <div className="bg-white p-6 rounded-2xl shadow-sm border hover:shadow-md transition-shadow">
-            <div className="text-4xl mb-4">💳</div>
-            <h3 className="text-xl font-bold mb-3">Stripe billing</h3>
-            <ul className="space-y-2 text-sm text-gray-600">
-              <li className="flex items-start gap-2"><span className="text-black mt-0.5">•</span><span>Usage-based pricing</span></li>
-              <li className="flex items-start gap-2"><span className="text-black mt-0.5">•</span><span>Trials and coupon codes</span></li>
-              <li className="flex items-start gap-2"><span className="text-black mt-0.5">•</span><span>Exportable VAT invoices</span></li>
-            </ul>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="bg-black text-white py-20 -mx-4">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Ready to automate your workflows?
-          </h2>
-          <p className="text-xl text-gray-300 mb-8">
-            Start building with Levqor today. No credit card required.
-          </p>
-          <Link
-            href="/signin"
-            className="inline-block px-8 py-4 bg-white text-black rounded-xl font-semibold hover:bg-gray-100 transition-colors text-lg"
-          >
-            Start free trial
-          </Link>
-        </div>
-      </section>
-    </main>
+        </section>
+      </main>
+    </>
   );
 }

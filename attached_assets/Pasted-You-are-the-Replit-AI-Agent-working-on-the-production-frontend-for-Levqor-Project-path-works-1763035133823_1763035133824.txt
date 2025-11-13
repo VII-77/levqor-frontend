@@ -1,0 +1,260 @@
+You are the Replit AI Agent working on the production frontend for Levqor:
+
+  Project path:  ~/workspace/levqor-site
+  Tech:          Next.js (App Router), TypeScript, NextAuth, Vercel
+  Domain:        https://levqor.ai  (project “levqor-site” in Vercel)
+
+GOAL (NON-NEGOTIABLE)
+1. Implement a **proper Genesis v8 landing page**:
+   - Strong hero with Levqor brand & logo
+   - Coloured tiles/cards for value props
+   - Clear sections and hierarchy (not plain white)
+2. Polish the **/signin** experience:
+   - Clean, branded sign-in page
+   - Visible options: “Sign in with Google” and “Get magic link”
+   - DO NOT break existing NextAuth/auth config
+3. Verify with real commands (lint + build), then **git commit + push** to `main` so Vercel deploys.
+4. Prove deployment with real checks (HTML grep, curl, etc.).
+
+HARD RULES
+- Do NOT change environment variables, secrets, or backend auth adapters.
+- Do NOT add heavy backend dependencies (no Prisma, no DB migrations, no new adapters).
+- Auth logic (NextAuth config, callbacks, providers) should remain intact unless you see a clearly wrong import/version mismatch that prevents build.
+- Keep changes focused on:
+  - `src/app/page.tsx` (homepage)
+  - `src/app/signin/page.*` or equivalent sign-in route
+  - Any minimal styling files needed (e.g., `globals.css` or a tokens CSS file)
+- Every time you “think something should work”, VERIFY it:
+  - Run `npm run lint` and `npm run build`
+  - Use `curl` + `grep` to confirm deployed HTML on levqor.ai
+
+──────────────────────────────── PHASE 0 – SANITY CHECK
+
+1. Confirm project and structure:
+   - Run:
+     - `pwd`
+     - `ls`
+     - `ls src`
+     - `ls src/app`
+   - Ensure we are in `~/workspace/levqor-site` and Next.js App Router is active (e.g., `src/app/page.tsx` exists).
+
+2. Detect styling system:
+   - Run:
+     - `ls src/app | grep -E "globals\\.css|global\\.css" || echo "no globals"`
+     - `ls | grep tailwind || ls src | grep tailwind || echo "no tailwind file"`
+   - If Tailwind is configured (tailwind.config.* present and used), use Tailwind classes.
+   - If not, extend existing CSS approach (global or CSS modules).
+
+3. Locate sign-in route:
+   - Run:
+     - `find src/app -maxdepth 3 -type f | grep -E "signin|sign-in|auth" || echo "no explicit signin page"`
+   - Identify the file that renders the sign-in form (e.g., `src/app/signin/page.tsx`).
+
+Show a short summary (in the log) of:
+- Styling approach (Tailwind vs plain CSS).
+- Homepage file path.
+- Sign-in page path.
+
+──────────────────────────────── PHASE 1 – AUDIT CURRENT HOMEPAGE
+
+1. Print the current homepage:
+   - `sed -n '1,220p' src/app/page.tsx`
+2. Briefly assess:
+   - Is it mostly plain white with little structure?
+   - Does it lack coloured tiles/cards and a strong hero?
+
+Do NOT change anything yet—just inspect and understand.
+
+──────────────────────────────── PHASE 2 – IMPLEMENT GENESIS v8 HOMEPAGE
+
+You will now REPLACE the current homepage content with a more polished Genesis v8 landing layout.
+
+REQUIREMENTS:
+
+A. Layout + structure
+- Use `<main>` as root in `page.tsx`.
+- Top-level sections:
+  1) Header/nav
+  2) Hero
+  3) “Why teams choose Levqor” tiles
+  4) Social proof / logos strip
+  5) Features section
+  6) CTA footer
+
+B. Header / Nav
+- Left: simple Levqor logo area:
+  - Either text “Levqor” with a small accent (and maybe a tiny SVG mark), or reuse any existing logo component if present.
+- Right: links:
+  - “Pricing” → `/pricing`
+  - “Docs”    → `/docs` (or whatever route exists; if none, link to `#features` anchor)
+  - “Contact” → `/contact` (or `mailto:founders@levqor.ai` if no route)
+  - “Sign in” button → `/signin`
+- Use a light border or subtle background to visually separate the header.
+
+C. Hero section
+- Large headline: `Automate work. Ship faster.`
+- Subheading emphasizing self-healing automation, e.g.:
+  `Self-healing workflows that monitor failures, auto-recover, and keep your operations running while you sleep.`
+- Two primary CTAs (buttons):
+  - Primary: “Start free trial” → `/signin` or `/signup` (use `/signin` if no signup route).
+  - Secondary: “See pricing” → `/pricing`.
+- Auth callouts:
+  - “Sign in with Google” button that routes to `/signin` (no auth logic change, just link).
+  - “Get magic link” button that routes to `/signin?method=magic-link` (UI only).
+- Visual:
+  - On desktop: text on left, a simple “dashboard preview” card stack on right.
+  - On mobile: stack vertically.
+  - Use brand-like colours (e.g. deep slate/indigo background for hero, bright accent on the primary button) using Tailwind or existing CSS.
+
+D. “Why teams choose Levqor” coloured tiles
+Add a section with a responsive card grid (tiles). At least 4 tiles; for example:
+
+- Tile 1 – “Self-healing runs”
+  - Text: “Automatic retries and fallbacks so you don’t babysit workflows.”
+- Tile 2 – “Visual builder”
+  - Text: “Design automations like Lego – no wall of YAML.”
+- Tile 3 – “Signals, not noise”
+  - Text: “Alerting that highlights real incidents, not every log line.”
+- Tile 4 – “Compliance-ready”
+  - Text: “Audit trails and access control ready for your governance team.”
+
+Styling:
+- Each tile should:
+  - Have a coloured background (soft blues, purples, greens).
+  - Use rounded corners and a subtle shadow.
+  - Have icons or simple badges if easy (optional).
+  - Be in a responsive grid (1 column mobile, 2 tablet, up to 4 on desktop).
+
+E. Social proof / logos strip
+- A section under the tiles:
+  - Heading: `Trusted by teams that can’t afford downtime`
+  - Row of placeholder logos (e.g., “Acme”, “Northwind”, etc.) or small neutral shapes, styled to look like muted brand strips.
+
+F. Features section
+- Two-column layout:
+  - Left:
+    - Heading: `Built for self-healing automation`
+    - Short paragraph.
+    - Bullet list, e.g.:
+      - “Runbooks with guardrails and approvals”
+      - “Multi-step workflows with retries and fallbacks”
+      - “End-to-end tracing from trigger to outcome”
+  - Right:
+    - A styled code block or pseudo-flow diagram (boxes with arrows) representing a workflow pipeline.
+- Ensure good spacing and visual hierarchy (bigger font sizes for headings, etc.).
+
+G. CTA footer
+- Final section at bottom:
+  - Heading: `Ready to automate the boring parts?`
+  - Supporting text: “Start in minutes. No long-term contracts.”
+  - Button: “Get started with Levqor” → `/signin` (or `/signup` if you have one).
+- Simple, centered, visually distinct from previous sections.
+
+IMPLEMENTATION:
+
+1. Edit `src/app/page.tsx`:
+   - Preserve the default export signature required by the Next.js App Router.
+   - Use the existing layout wrapper if there is a shared Layout in `layout.tsx`.
+   - Implement the structure above. If Tailwind is available, use Tailwind classes for layout, spacing, colours, and responsiveness. If not, define CSS classes and hook them via existing CSS.
+
+2. If you need extra styling:
+   - If Tailwind: only use utilities; do NOT modify tailwind.config unless required and safe.
+   - If global CSS:
+     - Extend `src/app/globals.css` or the equivalent with high-level classes like:
+       - `.hero`, `.heroTitle`, `.tilesGrid`, `.tile`, `.ctaButtonPrimary`, `.ctaButtonSecondary`, etc.
+   - Keep CSS minimal and focused on homepage layout.
+
+Show the full new content of:
+- `src/app/page.tsx`
+- Any CSS file you changed.
+
+──────────────────────────────── PHASE 3 – POLISH /SIGNIN PAGE (UI ONLY)
+
+1. Locate the sign-in page (from Phase 0), for example:
+   - `src/app/signin/page.tsx` or similar.
+
+2. Inspect:
+   - Print first ~200 lines of the file.
+   - See how it currently renders (plain form? default NextAuth?).
+
+3. Upgrade the layout for /signin WITHOUT changing backend logic:
+   - Wrap the existing sign-in components in a card-like layout with:
+     - Levqor logo and title at top.
+     - Short text: “Sign in to Levqor”.
+   - Ensure:
+     - There is a clear “Sign in with Google” button that uses the existing NextAuth handler (if it already exists in the code, just style it nicely).
+     - A “Get magic link” option:
+       - If email provider is already wired in NextAuth AND the adapter is present:
+         - Show a simple email input + submit button that posts to the existing email sign-in route.
+       - If NOT wired:
+         - Show a non-breaking stub UI: label “Get magic link (coming soon)” with disabled button OR a simple note, but DO NOT attempt to implement new backend logic.
+   - Use the same design language as the homepage (colours, typography, etc.).
+   - Make sure mobile layout is readable.
+
+4. DO NOT:
+   - Add or remove providers in NextAuth config.
+   - Introduce a new database adapter.
+   - Change callback URLs or secret handling.
+
+After changes, print the updated sign-in page file.
+
+──────────────────────────────── PHASE 4 – LINT & BUILD (MUST PASS)
+
+1. Run:
+   - `npm install`   # only if dependencies are missing
+   - `npm run lint`
+   - `npm run build`
+2. If either command fails:
+   - Read the error carefully.
+   - Fix the specific TS/JSX/CSS issues you introduced.
+   - Re-run until both `npm run lint` and `npm run build` complete successfully with exit code 0.
+3. Summarize:
+   - Lint status: PASS/FAIL
+   - Build status: PASS/FAIL
+   - Any relevant warnings (warnings are acceptable if they don’t indicate breakage).
+
+──────────────────────────────── PHASE 5 – GIT COMMIT & PUSH
+
+1. Check current status:
+   - `git status`
+2. You should see only the files you intentionally changed, e.g.:
+   - `src/app/page.tsx`
+   - `src/app/signin/page.tsx`
+   - `src/app/globals.css` (or similar)
+3. Stage, commit, push:
+   - `git add src/app/page.tsx`
+   - `git add src/app/signin/page.*`      # adjust to actual path
+   - `git add src/app/globals.css`        # or any additional CSS file you modified
+   - `git commit -m "feat(ui): Genesis v8 homepage + polished sign-in layout"`
+   - `git push origin main`
+4. Show `git status` after push (should be “working tree clean”).
+
+──────────────────────────────── PHASE 6 – POST-DEPLOY VERIFICATION (LEVQOR.AI)
+
+Assume Vercel auto-deploys on push to `main`.
+
+1. Wait ~60–90 seconds for Vercel deployment to complete.
+
+2. Verify that https://levqor.ai serves the new UI:
+   - Run:
+     - `curl -sSI https://levqor.ai | grep -E "HTTP/2|x-vercel-id|age:|x-vercel-cache"`
+   - Expect:
+     - `HTTP/2 200`
+     - `x-vercel-cache: MISS` or `DYNAMIC`
+     - `age: 0` or a very low value
+
+3. Verify the new HTML content is live:
+   - Run:
+     - `curl -s https://levqor.ai | grep -E "Automate work\. Ship faster\.|Why teams choose Levqor|Self-healing runs|Visual builder|Get magic link" | head -10`
+   - You MUST see multiple of these strings in the HTML. If not, investigate:
+     - Check which deployment is attached to `levqor.ai`.
+     - Confirm that `main` branch matches your latest commit.
+
+4. Verify `/signin` layout:
+   - Run:
+     - `curl -s https://levqor.ai/signin | grep -E "Sign in to Levqor|Sign in with Google|Get magic link" | head -10`
+   - Confirm the page contains those strings (indicating the new layout is served).
+
+If any of these checks fail (wrong status code, missing strings, or old HTML), debug and fix before considering this task complete.
+
+END OF INSTRUCTIONS

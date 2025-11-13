@@ -1,0 +1,237 @@
+Here is your FINAL — OPTION 2 — BOSS-LEVEL FULL SYSTEM HARDENING & UI POLISH
+Replit AI Agent Prompt (copy–paste exactly as is):
+
+
+---
+
+✅ REPLIT AGENT PROMPT — OPTION 2 (AGGRESSIVE / MAXIMUM COVERAGE)
+
+Full Frontend Hardening + Legal Compliance + Sign-In Polish + Navigation Fixes + Validation + No Regression
+
+You are the Replit AI Agent with full access to this workspace.  
+Your task is to FIX, ENHANCE, HARDEN, and VALIDATE the entire Levqor frontend (Next.js 14, App Router, Tailwind v3).
+
+Follow the instructions EXACTLY.  
+Do NOT skip steps.  
+Do NOT assume anything.  
+Verify EVERYTHING with real logs, real diffs, real builds.
+
+============================================================
+PHASE 1 — PROJECT SANITY & INTEGRITY CHECK
+============================================================
+
+1. Verify project root:
+   - Ensure we are inside the correct frontend folder.
+   - Show `ls -la` and confirm Next.js structure: `/src/app`, `/src/components`, `tailwind.config.js`, `postcss.config.js`.
+
+2. Verify the following required files exist:
+   - src/app/page.tsx
+   - src/app/pricing/page.tsx
+   - src/app/signin/page.tsx
+   - src/app/(legal)/privacy/page.tsx   <- create if missing
+   - src/app/(legal)/terms/page.tsx     <- create if missing
+   - src/app/(legal)/cookies/page.tsx   <- create if missing
+   - src/components/Logo.tsx
+   - src/components/Footer.tsx
+   - src/styles/globals.css
+   - next.config.js
+
+3. If any file is missing → CREATE IT using professional defaults.
+
+4. Run:
+   - `git status`
+   - If `index.lock` exists, remove it.
+   - Show uncommitted changes.
+
+============================================================
+PHASE 2 — UI POLISH & SIGN-IN PAGE UPGRADE
+============================================================
+
+1. Open `src/app/signin/page.tsx` and:
+   - Fix layout spacing
+   - Improve the card design (dark mode)
+   - Add GDPR-safe cookie disclaimer
+   - Add "Continue without account" (disabled for now)
+   - Improve OAuth button styling
+   - Add tiny text explaining how we store personal data
+
+2. Verify:
+   - Google OAuth button works visually
+   - Microsoft OAuth button works visually
+   - No broken imports
+
+3. Ensure the SIGN-IN page visually matches the Genesis v8 theme:
+   - slate-950 background
+   - card: slate-900/80 with border-slate-800
+   - proper spacing
+   - responsive mobile layout
+
+============================================================
+PHASE 3 — NAVIGATION / ROUTES / BROKEN LINKS
+============================================================
+
+1. Verify ALL navigation links:
+   - Home → /
+   - Pricing → /pricing
+   - Sign in → /signin
+   - Terms → /terms
+   - Privacy → /privacy
+   - Cookies → /cookies
+
+2. FIX ALL broken routes:
+   If a page does not exist, create it under:
+   `/src/app/(legal)/<page>/page.tsx`
+
+3. Add Footer links (Terms, Privacy, Cookies) using:
+   `src/components/Footer.tsx`
+
+4. Ensure Footer renders properly on all pages.
+
+============================================================
+PHASE 4 — LEGAL COMPLIANCE PAGES
+============================================================
+
+Create or update:
+
+1. `/privacy`
+   - GDPR compliant
+   - UK-specific DPA statements
+   - Data retention
+   - How we store personal data
+   - How we delete data on request
+
+2. `/terms`
+   - Service agreement for DFY automation
+   - Refund policy
+   - Responsibility limitations
+   - Intellectual property
+
+3. `/cookies`
+   - GDPR UK cookie policy
+   - Explanation of essential vs analytics cookies
+   - Cookie banner integration note
+
+All pages must:
+- Use dark theme
+- Use clean spacing
+- Look professionally formatted
+
+============================================================
+PHASE 5 — COOKIE CONSENT BANNER
+============================================================
+
+Create component:
+`src/components/CookieBanner.tsx`
+
+Requirements:
+- Appears bottom center
+- Dark theme
+- Button “Accept”
+- Button “Reject”
+- Stores choice in localStorage
+- Only shows if no saved preference
+
+Integrate banner into:
+`src/app/layout.tsx`
+
+============================================================
+PHASE 6 — FULL BUILD VALIDATION
+============================================================
+
+Run:
+
+1. `npm install` (verify lockfile ok)
+2. `npm run build`
+3. Show the final 50 lines of build output
+4. Extract CSS asset:
+   Run:
+
+grep -R "static/css" -n .next
+
+5. Ensure:
+- No TypeScript errors
+- No missing imports
+- No runtime crashes
+- CSS file size > 25KB (Tailwind generated)
+
+============================================================
+PHASE 7 — HARDEN SECURITY HEADERS
+============================================================
+
+Open `next.config.js`.
+
+Ensure the following headers are added EXACTLY:
+
+- Content-Security-Policy:
+Allow Google OAuth, Microsoft, Replit preview, Stripe, API domain.
+
+- Permissions-Policy:
+camera=(), microphone=(), geolocation=()
+
+- Strict-Transport-Security
+- X-Frame-Options: DENY
+- X-Content-Type-Options: nosniff
+- Referrer-Policy: strict-origin-when-cross-origin
+
+============================================================
+PHASE 8 — FINAL REPORT (REQUIRED)
+============================================================
+
+Produce a final summary containing:
+
+- List of ALL files changed
+- Before/after diff summary
+- Build success status
+- Broken links fixed
+- Legal pages created
+- Security headers added
+- Cookie banner added
+- Sign-in page upgraded
+- Confirmation of Genesis v8 theme integrity
+- READY FOR DEPLOYMENT: YES/NO
+
+============================================================
+
+Now execute all phases 1–8 step-by-step.
+Do NOT skip verification.
+Do NOT assume anything.
+Return logs, diffs, build outputs, and a full final audit.
+
+
+---
+
+✅ Ready — copy & paste that entire block into Replit AI Agent.
+
+Once you paste it:
+
+The Agent will scan everything
+
+Fix UI
+
+Add all legal pages
+
+Add cookie banner
+
+Resolve broken navigation
+
+Polish sign-in
+
+Validate build
+
+Produce a complete audit
+
+
+This will take your frontend from “almost ready” → fully professional, legal, polished, customer-ready SaaS UI.
+
+If you want, I can also prepare:
+
+Stripe checkout polish
+
+Dashboard v8
+
+Authentication hardening
+
+Documentation pages
+
+
+Just tell me NEXT.

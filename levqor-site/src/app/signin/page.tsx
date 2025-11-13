@@ -12,7 +12,7 @@ export default function SignIn() {
             <h2 className="text-3xl font-bold mb-2 text-white">Levqor</h2>
           </Link>
           <h1 className="text-2xl font-semibold text-white mb-2">Sign in to Levqor</h1>
-          <p className="text-sm text-slate-400">Access your workflows and run history.</p>
+          <p className="text-sm text-slate-400">Access your workflows and automation dashboard.</p>
         </div>
 
         {/* Sign-in Card */}
@@ -21,7 +21,7 @@ export default function SignIn() {
             {/* Google Sign-in */}
             <button 
               onClick={() => signIn("google", { callbackUrl: "/workflow" })} 
-              className="w-full flex items-center justify-center gap-3 rounded-xl border-2 border-slate-700 bg-slate-800/50 text-white py-3 px-4 hover:bg-slate-800 hover:border-slate-600 transition-all font-medium"
+              className="w-full flex items-center justify-center gap-3 rounded-xl border-2 border-slate-700 bg-slate-800/50 text-white py-3 px-4 hover:bg-slate-800 hover:border-emerald-500/50 transition-all font-medium shadow-lg hover:shadow-emerald-500/20"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -35,7 +35,7 @@ export default function SignIn() {
             {/* Microsoft Sign-in */}
             <button 
               onClick={() => signIn("azure-ad", { callbackUrl: "/workflow" })} 
-              className="w-full flex items-center justify-center gap-3 rounded-xl border-2 border-slate-700 bg-slate-800/50 text-white py-3 px-4 hover:bg-slate-800 hover:border-slate-600 transition-all font-medium"
+              className="w-full flex items-center justify-center gap-3 rounded-xl border-2 border-slate-700 bg-slate-800/50 text-white py-3 px-4 hover:bg-slate-800 hover:border-blue-500/50 transition-all font-medium shadow-lg hover:shadow-blue-500/20"
             >
               <svg className="w-5 h-5" viewBox="0 0 23 23">
                 <path fill="#f35325" d="M0 0h11v11H0z"/>
@@ -75,14 +75,42 @@ export default function SignIn() {
                 Get magic link (coming soon)
               </button>
             </div>
+
+            {/* Continue Without Account */}
+            <button
+              disabled
+              className="w-full rounded-xl border-2 border-slate-700/50 bg-slate-900/30 py-3 px-4 text-slate-600 font-medium cursor-not-allowed text-sm"
+            >
+              Continue without account (coming soon)
+            </button>
           </div>
 
-          {/* Footer */}
-          <p className="mt-8 text-xs text-slate-400 text-center">
+          {/* Data Storage Explanation */}
+          <div className="mt-6 p-4 bg-slate-950/50 border border-slate-800 rounded-lg">
+            <p className="text-xs text-slate-400 leading-relaxed">
+              <strong className="text-slate-300">How we protect your data:</strong><br/>
+              We store only essential account information (email, name, profile picture) securely using industry-standard encryption. 
+              Your authentication is handled by Google/Microsoft OAuth. We never store passwords. 
+              You can request data deletion anytime via <a href="mailto:privacy@levqor.ai" className="text-emerald-400 hover:underline">privacy@levqor.ai</a>.
+            </p>
+          </div>
+
+          {/* GDPR Cookie Disclaimer */}
+          <div className="mt-4 p-3 bg-blue-950/20 border border-blue-900/30 rounded-lg">
+            <p className="text-xs text-slate-400 leading-relaxed">
+              <strong className="text-blue-300">🍪 Cookies:</strong> By signing in, you consent to our use of essential authentication cookies. 
+              See our <Link href="/cookies" className="text-blue-400 hover:underline">Cookie Policy</Link> for details.
+            </p>
+          </div>
+
+          {/* Legal Footer */}
+          <p className="mt-6 text-xs text-slate-400 text-center leading-relaxed">
             By continuing, you agree to our{" "}
-            <Link href="/terms" className="underline hover:text-white">Terms</Link>
+            <Link href="/terms" className="underline hover:text-white font-medium">Terms of Service</Link>
             {" "}and{" "}
-            <Link href="/privacy" className="underline hover:text-white">Privacy Policy</Link>.
+            <Link href="/privacy" className="underline hover:text-white font-medium">Privacy Policy</Link>.
+            <br/>
+            UK/GDPR compliant. Your data, your rights.
           </p>
         </div>
 
@@ -96,4 +124,3 @@ export default function SignIn() {
     </main>
   );
 }
-// FORCE GIT CHANGE 1763048430

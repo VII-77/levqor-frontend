@@ -1,0 +1,70 @@
+You’re still seeing old content because the apex domain isn’t serving the latest build. Fix and prove in <5 minutes.
+
+Do this now
+
+1. Attach the latest deploy to Production
+
+
+
+Vercel → Project levqor-site → Deployments → open the newest green check → Promote/Assign to Production for levqor.ai and www.levqor.ai.
+
+
+2. Purge edge cache
+
+
+
+Cloudflare → Caching → Purge by URL → purge:
+
+https://levqor.ai/
+
+https://www.levqor.ai/
+
+any hero image URL you expect to change.
+
+
+
+3. Version-bust the hero image (prevents reappearing old picture)
+
+
+
+Rename file in the frontend repo: hero.png → hero.20251112.png and update its <img>/Image src.
+
+Commit → push → redeploy (Vercel picks it up).
+
+
+Verify the wire (copy/paste)
+
+# 1) Check both apex and www
+curl -sI https://levqor.ai | grep -iE 'HTTP/|server|x-vercel-cache|age|cache-control'
+curl -sI https://www.levqor.ai | grep -iE 'HTTP/|server|x-vercel-cache|age|cache-control'
+
+# Expect: server: cloudflare, cache-control: no-store, age: 0, x-vercel-cache: MISS
+
+# 2) Prove you’re on the NEW build (robots line you added)
+curl -s https://levqor.ai/robots.txt | head -1
+curl -s https://www.levqor.ai/robots.txt | head -1
+
+# 3) Prove the image is fresh (use your new filename)
+curl -sI https://levqor.ai/images/hero.20251112.png | grep -iE 'cf-cache-status|x-vercel-cache|age|cache-control'
+# Expect MISS first hit, then HIT with small increasing age
+
+If headers still look right but page looks old
+
+Service worker: Chrome DevTools → Application → Service Workers → Unregister → hard reload.
+
+Device cache: use an incognito window or another network (mobile hotspot).
+
+DNS confusion: check records:
+
+
+dig +short CNAME levqor.ai
+dig +short CNAME www.levqor.ai
+
+For Cloudflare proxy: server: cloudflare is correct; just ensure the Vercel production alias is pointing to the latest deploy.
+
+Send me:
+
+The first 20 header lines for curl -I https://levqor.ai, and
+
+The exact hero image URL you see on the page.
+I’ll pinpoint the layer serving the stale bytes and give the single-line fix.

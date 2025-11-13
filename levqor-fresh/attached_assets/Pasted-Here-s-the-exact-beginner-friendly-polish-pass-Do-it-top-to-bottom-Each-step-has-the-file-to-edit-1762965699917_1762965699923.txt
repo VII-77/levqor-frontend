@@ -1,0 +1,330 @@
+Here’s the exact, beginner-friendly polish pass. Do it top-to-bottom. Each step has the file to edit, the code to paste, the deploy command, and a quick mobile check using the Vercel app.
+
+1) Global metadata, icons, SEO
+
+Edit: src/app/layout.tsx
+
+export const metadata = {
+  metadataBase: new URL("https://levqor.ai"),
+  title: {
+    default: "Levqor — Automate work. Ship faster.",
+    template: "%s · Levqor"
+  },
+  description: "Levqor runs your workflows, monitors failures, and self-heals. Email, Sheets, Slack, CRM.",
+  keywords: ["automation", "ai workflows", "self-healing", "levqor"],
+  openGraph: {
+    type: "website",
+    url: "https://levqor.ai",
+    siteName: "Levqor",
+    title: "Automate work. Ship faster.",
+    description: "Pay only for results.",
+    images: [{ url: "/og.jpg", width: 1200, height: 630 }]
+  },
+  twitter: {
+    card: "summary_large_image",
+    site: "@levqor",
+    creator: "@levqor",
+    images: ["/og.jpg"]
+  },
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png"
+  }
+};
+
+Add files in public/ (placeholders OK, replace later):
+
+public/og.jpg (1200×630)
+
+public/apple-touch-icon.png (180×180)
+
+public/robots.txt
+
+
+User-agent: *
+Allow: /
+Sitemap: https://levqor.ai/sitemap.xml
+
+public/sitemap.xml
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://levqor.ai/</loc></url>
+  <url><loc>https://levqor.ai/pricing</loc></url>
+  <url><loc>https://levqor.ai/docs</loc></url>
+</urlset>
+
+Deploy: commit and push.
+
+Mobile check (Vercel app → Deployment → Open Graph): preview shows title and image.
+
+
+---
+
+2) Security + performance headers (Edge)
+
+Edit: next.config.js (add headers)
+
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  experimental: { optimizePackageImports: ["lucide-react"] },
+  images: { formats: ["image/avif","image/webp"] },
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" }
+        ]
+      }
+    ];
+  }
+};
+module.exports = nextConfig;
+
+Deploy.
+
+Mobile check: Vercel app → Deployment → Response headers show the new keys.
+
+
+---
+
+3) Fast above-the-fold paint
+
+Edit: src/app/globals.css (add system fonts and smooth rendering at top)
+
+:root { --radius: 14px; }
+html { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial; text-rendering: optimizeLegibility; }
+img { content-visibility: auto; }
+
+Deploy.
+Mobile check: Home loads snappier; no CLS on hero.
+
+
+---
+
+4) Polished sign-in UX
+
+Edit: src/app/signin/page.tsx
+
+"use client";
+import { signIn } from "next-auth/react";
+
+export default function SignIn() {
+  return (
+    <main className="min-h-[80svh] grid place-items-center px-4">
+      <div className="w-full max-w-md rounded-2xl border p-6 shadow-sm bg-white/5 backdrop-blur">
+        <h1 className="text-2xl font-semibold mb-2">Sign in to Levqor</h1>
+        <p className="text-sm text-neutral-500 mb-6">Access your workflows and run history.</p>
+        <div className="space-y-3">
+          <button onClick={() => signIn("google")} className="w-full rounded-xl border py-2">
+            Continue with Google
+          </button>
+          <button onClick={() => signIn("github")} className="w-full rounded-xl border py-2">
+            Continue with GitHub
+          </button>
+        </div>
+        <p className="mt-6 text-xs text-neutral-500">By continuing you agree to the Terms and Privacy Policy.</p>
+      </div>
+    </main>
+  );
+}
+
+Middleware stays as: redirect ["/workflow"] to /signin when unauthenticated.
+Mobile check: Open /workflow in incognito → lands on elegant /signin.
+
+
+---
+
+5) Hero, badges, and tiles alignment
+
+Edit: src/app/page.tsx (top section only; keep your content below)
+
+export default function Home() {
+  return (
+    <main className="px-4">
+      <section className="max-w-6xl mx-auto pt-16 pb-10">
+        <div className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs">
+          <span className="h-2 w-2 rounded-full bg-green-500" />
+          Genesis v8.0 · Self-healing automation
+        </div>
+        <h1 className="mt-6 text-4xl sm:text-6xl font-bold tracking-tight">
+          Automate work. <span className="opacity-80">Ship faster.</span>
+        </h1>
+        <p className="mt-4 max-w-2xl text-lg text-neutral-600">
+          Run workflows, monitor failures, and self-heal. Email, Sheets, Slack, CRM.
+        </p>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <a href="/signin" className="rounded-xl px-4 py-2 border">Start free trial</a>
+          <a href="/pricing" className="rounded-xl px-4 py-2 border">See pricing</a>
+        </div>
+      </section>
+
+      <section className="max-w-6xl mx-auto grid sm:grid-cols-2 lg:grid-cols-4 gap-4 pb-14">
+        {[
+          ["Self-healing runs","Auto-retry with backoff"],
+          ["Visual builder","Drag-drop steps"],
+          ["Smart diff","Isolate failures fast"],
+          ["Audit trail","Each fix recorded"]
+        ].map(([t,s])=>(
+          <div key={t} className="rounded-2xl border p-4">
+            <div className="text-base font-semibold">{t}</div>
+            <div className="text-sm text-neutral-600">{s}</div>
+          </div>
+        ))}
+      </section>
+    </main>
+  );
+}
+
+Deploy.
+Mobile check: home tiles align in a clean 2-column grid; buttons visible above the fold.
+
+
+---
+
+6) Pricing cards visual cleanup
+
+Edit: src/components/Pricing.tsx (ensure card border, big CTA)
+
+export default function Pricing() {
+  const tiers = [
+    {name:"Starter",price:"$0",desc:"Dev & test",cta:"Start free"},
+    {name:"Team",price:"$49",desc:"Most teams",cta:"Choose Team"},
+    {name:"Scale",price:"$299",desc:"High volume",cta:"Talk to sales"},
+  ];
+  return (
+    <section className="max-w-6xl mx-auto px-4 py-12 grid md:grid-cols-3 gap-4">
+      {tiers.map(t=>(
+        <div key={t.name} className="rounded-2xl border p-6">
+          <h3 className="text-lg font-semibold">{t.name}</h3>
+          <div className="text-3xl font-bold mt-2">{t.price}</div>
+          <p className="text-sm text-neutral-600 mt-1">{t.desc}</p>
+          <button className="mt-6 w-full rounded-xl border py-2">{t.cta}</button>
+        </div>
+      ))}
+    </section>
+  );
+}
+
+Deploy.
+Mobile check: /pricing shows three clean cards with clear CTAs.
+
+
+---
+
+7) Workflow dashboard first-paint and empty state
+
+Edit: src/app/workflow/page.tsx (add skeleton + empty)
+
+import { Suspense } from "react";
+
+async function Grid() {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? ""}/api/workflows`, { cache: "no-store" });
+  if (res.status === 401) return null;
+  const { items = [] } = await res.json().catch(()=>({items:[]}));
+  if (!items.length) {
+    return <div className="rounded-2xl border p-6 text-sm text-neutral-600">No workflows yet. Create one from the builder.</div>;
+  }
+  return (
+    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {items.map((w:any)=>(
+        <div key={w.id} className="rounded-2xl border p-4">
+          <div className="text-base font-semibold">{w.name ?? "Workflow"}</div>
+          <div className="text-xs mt-1 opacity-70">{w.status ?? "idle"}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export default function Page() {
+  return (
+    <main className="max-w-6xl mx-auto px-4 py-8">
+      <h1 className="text-2xl font-semibold mb-4">Workflows</h1>
+      <Suspense fallback={<div className="h-24 rounded-2xl border animate-pulse" />}>
+        {/* @ts-expect-error Async Server Component */}
+        <Grid />
+      </Suspense>
+    </main>
+  );
+}
+
+Deploy.
+Mobile check: after sign-in, /workflow shows skeleton then grid or clean empty state.
+
+
+---
+
+8) Footer + trust row
+
+Edit: src/app/layout.tsx (inside <body>...</body> bottom)
+
+<footer className="mt-16 border-t">
+  <div className="max-w-6xl mx-auto px-4 py-8 text-sm text-neutral-600 flex flex-wrap gap-4 justify-between">
+    <div>© {new Date().getFullYear()} Levqor</div>
+    <nav className="flex gap-4">
+      <a href="/docs">Docs</a>
+      <a href="/pricing">Pricing</a>
+      <a href="/contact">Contact</a>
+      <a href="/legal/privacy">Privacy</a>
+    </nav>
+  </div>
+</footer>
+
+Deploy.
+Mobile check: footer links accessible and readable.
+
+
+---
+
+9) Final verification (Android-friendly)
+
+On your phone:
+
+1. Vercel app → Deployments → open latest → Open Preview.
+
+
+2. Check:
+
+Home renders cleanly. Buttons visible.
+
+Pricing cards clean.
+
+Incognito: /workflow redirects to /signin.
+
+After sign-in: /workflow shows skeleton then grid/empty.
+
+
+
+3. Vercel app → Performance → run Lighthouse. Target:
+
+Performance ≥ 90 mobile
+
+Accessibility ≥ 95
+
+SEO ≥ 95
+
+
+
+
+
+---
+
+10) If anything fails, one-command redeploy
+
+In your shell:
+
+cd ~/workspace/levqor-site
+git add -A
+git commit -m "genesis(v8) polish: SEO, headers, signin, hero, tiles, pricing, dashboard"
+git push origin main
+
+Then Vercel app → Deployments → latest → confirm green.
+
+That’s it. This keeps your current auth, adds polish, secures headers, improves paint speed, and cleans the mobile UI.

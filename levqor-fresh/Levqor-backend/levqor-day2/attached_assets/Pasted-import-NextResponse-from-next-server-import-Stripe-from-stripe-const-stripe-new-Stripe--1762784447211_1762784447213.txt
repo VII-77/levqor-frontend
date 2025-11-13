@@ -1,0 +1,82 @@
+import { NextResponse } from "next/server";
+import Stripe from "stripe";
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, { apiVersion: "2024-10-28" });
+
+// Helper: read statically-known envs only (no dynamic indexing)
+function getPriceId(plan: "starter"|"pro"|"business", term: "monthly"|"yearly") {
+  // 4-var scheme
+  const STARTER_M = process.env.STRIPE_PRICE_STARTER;
+  const STARTER_Y = process.env.STRIPE_PRICE_STARTER_YEAR;
+  const PRO_M     = process.env.STRIPE_PRICE_PRO;
+  const PRO_Y     = process.env.STRIPE_PRICE_PRO_YEAR;
+  const BUS_M     = process.env.STRIPE_PRICE_BUSINESS;
+  const BUS_Y     = process.env.STRIPE_PRICE_BUSINESS_YEAR;
+
+  // 2-var scheme (suffix _ID_)
+  const STARTER_M_ID = process.env.STRIPE_PRICE_ID_STARTER;
+  const PRO_M_ID     = process.env.STRIPE_PRICE_ID_PRO;
+  const BUS_M_ID     = process.env.STRIPE_PRICE_ID_BUSINESS; // optional
+
+  const map: Record<string, string | undefined> = {
+    "starter-monthly": STARTER_M ?? STARTER_M_ID,
+    "starter-yearly":  STARTER_Y,
+    "pro-monthly":     PRO_M ?? PRO_M_ID,
+    "pro-yearly":      PRO_Y,
+    "business-monthly":BUS_M ?? BUS_M_ID,
+    "business-yearly": BUS_Y,
+  };
+  return map[`${plan}-${term}`];
+}
+
+// POST is source of truth
+export async function POST(req: Request) {
+  try {
+    const { plan, term, addons } = await req.json();
+    if (!["starter","pro","business"].includes(plan)) {
+      return NextResponse.json({ ok:false, error:"bad_plan" }, { status:400 });
+    }
+    if (!["monthly","yearly"].includes(term)) {
+      return NextResponse.json({ ok:false, error:"bad_term" }, { status:400 });
+    }
+
+    const priceId = getPriceId(plan, term);
+    if (!priceId) {
+      return NextResponse.json(
+        { ok:false, error:`price_not_configured`, detail:{ plan, term, schemeHints:{
+          STRIPE_PRICE_STARTER: !!process.env.STRIPE_PRICE_STARTER,
+          STRIPE_PRICE_STARTER_YEAR: !!process.env.STRIPE_PRICE_STARTER_YEAR,
+          STRIPE_PRICE_PRO: !!process.env.STRIPE_PRICE_PRO,
+          STRIPE_PRICE_PRO_YEAR: !!process.env.STRIPE_PRICE_PRO_YEAR,
+          STRIPE_PRICE_BUSINESS: !!process.env.STRIPE_PRICE_BUSINESS,
+          STRIPE_PRICE_BUSINESS_YEAR: !!process.env.STRIPE_PRICE_BUSINESS_YEAR,
+          STRIPE_PRICE_ID_STARTER: !!process.env.STRIPE_PRICE_ID_STARTER,
+          STRIPE_PRICE_ID_PRO: !!process.env.STRIPE_PRICE_ID_PRO,
+          STRIPE_PRICE_ID_BUSINESS: !!process.env.STRIPE_PRICE_ID_BUSINESS,
+        }}},
+        { status:400 }
+      );
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      line_items: [{ price: priceId, quantity: 1 }],
+      allow_promotion_codes: true,
+      automatic_tax: { enabled: true },
+      success_url: `${process.env.SITE_URL}/success`,
+      cancel_url:  `${process.env.SITE_URL}/pricing`,
+    });
+
+    return NextResponse.json({ ok:true, url: session.url });
+  } catch (e:any) {
+    return NextResponse.json({ ok:false, error:"handler_failed", detail:e?.message }, { status:500 });
+  }
+}
+
+// GET kept for backward compat -> proxies to POST
+export async function GET(req: Request) {
+  const u = new URL(req.url);
+  const plan = (u.searchParams.get("plan") ?? "").toLowerCase();
+  const term = (u.searchParams.get("term") ?? "").toLowerCase();
+  return POST(new Request(u.toString(), { method:"POST", body: JSON.stringify({ plan, term }) }));
+}

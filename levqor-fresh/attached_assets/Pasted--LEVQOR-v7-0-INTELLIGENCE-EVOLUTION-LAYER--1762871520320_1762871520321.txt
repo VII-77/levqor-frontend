@@ -1,0 +1,229 @@
+# =========================================
+# LEVQOR v7.0 — INTELLIGENCE + EVOLUTION LAYER
+# =========================================
+# Duration: 3 weeks
+# Objective: autonomous resilience, proactive optimization, adaptive governance.
+
+# =========================================
+# 1) AUTOMATION INTELLIGENCE CORE
+# =========================================
+
+mkdir -p modules/auto_intel
+cat > modules/auto_intel/monitor.py << 'PY'
+import os, time, json, requests, statistics, datetime as dt
+from utils.db import db
+from modules.alerts import notify
+
+def collect_metrics():
+    health = {}
+    try:
+        health['frontend'] = requests.get("https://levqor.ai/health", timeout=5).status_code
+        health['backend'] = requests.get("https://api.levqor.ai/health", timeout=5).status_code
+        health['latency_ms'] = requests.get("https://api.levqor.ai/metrics", timeout=5).elapsed.total_seconds()*1000
+    except Exception as e:
+        health['error'] = str(e)
+    health['timestamp'] = dt.datetime.utcnow().isoformat()
+    db.table("system_health_log").insert(health)
+    return health
+
+def detect_anomalies(window=20):
+    rows = db.table("system_health_log").order_by("timestamp",desc=True).limit(window)
+    latencies = [r['latency_ms'] for r in rows if 'latency_ms' in r]
+    if len(latencies) < 5: return
+    mean, stdev = statistics.mean(latencies), statistics.pstdev(latencies)
+    if latencies[0] > mean + 2*stdev:
+        notify("⚠️ High latency detected", f"Current {latencies[0]:.0f} ms vs avg {mean:.0f}")
+        db.table("intel_events").insert({"event":"latency_spike","value":latencies[0],"mean":mean,"ts":dt.datetime.utcnow().isoformat()})
+PY
+
+cat > modules/auto_intel/self_heal.py << 'PY'
+import os, subprocess, datetime as dt
+from utils.db import db
+from modules.alerts import notify
+
+def attempt_fix(issue):
+    if issue=="backend_down":
+        notify("🚑 Restarting backend service","Triggered auto-heal")
+        subprocess.call(["systemctl","restart","backend.service"])
+        db.table("intel_actions").insert({"action":"restart_backend","ts":dt.datetime.utcnow().isoformat()})
+    if issue=="cache_stale":
+        subprocess.call(["vercel","build","--prod"])
+        notify("🔁 CDN cache refreshed","Auto-heal executed")
+PY
+
+# Scheduled job: every 15min collect_metrics(); detect_anomalies(); trigger attempt_fix() when needed.
+
+# =========================================
+# 2) DECISION ENGINE
+# =========================================
+
+mkdir -p modules/decision_engine
+cat > modules/decision_engine/analyze.py << 'PY'
+from utils.db import db
+import datetime as dt
+def analyze_trends():
+    rev = db.table("stripe_revenue").last(90)
+    calls = db.table("api_usage_log").last(90)
+    uptime = db.table("pulse").last(12)
+    avg_rev = sum([r["amount"] for r in rev])/max(1,len(rev))
+    avg_uptime = sum([p["uptime"] for p in uptime])/max(1,len(uptime))
+    suggestion = []
+    if avg_uptime > 99.9 and avg_rev < 0.9*avg_uptime:
+        suggestion.append("Consider scaling Pro tier marketing to increase utilization.")
+    if any(c["calls"] > 0.9*c["limit"] for c in calls):
+        suggestion.append("Increase API quota or upsell Enterprise plan.")
+    db.table("intel_recommendations").insert({"ts":dt.datetime.utcnow().isoformat(),"recommendations":suggestion})
+    return suggestion
+PY
+
+cat > modules/decision_engine/apply.py << 'PY'
+from utils.db import db
+def apply_suggestions():
+    recs = db.table("intel_recommendations").order_by("ts",desc=True).first()
+    if not recs: return
+    for r in recs["recommendations"]:
+        if "quota" in r: db.table("config").update({"api_quota":"auto_increased"})
+PY
+
+# Weekly job: analyze_trends() → apply_suggestions() → post summary to Notion “Intelligence Pulse”.
+
+# =========================================
+# 3) AI ADVISOR
+# =========================================
+
+mkdir -p modules/ai_advisor
+cat > modules/ai_advisor/predict.py << 'PY'
+import datetime as dt
+from sklearn.linear_model import LinearRegression
+import numpy as np
+from utils.db import db
+
+def forecast_revenue(days=30):
+    data = db.table("stripe_revenue").order_by("date").all()
+    if len(data) < 5: return {"forecast":0}
+    X = np.arange(len(data)).reshape(-1,1)
+    y = np.array([r["amount"] for r in data])
+    model = LinearRegression().fit(X,y)
+    pred = model.predict([[len(data)+days]])[0]
+    return {"predicted_revenue": round(pred,2)}
+
+def forecast_churn():
+    churn_data = db.table("user_activity").last(60)
+    if not churn_data: return {"churn_rate":0}
+    active = sum(1 for u in churn_data if u["active"])
+    churn = len(churn_data)-active
+    rate = round(100*churn/max(1,len(churn_data)),2)
+    return {"churn_rate": rate}
+PY
+
+# Advisor runs weekly; outputs go to “AI Forecast” Notion DB and Pulse summary.
+
+# =========================================
+# 4) GOVERNANCE FEEDBACK
+# =========================================
+
+mkdir -p modules/governance_ai
+cat > modules/governance_ai/risk.py << 'PY'
+from utils.db import db
+def evaluate_risk():
+    audits = db.table("audit_logs").last(50)
+    incidents = sum(1 for a in audits if a["level"]=="critical")
+    partners = db.table("partners").count()
+    risk_score = max(0,100 - incidents*5 - partners*0.1)
+    db.table("governance_scores").insert({"risk_score":risk_score})
+    return risk_score
+PY
+
+# Monthly: evaluate_risk(); feed into governance reports and adjust policy thresholds.
+
+# =========================================
+# 5) DYNAMIC SCALING
+# =========================================
+
+mkdir -p modules/autoscale
+cat > modules/autoscale/scaler.py << 'PY'
+import os, requests, datetime as dt
+from utils.db import db
+from modules.alerts import notify
+def check_load():
+    m = requests.get("https://api.levqor.ai/metrics").json()
+    cpu, mem, qlen = m["cpu"], m["mem"], m["queue"]
+    if cpu>85 or qlen>50:
+        notify("⚡ Scaling up","CPU high or queue backlog")
+        os.system("replit scale up")  # placeholder
+        db.table("scale_events").insert({"action":"scale_up","ts":dt.datetime.utcnow().isoformat()})
+    elif cpu<30 and qlen==0:
+        notify("🧘 Scaling down","Idle resources")
+        os.system("replit scale down")
+        db.table("scale_events").insert({"action":"scale_down","ts":dt.datetime.utcnow().isoformat()})
+PY
+
+# Schedule check_load() every 30 min.
+
+# =========================================
+# 6) AUTOMATION JOBS
+# =========================================
+
+# Add to APScheduler:
+# - auto_intel.collect_metrics + detect_anomalies every 15m
+# - decision_engine.analyze_trends weekly
+# - ai_advisor.predict.* weekly
+# - governance_ai.risk monthly
+# - autoscale.scaler.check_load hourly
+# All logs push to Notion + Pulse.
+
+# =========================================
+# 7) FRONTEND DASHBOARD
+# =========================================
+
+mkdir -p levqor-site/src/app/intelligence
+cat > levqor-site/src/app/intelligence/page.tsx << 'TSX'
+'use client';
+import { useEffect,useState } from 'react';
+export default function Intelligence() {
+  const [data,setData]=useState<any>({});
+  useEffect(()=>{ fetch('/api/intelligence/status').then(r=>r.json()).then(setData); },[]);
+  return (
+    <div className="max-w-5xl mx-auto p-6 space-y-4">
+      <h1 className="text-3xl font-bold">Levqor Intelligence Dashboard</h1>
+      <Section title="Automation Health" items={data.health}/>
+      <Section title="AI Forecasts" items={data.forecasts}/>
+      <Section title="Governance Risk" items={[{label:'Risk Score',value:data.risk}]}/>
+      <Section title="Recent Decisions" items={data.decisions}/>
+    </div>
+  );
+}
+function Section({title,items}:{title:string;items:any[]|undefined}) {
+  if(!items) return null;
+  return (
+    <div className="border rounded-2xl p-4">
+      <h2 className="text-xl font-semibold mb-2">{title}</h2>
+      <ul className="list-disc pl-6">
+        {items.map((i:any,idx:number)=><li key={idx}>{i.label||i.event||i}</li>)}
+      </ul>
+    </div>
+  );
+}
+TSX
+
+# =========================================
+# 8) VALIDATION & SAFETY
+# =========================================
+
+# Tests:
+# - Simulate API slowdown → anomaly alert + restart
+# - Kill backend → self_heal triggers restart
+# - Increase traffic → autoscale fires
+# - Drop uptime artificially → Decision Engine recommends fix
+# - AI Advisor outputs revenue/churn forecast without crash
+# - Risk score matches audit severity
+
+# Rollback:
+# Disable all AI jobs by setting INTEL_ENABLED=false in env.
+
+# =========================================
+# 9) COST CONTROL
+# =========================================
+# Each AI/monitor job capped <60s exec; reuses existing Notion + Stripe data.
+# No additional paid APIs required.
+# Alerts via same webhook pipeline; no new infra spend.

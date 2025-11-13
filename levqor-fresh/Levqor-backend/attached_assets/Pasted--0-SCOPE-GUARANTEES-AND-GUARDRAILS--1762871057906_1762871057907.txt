@@ -1,0 +1,269 @@
+# =========================================
+# 0) SCOPE, GUARANTEES, AND GUARDRAILS
+# =========================================
+# Goals: Hard multi-tenancy, tenant self-service, per-tenant billing, regional deploys, DR, and federation.
+# Non-goals: Shared-DB soft isolation, manual ops.
+# Guarantees: Data isolation, auditability, deterministic rollback.
+
+# =========================================
+# 1) CORE MULTI-TENANT PRIMITIVES
+# =========================================
+
+# 1.1 Data model (add tables/cols)
+# db: tenants(id, name, slug, region, plan, status, created_at)
+# db: tenant_keys(tenant_id, api_key_hash, role, created_at)
+# db: tenant_users(tenant_id, user_id, role, sso_id, created_at)
+# db: tenant_billing(tenant_id, stripe_customer_id, stripe_subscription_id, plan, metered_usage_json)
+# db: tenant_runtime(tenant_id, env_json, limits_json, domain, last_deploy_at)
+# db: tenant_audit(tenant_id, event, actor, ts, metadata_json)
+
+# 1.2 Runtime isolation
+# Strategy A (default): Single DB, schema-per-tenant (e.g., tenant_{id}_*)
+# Strategy B (premium): DB-per-tenant (separate connection string). Toggle via plan.
+# Add connection broker that derives connection by tenant_id.
+# Enforce row-level guard in ORM with required tenant context.
+
+# 1.3 Tenant context middleware
+# - Read "x-tenant-id" or domain mapping *.tenant.levqor.ai
+# - Hydrate context: db_conn, plan_limits, feature_flags
+# - Reject if missing or suspended
+
+# =========================================
+# 2) TENANT LIFECYCLE APIs
+# =========================================
+
+mkdir -p api/routes/tenants
+cat > api/routes/tenants/manage.py << 'PY'
+from flask import Blueprint, request, jsonify
+bp = Blueprint('tenants', __name__)
+@bp.route('/api/tenants', methods=['POST'])
+def create_tenant():
+  # provisions schema/DB, stripe customer+sub, default env, domain
+  # returns admin API key and SSO bootstrap link
+  ...
+@bp.route('/api/tenants/<tid>/suspend', methods=['POST'])
+def suspend_tenant(tid): ...
+@bp.route('/api/tenants/<tid>/resume', methods=['POST'])
+def resume_tenant(tid): ...
+@bp.route('/api/tenants/<tid>/delete', methods=['POST'])
+def delete_tenant(tid): ...
+@bp.route('/api/tenants/<tid>/rotate-keys', methods=['POST'])
+def rotate_keys(tid): ...
+PY
+
+# Provisioning steps (create_tenant):
+# 1) Create tenant row; 2) Create schema/DB; 3) Seed baseline tables + packs; 4) Issue admin API key;
+# 5) Create Stripe customer + subscription; 6) Assign domain; 7) Emit audit event.
+
+# =========================================
+# 3) TENANT UI (ORG ADMIN)
+# =========================================
+
+mkdir -p levqor-site/src/app/org
+cat > levqor-site/src/app/org/page.tsx << 'TSX'
+/* Shows: tenant status, domain, plan, region, usage, members, deploys, audit log.
+   Actions: rotate keys, invite members, run Integrity Pack, generate Evidence PDF, redeploy, export backup. */
+TSX
+
+mkdir -p levqor-site/src/app/org/settings
+# pages: plan.tsx (upgrade/downgrade), members.tsx (RBAC), sso.tsx (SAML/OIDC), limits.tsx, backups.tsx
+
+# =========================================
+# 4) HARDENED ISOLATION + POLICY ENGINE
+# =========================================
+
+mkdir -p modules/policy
+cat > modules/policy/engine.py << 'PY'
+# Inputs: tenant plan, role, action, resource
+# Output: allow/deny + rationale; logs to tenant_audit
+# Load policy from JSON; default deny.
+PY
+
+cat > modules/policy/policies.json << 'JSON'
+{
+  "default": { "allow": ["read:docs"], "deny": ["admin:*"] },
+  "plans": {
+    "core":    { "limits": {"api_calls": 100k, "jobs": 5k}, "features": ["templates"] },
+    "pro":     { "limits": {"api_calls": 1e6, "jobs": 50k}, "features": ["templates","packs","marketplace"] },
+    "enterprise": { "limits": {"api_calls": 1e7, "jobs": 250k}, "features": ["sso","rbac","audit_stream","db_per_tenant"] }
+  }
+}
+JSON
+
+# Enforce in middleware: check action vs engine; log all denies; surface to UI.
+
+# =========================================
+# 5) PER-TENANT BILLING + METERING
+# =========================================
+
+# Stripe:
+# - Products: Tenant Core, Tenant Pro, Tenant Enterprise (subscription)
+# - Metered usage: api_calls, workflow_runs, storage_gb (Stripe Usage Records nightly)
+
+mkdir -p modules/billing
+cat > modules/billing/metering.py << 'PY'
+# accumulate usage per tenant in redis/db; nightly sync to Stripe usage
+# write summaries to Notion "Tenant Billing" DB
+PY
+
+# Org Admin → /org/settings/plan.tsx uses Stripe Customer Portal for upgrades.
+# Add webhooks: invoice.paid, customer.subscription.updated → update tenant_billing.
+
+# =========================================
+# 6) REGION, SCALING, AND DR
+# =========================================
+
+mkdir -p modules/runtime
+cat > modules/runtime/provisioner.py << 'PY'
+# create tenant schema/DB in selected region; optionally deploy worker pool
+# deploy per-tenant secrets; register health checks
+PY
+
+cat > modules/runtime/backup.py << 'PY'
+# nightly backup per tenant; store in region bucket; retention policy
+# "Export Backup" button streams signed URL to org admin
+PY
+
+cat > modules/runtime/failover.py << 'PY'
+# promote replica in secondary region; update DNS; notify admins; log audit
+PY
+
+# SLOs: 99.98% uptime/tenant; RPO ≤ 15 min; RTO ≤ 30 min.
+# Integrate with existing Automation Intelligence for anomaly+auto-heal per tenant.
+
+# =========================================
+# 7) FEDERATION & CROSS-ECOSYSTEM HUB
+# =========================================
+
+mkdir -p modules/federation
+cat > modules/federation/hub.py << 'PY'
+# Aggregates anonymized KPIs across tenants for Insights 2.0
+# Provides opt-in data share and generates industry benchmarks
+PY
+
+# Public page /insights/benchmarks: shows aggregated industry metrics (no PII, opt-in only).
+
+# =========================================
+# 8) MARKETPLACE PER-TENANT
+# =========================================
+
+# Reuse Marketplace; add tenant scope:
+# db: tenant_orders(tenant_id, listing_id, price, partner_id, ts, status)
+# Buy button on /marketplace writes tenant_orders and enables module for that tenant
+# Payouts respect per-tenant sales; show in Partner dashboard
+
+# =========================================
+# 9) COMPLIANCE PACK
+# =========================================
+
+mkdir -p modules/compliance
+cat > modules/compliance/streams.py << 'PY'
+# Real-time audit stream per tenant to their SIEM (Splunk/Datadog) via webhook
+# Map events: auth, config changes, data export, policy denies
+PY
+
+# Evidence Export reuses Integrity Pack; now runs per tenant with tenancy context.
+
+# =========================================
+# 10) SSO / RBAC FOR ORGS
+# =========================================
+
+mkdir -p modules/enterprise/sso
+# sso_saml.py, sso_oidc.py — per-tenant configs. Store IdP metadata in tenant_runtime.env_json
+# rbac_enforcer.py — roles: owner, admin, operator, auditor, viewer
+
+# UI: /org/settings/sso.tsx — upload metadata, test, enable.
+
+# =========================================
+# 11) OBSERVABILITY AND QUOTAS
+# =========================================
+
+mkdir -p modules/observe
+cat > modules/observe/tenant_metrics.py << 'PY'
+# emit per-tenant metrics: p95 latency, error rate, queue depth, api_calls, job success
+# expose /api/org/metrics for Org Admin dashboard
+PY
+
+# Weekly Pulse gains per-tenant rollup and fleet overview.
+# Alerts: quota 80%, error rate > threshold, DR failover occurred.
+
+# =========================================
+# 12) FRONTEND NAV + DOCS
+# =========================================
+
+# Add “Organizations” to navbar → /org
+# Add docs: /docs/multitenancy covering:
+#  - Data isolation model
+#  - RBAC matrix
+#  - SSO setup
+#  - Backups/DR
+#  - Billing and metering
+
+# =========================================
+# 13) MIGRATION & ROLLBACK
+# =========================================
+
+# Migration plan:
+# - M1: Add tables, add middleware (no behavior change)
+# - M2: Create first internal tenant “levqor-main” and move current data under it
+# - M3: Backfill audit; verify read paths; switch writes
+# - M4: Enable /api/tenants for new signups; close legacy single-tenant paths
+
+# Rollback plan:
+# - Feature flag TENANCY_ENABLED=false → single-tenant mode
+# - Connection broker falls back to legacy DB
+# - Keep migrations idempotent; no destructive drops until M4+14 days
+
+# =========================================
+# 14) VALIDATION MATRIX
+# =========================================
+
+# Isolation tests:
+# - Create tenant A and B; verify cross-tenant reads return 403
+# - API keys for A cannot access B
+# - Backups restore A into staging; verify no B data present
+
+# Billing tests:
+# - Upgrade/downgrade plan via Stripe portal; limits applied in real time
+# - Metered usage sync to Stripe; invoice generated
+
+# DR tests:
+# - Force fail primary; verify failover triggers and SLOs met
+
+# Governance:
+# - Policy deny recorded; visible in Org Audit; evidence export includes deny logs
+
+# =========================================
+# 15) KPIs AND ALERTS
+# =========================================
+
+# KPIs:
+# - New tenants/week
+# - Time-to-provision (target < 90s)
+# - Per-tenant uptime and error rate
+# - Tenant ARPU and gross margin
+# - DR coverage and backup restore success %
+# Alerts:
+# - Provisioning > 120s
+# - Quota breach
+# - Cross-tenant access attempt
+# - Failed backups/failovers
+
+# =========================================
+# 16) TIMELINE (6–8 WEEKS)
+# =========================================
+# W1: Data model, broker, middleware, Org UI skeleton
+# W2: Provisioning API, schema/DB creation, per-tenant billing
+# W3: SSO/RBAC, policy engine, audit stream
+# W4: Backups/DR, observability, quotas
+# W5: Per-tenant marketplace + payouts
+# W6: Federation hub + Insights 2.0
+# W7: Migrations (M1–M4), shadow traffic, cutover
+# W8: Hardening, pen-test, final docs
+
+# =========================================
+# 17) COST & RISK
+# =========================================
+# Cost controls: per-tenant quotas, auto-scale caps, cold tenants hibernation, storage lifecycle rules.
+# Risks: mis-scoped tenant context, noisy neighbor, billing drift.
+# Mitigations: mandatory tenant context in ORM, circuit breakers, nightly usage reconciliation, chaos drills.

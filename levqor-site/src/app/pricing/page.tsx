@@ -1,7 +1,41 @@
 "use client";
 import Link from "next/link";
+import { useState } from "react";
+
+type Plan = "starter" | "pro" | "business";
 
 export default function Pricing() {
+  const [loading, setLoading] = useState<Plan | null>(null);
+
+  const handleCheckout = async (plan: Plan) => {
+    setLoading(plan);
+    
+    try {
+      const response = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          plan,
+          term: "monthly",
+          addons: []
+        })
+      });
+
+      const data = await response.json();
+      
+      if (data.ok && data.url) {
+        window.location.href = data.url;
+      } else {
+        alert(`Checkout error: ${data.error || "Unknown error"}`);
+        setLoading(null);
+      }
+    } catch (error) {
+      console.error("Checkout failed:", error);
+      alert("Failed to start checkout. Please try again or contact support.");
+      setLoading(null);
+    }
+  };
+
   return (
     <main className="min-h-screen bg-slate-950">
       {/* Header */}
@@ -44,6 +78,7 @@ export default function Pricing() {
               <h3 className="text-2xl font-bold text-white mb-2">Starter</h3>
               <div className="flex items-baseline gap-1 mb-4">
                 <span className="text-5xl font-bold text-white">£99</span>
+                <span className="text-slate-400 text-sm">/mo</span>
               </div>
               <p className="text-slate-400">Perfect for your first automation.</p>
             </div>
@@ -71,12 +106,13 @@ export default function Pricing() {
               </li>
             </ul>
 
-            <Link 
-              href="/signin" 
-              className="block w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-semibold text-center transition"
+            <button 
+              onClick={() => handleCheckout("starter")}
+              disabled={loading !== null}
+              className="block w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-semibold text-center transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Get started
-            </Link>
+              {loading === "starter" ? "Loading..." : "Get Starter"}
+            </button>
           </div>
 
           {/* Professional Tier - Featured */}
@@ -89,6 +125,7 @@ export default function Pricing() {
               <h3 className="text-2xl font-bold text-white mb-2">Professional</h3>
               <div className="flex items-baseline gap-1 mb-4">
                 <span className="text-5xl font-bold text-white">£249</span>
+                <span className="text-slate-400 text-sm">/mo</span>
               </div>
               <p className="text-slate-400">For founders and teams who want reliability.</p>
             </div>
@@ -116,12 +153,13 @@ export default function Pricing() {
               </li>
             </ul>
 
-            <Link 
-              href="/signin" 
-              className="block w-full py-3 px-4 bg-emerald-500 hover:bg-emerald-400 text-slate-900 rounded-lg font-bold text-center transition shadow-lg"
+            <button 
+              onClick={() => handleCheckout("pro")}
+              disabled={loading !== null}
+              className="block w-full py-3 px-4 bg-emerald-500 hover:bg-emerald-400 text-slate-900 rounded-lg font-bold text-center transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Get started
-            </Link>
+              {loading === "pro" ? "Loading..." : "Get Professional"}
+            </button>
           </div>
 
           {/* Enterprise Tier */}
@@ -130,6 +168,7 @@ export default function Pricing() {
               <h3 className="text-2xl font-bold text-white mb-2">Enterprise</h3>
               <div className="flex items-baseline gap-1 mb-4">
                 <span className="text-5xl font-bold text-white">£599</span>
+                <span className="text-slate-400 text-sm">/mo</span>
               </div>
               <p className="text-slate-400">When automation is mission-critical.</p>
             </div>
@@ -157,12 +196,13 @@ export default function Pricing() {
               </li>
             </ul>
 
-            <Link 
-              href="/signin" 
-              className="block w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-semibold text-center transition"
+            <button 
+              onClick={() => handleCheckout("business")}
+              disabled={loading !== null}
+              className="block w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-semibold text-center transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Get started
-            </Link>
+              {loading === "business" ? "Loading..." : "Get Enterprise"}
+            </button>
           </div>
         </div>
 
@@ -190,8 +230,8 @@ export default function Pricing() {
             <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
               <h3 className="text-lg font-bold text-white mb-2">Do I need to pay monthly after this?</h3>
               <p className="text-slate-300 text-sm">
-                No. These are one-time payments for us to build your automation. Your workflows run on your own accounts 
-                (Gmail, Sheets, etc.) or our infrastructure depending on your needs.
+                Yes, these are monthly subscriptions that include ongoing maintenance, monitoring, and support. 
+                Your workflows run on our infrastructure with self-healing capabilities.
               </p>
             </div>
 
@@ -213,12 +253,14 @@ export default function Pricing() {
           <p className="text-lg text-slate-400 mb-8">
             Choose your package and we'll have your automation running in 48 hours.
           </p>
-          <Link
-            href="/signin"
+          <button
+            onClick={() => {
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
             className="inline-block px-10 py-5 bg-emerald-500 hover:bg-emerald-400 text-slate-900 rounded-xl font-bold transition-all text-lg shadow-2xl"
           >
-            Get started now
-          </Link>
+            Choose your plan
+          </button>
         </div>
       </div>
     </main>

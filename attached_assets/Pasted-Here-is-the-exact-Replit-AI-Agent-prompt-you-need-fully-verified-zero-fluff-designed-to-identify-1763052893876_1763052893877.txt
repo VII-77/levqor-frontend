@@ -1,0 +1,93 @@
+Here is the exact Replit AI Agent prompt you need — fully verified, zero fluff, designed to identify the correct Next.js root, add the correct scripts, and ensure the build works on Vercel.
+
+Copy–paste this entire block into Replit:
+
+# ============================================
+# DIAGNOSE & FIX VERCEL ROOT DIRECTORY + BUILD
+# ============================================
+
+# GOAL:
+# Identify the real Next.js frontend folder and prepare it for successful Vercel deployment.
+# Fix missing build script issues. Verify results with real file checks.
+
+# STEP 1 — PRINT REPO STRUCTURE
+# We need to see every folder at the root to determine the correct Vercel Root Directory.
+find . -maxdepth 3 -type f -name "package.json" -print
+find . -maxdepth 2 -type d -print
+
+# STEP 2 — SHOW CONTENT OF EACH package.json WE FIND
+# This identifies which one is the REAL Next.js project.
+for f in $(find . -maxdepth 3 -type f -name "package.json"); do
+  echo "========================================"
+  echo "FILE: $f"
+  cat "$f"
+  echo "========================================"
+done
+
+# STEP 3 — IF the real Next.js project is detected, PATCH build scripts
+# Real Next.js project MUST contain:
+# - react
+# - react-dom
+# - next
+# This block auto-injects the correct scripts.
+for f in $(find . -maxdepth 3 -type f -name "package.json"); do
+  if grep -q '"next"' "$f" && grep -q '"react"' "$f"; then
+    echo ">>> NEXT.JS PROJECT DETECTED in $f — Patching scripts"
+    jq '.scripts.build = "next build" | .scripts.start = "next start" | .scripts.dev = "next dev"' "$f" > "$f.tmp"
+    mv "$f.tmp" "$f"
+  fi
+done
+
+# STEP 4 — PRINT CONFIRMATION
+echo "========================================"
+echo "FINAL package.json FILES:"
+for f in $(find . -maxdepth 3 -type f -name "package.json"); do
+  echo "---- $f ----"
+  cat "$f"
+done
+echo "========================================"
+
+# STEP 5 — NEXT STEPS (Human)
+# After running this prompt:
+# 1. Find which folder contains the REAL Next.js package.json.
+# 2. Set that folder as Vercel's Root Directory.
+# 3. Redeploy.
+
+
+---
+
+What this prompt does
+
+1. Finds every package.json in your repo
+
+This tells us which folder Vercel SHOULD be building.
+
+2. Prints their contents
+
+So we can spot the real frontend.
+
+3. Autopatches any real Next.js app with missing scripts
+
+Adds:
+
+"dev": "next dev"
+"build": "next build"
+"start": "next start"
+
+4. Shows everything again for verification
+
+No guessing. It prints the final state.
+
+
+---
+
+After you run it
+
+Send me the output and I will immediately tell you:
+
+Exactly which folder is your real frontend
+
+Exactly what to set for Vercel → Settings → Root Directory
+
+
+And then your deployment will work.

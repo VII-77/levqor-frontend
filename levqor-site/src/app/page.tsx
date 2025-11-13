@@ -101,11 +101,12 @@ export default function Home() {
               >
                 Start free trial
               </Link>
-              <button 
+              <Link 
+                href="/contact"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 border border-slate-700 text-slate-100 hover:border-emerald-400/60 hover:bg-slate-900/60 rounded-lg font-semibold transition-all text-lg"
               >
                 View demo
-              </button>
+              </Link>
             </div>
 
             <div className="inline-flex items-center gap-2">

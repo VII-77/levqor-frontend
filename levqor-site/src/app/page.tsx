@@ -283,3 +283,4 @@ export default function Home() {
     </>
   );
 }
+// Genesis v8 dark theme build

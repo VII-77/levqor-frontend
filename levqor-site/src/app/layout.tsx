@@ -4,7 +4,8 @@ import Link from 'next/link'
 import './globals.css'
 import '../styles/tokens.css'
 
-// Force cache clear - deployment timestamp: 2025-11-11T12:32
+// Force cache clear - deployment timestamp: 2025-11-13T13:50
+// Genesis v8.0 dark theme deployment
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;

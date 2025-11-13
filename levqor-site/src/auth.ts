@@ -1,5 +1,4 @@
 import { AuthOptions } from "next-auth"
-import EmailProvider from "next-auth/providers/email"
 import GoogleProvider from "next-auth/providers/google"
 import AzureADProvider from "next-auth/providers/azure-ad"
 
@@ -25,17 +24,6 @@ async function sendAuditEvent(event: string, email: string, userAgent?: string, 
 
 export const authOptions: AuthOptions = {
   providers: [
-    EmailProvider({
-      server: {
-        host: 'smtp.resend.com',
-        port: 587,
-        auth: {
-          user: 'resend',
-          pass: process.env.RESEND_API_KEY,
-        },
-      },
-      from: process.env.AUTH_FROM_EMAIL || "no-reply@levqor.ai",
-    }),
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",

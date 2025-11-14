@@ -1,0 +1,374 @@
+You are Replit AI Agent working on the Levqor project.
+
+GOAL (STAGE 1 – LEGAL BLOCKERS, ITEMS 3–7):
+Implement the remaining critical compliance features WITHOUT deploying:
+3) Marketing consent system (PECR/GDPR)
+4) High-risk data exclusion (medical/legal/financial/safety)
+5) ROPA (Record of Processing Activities) – internal doc
+6) DPIA (Data Protection Impact Assessment) – internal doc
+7) LIA (Legitimate Interest Assessment) – internal doc (lightweight)
+
+CONSTRAINTS:
+- Do NOT trigger any Vercel deployment.
+- Only change repo files and run local builds/tests.
+- Follow existing conventions in Levqor frontend (Next.js) + backend (Flask).
+- After each change, VERIFY with grep, build/tests, and simple endpoint checks.
+
+-------------------------------------------------------------------------------
+PHASE 0 — CONTEXT & SAFETY CHECK
+-------------------------------------------------------------------------------
+1) Go to project root and confirm structure:
+
+   cd ~/workspace && ls
+   # Expect: levqor-site (Next.js frontend), backend (Flask), etc.
+
+2) Inside frontend:
+
+   cd levqor-site
+   ls src/app
+   # Confirm existing legal/policy pages:
+   ls src/app | grep -E 'privacy|terms|risk|acceptable-use|data-requests|support|sla|fair-use' || true
+
+3) Inside backend (Flask API):
+
+   cd ~/workspace
+   ls
+   # Identify backend dir (e.g. `backend`, `api`, or root `run.py` + `app`/`levqor` package).
+
+   # If unclear, grep for Flask app:
+   grep -R "Flask(" -n .
+
+Do NOT proceed until you’ve confirmed:
+- levqor-site is the Next.js app.
+- You’ve found the Flask backend package or app entry.
+
+-------------------------------------------------------------------------------
+PHASE 1 — MARKETING CONSENT SYSTEM (PECR / GDPR)
+-------------------------------------------------------------------------------
+GOAL:
+- Add proper marketing consent capture (double opt-in).
+- Log consent with timestamp/IP.
+- Provide unsubscribe + preferences UI.
+- Ensure email templates include unsubscribe links.
+- Update Privacy/Terms text to match.
+
+A) BACKEND – DATA MODEL & STORAGE
+---------------------------------
+1) Locate the SQLAlchemy models file (or equivalent) in backend:
+   - e.g. `backend/models.py`, `app/models/*.py`, or similar.
+
+2) Add a new `MarketingConsent` (or similar) model, e.g.:
+
+   - Fields (adapt names to project style):
+     - id (UUID/serial PK)
+     - email (string, unique per channel if needed)
+     - source (string; e.g. "signup", "pricing-form", "import")
+     - channel (string; e.g. "email", "phone")
+     - purpose (string; e.g. "marketing", "product-updates")
+     - status (string; "pending_double_opt_in" | "subscribed" | "unsubscribed")
+     - ip_address (string)
+     - user_agent (text, optional)
+     - created_at (timestamp, default now)
+     - confirmed_at (timestamp, nullable)
+     - unsubscribed_at (timestamp, nullable)
+
+3) Add a DB migration if the project uses Alembic or similar:
+   - Find existing migration scripts; add a migration creating the `marketing_consents` table.
+   - Run the migration command used by the project (e.g. `alembic upgrade head` or custom script).
+
+4) VERIFY:
+   - Run backend tests if present:
+     - cd ~/workspace && <project-specific test command> (e.g. `pytest`, `python -m pytest`).
+   - If no tests: start backend and ensure it boots without DB errors.
+
+B) BACKEND – MARKETING CONSENT API
+----------------------------------
+1) Find the router/blueprint file handling auth/user API endpoints, e.g.:
+   - `backend/routes/auth.py`, `backend/api/users.py` etc.
+
+2) Implement **two** endpoints (adjust to project conventions):
+
+   1) POST `/api/marketing/consent`  
+      - Body JSON:
+        - email (required)
+        - channel (default "email")
+        - purpose (default "marketing")
+        - source (string; where user subscribed from)
+        - doubleOptIn (bool; default true)
+      - Behavior:
+        - Normalize email (lowercase + trim).
+        - Create or update a `MarketingConsent` with:
+          - status = "pending_double_opt_in"
+          - ip_address and user_agent from request
+        - Generate a secure token (random + signed) bound to email + purpose.
+        - Store token in DB or in same model (e.g. `token`, `token_expires_at`).
+        - Send a **double opt-in email** with a link:
+          `https://www.levqor.ai/marketing/confirm?token=...`
+        - Return JSON:
+          { "ok": true }
+
+   2) POST `/api/marketing/unsubscribe`  
+      - Body JSON:
+        - email (required)
+        - purpose (optional; default "marketing")
+      - Behavior:
+        - Lookup consent by email (+purpose if provided).
+        - Set status = "unsubscribed", set `unsubscribed_at = now()`.
+        - Return:
+          { "ok": true }
+
+3) Add a GET/POST handler for `/api/marketing/confirm` (backend) that:
+   - Validates the token.
+   - Marks the corresponding `MarketingConsent` as:
+     - status = "subscribed"
+     - confirmed_at = now()
+   - Redirects to frontend page `/marketing/confirmed` or returns JSON.
+
+4) VERIFY:
+   - Start backend.
+   - Use curl to test:
+     - POST /api/marketing/consent with a test email.
+     - POST /api/marketing/unsubscribe.
+     - Manually call /api/marketing/confirm with a fake token to see error path.
+
+C) FRONTEND – MARKETING CHECKBOXES & PREFERENCES PAGE
+-----------------------------------------------------
+1) Find the **signin / signup / account** components:
+   - `src/app/signin/page.tsx`
+   - Any onboarding form components in `src/components`.
+
+2) For the primary “entry” form where users enter email (signup or account creation):
+   - Add a **marketing consent checkbox** such as:
+     - “I’d like to receive product updates and occasional marketing emails”
+   - Default unchecked (for PECR).
+
+3) On form submit:
+   - Keep existing auth flow intact.
+   - If checkbox is checked and email is present:
+     - After successful auth, call:
+       POST `/api/marketing/consent` with:
+       {
+         email,
+         channel: "email",
+         purpose: "marketing",
+         source: "signin-form",
+         doubleOptIn: true
+       }
+   - Handle errors quietly (log to console or Sentry, don’t block auth).
+
+4) Add a **Marketing Preferences page** at `/settings/marketing`:
+   - Path: `src/app/settings/marketing/page.tsx`
+   - Contents (simple for now):
+     - Show the user’s current marketing status (if possible):
+       - For now, just a simple text: “You can unsubscribe using the link in any marketing email.”
+       - And a “Global unsubscribe” button that posts to `/api/marketing/unsubscribe` with current user’s email.
+   - Use existing layout & styling conventions.
+
+5) Add a static confirmation page `/marketing/confirmed`:
+   - Path: `src/app/marketing/confirmed/page.tsx`
+   - Message:
+     - “You’re subscribed to Levqor updates.”
+     - Brief text about what they’ll receive.
+     - Link back to `/settings/marketing`.
+
+6) VERIFY:
+   - cd levqor-site && npm run lint || echo "lint failed"
+   - cd levqor-site && npm run build
+   - Start dev server (if used in Replit workflow) and visually check:
+     - Signin form contains marketing checkbox.
+     - `/settings/marketing` renders without error.
+     - `/marketing/confirmed` renders.
+
+D) EMAIL TEMPLATE UPDATES
+-------------------------
+1) Locate email templates (likely in backend or shared `emails` dir):
+   - grep -R "Resend" -n .
+   - grep -R "@resend" -n .
+   - Or search for known email subjects.
+
+2) For any **marketing** or **newsletter** style templates:
+   - Add an unsubscribe footer with:
+     - Text: “You’re receiving this because you opted in to Levqor updates.”
+     - Link: `https://www.levqor.ai/unsubscribe?email={{ encoded_email }}`
+       (Exact templating syntax depends on current setup.)
+
+3) Create a public `/unsubscribe` page in frontend:
+   - Path: `src/app/unsubscribe/page.tsx`
+   - Behavior:
+     - Reads `email` param from query string.
+     - Calls backend `/api/marketing/unsubscribe` if email present.
+     - Shows confirmation text.
+
+4) VERIFY:
+   - Ensure template compilation still works (check any template loading logic or tests).
+   - No TypeScript errors and no runtime errors in email rendering code.
+
+E) LEGAL TEXT UPDATES – PRIVACY & TERMS
+---------------------------------------
+1) Update `/privacy` page:
+   - Add clear section: “Marketing Communications”
+   - Explicitly mention:
+     - You only send marketing emails with consent (double opt-in).
+     - Users can withdraw consent at any time via unsubscribe link or settings.
+     - Explain log of consent (timestamp, IP).
+
+2) Update `/terms` page:
+   - Add a short section referencing marketing communications and that they’re optional and separate from core service emails.
+
+3) VERIFY:
+   - Ensure `/privacy` and `/terms` still build and render.
+
+-------------------------------------------------------------------------------
+PHASE 2 — HIGH-RISK DATA EXCLUSION (MEDICAL/LEGAL/FINANCIAL/SAFETY)
+-------------------------------------------------------------------------------
+GOAL:
+- Explicitly state you do NOT automate certain high-risk domains.
+- Show it in legal docs AND in the product UI.
+
+A) LEGAL PAGES
+--------------
+1) Update `/risk-disclosure`:
+   - Add a prominent section, e.g. “Prohibited High-Risk Uses”.
+   - Clearly state:
+     - Levqor must NOT be used to automate:
+       - Medical or healthcare decisions
+       - Legal advice or decision-making
+       - Financial advice, lending, credit scoring, or trading decisions
+       - Safety-critical systems (e.g. transport, emergency services, critical infrastructure)
+   - Add sentence: “If in doubt, treat workflows as untrusted drafts requiring human review.”
+
+2) Update `/acceptable-use`:
+   - Add matching bullets under prohibited uses for:
+     - Medical / clinical workflows
+     - Legal advice automation
+     - Automated investment or lending decisions
+     - Safety-critical control systems
+
+3) Update `/terms`:
+   - Under limitations of liability / use of service:
+     - Add that Levqor is not designed for, and must not be used for, the above high-risk categories.
+     - Add that any such use is strictly at customer’s own risk and in breach of Terms.
+
+B) PRODUCT UI – WORKFLOW CREATION WARNING
+-----------------------------------------
+1) Locate the primary workflow builder / job creation screen, e.g.:
+   - `src/app/workflow/page.tsx` or similar.
+   - If there is a `WorkflowBuilder` component, open that.
+
+2) Add a visible **non-dismissive** warning element near the top of the page:
+   - Example (adapt Tailwind classes to codebase):
+
+     - Title: “Do not automate medical, legal, financial, or safety-critical decisions.”
+     - Body: Short list of prohibited high-risk use examples.
+     - Styling: subtle but clearly visible banner.
+
+3) If there is a “description” field or similar:
+   - Add helper text: “Do NOT use Levqor for medical, legal, financial, or safety-critical workflows. These are prohibited.”
+
+4) VERIFY:
+   - npm run build (levqor-site)
+   - Ensure workflow page renders and warning is visible.
+
+-------------------------------------------------------------------------------
+PHASE 3 — INTERNAL COMPLIANCE DOCS (ROPA / DPIA / LIA)
+-------------------------------------------------------------------------------
+GOAL:
+Create internal markdown docs. These are not routes; they live in `/docs/compliance`.
+
+A) CREATE DOCUMENT STRUCTURE
+----------------------------
+1) In project root:
+
+   cd ~/workspace
+   mkdir -p docs/compliance
+
+2) Create the files:
+
+   - `docs/compliance/ropa.md`
+   - `docs/compliance/dpia.md`
+   - `docs/compliance/lia.md`
+
+B) ROPA (Record of Processing Activities)
+-----------------------------------------
+1) Populate `docs/compliance/ropa.md` with a structured template including:
+
+   - Title: “Record of Processing Activities (ROPA) – Levqor”
+   - Date created + last updated.
+   - Table sections:
+     - Processing activity (e.g. “Account management”, “Workflow automation”, “Job logging”, “Billing”).
+     - Data categories (user identity, auth data, job metadata, logs, payment identifiers (via Stripe), etc.).
+     - Data subjects (customers, customer users).
+     - Purpose.
+     - Legal basis (contract, consent, legitimate interest if applicable).
+     - Retention periods (link to existing retention policy).
+     - Recipients / subprocessors (Stripe, Vercel, Replit, Google, Microsoft, OpenAI, etc.).
+     - Security measures summary (encryption at rest, in transit, access control).
+
+2) Include a note that this doc is internal and must be kept up to date when new features launch.
+
+C) DPIA (Data Protection Impact Assessment)
+-------------------------------------------
+1) Populate `docs/compliance/dpia.md` with sections:
+
+   - Title: “Data Protection Impact Assessment (DPIA) – Levqor”
+   - Scope & description of processing (AI + automation of third-party tools).
+   - Risk identification:
+     - Unauthorized access.
+     - Misconfigured automations causing data leaks.
+     - Over-collection of data in logs.
+     - Profiling risk if customer workflows use it.
+   - Risk assessment (likelihood x impact).
+   - Mitigation measures:
+     - Access controls, logging, rate limiting, high-risk use prohibition, DSAR process, data minimization.
+   - Residual risk and justification.
+   - Review schedule (e.g. yearly or on major feature change).
+
+D) LIA (Legitimate Interest Assessment)
+---------------------------------------
+1) Only needed if any processing relies on **legitimate interest**. For safety, create a lightweight assessment in `docs/compliance/lia.md`:
+
+   - Title: “Legitimate Interest Assessment (LIA) – Levqor”
+   - Purpose test:
+     - Describe any legitimate interest processing (e.g. security monitoring, basic product analytics, fraud prevention).
+   - Necessity test:
+     - Why this processing is necessary for the purpose.
+   - Balancing test:
+     - How user rights and expectations are respected.
+     - Ability to opt out (where applicable).
+   - Safeguards:
+     - Data minimization, pseudonymization where possible, easy opt-out, etc.
+
+E) VERIFY
+---------
+1) Ensure files exist and non-empty:
+
+   cd ~/workspace
+   ls docs/compliance
+   wc -l docs/compliance/*.md
+
+2) No further build steps needed; these are internal docs.
+
+-------------------------------------------------------------------------------
+PHASE 4 — FINAL SANITY CHECKS (NO DEPLOY)
+-------------------------------------------------------------------------------
+1) Frontend:
+
+   cd ~/workspace/levqor-site
+   npm run lint || echo "lint-failed"
+   npm run build
+
+2) Backend:
+   - Run tests if present (e.g. `pytest` or `python -m pytest`).
+   - Start backend briefly to ensure no import/migration errors.
+
+3) Quick content grep (ensure new text exists):
+
+   cd ~/workspace
+   grep -R "high-risk" -n levqor-site/src || true
+   grep -R "marketing/confirmed" -n levqor-site/src || true
+   grep -R "Record of Processing Activities" -n docs/compliance || true
+
+4) DO NOT deploy. Stop after confirming builds/tests are green and files are in place.
+
+END OF INSTRUCTIONS.
+```0

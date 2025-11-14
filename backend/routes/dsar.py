@@ -1,5 +1,6 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, send_file
 from datetime import datetime
+import os
 from app import db
 from backend.models.dsar_request import DSARRequest
 from backend.utils.ids import generate_gdpr_reference
@@ -90,3 +91,79 @@ def get_dsar_status(ref_id: str):
             "last_error": dsar.last_error,
         }
     ), 200
+
+
+@dsar_bp.route("/download/<reference_id>", methods=["GET"])
+def download_dsar(reference_id: str):
+    """
+    Authenticated users can download their completed DSAR ZIP.
+    
+    Security checks:
+    - User must be authenticated (current_user check)
+    - DSARRequest must exist
+    - Must belong to current user (checked by email)
+    - Status must be "completed"
+    - Export file must exist on disk
+    
+    Returns:
+    - 200: ZIP file stream
+    - 401: Not authenticated
+    - 403: Forbidden (not user's request)
+    - 404: Request not found
+    - 400: Export not ready
+    - 500: File missing on disk
+    """
+    user_email = None
+    
+    try:
+        from flask_login import current_user
+        if getattr(current_user, "is_authenticated", False):
+            user_email = getattr(current_user, "email", None)
+    except Exception:
+        pass
+
+    if not user_email:
+        return jsonify({
+            "ok": False,
+            "error": "Authentication required. Please sign in to download your data export."
+        }), 401
+
+    req = DSARRequest.query.filter_by(gdpr_reference_id=reference_id).first()
+    if not req:
+        return jsonify({"ok": False, "error": "DSAR request not found"}), 404
+
+    if req.email != user_email:
+        return jsonify({
+            "ok": False,
+            "error": "Forbidden: This request does not belong to you"
+        }), 403
+
+    if req.status != "completed":
+        return jsonify({
+            "ok": False,
+            "error": f"Export not ready. Current status: {req.status}",
+            "status": req.status,
+            "message": "Your export is still being processed. Please check back later."
+        }), 400
+
+    export_root = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+        "backend", "exports", "dsar"
+    )
+    
+    filename = f"levqor-dsar-{req.gdpr_reference_id}.zip"
+    file_path = os.path.join(export_root, filename)
+
+    if not os.path.isfile(file_path):
+        return jsonify({
+            "ok": False,
+            "error": "Export file not found on server. Please contact support.",
+            "reference_id": reference_id
+        }), 500
+
+    return send_file(
+        file_path,
+        mimetype="application/zip",
+        as_attachment=True,
+        download_name=filename
+    )

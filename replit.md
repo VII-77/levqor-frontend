@@ -3,6 +3,14 @@
 ## Overview
 Levqor is a Flask-based job orchestration backend API for AI automation. It provides robust validation, cost management, job intake, status tracking, and health monitoring. The platform aims to be a scalable solution for automated workflows, featuring a Next.js frontend and an autonomous self-optimization layer with AI-powered monitoring, anomaly detection, predictive analytics, and auto-scaling.
 
+## Recent Changes (November 14, 2025)
+**Revenue-Focus Pack (PHASES 1-4 complete):**
+- Enhanced landing page with value proposition, testimonials, DFY vs Subscription comparison
+- Upgraded pricing page with "Most Popular"/"Best Value" badges, micro-copy, comparison table
+- Created `/dfy` sales page with deliverables, process steps, testimonials, and CTAs
+- Created trust pages: `/guarantee` (14-day money-back) and `/why-trust-us` (security, compliance)
+- **Sales Automation:** Created `/api/sales/lead` and `/api/sales/dfy-kickoff` endpoints for lead capture and DFY kickoff forms with email notifications
+
 ## User Preferences
 None documented yet.
 

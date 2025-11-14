@@ -67,6 +67,7 @@ from backend.routes.marketing import marketing_bp
 from backend.routes.marketing_enhanced import marketing_enhanced_bp
 from backend.routes.compliance_dashboard import compliance_dashboard_bp
 from backend.routes.billing_webhooks import billing_webhooks_bp
+from backend.routes.sales import sales_bp
 app.register_blueprint(dsar_bp)
 app.register_blueprint(dsar_admin_bp)
 app.register_blueprint(gdpr_optout_bp)
@@ -76,6 +77,7 @@ app.register_blueprint(marketing_bp)
 app.register_blueprint(marketing_enhanced_bp)
 app.register_blueprint(compliance_dashboard_bp)
 app.register_blueprint(billing_webhooks_bp)
+app.register_blueprint(sales_bp)
 
 _db_connection = None
 

@@ -1,0 +1,189 @@
+YOU ARE REPLIT AI AGENT WORKING ON LEVQOR (NEXT.JS 14 + FLASK API + STRIPE).  
+GOAL: Implement ALL missing compliance, safety, and operational components for Levqor.
+
+DO NOT TOUCH existing pages or remove anything.  
+ADD ONLY NEW FILES + NEW COMPONENTS + NEW LOGIC.  
+WORK IN TIGHT INCREMENTS. VERIFY EVERY STEP. NEVER GUESS.
+
+=====================================================================
+PHASE 1 — LEGAL BLOCKERS (MUST-HAVE BEFORE USERS)
+=====================================================================
+
+1. IMPLEMENT COOKIE CONSENT BANNER (PECR/GDPR COMPLIANT)
+   - Add global <CookieConsent /> component with:
+     accept, reject, granular toggles (strictly needed/analytics/marketing)
+     saves consent (localStorage + /api/consent POST)
+   - Block non-essential cookies/scripts until accepted.
+   - Add footer link: “Cookie Settings” to reopen modal.
+
+2. IMPLEMENT TOS ACCEPTANCE FLOW
+   - On signup & login pages:
+     Add checkbox: “I agree to Terms of Service and Privacy Policy”
+     POST to /api/legal/accept
+     Save: userId, ip, timestamp, version
+   - Block platform until accepted.
+
+3. IMPLEMENT MARKETING CONSENT SYSTEM
+   - Double opt-in email flow:
+     /api/marketing/subscribe → email w/ confirmation link
+     /api/marketing/confirm?id=…
+   - Store consent logs: email, ip, timestamp, scope.
+
+4. ADD HIGH-RISK DATA AUTOMATION BLOCKERS
+   - Add warnings on workflow creation screens.
+   - Add page + backend check blocking:
+     Medical, Legal, Financial automation.
+   - Update /risk-disclosure accordingly.
+
+5. IMPLEMENT DATA DELETION AUTOMATION
+   - /api/data/delete:
+       Flags account as "pendingDeletion"
+       30-day countdown
+       Auto-delete workflows, logs, history, tokens.
+       Add audit entry.
+
+6. IMPLEMENT PAYMENT FAILURE DUNNING SYSTEM
+   - Stripe webhooks:
+       invoice.payment_failed
+       customer.subscription.updated
+   - Logic:
+       Day 1 email → retry
+       Day 7 email → retry
+       Day 14 final notice → auto pause billing → downgrade account.
+   - Write all flows to /logs/dunning.log.
+
+7. SECURITY HARDENING
+   - Add token rotation every 30 days
+   - Add secure logout (invalidate refresh tokens)
+   - Add rate limiting to auth endpoints.
+
+=====================================================================
+PHASE 2 — INTERNAL GDPR DOCUMENTATION (NOT PUBLIC)
+=====================================================================
+
+8. CREATE /internal/ROPA.md  
+   - Full Record of Processing Activities (all data flows).
+
+9. CREATE /internal/DPIA.md  
+   - High-risk processing assessment for automation + AI.
+
+10. CREATE /internal/LIA.md  
+   - Legitimate interest balancing test.
+
+11. CREATE /internal/DataFlowMap.md  
+   - All third parties, flows, storage, retention.
+
+=====================================================================
+PHASE 3 — TRUST FRAMEWORK (PUBLIC)
+=====================================================================
+
+12. CREATE PUBLIC STATUS PAGE
+   - /status (UI page)
+   - Show system uptime, API status, incidents
+   - Pull from /api/status
+
+13. ADD SLA CREDITS SYSTEM
+   - /api/sla-credits/request
+   - Page /sla-credits with form
+
+14. ADD DISPUTE RESOLUTION WORKFLOW
+   - /disputes page
+   - /api/disputes/new
+
+15. CONSOLIDATED DFY CONTRACT
+   - /dfy-contract
+   - Merge delivery + revisions + onboarding into single legal doc.
+
+=====================================================================
+PHASE 4 — USER GDPR RIGHTS
+=====================================================================
+
+16. DSAR EXPORT ENGINE
+   - /api/dsar/start → email verification
+   - /api/dsar/export → compile ZIP:
+        user profile
+        billing history
+        workflows
+        logs
+        support requests
+     store 7 days → auto-delete
+
+17. RIGHT TO OBJECT PORTAL
+   - /object
+   - POST /api/object to record objections
+
+18. MARKETING PREFERENCES PAGE
+   - /preferences
+   - Toggle: marketing, updates, product announcements
+
+19. DATA PORTABILITY EXPORT
+   - /api/portability/export JSON/CSV
+
+=====================================================================
+PHASE 5 — SAAS FOUNDATIONAL HARDENING
+=====================================================================
+
+20. PUBLIC API DOCS
+   - /api-docs with endpoints & examples.
+
+21. EMERGENCY CONTACT FLOW
+   - /api/incidents/emergency
+   - /emergency-info page
+
+22. MONITORING & ALERTING UPGRADE
+   - Add logs for:
+       errors
+       workflow failures
+       API 5xx spikes
+
+23. BACKUP RESTORE VERIFICATION
+   - Add script /scripts/test-backup-restore.mjs
+
+24. AUTO CHANGELOG
+   - /changelog auto-updated every push
+   - Pre-commit hook updates version
+
+=====================================================================
+PHASE 6 — OPTIONAL BUT VALUABLE
+=====================================================================
+
+25. UNIFIED ANTI-ABUSE POLICY PAGE
+   - Merge FUP + anti-fraud + rate limits → /abuse-policy
+
+26. DFY-SPECIFIC SLA (Optional)
+   - /dfy-sla
+
+27. ACCESSIBILITY IMPROVEMENTS
+   - ARIA labels, focus states, keyboard support.
+
+28. PERFORMANCE GUARANTEES
+   - /performance page (optional)
+
+=====================================================================
+PHASE 7 — ENTERPRISE EXTRAS
+=====================================================================
+
+29. PEN TEST SUMMARY PAGE
+   - /security-review
+
+30. VENDOR DUE DILIGENCE PACK
+   - Create downloadable PDF bundle:
+       Terms, SLA, DPA, Incident Policy, BC/DR, Subprocessors.
+
+=====================================================================
+EXECUTION RULES
+=====================================================================
+
+- After each change:
+    1) SHOW DIFFS
+    2) VERIFY imports
+    3) RE-RUN next.js build
+    4) TEST affected API routes
+    5) Confirm no regressions
+
+- NEVER REMOVE existing content.
+- ALWAYS create new files if unsure.
+
+=====================================================================
+BEGIN NOW.
+=====================================================================

@@ -1,0 +1,199 @@
+Perfect.
+
+Here is your next step — the Revenue-Focus Pack (RFP-1) exactly as we planned:
+simple, direct, commercial, and designed to unlock cash in < 7 days.
+
+No fluff.
+
+
+---
+
+🚀 REVENUE-FOCUS PACK (RFP-1)
+
+Goal: Convert traffic → money immediately
+
+Below is ONE consolidated prompt for Replit AI Agent to build everything in a single shot.
+
+
+---
+
+✅ RFP-1 — CONVERSION FUNNEL + SALES LAYER IMPLEMENTATION
+
+Paste this into Replit AI Agent exactly as is:
+
+You are Replit AI Agent for Levqor.
+
+Goal: Implement the full revenue conversion layer:
+Landing page → Pricing → Checkout → Conversion Assets → Trust Layer → Sales Automation.
+
+Do all steps in order. Stop after each phase with a summary.
+
+=========================================
+PHASE 1 — HERO LANDING PAGE UPGRADE
+=========================================
+Implement new landing page sections:
+
+1) NEW Section: Hero pitch (clear + promise + CTA)
+H1: “Automate your business in 24 hours. No tech skills needed.”
+Sub: “DFY setups, subscription automation, workflows, integrations.”
+
+Buttons:
+- Get Started (scrolls to pricing)
+- Book DFY (links to DFY section)
+
+2) NEW Section: Value Proposition
+3 key benefits with icons:
+- Save 20+ hours/week
+- 24-hour setup available
+- No-code & AI-powered
+
+3) NEW Section: Social Proof
+- Testimonials placeholder
+- Logos row
+
+4) NEW Section: DFY vs Subscription breakdown
+- Clear side-by-side comparison
+- CTA buttons for each plan
+
+Ensure animation = minimal, fast.
+
+=========================================
+PHASE 2 — PRICING PAGE CONVERSION BOOST
+=========================================
+Improve:
+
+1) Add highlight badges:
+- “Best Value” for PRO
+- “Most Popular” for Growth
+
+2) Add micro-copy under buttons:
+“Instant Stripe Checkout — secure payment”
+
+3) Add small comparison table under pricing:
+Rows:
+- Setup Time
+- Support Level
+- Workflow Limit
+- DFY Included?
+- Revisions
+
+=========================================
+PHASE 3 — DFY SALES PAGE (HIGH-TICKET)
+=========================================
+Add new route: /dfy
+
+Sections:
+1) Hero: “Done-For-You Automation Setup”
+2) Deliverables list:
+- Full workflow build
+- Integrations (email, CRM, scheduling)
+- Custom scripts
+- 1–3 revisions
+- 7-day support window
+
+3) Process steps (icons):
+- Step 1 — Kickoff form
+- Step 2 — Build
+- Step 3 — Review
+- Step 4 — Deliver
+
+4) CTA buttons:
+- DFY Starter (£99)
+- DFY Professional (£249)
+- DFY Enterprise (£599)
+
+=========================================
+PHASE 4 — TRUST & SAFETY LAYER (CONVERSION INCREASE)
+=========================================
+Add:
+
+1) /guarantee page  
+30-day no-questions refund (subscriptions only)
+
+2) /why-trust-us page  
+- GDPR compliant  
+- Secure payments  
+- 24/7 monitoring  
+
+3) Add footer links to both.
+
+=========================================
+PHASE 5 — SALES AUTOMATION HOOK
+=========================================
+Add the following:
+
+1) Lead Capture Form  
+Route: /lead  
+Collect:
+- Name
+- Email
+- Business Type
+- “What do you want automated?”
+
+Store in DB: leads table  
+Send auto email: “Thanks — expected reply time 24–48 hours.”
+
+2) Kickoff Form for DFY clients  
+Route: /dfy-kickoff  
+Fields:
+- Access creds (masked)
+- Workflow objectives
+- Integrations
+- Deadlines
+
+Store in DB: dfy_kickoff table.
+
+=========================================
+PHASE 6 — SALES NOTIFICATIONS
+=========================================
+Implement:
+
+1) Email alert to admin on new lead  
+2) Email alert on new DFY checkout  
+3) Email alert when a DFY kickoff form submitted  
+4) Store all events in audit logs
+
+=========================================
+PHASE 7 — FINAL CHECKS
+=========================================
+Verify:
+
+- Landing page mobile score > 90  
+- CTAs working  
+- DFY → Stripe working  
+- Growth tier checkout working  
+- Lead form storing correctly  
+- Kickoff form storing correctly  
+- Safety pages accessible
+
+Output final message:  
+“RFP-1 COMPLETE”
+Stop.
+
+
+---
+
+✅ This pack directly increases conversions and revenue.
+
+It creates:
+
+High-converting landing
+
+DFY sales funnel
+
+Lead capture and DFY kickoff tools
+
+Full trust layer
+
+Automated admin alerts
+
+Pricing upgrades
+
+
+This directly supports the 7-day cash target.
+
+When you finish running this in Replit, say:
+
+Done boss
+
+and I’ll give you RFP-2: Automated Sales Engine.

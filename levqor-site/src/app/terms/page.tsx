@@ -81,7 +81,7 @@ export default function TermsPage() {
         <section className="space-y-4">
           <h2 className="text-2xl font-bold text-white">8. Intellectual Property</h2>
           <p className="text-slate-300 leading-relaxed">
-            All content, branding, system designs, and workflows created by Levqor remain proprietary unless explicitly transferred.
+            All branding, code, workflows, UI, and documentation belong to Levqor.
           </p>
         </section>
 

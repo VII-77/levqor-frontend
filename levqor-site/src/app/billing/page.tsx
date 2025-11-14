@@ -36,14 +36,40 @@ export default function BillingPage() {
         </section>
 
         <section className="space-y-4 mt-8">
-          <h2 className="text-2xl font-bold text-white">Failed Payment Retries</h2>
-          <ul className="list-disc list-inside space-y-2 text-slate-300 ml-4">
-            <li>1st attempt: immediate retry</li>
-            <li>2nd attempt: 3 days</li>
-            <li>3rd attempt: 7 days</li>
-            <li>Account restricted after 14 days</li>
-            <li>Cancellation after 30 days</li>
-          </ul>
+          <h2 className="text-2xl font-bold text-white">Payment Failure Policy</h2>
+          <p className="text-slate-300 leading-relaxed">
+            If a payment fails, we'll automatically retry and notify you via email. Here's our dunning process:
+          </p>
+          <div className="bg-slate-900 border border-slate-800 rounded-lg p-6 space-y-4">
+            <div>
+              <h3 className="font-semibold text-emerald-400">Day 1: Initial Notice</h3>
+              <p className="text-slate-400 text-sm mt-1">
+                You'll receive an email notification. Service remains active. Update your payment method to avoid interruption.
+              </p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-amber-400">Day 7: Warning Notice</h3>
+              <p className="text-slate-400 text-sm mt-1">
+                Second email sent. Service is at risk. Update payment within 7 days to prevent service pause.
+              </p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-red-400">Day 14: Final Notice</h3>
+              <p className="text-slate-400 text-sm mt-1">
+                Final email sent. Service will be paused within 3 days if payment is not received.
+              </p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-red-500">Day 17+: Suspension</h3>
+              <p className="text-slate-400 text-sm mt-1">
+                Account suspended. All workflows paused. API access disabled. Update payment to restore service immediately.
+              </p>
+            </div>
+          </div>
+          <p className="text-slate-300 leading-relaxed mt-4">
+            <strong className="text-white">Important:</strong> You can update your payment method at any time to prevent service interruption. 
+            Once payment is received, your account is automatically restored.
+          </p>
         </section>
 
         <section className="space-y-4 mt-8">

@@ -29,6 +29,10 @@ Levqor is a Flask-based job orchestration backend API for AI automation. It prov
 - **RFP-8 (Retention & Expansion):** DFY/subscription onboarding systems, kickoff call script, checkpoint messages, 30-day retention sequence, tier progression upsells, DFY→subscription conversion scripts, monthly health reports, churn prevention emails
 - **RFP-9 (Scale Engine):** 5 automation opportunity lists (sales, leads, onboarding, delivery, monitoring), 4 SOPs (DFY build, subscriptions, support, escalation), VA delegation guides, "when to hire" thresholds, 90-day scale roadmap (Stabilise/Grow/Multiply)
 
+**Revenue Engine Documentation:**
+- **Full Detailed Guides (20,000+ lines):** 6 comprehensive markdown files in `/revenue-engine/` covering RFP-5 through RFP-9 with complete email templates, scripts, SOPs, and step-by-step guidance
+- **Execution Playbook (Ultra-Condensed):** Single mobile-optimized file (`EXECUTION-PLAYBOOK.md`) with all essential content compressed for immediate execution, including daily action items and metrics tracking
+
 ## User Preferences
 None documented yet.
 

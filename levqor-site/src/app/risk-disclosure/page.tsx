@@ -119,11 +119,38 @@ export default function RiskDisclosurePage() {
           </div>
         </section>
 
+        <section className="mt-12 space-y-4">
+          <h2 className="text-2xl font-bold text-white">❌ Prohibited Workflow Categories (Non-Negotiable)</h2>
+          <div className="bg-red-950/30 border-2 border-red-900/50 rounded-lg p-6 space-y-4">
+            <p className="text-slate-300 leading-relaxed font-semibold">
+              The following categories <strong className="text-white">cannot be automated under any circumstances</strong>:
+            </p>
+            <ul className="list-disc list-inside space-y-2 text-slate-300 ml-4">
+              <li><strong className="text-white">Medical data or healthcare decisions</strong></li>
+              <li><strong className="text-white">Financial advice or creditworthiness decisions</strong></li>
+              <li><strong className="text-white">Legal advice or legal case workflows</strong></li>
+              <li><strong className="text-white">Criminal data or policing workflows</strong></li>
+              <li><strong className="text-white">Biometric or genetic data</strong></li>
+              <li><strong className="text-white">Anything regulated as high-risk under GDPR Article 9</strong></li>
+            </ul>
+            <p className="text-slate-300 leading-relaxed mt-4">
+              These restrictions are <strong className="text-white">absolute and non-negotiable</strong>. There are no exceptions, regardless of plan tier or custom arrangements. Attempting to automate these categories will result in immediate account suspension.
+            </p>
+            <p className="text-slate-400 text-sm mt-3">
+              For complete details, see{" "}
+              <Link href="/high-risk-data" className="text-red-400 hover:underline font-semibold">
+                High-Risk Data Prohibition Policy
+              </Link>
+            </p>
+          </div>
+        </section>
+
         <div className="mt-12 pt-8 border-t border-slate-800">
           <div className="flex gap-4 text-sm">
             <Link href="/terms" className="text-emerald-400 hover:underline">Terms of Service</Link>
             <Link href="/sla" className="text-emerald-400 hover:underline">SLA</Link>
             <Link href="/security" className="text-emerald-400 hover:underline">Security</Link>
+            <Link href="/high-risk-data" className="text-emerald-400 hover:underline">High-Risk Data Policy</Link>
           </div>
         </div>
       </div>

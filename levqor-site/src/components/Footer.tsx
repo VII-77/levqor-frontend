@@ -6,47 +6,52 @@ export default function Footer() {
   return (
     <footer className="bg-slate-950 border-t border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
-          <div>
-            <h3 className="text-white font-bold mb-4">Product</h3>
-            <ul className="space-y-2">
-              <li><Link href="/pricing" className="text-slate-400 hover:text-white transition text-sm">Pricing</Link></li>
-              <li><Link href="/docs" className="text-slate-400 hover:text-white transition text-sm">Documentation</Link></li>
-              <li><Link href="/signin" className="text-slate-400 hover:text-white transition text-sm">Sign In</Link></li>
-            </ul>
-          </div>
-          
-          <div>
-            <h3 className="text-white font-bold mb-4">Company</h3>
-            <ul className="space-y-2">
-              <li><Link href="/contact" className="text-slate-400 hover:text-white transition text-sm">Contact</Link></li>
-              <li><Link href="/security" className="text-slate-400 hover:text-white transition text-sm">Security</Link></li>
-            </ul>
-          </div>
-          
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mb-8">
           <div>
             <h3 className="text-white font-bold mb-4">Legal</h3>
             <ul className="space-y-2">
               <li><Link href="/terms" className="text-slate-400 hover:text-white transition text-sm">Terms</Link></li>
               <li><Link href="/privacy" className="text-slate-400 hover:text-white transition text-sm">Privacy</Link></li>
               <li><Link href="/cookies" className="text-slate-400 hover:text-white transition text-sm">Cookies</Link></li>
-              <li><Link href="/cookie-settings" className="text-slate-400 hover:text-white transition text-sm">Cookie Settings</Link></li>
-              <li><Link href="/refunds" className="text-slate-400 hover:text-white transition text-sm">Refunds</Link></li>
               <li><Link href="/legal/data-processing" className="text-slate-400 hover:text-white transition text-sm">DPA</Link></li>
+              <li><Link href="/privacy-tools" className="text-slate-400 hover:text-white transition text-sm">GDPR Tools</Link></li>
+              <li><Link href="/marketing-consent" className="text-slate-400 hover:text-white transition text-sm">Marketing Consent</Link></li>
+              <li><Link href="/email-unsubscribe" className="text-slate-400 hover:text-white transition text-sm">Email Unsubscribe</Link></li>
             </ul>
           </div>
           
           <div>
-            <h3 className="text-white font-bold mb-4">Get Started</h3>
-            <p className="text-slate-400 text-sm mb-4">
-              Start automating your business in 48 hours.
-            </p>
-            <Link 
-              href="/pricing" 
-              className="inline-block px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-900 rounded-lg font-semibold transition text-sm"
-            >
-              View Pricing →
-            </Link>
+            <h3 className="text-white font-bold mb-4">Policies</h3>
+            <ul className="space-y-2">
+              <li><Link href="/risk-disclosure" className="text-slate-400 hover:text-white transition text-sm">Risk Disclosure</Link></li>
+              <li><Link href="/fair-use" className="text-slate-400 hover:text-white transition text-sm">Fair Use</Link></li>
+              <li><Link href="/acceptable-use" className="text-slate-400 hover:text-white transition text-sm">Acceptable Use</Link></li>
+              <li><Link href="/sla" className="text-slate-400 hover:text-white transition text-sm">SLA</Link></li>
+              <li><Link href="/support-policy" className="text-slate-400 hover:text-white transition text-sm">Support Policy</Link></li>
+              <li><Link href="/cancellation" className="text-slate-400 hover:text-white transition text-sm">Cancellation</Link></li>
+              <li><Link href="/refunds" className="text-slate-400 hover:text-white transition text-sm">Refunds</Link></li>
+            </ul>
+          </div>
+          
+          <div>
+            <h3 className="text-white font-bold mb-4">Compliance</h3>
+            <ul className="space-y-2">
+              <li><Link href="/subprocessors" className="text-slate-400 hover:text-white transition text-sm">Subprocessors</Link></li>
+              <li><Link href="/incident-response" className="text-slate-400 hover:text-white transition text-sm">Incident Response</Link></li>
+              <li><Link href="/security" className="text-slate-400 hover:text-white transition text-sm">Security</Link></li>
+              <li><Link href="/business-continuity" className="text-slate-400 hover:text-white transition text-sm">Business Continuity</Link></li>
+              <li><Link href="/high-risk-data" className="text-slate-400 hover:text-white transition text-sm">High-Risk Data</Link></li>
+            </ul>
+          </div>
+          
+          <div>
+            <h3 className="text-white font-bold mb-4">Operations</h3>
+            <ul className="space-y-2">
+              <li><Link href="/status" className="text-slate-400 hover:text-white transition text-sm">Status</Link></li>
+              <li><Link href="/sla-credits" className="text-slate-400 hover:text-white transition text-sm">SLA Credits</Link></li>
+              <li><Link href="/disputes" className="text-slate-400 hover:text-white transition text-sm">Disputes</Link></li>
+              <li><Link href="/emergency-contacts" className="text-slate-400 hover:text-white transition text-sm">Emergency Contacts</Link></li>
+            </ul>
           </div>
         </div>
         

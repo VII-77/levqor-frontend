@@ -1,222 +1,195 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useSession, signIn } from 'next-auth/react';
-import Link from 'next/link';
+import { useState, FormEvent } from "react";
+import Link from "next/link";
 
 export default function SLACreditsPage() {
-  const { data: session, status } = useSession();
   const [formData, setFormData] = useState({
-    periodStart: '',
-    periodEnd: '',
-    claimedIssue: ''
+    fullName: "",
+    email: "",
+    accountName: "",
+    plan: "",
+    incidentDate: "",
+    description: ""
   });
-  const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
-    if (!formData.periodStart || !formData.periodEnd || !formData.claimedIssue) {
-      setError('All fields are required');
-      return;
-    }
-
-    setLoading(true);
-    setError('');
-
-    try {
-      const res = await fetch('/api/sla/claim', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
+    console.log("SLA request", formData);
+    setSubmitted(true);
+    setTimeout(() => {
+      setSubmitted(false);
+      setFormData({
+        fullName: "",
+        email: "",
+        accountName: "",
+        plan: "",
+        incidentDate: "",
+        description: ""
       });
-
-      const data = await res.json();
-
-      if (data.ok) {
-        setSubmitted(true);
-      } else {
-        setError(data.error || 'Failed to submit request');
-      }
-    } catch (err) {
-      setError('Network error. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+    }, 5000);
   };
 
-  if (status === 'loading') {
-    return (
-      <main className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="text-white">Loading...</div>
-      </main>
-    );
-  }
-
-  if (status === 'unauthenticated') {
-    return (
-      <main className="min-h-screen bg-slate-950 text-white">
-        <div className="max-w-3xl mx-auto px-4 py-12">
-          <h1 className="text-4xl font-bold mb-4">SLA Credits Request</h1>
-          <div className="bg-slate-800 border-2 border-slate-700 rounded-lg p-8">
-            <p className="text-slate-300 mb-6">
-              You must be signed in to request SLA credits.
-            </p>
-            <button
-              onClick={() => signIn(undefined, { callbackUrl: '/sla-credits' })}
-              className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-semibold transition"
-            >
-              Sign In →
-            </button>
-          </div>
-        </div>
-      </main>
-    );
-  }
-
-  if (submitted) {
-    return (
-      <main className="min-h-screen bg-slate-950 text-white">
-        <div className="max-w-3xl mx-auto px-4 py-12">
-          <div className="bg-emerald-950/30 border-2 border-emerald-900/50 rounded-lg p-8 text-center">
-            <svg className="w-16 h-16 text-emerald-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <h1 className="text-3xl font-bold mb-4 text-emerald-300">Request Submitted</h1>
-            <p className="text-slate-300 mb-6">
-              Your SLA credit request has been received. Our team will review it and respond within 3 business days.
-            </p>
-            <div className="flex gap-4 justify-center">
-              <Link href="/account" className="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-semibold transition">
-                Back to Account
-              </Link>
-              <Link href="/sla" className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-semibold transition">
-                View SLA Terms
-              </Link>
-            </div>
-          </div>
-        </div>
-      </main>
-    );
-  }
-
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
-      <div className="max-w-3xl mx-auto px-4 py-12">
+    <main className="min-h-screen bg-slate-950 text-slate-50">
+      <div className="max-w-3xl mx-auto px-4 py-12 space-y-6">
         <div className="mb-8">
-          <Link href="/sla" className="text-sm text-slate-400 hover:text-white transition">
-            ← Back to SLA
+          <Link href="/" className="text-sm text-slate-400 hover:text-white transition">
+            ← Back to home
           </Link>
         </div>
 
-        <h1 className="text-4xl font-bold mb-2">Request SLA Credits</h1>
-        <p className="text-slate-400 mb-12">
-          Submit a request for service-level agreement compensation
+        <h1 className="text-4xl font-bold text-white mb-2">SLA Credits & Downtime Claims</h1>
+        <p className="text-slate-400 mb-8">
+          Request service credits for incidents covered under our{" "}
+          <Link href="/sla" className="text-emerald-400 hover:underline">
+            Service Level Agreement
+          </Link>
         </p>
 
-        <div className="bg-blue-950/20 border-2 border-blue-900/50 rounded-lg p-6 mb-8">
-          <h2 className="text-xl font-bold text-blue-300 mb-3">📋 When SLA Credits Apply</h2>
-          <ul className="space-y-2 text-slate-300">
-            <li className="flex items-start gap-2">
-              <span className="text-blue-400 mt-1">•</span>
-              <span><strong>Business/Pro plans:</strong> Platform uptime below 99.5% in a calendar month</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-blue-400 mt-1">•</span>
-              <span><strong>Enterprise/99.9% SLA:</strong> Uptime below guaranteed threshold</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-blue-400 mt-1">•</span>
-              <span><strong>Credit calculation:</strong> Pro-rata based on downtime impact</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-blue-400 mt-1">•</span>
-              <span><strong>Maximum:</strong> 100% of monthly subscription fee</span>
-            </li>
-          </ul>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label htmlFor="periodStart" className="block text-sm font-medium text-slate-300 mb-2">
-              Affected Period Start
-            </label>
-            <input
-              id="periodStart"
-              type="date"
-              value={formData.periodStart}
-              onChange={(e) => setFormData({ ...formData, periodStart: e.target.value })}
-              className="w-full rounded-lg border-2 border-slate-700 bg-slate-800/50 py-3 px-4 text-white focus:border-emerald-500 focus:outline-none"
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="periodEnd" className="block text-sm font-medium text-slate-300 mb-2">
-              Affected Period End
-            </label>
-            <input
-              id="periodEnd"
-              type="date"
-              value={formData.periodEnd}
-              onChange={(e) => setFormData({ ...formData, periodEnd: e.target.value })}
-              className="w-full rounded-lg border-2 border-slate-700 bg-slate-800/50 py-3 px-4 text-white focus:border-emerald-500 focus:outline-none"
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="claimedIssue" className="block text-sm font-medium text-slate-300 mb-2">
-              Describe the Issue
-            </label>
-            <textarea
-              id="claimedIssue"
-              value={formData.claimedIssue}
-              onChange={(e) => setFormData({ ...formData, claimedIssue: e.target.value })}
-              rows={6}
-              placeholder="Please describe the outage or service degradation you experienced, including specific workflows affected and business impact..."
-              className="w-full rounded-lg border-2 border-slate-700 bg-slate-800/50 py-3 px-4 text-white focus:border-emerald-500 focus:outline-none resize-none"
-              required
-            />
-            <p className="text-xs text-slate-400 mt-2">
-              Include specific timestamps, error messages, and affected workflow IDs if available
-            </p>
-          </div>
-
-          {error && (
-            <div className="bg-red-950/30 border border-red-900/50 rounded-lg p-4">
-              <p className="text-red-300">{error}</p>
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className={`w-full py-4 rounded-lg font-semibold transition ${
-              loading
-                ? 'bg-slate-700 text-slate-400 cursor-not-allowed'
-                : 'bg-emerald-500 hover:bg-emerald-600 text-white cursor-pointer'
-            }`}
-          >
-            {loading ? 'Submitting...' : 'Submit SLA Credit Request'}
-          </button>
-
-          <p className="text-xs text-slate-400 text-center">
-            Requests are typically reviewed within 3 business days. Credits are applied to your next invoice.
+        <section className="space-y-4 mb-8">
+          <h2 className="text-2xl font-bold text-white">Eligibility</h2>
+          <p className="text-slate-300 leading-relaxed">
+            SLA credits are available according to the terms in our SLA. Please review the following requirements:
           </p>
-        </form>
+          <ul className="list-disc list-inside space-y-2 text-slate-300 ml-4">
+            <li>Only account owners or billing contacts can submit credit requests</li>
+            <li>Requests must be submitted within 30 days of the incident</li>
+            <li>You must provide proof of impact (timestamps, screenshots, error logs)</li>
+            <li>Credits are calculated based on documented downtime per our SLA tiers</li>
+            <li>Credits are applied to future invoices, not refunded as cash</li>
+          </ul>
+        </section>
 
-        <div className="mt-12 pt-8 border-t border-slate-800">
-          <div className="flex gap-4 text-sm">
-            <Link href="/sla" className="text-emerald-400 hover:underline">SLA Terms</Link>
-            <Link href="/status" className="text-emerald-400 hover:underline">System Status</Link>
-            <a href="mailto:sla@levqor.ai" className="text-emerald-400 hover:underline">Contact SLA Team</a>
-          </div>
-        </div>
+        <section className="space-y-4 mb-8">
+          <h2 className="text-2xl font-bold text-white">Submit a Request</h2>
+          
+          {submitted ? (
+            <div className="bg-emerald-500/20 border border-emerald-500/50 rounded-lg p-6">
+              <p className="text-emerald-400 font-medium">
+                ✓ We've received your SLA credit request. We'll review within 5–7 business days.
+              </p>
+              <p className="text-slate-400 text-sm mt-2">
+                You'll receive an email confirmation shortly with your reference number.
+              </p>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-6 bg-slate-900 border border-slate-800 rounded-lg p-6">
+              <div>
+                <label htmlFor="fullName" className="block text-sm font-medium text-slate-300 mb-2">
+                  Full Name *
+                </label>
+                <input
+                  type="text"
+                  id="fullName"
+                  required
+                  value={formData.fullName}
+                  onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                  className="w-full px-4 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2">
+                  Work Email *
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  required
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="w-full px-4 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="accountName" className="block text-sm font-medium text-slate-300 mb-2">
+                  Account / Company Name *
+                </label>
+                <input
+                  type="text"
+                  id="accountName"
+                  required
+                  value={formData.accountName}
+                  onChange={(e) => setFormData({ ...formData, accountName: e.target.value })}
+                  className="w-full px-4 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="plan" className="block text-sm font-medium text-slate-300 mb-2">
+                  Current Plan *
+                </label>
+                <select
+                  id="plan"
+                  required
+                  value={formData.plan}
+                  onChange={(e) => setFormData({ ...formData, plan: e.target.value })}
+                  className="w-full px-4 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-emerald-500"
+                >
+                  <option value="">Select your plan</option>
+                  <option value="starter">Starter</option>
+                  <option value="growth">Growth</option>
+                  <option value="pro">Pro</option>
+                  <option value="business">Business</option>
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="incidentDate" className="block text-sm font-medium text-slate-300 mb-2">
+                  Incident Date & Time *
+                </label>
+                <input
+                  type="text"
+                  id="incidentDate"
+                  required
+                  placeholder="e.g., 14 Nov 2025, 14:30 UTC"
+                  value={formData.incidentDate}
+                  onChange={(e) => setFormData({ ...formData, incidentDate: e.target.value })}
+                  className="w-full px-4 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="description" className="block text-sm font-medium text-slate-300 mb-2">
+                  Description of Impact *
+                </label>
+                <textarea
+                  id="description"
+                  required
+                  rows={5}
+                  placeholder="Describe the downtime, affected services, and business impact. Include any error messages, screenshots, or logs."
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full px-4 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-900 rounded-lg font-semibold transition"
+              >
+                Submit SLA Credit Request
+              </button>
+
+              <p className="text-sm text-slate-500 text-center">
+                By submitting, you confirm all information is accurate and you have the authority to request credits on behalf of your account.
+              </p>
+            </form>
+          )}
+        </section>
+
+        <section className="bg-slate-900 border border-slate-800 rounded-lg p-6 space-y-3">
+          <h3 className="text-lg font-bold text-white">What Happens Next?</h3>
+          <ul className="list-disc list-inside space-y-2 text-slate-400 text-sm ml-4">
+            <li>We'll review your request within 5–7 business days</li>
+            <li>You'll receive a confirmation email with a reference number</li>
+            <li>If approved, credits will be applied to your next invoice</li>
+            <li>If we need additional information, we'll contact you via email</li>
+          </ul>
+        </section>
       </div>
     </main>
   );

@@ -1,0 +1,125 @@
+You are Replit AI Agent working on the Levqor project. 
+Your mission is to COMPLETE **ALL REMAINING BLOCKERS**, LEGAL REQUIREMENTS, AND LAUNCH-CRITICAL FEATURES in one full execution cycle.
+
+### GOAL
+Make Levqor 100% legally compliant, user-ready, Stripe-ready, GDPR-ready, and launch-ready. No missing items. No partial implementations. Fix every gap.
+
+### YOU MUST IMPLEMENT EVERYTHING BELOW:
+
+────────────────────────────────────────────
+## 1. COOKIE CONSENT SYSTEM (CRITICAL)
+- Add fully functional cookie banner
+- Accept / Reject / Granular choices (4 categories)
+- Store consent in cookies + database
+- Respect consent (block non-essential scripts until accepted)
+- Add “Manage Cookies” link to footer
+- Add `/cookie-settings` page
+
+────────────────────────────────────────────
+## 2. TERMS ACCEPTANCE FLOW
+- Add checkbox on signup/login: “I agree to Terms & Privacy”
+- Disable account creation until accepted
+- Log: userId, IP, timestamp, version
+- Add `/legal/terms-history` page showing versioning
+
+────────────────────────────────────────────
+## 3. MARKETING CONSENT (PECR / GDPR)
+- Add checkbox on sign-up: “I agree to receive marketing emails”
+- Add double-opt-in email sequence
+- Add unsubscribe link template
+- Add `/marketing-preferences` page
+- Create table: `marketing_consents` (email, time, IP, source, opted_in)
+
+────────────────────────────────────────────
+## 4. HIGH-RISK AUTOMATION DISCLAIMERS
+- Add warnings across UI: “Levqor cannot automate medical, legal, financial, or healthcare decisions”
+- Add warning modal before workflow creation
+- Update `/risk-disclosure` with explicit exclusions
+- Block creation if user attempts restricted category
+
+────────────────────────────────────────────
+## 5. STRIPE DUNNING ENGINE (FAILED PAYMENTS)
+- Implement webhook for `invoice.payment_failed`
+- Retry schedule: Day 1 → Day 3 → Day 7 → Day 14
+- Send 4 dunning emails
+- If final failure → auto-suspend subscription
+- Add `/billing-status` page with reasons
+
+────────────────────────────────────────────
+## 6. AUTO-SUSPEND / AUTO-UNSUSPEND
+- If payment fails → pause workflows + API keys
+- On successful payment → automatically restore service
+- Add logs: billing_status_changes
+
+────────────────────────────────────────────
+## 7. DSAR REQUEST UI PAGE
+- Add page `/my-data`
+- Button: “Request My Data Export”
+- Call existing backend export system
+- Show status + email confirmation
+- Add logs: dsar_requests
+
+────────────────────────────────────────────
+## 8. AUTOMATED DATA RETENTION
+- Build scheduler:
+  - Delete logs older than 30/90/365 days depending on category
+  - Delete cancelled accounts after 30 days
+  - Add audit log for every deletion
+
+────────────────────────────────────────────
+## 9. DFY CONTRACT PAGE
+- Add `/dfy-contract`
+- Include consolidated agreement: scope, timelines, responsibilities, revisions, disclaimers, data security
+
+────────────────────────────────────────────
+## 10. FOOTER + LINK FIXES
+- Ensure footer contains links to:
+  - Terms
+  - Privacy
+  - Cookies
+  - Fair Use
+  - SLA
+  - Data Processing
+  - Subprocessors
+  - Accessibility
+  - Cookie Settings
+- Fix any broken links site-wide
+- Add trust badges row (“GDPR Compliant”, “Secure Stripe Payments”)
+
+────────────────────────────────────────────
+## 11. FULL SITEWIDE LINK AUDIT
+- Detect all broken internal links
+- Autocorrect routes
+- Verify:
+  - /pricing
+  - /api/checkout
+  - /legal pages
+  - /signin
+  - /plans
+  - new pages added in this prompt
+
+────────────────────────────────────────────
+## 12. DEPLOYMENT PREP
+- Ensure all environment variables required are documented
+- Run full local test suite (API + frontend)
+- Validate:
+  - Checkout flows (11 plans)
+  - Dunning triggers
+  - DSAR export
+  - Data deletion paths
+- Output list of required Vercel env vars
+- Output commands for final redeploy
+
+────────────────────────────────────────────
+### RULES
+- If any file already exists, update safely without loss of content.
+- Use full TypeScript, Tailwind, Next.js 14 App Router conventions.
+- No placeholder text—use real content.
+- After implementing everything, print:
+  1. Summary of files changed
+  2. All new routes
+  3. Env vars needed
+  4. Final launch checklist
+  5. Verification commands
+
+Proceed now and implement EVERYTHING.

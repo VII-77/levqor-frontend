@@ -41,21 +41,54 @@ export default function Footer() {
               <li><Link href="/security" className="text-slate-400 hover:text-white transition text-sm">Security</Link></li>
               <li><Link href="/business-continuity" className="text-slate-400 hover:text-white transition text-sm">Business Continuity</Link></li>
               <li><Link href="/high-risk-data" className="text-slate-400 hover:text-white transition text-sm">High-Risk Data</Link></li>
+              <li><Link href="/accessibility" className="text-slate-400 hover:text-white transition text-sm">Accessibility</Link></li>
+              <li><Link href="/cookie-settings" className="text-slate-400 hover:text-white transition text-sm">Cookie Settings</Link></li>
             </ul>
           </div>
           
           <div>
-            <h3 className="text-white font-bold mb-4">Operations</h3>
+            <h3 className="text-white font-bold mb-4">Resources</h3>
             <ul className="space-y-2">
               <li><Link href="/status" className="text-slate-400 hover:text-white transition text-sm">Status</Link></li>
               <li><Link href="/sla-credits" className="text-slate-400 hover:text-white transition text-sm">SLA Credits</Link></li>
               <li><Link href="/disputes" className="text-slate-400 hover:text-white transition text-sm">Disputes</Link></li>
               <li><Link href="/emergency-contacts" className="text-slate-400 hover:text-white transition text-sm">Emergency Contacts</Link></li>
+              <li><Link href="/my-data" className="text-slate-400 hover:text-white transition text-sm">Request My Data</Link></li>
+              <li><Link href="/dfy-contract" className="text-slate-400 hover:text-white transition text-sm">DFY Contract</Link></li>
+              <li><Link href="/guarantee" className="text-slate-400 hover:text-white transition text-sm">Money-Back Guarantee</Link></li>
             </ul>
           </div>
         </div>
         
         <div className="border-t border-slate-800 pt-8">
+          {/* Trust Badges */}
+          <div className="flex flex-wrap justify-center items-center gap-6 mb-6">
+            <div className="flex items-center gap-2 px-4 py-2 bg-slate-900/50 rounded-lg border border-slate-800">
+              <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+              <span className="text-sm font-semibold text-slate-300">GDPR Compliant</span>
+            </div>
+            <div className="flex items-center gap-2 px-4 py-2 bg-slate-900/50 rounded-lg border border-slate-800">
+              <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+              <span className="text-sm font-semibold text-slate-300">Secure Stripe Payments</span>
+            </div>
+            <div className="flex items-center gap-2 px-4 py-2 bg-slate-900/50 rounded-lg border border-slate-800">
+              <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+              </svg>
+              <span className="text-sm font-semibold text-slate-300">EU Data Centers</span>
+            </div>
+            <div className="flex items-center gap-2 px-4 py-2 bg-slate-900/50 rounded-lg border border-slate-800">
+              <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="text-sm font-semibold text-slate-300">14-Day Money-Back</span>
+            </div>
+          </div>
+          
           <div className="text-center text-sm text-slate-500 mb-2">
             All data stored in EU-based data centers.
           </div>

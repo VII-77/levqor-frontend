@@ -29,8 +29,16 @@ export default function SupportPolicyPage() {
           <h2 className="text-2xl font-bold text-white">Support Channels</h2>
           <ul className="list-disc list-inside space-y-2 text-slate-300 ml-4">
             <li>Email (primary)</li>
-            <li>Dashboard chat (when activated)</li>
+            <li>Dashboard inbox</li>
+            <li>Priority support for Pro & Business</li>
           </ul>
+        </section>
+
+        <section className="space-y-4">
+          <h2 className="text-2xl font-bold text-white">Support Hours</h2>
+          <p className="text-slate-300 leading-relaxed">
+            Monday–Friday, 9am–6pm UK time
+          </p>
         </section>
 
         <section className="space-y-4">

@@ -18,17 +18,23 @@ export default function SLAPage() {
         <section className="space-y-4">
           <h2 className="text-2xl font-bold text-white">1. Uptime</h2>
           <p className="text-slate-300 leading-relaxed">
-            Levqor targets 99% uptime on production systems.
+            Target uptime: 99.5%
+          </p>
+          <p className="text-slate-300 leading-relaxed">
+            Maintenance windows announced 24h in advance.
+          </p>
+          <p className="text-slate-300 leading-relaxed">
+            Emergency maintenance may occur when required.
           </p>
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-bold text-white">2. Response Times</h2>
+          <h2 className="text-2xl font-bold text-white">2. Subscription Plan Response Times</h2>
           <ul className="list-disc list-inside space-y-2 text-slate-300 ml-4">
-            <li>Starter: 24–48 hours</li>
-            <li>Growth: 12–24 hours</li>
-            <li>Pro: &lt;12 hours</li>
-            <li>Business: Priority queue</li>
+            <li>Starter: No SLA</li>
+            <li>Growth: 48h response</li>
+            <li>Pro: 24h response</li>
+            <li>Business: 12h response + dedicated support</li>
           </ul>
         </section>
 

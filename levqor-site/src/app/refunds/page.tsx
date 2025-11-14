@@ -16,12 +16,21 @@ export default function RefundsPage() {
         </p>
 
         <section className="space-y-4">
+          <h2 className="text-2xl font-bold text-white">14-Day Refund Policy</h2>
+          <p className="text-slate-300 leading-relaxed">
+            Refunds available within 14 days if:
+          </p>
+          <ul className="list-disc list-inside space-y-2 text-slate-300 ml-4">
+            <li>No deliverables were created</li>
+            <li>No workflow was delivered</li>
+            <li>No automation was executed</li>
+          </ul>
+        </section>
+
+        <section className="space-y-4">
           <h2 className="text-2xl font-bold text-white">DFY One-Time Builds</h2>
           <p className="text-slate-300 leading-relaxed">
-            Refunds available only if work has not started.
-          </p>
-          <p className="text-slate-300 leading-relaxed">
-            Once work begins, partial or no refunds depending on progress.
+            DFY builds are non-refundable once work begins.
           </p>
         </section>
 

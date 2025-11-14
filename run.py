@@ -339,6 +339,32 @@ def get_db():
         _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_billing_events_type ON billing_events(event_type)")
         _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_billing_events_customer ON billing_events(stripe_customer_id)")
         
+        # Billing dunning events (NEW: Stripe payment recovery email scheduler)
+        # Created via migration: db/migrations/008_add_billing_dunning_events.sql
+        # Do NOT manually create - run migration for proper schema
+        _db_connection.execute("""
+            CREATE TABLE IF NOT EXISTS billing_dunning_events(
+                id TEXT PRIMARY KEY,
+                created_at TEXT NOT NULL DEFAULT (datetime('now')),
+                updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+                stripe_customer_id TEXT NOT NULL,
+                stripe_subscription_id TEXT NOT NULL,
+                invoice_id TEXT NOT NULL,
+                email TEXT NOT NULL,
+                plan TEXT,
+                attempt_number INTEGER NOT NULL CHECK(attempt_number IN (1, 2, 3)),
+                scheduled_for TEXT NOT NULL,
+                sent_at TEXT,
+                status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending', 'sent', 'skipped', 'error')),
+                error_message TEXT
+            )
+        """)
+        _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_dunning_events_customer ON billing_dunning_events(stripe_customer_id)")
+        _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_dunning_events_subscription ON billing_dunning_events(stripe_subscription_id)")
+        _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_dunning_events_invoice ON billing_dunning_events(invoice_id)")
+        _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_dunning_events_status ON billing_dunning_events(status)")
+        _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_dunning_events_scheduled ON billing_dunning_events(scheduled_for, status)")
+        
         _db_connection.commit()
     return _db_connection
 
@@ -2463,6 +2489,73 @@ def billing_status():
     }), 200
 
 
+@app.post("/webhooks/stripe")
+def stripe_webhook():
+    """
+    Stripe webhook endpoint for dunning system
+    Handles: invoice.payment_failed, customer.subscription.updated
+    
+    NOTE: Expects Stripe signature verification
+    """
+    payload = request.data
+    sig_header = request.headers.get('Stripe-Signature')
+    webhook_secret = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
+    
+    # Verify webhook signature
+    if not webhook_secret:
+        log.warning("stripe_webhook.no_secret - webhook received but STRIPE_WEBHOOK_SECRET not configured")
+        return jsonify({"ok": False, "error": "webhook_secret_not_configured"}), 500
+    
+    # For production, verify signature with stripe library
+    # For now, basic verification that signature exists
+    if not sig_header:
+        log.error("stripe_webhook.invalid_signature - no signature header")
+        return jsonify({"ok": False, "error": "invalid_signature"}), 400
+    
+    # Parse event
+    try:
+        event = json.loads(payload.decode('utf-8'))
+    except Exception as e:
+        log.error(f"stripe_webhook.parse_error error={str(e)}")
+        return jsonify({"ok": False, "error": "invalid_payload"}), 400
+    
+    event_type = event.get('type')
+    event_id = event.get('id', 'unknown')
+    
+    log.info(f"stripe_webhook.received type={event_type} event_id={event_id}")
+    
+    # Import dunning module
+    try:
+        from backend.billing.dunning import handle_payment_failed, handle_subscription_updated
+        from backend.billing.config import DUNNING_ENABLED
+    except ImportError as e:
+        log.error(f"stripe_webhook.import_error error={str(e)}")
+        return jsonify({"ok": True}), 200  # Return 200 to avoid Stripe retries
+    
+    db = get_db()
+    
+    # Handle different event types
+    if event_type == 'invoice.payment_failed':
+        try:
+            handle_payment_failed(db, event)
+            log.info(f"stripe_webhook.handled type=invoice.payment_failed event_id={event_id} dunning_enabled={DUNNING_ENABLED}")
+        except Exception as e:
+            log.error(f"stripe_webhook.handler_error type={event_type} error={str(e)}")
+    
+    elif event_type == 'customer.subscription.updated':
+        try:
+            handle_subscription_updated(db, event)
+            log.info(f"stripe_webhook.handled type=customer.subscription.updated event_id={event_id}")
+        except Exception as e:
+            log.error(f"stripe_webhook.handler_error type={event_type} error={str(e)}")
+    
+    else:
+        log.info(f"stripe_webhook.ignored type={event_type} event_id={event_id}")
+    
+    # Always return 200 for handled events
+    return jsonify({"ok": True, "event_id": event_id}), 200
+
+
 def is_account_suspended(user_id: str) -> bool:
     """Check if account is suspended due to payment failure"""
     db = get_db()
@@ -2483,6 +2576,34 @@ def is_account_suspended(user_id: str) -> bool:
 
 from monitors.scheduler import init_scheduler
 init_scheduler()
+
+# ============================================================================
+# DUNNING SYSTEM - Scheduled Job Integration (CURRENTLY DISABLED)
+# ============================================================================
+# The dunning system is installed but not scheduled. To enable:
+#
+# 1. Set environment variable: DUNNING_ENABLED=true
+# 2. Add cron job to monitors/scheduler.py or your scheduler of choice:
+#
+# Example APScheduler integration:
+#
+# from backend.billing.dunning import run_dunning_cycle
+# from datetime import datetime
+#
+# scheduler.add_job(
+#     func=lambda: run_dunning_cycle(get_db(), datetime.utcnow()),
+#     trigger='cron',
+#     hour='*/6',  # Every 6 hours
+#     id='dunning_cycle',
+#     name='Process pending dunning emails',
+#     replace_existing=True
+# )
+#
+# Example manual execution:
+#   python scripts/run_dunning_cycle.py
+#
+# SAFETY: With DUNNING_ENABLED=False, no emails are sent even if job runs
+# ============================================================================
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)

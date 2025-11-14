@@ -28,17 +28,21 @@ The frontend uses Next.js 14 and TypeScript, offering an authentication flow wit
     - Comprehensive security headers (HSTS, CSP, CORS, COOP, COEP, X-Frame-Options).
     - JSON schema validation.
     - Centralized error handling with correlation IDs.
-    - **GDPR/PECR Compliance Systems** (10/10 Complete):
+    - **GDPR/PECR Compliance Systems** (10/10 Complete + 7 Enhancements):
         - **Cookie Consent Banner**: Granular controls for analytics, marketing, and functional cookies with localStorage persistence.
         - **TOS Acceptance Tracking Backend**: API endpoints (POST `/api/legal/accept-terms`, POST `/api/legal/check-acceptance`) with versioned TOS tracking, IP logging, and timestamp recording. Database schema in `users` table tracks `terms_accepted_at`, `terms_version`, and `terms_accepted_ip`. Integrated with signin flow via `/api/consent/accept`.
+            - **✨ ENHANCED (v2)**: Version changelog system, re-acceptance workflow, email notifications for TOS updates, structured audit trail (`/api/legal/v2/*`)
         - **Marketing Consent System with Double Opt-In**: Full backend implementation (POST `/api/marketing/subscribe`, GET `/api/marketing/confirm`, POST `/api/marketing/unsubscribe`, POST `/api/marketing/status`) with secure token generation, 7-day token expiration, email confirmation flow, and idempotent operations. Frontend pages at `/marketing/subscribe` and `/marketing/confirmed`. Email sent via existing billing infrastructure.
+            - **✨ ENHANCED (v2)**: Granular preference center (5 categories: product updates, offers, technical, events, educational), unsubscribe confirmation emails, consent analytics dashboard (`/api/marketing/v2/*`)
         - **High-Risk Data Prohibition System**: Keyword detection blocking medical/legal/financial workflows with frontend disclaimers at `/high-risk-data` and `/risk-disclosure`.
+            - **✨ ENHANCED**: Severity levels (critical/high/medium/low), contextual user warnings, category-based blocking, appeal documentation (`compliance/high_risk_enhanced.py`)
         - **DSAR (Data Subject Access Request) Export System v2.0**: Email-based data exports sent as ZIP attachments (max 5MB) with no download links or tokens. Includes rate limiting (1 request per 24h), in-memory ZIP generation, comprehensive audit logging, and 30-day automated cleanup. Backend routes at `backend/routes/dsar.py` (5,851 lines). Frontend at `/data-requests`.
         - **GDPR Right to Object / Opt-out System**: Full end-to-end implementation (868 lines) allowing users to object to marketing, profiling, automation, and analytics processing. Includes API endpoints (GET/POST `/api/gdpr/opt-out`), enforcement helpers, audit logging, confirmation emails, and frontend UI at `/privacy-tools/opt-out`. Opt-out preferences enforced across email, automation, profiling, and analytics, included in DSAR exports.
         - **Payment Dunning System**: Stripe integration for managing failed payments with scheduled email notifications, account suspension logic, and APScheduler job "Billing dunning processor". Email enforcement distinguishes transactional vs. marketing.
         - **Data Retention & Deletion System**: Configurable retention policies with automated cleanup via APScheduler job "Daily retention cleanup". Includes user-initiated "Delete My Data" feature.
         - **Status Page & SLA Credits**: Public pages at `/status` (operational indicators, incident history) and `/sla-credits` (request form with validation).
         - **Dispute Resolution & Emergency Contacts**: Public pages at `/disputes` (4-step resolution process) and `/emergency-contacts` (SEV1 procedures).
+        - **✨ NEW: Compliance Analytics Dashboard**: Unified compliance monitoring at `/api/compliance/dashboard` with TOS acceptance rates, marketing consent metrics, GDPR opt-outs, high-risk blocks, and audit trail access (admin-only).
     - **Compliance Documentation**: Internal compliance pack, ROPA, DPIA, and LIA documents.
     - **Legal Page Updates**: Comprehensive sections on marketing communications, high-risk data prohibition, and acceptable use.
     - **Marketing Consent Frontend**: Pages for user preference management and one-click unsubscribe.

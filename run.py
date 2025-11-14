@@ -65,6 +65,7 @@ from backend.routes.legal import legal_bp
 from backend.routes.legal_enhanced import legal_enhanced_bp
 from backend.routes.marketing import marketing_bp
 from backend.routes.marketing_enhanced import marketing_enhanced_bp
+from backend.routes.compliance_dashboard import compliance_dashboard_bp
 app.register_blueprint(dsar_bp)
 app.register_blueprint(dsar_admin_bp)
 app.register_blueprint(gdpr_optout_bp)
@@ -72,6 +73,7 @@ app.register_blueprint(legal_bp)
 app.register_blueprint(legal_enhanced_bp)
 app.register_blueprint(marketing_bp)
 app.register_blueprint(marketing_enhanced_bp)
+app.register_blueprint(compliance_dashboard_bp)
 
 _db_connection = None
 

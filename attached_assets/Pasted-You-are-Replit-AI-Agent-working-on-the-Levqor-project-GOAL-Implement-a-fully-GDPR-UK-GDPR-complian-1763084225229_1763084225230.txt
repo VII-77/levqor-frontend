@@ -1,0 +1,394 @@
+You are Replit AI Agent working on the Levqor project.
+
+GOAL
+Implement a fully GDPR/UK GDPR–compliant **user data export system** (DSAR export) with **email-only delivery**, no direct downloads initiated from the web UI, and full audit logging. This must be safe, production-grade, and minimal risk.
+
+Absolutely no scope creep: focus ONLY on the data export system, related UI hooks, and audit logging. Do not modify pricing, checkout, workflows, or unrelated logic.
+
+====================================================================
+PROJECT CONTEXT (REMINDER)
+====================================================================
+- Frontend: Next.js 14 App Router in `levqor-site/`
+- Backend: Python/Flask API in the workspace root (e.g. `run.py` and friends)
+- Auth: NextAuth-based sign-in (`/signin`), workflows at `/workflow`
+- DB: PostgreSQL, already in use (jobs, workflows, audit logs, etc.)
+- Legal pages: already extensive (terms, privacy, dpa, gdpr, data-requests, etc.)
+- Stripe: already wired (NOT part of this task)
+- We have a **Data Requests** page `/data-requests` which explains rights, and we now need the actual **"Export my data"** DSAR feature behind it.
+
+====================================================================
+HIGH-LEVEL REQUIREMENTS
+====================================================================
+You are implementing **Stage 1 – DSAR Data Export System** with these rules:
+
+1) DELIVERY MODEL (MANDATORY)
+   - NO direct file download from the app after clicking a button.
+   - User clicks “Request data export” in the UI.
+   - Backend prepares a ZIP export.
+   - User ONLY receives:
+     - A secure link via **email** to a download endpoint, plus
+     - A one-time passcode (OTP) in the same or separate email.
+   - The ZIP file is never exposed as a direct link in the logged-in UI.
+   - Link & OTP must expire within strict time windows.
+
+2) SECURITY & COMPLIANCE
+   - Export must be:
+     - **Per-account** (only the authenticated user’s own data).
+     - **Time-limited** (link expiry, OTP expiry).
+     - **Logged** (for ROPA + DSAR evidence).
+   - Export logic must only include **operational data**, no secrets.
+   - System must be safe if email is forwarded or inbox is compromised.
+
+3) AUDITABILITY
+   - Every export request, success, failure, and download must be logged with:
+     - user_id
+     - email
+     - request time
+     - status (pending, processing, ready, emailed, downloaded, expired, failed)
+     - IP (where possible)
+     - data categories included
+     - retention/expiry timestamps
+
+4) UX
+   - Simple for user:
+     - One button in a “Privacy / Data” settings screen.
+     - Clear messaging about timing (“You’ll receive an email with a download link”).
+     - Errors shown gracefully (e.g. “You already requested an export in the last 24 hours.”).
+
+====================================================================
+OVERALL IMPLEMENTATION PLAN
+====================================================================
+Follow these phases step by step. Do NOT skip verification. Print diffs and test results as you go.
+
+PHASE 0 — RECON & SAFETY
+1) Confirm directories:
+   - `ls -R` at repo root to rediscover:
+     - Backend files (`run.py`, `app/`, `api/`, or similar).
+     - Frontend Next.js project in `levqor-site/`.
+2) Identify:
+   - Where DB models are defined (e.g. `models.py`, `app/models/`, `database.py`).
+   - Existing audit log or governance tables (e.g. `audit_log`, `events`, `jobs`, etc.).
+   - Existing email sending helper (likely using Resend or similar). Search for:
+     - `Resend`
+     - `send_email`
+     - `send_verification_request`
+   - Existing endpoints related to DSAR (e.g. `/api/data-requests`).
+3) Do NOT implement anything yet. Only once you have a clear mental model, proceed.
+
+PHASE 1 — DATA MODEL & DB SCHEMA
+Goal: Introduce minimal new tables for DSAR exports, reusing any existing audit mechanisms if possible.
+
+1) Design the following tables (in the existing ORM style):
+   a) `dsar_requests`
+      - `id` (UUID or serial)
+      - `user_id` (FK → users table)
+      - `email` (snapshot of user email at request time)
+      - `requested_at` (timestamp)
+      - `status` (`pending`, `processing`, `ready`, `emailed`, `downloaded`, `expired`, `failed`)
+      - `type` (`export` for now – future-proof)
+      - `ip_address` (nullable, if we can capture)
+      - `notes` (nullable text for internal comments)
+
+   b) `dsar_exports`
+      - `id` (UUID or serial)
+      - `request_id` (FK → dsar_requests)
+      - `user_id` (FK → users)
+      - `created_at`
+      - `expires_at`
+      - `storage_path` or `storage_key` (path in storage or filesystem)
+      - `download_token` (random, high-entropy string)
+      - `download_token_expires_at` (link expiry)
+      - `otp_hash` (hash of one-time passcode – never store OTP in plaintext)
+      - `otp_expires_at` (15–20 minutes after generation)
+      - `downloaded_at` (nullable timestamp)
+      - `data_categories` (JSON/text listing included sections: workflows, runs, billing, etc.)
+
+2) Implement migrations/config:
+   - Use the existing migration system (Alembic or custom). Add migration files to create these tables.
+   - Ensure migrations are idempotent.
+   - Run migration command (or at least show it and confirm schema generation in dev DB).
+
+3) Verification:
+   - `\d` or equivalent (if accessible) to check new tables exist.
+   - Confirm they are referenced by the ORM (e.g. importable in `models.py`).
+
+PHASE 2 — BACKEND EXPORT LOGIC (CORE ENGINE)
+Goal: Implement a backend function that **collects user data** into a structured object and writes it to a ZIP.
+
+1) Discover user-related data:
+   - Find tables containing user data:
+     - `users` / `accounts`
+     - `workflows`, `workflow_runs`, `workflow_events`
+     - `billing` or `subscriptions` or `stripe_customers`
+     - `audit_log` or `events` if they contain personal identifiers
+   - Only include data **owned by the user** (e.g. `user_id` foreign key).
+
+2) Create an internal function, e.g.:
+   - In a new module: `backend/dsar/exporter.py` (or consistent with repo style)
+   - Function: `generate_user_export(user_id: str) -> Dict[str, Any]`
+     - Collects data from all relevant tables.
+     - Structure output as a nested JSON-like dict, e.g.:
+       ```json
+       {
+         "user": {...},
+         "workflows": [...],
+         "workflow_runs": [...],
+         "billing": {...},
+         "audit_events": [...]
+       }
+       ```
+     - Make sure to **exclude**:
+       - Passwords
+       - Access tokens
+       - Refresh tokens
+       - Secret keys
+       - Internal-only secrets
+
+3) ZIP file creation:
+   - Use Python `tempfile` and `zipfile`.
+   - For now, create:
+     - `metadata.json` with high-level info.
+     - `data.json` with the full JSON export.
+   - Optionally split into multiple JSON files if size is a concern.
+
+4) Storage:
+   - For dev: store ZIPs in a dedicated directory, e.g. `./exports/` (gitignored).
+   - In production, assume this will be mapped to durable storage (we’re just preparing the logic).
+   - The path or storage key must be saved in `dsar_exports.storage_path`.
+
+5) Verification:
+   - Create a local test user in dev DB.
+   - Manually call `generate_user_export(user_id)` in a shell or script.
+   - Confirm:
+     - ZIP created.
+     - JSON readable.
+     - No secrets present.
+     - Data matches that user only.
+
+PHASE 3 — OTP & TOKEN SECURITY LAYER
+Goal: Add secure one-time token + OTP gating for downloads.
+
+1) For each new export:
+   - Generate:
+     - `download_token` (e.g. 32+ bytes random URL-safe string).
+     - `download_token_expires_at` = now + 24 hours.
+     - `otp` = 6–8 digit numeric code (e.g. 6-digit).
+     - `otp_hash` = HMAC or salted hash of OTP (never store raw OTP).
+     - `otp_expires_at` = now + 15 minutes.
+
+2) Implement helper functions:
+   - `create_download_token_and_otp(export: Dsarexport) -> (token, otp)`
+   - `verify_download_token_and_otp(token, otp, now, export)` returning success/failure + reason.
+
+3) Update `dsar_exports` creation logic to set these fields.
+
+4) Verification:
+   - Unit-level: create an export, run helper functions with:
+     - Correct OTP → passes.
+     - Wrong OTP → fails.
+     - Correct OTP after expiry → fails.
+     - Correct OTP but token expired → fails.
+
+PHASE 4 — BACKEND API ENDPOINTS
+Goal: Expose DSAR behavior through authenticated HTTP APIs.
+
+Implement **three** main endpoints in the backend (Flask) under a namespace like `/api/dsar` or `/api/data-export`:
+
+1) `POST /api/data-export/request`
+   - Authenticated-only.
+   - Body: `{}` (no parameters needed for now).
+   - Logic:
+     - Get current user id & email from auth/session.
+     - Rate limit: if user has a `dsar_requests` with status in [`pending`, `processing`, `ready`, `emailed`] created in the last 24h, return 429-like error.
+     - Create a new `dsar_requests` row (status=`processing`).
+     - Call the export generator (synchronously for now) to build the ZIP and `dsar_exports` row.
+     - Once export is generated:
+       - Status: `ready`.
+       - Generate token + OTP.
+       - Send email (see below).
+       - Update status to `emailed`.
+     - Return:
+       - `202 Accepted` with JSON: `{ "ok": true, "message": "You will receive an email with download instructions shortly." }`
+   - On error:
+     - Log error.
+     - Update request status to `failed`.
+     - Return `500` with safe message.
+
+2) `POST /api/data-export/resend`
+   - Optional but useful.
+   - Allows re-sending email if link expired or not received, with rate-limiting.
+   - Similar pattern as `/request` but doesn’t re-generate data, only new token + new OTP.
+
+3) `POST /api/data-export/download`
+   - This is the endpoint used by the **email link** (NOT the web UI directly).
+   - Expected flow:
+     - Email contains a link like:
+       `https://www.levqor.ai/data-export/download?token=XYZ&type=export`
+     - The download page (frontend) will POST:
+       `{ "token": "...", "otp": "123456" }`
+   - Logic:
+     - Look up `dsar_exports` by `download_token`.
+     - Check:
+       - `download_token_expires_at > now`.
+       - `otp` matches `otp_hash` and `otp_expires_at > now`.
+     - If any check fails:
+       - Return 400/403 with a generic message (no details).
+     - If OK:
+       - Stream the ZIP file as `application/zip`, with:
+         - Content-Disposition: attachment; filename="levqor-data-export-YYYYMMDD.zip"
+       - Update:
+         - `downloaded_at = now`.
+         - Optionally set `download_token` to null or mark as used (one-time download).
+   - No need to require a logged-in session here – possession of the token+OTP is the security gate. (If you prefer, you can also require logged-in user with matching `user_id`.)
+
+4) EMAIL SENDING
+   - Use existing email helper for consistency.
+   - Email content:
+     - Subject: "Your Levqor data export is ready"
+     - Body includes:
+       - A short explanation.
+       - Link to the download page (`/data-export/download?token=...`).
+       - The one-time passcode (OTP) as plain text (e.g. `123 456`).
+       - Warning about expiry: “OTP valid for 15 minutes. Link valid for 24 hours.”
+   - For dev:
+     - Log emails to console (or to a dev mailbox).
+   - For prod:
+     - Rely on existing mailing infra.
+
+5) LOGGING
+   - For each endpoint, log to an existing audit log or create a simple DSAR log entry with:
+     - user_id
+     - email
+     - action (`request_export`, `export_generated`, `email_sent`, `download_attempt`, `download_success`, `download_failed`)
+     - timestamps
+     - IP if available.
+
+6) Verification:
+   - Using curl/httpie:
+     - Authenticated `POST /api/data-export/request` → 202 + dsar_requests + dsar_exports row created.
+     - Check DB rows: verify fields.
+     - Simulate link + OTP to `POST /api/data-export/download` → confirm ZIP is returned.
+   - Ensure unauthenticated access is impossible for `/request`.
+
+PHASE 5 — FRONTEND (NEXT.JS) INTEGRATION
+Goal: Add a simple, compliant front-end entry point that **requests** an export but never directly downloads the ZIP.
+
+1) Decide where to place UI:
+   - Prefer a dedicated privacy tools page, e.g.:
+     - `src/app/privacy-tools/page.tsx`
+   - OR an account section if it already exists (e.g. `src/app/account/privacy/page.tsx`).
+   - If unsure, create `src/app/privacy-tools/page.tsx` and link to it from:
+     - `/privacy`
+     - `/data-requests`
+     - The footer (if appropriate).
+
+2) UI behavior:
+   - Show a card titled: “Download your data”.
+   - Brief explanation:
+     - “You can request a copy of your Levqor data. We’ll email you a secure download link.”
+     - Mention GDPR/UK GDPR rights.
+   - Button: “Request data export”.
+   - On click:
+     - Call `POST /api/data-export/request` using `fetch` (or existing fetch helper).
+     - Show loading state.
+     - On success:
+       - Show success message: “If an export is available, you’ll receive an email shortly.”
+     - On error:
+       - Show a safe error message (rate-limit, internal error, etc.).
+
+3) Download page (frontend):
+   - Create page at `src/app/data-export/download/page.tsx`.
+   - It should:
+     - Parse `token` from query string.
+     - Show a form:
+       - OTP input (6-digit).
+       - Submit button: “Download my data”.
+     - On submit:
+       - POST to `/api/data-export/download` with `{ token, otp }`.
+       - If successful, trigger a browser file download:
+         - This will be the only point where a file is downloaded, and only after email → page → OTP path.
+       - Show errors if OTP is wrong/expired.
+
+4) Links:
+   - Update `/data-requests` and `/gdpr` pages (if they exist) to link to `/privacy-tools` or `/data-export/download` as appropriate.
+   - Do NOT clutter header; footer text link is enough (e.g. “Privacy tools”).
+
+5) Verification:
+   - From browser:
+     - Sign in as a test user.
+     - Visit `/privacy-tools`.
+     - Click “Request data export”.
+     - Check backend logs for DSAR request and export creation.
+     - Inspect the test email output (dev logs).
+     - Copy the `token` from logged email link, visit `/data-export/download?token=...`.
+     - Enter OTP from email → verify download works.
+     - Try wrong OTP → fails.
+     - Try again after OTP expiry → fails.
+
+PHASE 6 — RETENTION & CLEANUP
+Goal: Ensure exported ZIPs and DSAR records follow retention policies.
+
+1) Add a simple cleanup job (if you have a scheduler framework already):
+   - Runs daily (or hourly).
+   - Deletes ZIP files and marks exports as `expired` if:
+     - `expires_at < now`.
+   - Optionally:
+     - Purge old DSAR records after N months (e.g. 12 or 24) while keeping minimal metadata required by law.
+
+2) Implement job file consistent with existing scheduler style.
+   - E.g. `jobs/dsar_cleanup.py` or similar.
+   - Register with scheduler if needed.
+
+3) Verification:
+   - Create a fake export with `expires_at` in the past.
+   - Run cleanup job manually.
+   - Confirm file is removed and DB record updated.
+
+PHASE 7 — HARDENING & FINAL CHECKS
+1) Security checks:
+   - Ensure no endpoint leaks whether a user exists by email (we always operate on authenticated user’s session).
+   - No raw OTP stored; only hash.
+   - Tokens are high-entropy and unguessable.
+   - Graceful error handling.
+
+2) Logging checks:
+   - Confirm there is enough information to demonstrate compliance in ICO/DSAR audits:
+     - Who requested export.
+     - When generated.
+     - When/if downloaded.
+   - Ensure logs don’t store the exported data itself.
+
+3) Smoke tests:
+   - Request export as user A, verify user B cannot use that token (if you enforce session-binding).
+   - Try multiple export requests within 24h → rate limiting works.
+
+PHASE 8 — REPORT & DIFFS
+1) At the end, print a concise summary including:
+   - New / modified files.
+   - New endpoints.
+   - New tables.
+   - How to run a full manual test.
+2) Show `git diff --stat` for:
+   - Backend files.
+   - Frontend files.
+   - New jobs/migrations.
+
+====================================================================
+CONSTRAINTS & QUALITY RULES
+====================================================================
+- Do NOT touch:
+  - Pricing, Stripe flow, or checkout logic.
+  - Existing SLA, legal copy, or policy pages (unless just adding a small link to the new page).
+- Reuse existing patterns:
+  - Email helpers.
+  - DB connection and ORM patterns.
+  - Existing logging/audit mechanisms.
+- Follow the existing TypeScript and React style on the frontend.
+- Ensure TypeScript and Next.js build pass.
+- Run tests/build:
+  - `cd levqor-site && npm run build` (or equivalent).
+- If any step fails or is ambiguous:
+  - STOP, print what you tried, and adjust using the patterns already in the repo.
+
+Now start with PHASE 0 and proceed sequentially through the phases, implementing and verifying each step.
+```0

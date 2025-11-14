@@ -76,10 +76,10 @@ export default function PrivacyPage() {
         <section className="space-y-4">
           <h2 className="text-2xl font-bold text-white">6. Data Retention</h2>
           <ul className="list-disc list-inside space-y-2 text-slate-300 ml-4">
-            <li>Accounts: retained until deletion</li>
-            <li>Logs: 30–180 days</li>
-            <li>Workflow content: minimal and time-limited</li>
-            <li>Payment records: required for 6 years (UK law)</li>
+            <li>Account: until deletion</li>
+            <li>Workflow logs: 30–180 days</li>
+            <li>Payment records: 6 years</li>
+            <li>Support messages: 12 months</li>
           </ul>
         </section>
 
@@ -94,6 +94,9 @@ export default function PrivacyPage() {
           <h2 className="text-2xl font-bold text-white">8. Your Rights</h2>
           <p className="text-slate-300 leading-relaxed">
             You may request access, deletion, correction, restriction, data portability.
+          </p>
+          <p className="text-slate-300 leading-relaxed mt-4">
+            Data removed within 30 days except where law requires retention.
           </p>
         </section>
 

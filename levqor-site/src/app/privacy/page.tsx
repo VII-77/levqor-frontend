@@ -77,13 +77,25 @@ export default function PrivacyPage() {
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-bold text-white">6. Data Retention</h2>
+          <h2 className="text-2xl font-bold text-white">6. Data Retention & Deletion</h2>
+          <p className="text-slate-300 leading-relaxed">
+            We automatically delete old data based on the following retention periods:
+          </p>
           <ul className="list-disc list-inside space-y-2 text-slate-300 ml-4">
-            <li>Account: until deletion</li>
-            <li>Workflow logs: 30–180 days</li>
-            <li>Payment records: 6 years</li>
-            <li>Support messages: 12 months</li>
+            <li>API usage logs: 90 days</li>
+            <li>Status snapshots: 30 days</li>
+            <li>DSAR export files: 30 days</li>
+            <li>Referral data: 2 years</li>
+            <li>Billing records: 7 years (legal requirement for tax compliance)</li>
+            <li>Payment history: 7 years (financial audit requirements)</li>
           </ul>
+          <p className="text-slate-300 leading-relaxed mt-4">
+            Automated cleanup runs daily at 3:00 AM UTC to remove expired records.
+          </p>
+          <p className="text-slate-300 leading-relaxed mt-4">
+            Users may request deletion of their personal data at any time using the "Delete My Data (GDPR)" button in <Link href="/privacy-tools" className="text-emerald-400 hover:underline">Privacy Tools</Link>. 
+            This will permanently delete workflows, logs, and related data while preserving billing records as required by law.
+          </p>
         </section>
 
         <section className="space-y-4">

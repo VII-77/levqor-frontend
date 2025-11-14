@@ -70,6 +70,17 @@ The frontend is built with Next.js 14 and TypeScript, featuring a clear authenti
             - Automatic reset to status="none" when invoice.paid event received.
             - Email templates in billing/dunning_emails.py with Resend integration.
             - /billing page documents dunning timeline and policy for customer transparency.
+        - **Data Retention & Deletion System (GDPR Compliance)**:
+            - Centralized retention policy in retention/config.py with granular retention periods per table.
+            - Automated cleanup engine (retention/cleanup.py) runs daily at 3:00 AM UTC via APScheduler.
+            - Retention periods: API logs (90 days), status snapshots (30 days), DSAR exports (30 days), referrals (2 years), billing (7 years).
+            - POST /api/privacy/delete-my-data endpoint for user-initiated data deletion (GDPR Article 17).
+            - Deletes: workflows, logs, API keys, referrals, DSAR exports, anonymizes user account.
+            - Preserves: billing_events, billing_dunning_state, Stripe records (7-year legal requirement).
+            - Frontend "Delete My Data (GDPR)" button in /privacy-tools with confirmation modal.
+            - Audit logging for all deletions via dsar_audit_log table.
+            - Updated /privacy and /data-requests pages documenting retention policy and deletion process.
+            - Physical DSAR export file cleanup integrated into daily retention job.
         - User data schema includes terms_accepted_at, terms_version, terms_accepted_ip, marketing_consent, marketing_double_opt_in, marketing_double_opt_in_token.
 - **Health & Monitoring**:
     - Dedicated endpoints for system status (`/health`, `/public/metrics`, etc.).

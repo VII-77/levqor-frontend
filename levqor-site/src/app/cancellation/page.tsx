@@ -36,6 +36,22 @@ export default function CancellationPage() {
             Identity verification required.
           </p>
           <p className="text-slate-300 leading-relaxed">
+            Email confirmation required.
+          </p>
+        </section>
+
+        <section className="space-y-4 mt-8">
+          <h2 className="text-2xl font-bold text-white">What Gets Deleted</h2>
+          <p className="text-slate-300 leading-relaxed">
+            Auto-wipes include:
+          </p>
+          <ul className="list-disc list-inside space-y-2 text-slate-300 ml-4">
+            <li>Workflows</li>
+            <li>Logs</li>
+            <li>Tokens</li>
+            <li>API keys</li>
+          </ul>
+          <p className="text-slate-300 leading-relaxed mt-3">
             Data deleted within 30 days except legal records.
           </p>
         </section>

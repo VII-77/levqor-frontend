@@ -27,7 +27,10 @@ export default function FairUsePage() {
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-bold text-white">2. Examples of Fair Use</h2>
+          <h2 className="text-2xl font-bold text-white">2. Workflow Limits</h2>
+          <p className="text-slate-300 leading-relaxed">
+            Workflows per plan must match advertised limits.
+          </p>
           <ul className="list-disc list-inside space-y-2 text-slate-300 ml-4">
             <li>Starter: 1 workflow/month</li>
             <li>Growth: 3 workflows/month</li>
@@ -37,7 +40,20 @@ export default function FairUsePage() {
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-bold text-white">3. Unacceptable Use</h2>
+          <h2 className="text-2xl font-bold text-white">3. Unlimited Plans Fair Use Thresholds</h2>
+          <ul className="list-disc list-inside space-y-2 text-slate-300 ml-4">
+            <li>No more than reasonable daily usage</li>
+            <li>No abuse of external APIs</li>
+            <li>No mass automated scraping</li>
+            <li>No recurring high-volume tasks without review</li>
+          </ul>
+          <p className="text-slate-300 leading-relaxed mt-3">
+            Soft cap: 200 workflow runs/day
+          </p>
+        </section>
+
+        <section className="space-y-4">
+          <h2 className="text-2xl font-bold text-white">4. Unacceptable Use</h2>
           <ul className="list-disc list-inside space-y-2 text-slate-300 ml-4">
             <li>Unlimited revisions to avoid paying for higher tiers</li>
             <li>Abusing support channels</li>
@@ -47,7 +63,10 @@ export default function FairUsePage() {
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-bold text-white">4. Enforcement</h2>
+          <h2 className="text-2xl font-bold text-white">5. Enforcement</h2>
+          <p className="text-slate-300 leading-relaxed">
+            We reserve the right to throttle or review usage.
+          </p>
           <p className="text-slate-300 leading-relaxed">
             We may limit usage, warn, suspend, or upgrade your plan.
           </p>

@@ -40,35 +40,63 @@ export default function FairUsePage() {
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-bold text-white">3. Unlimited Plans Fair Use Thresholds</h2>
+          <h2 className="text-2xl font-bold text-white">3. API Usage Limits</h2>
+          <ul className="list-disc list-inside space-y-2 text-slate-300 ml-4">
+            <li>Starter: 1,000 API calls/day</li>
+            <li>Growth: 10,000 API calls/day</li>
+            <li>Pro: 50,000 API calls/day</li>
+            <li>Business: 200,000 API calls/day</li>
+          </ul>
+        </section>
+
+        <section className="space-y-4">
+          <h2 className="text-2xl font-bold text-white">4. Automation Triggers Per Month</h2>
+          <ul className="list-disc list-inside space-y-2 text-slate-300 ml-4">
+            <li>Starter: ~1,000 triggers/month</li>
+            <li>Growth: ~10,000 triggers/month</li>
+            <li>Pro: ~50,000 triggers/month</li>
+            <li>Business: Unlimited (soft cap 200 runs/day = ~6,000/month)</li>
+          </ul>
+          <p className="text-slate-300 leading-relaxed mt-3">
+            Daily soft cap for unlimited plans: 200 workflow runs/day
+          </p>
+        </section>
+
+        <section className="space-y-4">
+          <h2 className="text-2xl font-bold text-white">5. Unlimited Plans Fair Use Thresholds</h2>
           <ul className="list-disc list-inside space-y-2 text-slate-300 ml-4">
             <li>No more than reasonable daily usage</li>
             <li>No abuse of external APIs</li>
             <li>No mass automated scraping</li>
             <li>No recurring high-volume tasks without review</li>
           </ul>
+        </section>
+
+        <section className="space-y-4">
+          <h2 className="text-2xl font-bold text-white">6. Abuse/Misuse Definitions</h2>
+          <div className="bg-amber-900/20 border border-amber-800 rounded-lg p-4">
+            <p className="text-slate-300 font-semibold mb-2">Abuse includes:</p>
+            <ul className="list-disc list-inside space-y-2 text-slate-300 ml-4 text-sm">
+              <li>Exceeding tier limits by 3x consistently</li>
+              <li>Generating artificial load to test limits</li>
+              <li>Reselling access without authorization</li>
+              <li>Unlimited revisions to avoid paying for higher tiers</li>
+              <li>Abusing support channels</li>
+              <li>Creating harmful or illegal automations</li>
+            </ul>
+          </div>
+        </section>
+
+        <section className="space-y-4">
+          <h2 className="text-2xl font-bold text-white">7. Suspension Rules</h2>
+          <ol className="list-decimal list-inside space-y-2 text-slate-300 ml-4">
+            <li>First violation: Warning email + 48-hour review period</li>
+            <li>Second violation: Temporary throttling + upgrade recommendation</li>
+            <li>Third violation: Account suspension pending review</li>
+            <li>Severe abuse: Immediate suspension without warning</li>
+          </ol>
           <p className="text-slate-300 leading-relaxed mt-3">
-            Soft cap: 200 workflow runs/day
-          </p>
-        </section>
-
-        <section className="space-y-4">
-          <h2 className="text-2xl font-bold text-white">4. Unacceptable Use</h2>
-          <ul className="list-disc list-inside space-y-2 text-slate-300 ml-4">
-            <li>Unlimited revisions to avoid paying for higher tiers</li>
-            <li>Abusing support channels</li>
-            <li>Generating extreme workloads</li>
-            <li>Using Levqor to create harmful or illegal automations</li>
-          </ul>
-        </section>
-
-        <section className="space-y-4">
-          <h2 className="text-2xl font-bold text-white">5. Enforcement</h2>
-          <p className="text-slate-300 leading-relaxed">
-            We reserve the right to throttle or review usage.
-          </p>
-          <p className="text-slate-300 leading-relaxed">
-            We may limit usage, warn, suspend, or upgrade your plan.
+            We reserve the right to throttle or review usage at any time.
           </p>
         </section>
 

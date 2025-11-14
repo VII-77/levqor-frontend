@@ -16,9 +16,12 @@ export default function SLAPage() {
         </p>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-bold text-white">1. Uptime</h2>
+          <h2 className="text-2xl font-bold text-white">1. Uptime Guarantee</h2>
           <p className="text-slate-300 leading-relaxed">
-            Target uptime: 99.5%
+            Target uptime: 99.5% (excludes scheduled maintenance)
+          </p>
+          <p className="text-slate-300 leading-relaxed">
+            Measured monthly across all core services.
           </p>
           <p className="text-slate-300 leading-relaxed">
             Maintenance windows announced 24h in advance.
@@ -29,13 +32,28 @@ export default function SLAPage() {
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-bold text-white">2. Subscription Plan Response Times</h2>
-          <ul className="list-disc list-inside space-y-2 text-slate-300 ml-4">
-            <li>Starter: No SLA</li>
-            <li>Growth: 48h response</li>
-            <li>Pro: 24h response</li>
-            <li>Business: 12h response + dedicated support</li>
-          </ul>
+          <h2 className="text-2xl font-bold text-white">2. Response Times by Support Tier</h2>
+          <div className="space-y-3">
+            <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-slate-400 mb-2">Starter</h3>
+              <p className="text-slate-300 text-sm">No SLA - Best effort support</p>
+            </div>
+
+            <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-emerald-400 mb-2">Growth</h3>
+              <p className="text-slate-300 text-sm">Response: 48 hours | Resolution: 5 business days</p>
+            </div>
+
+            <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-blue-400 mb-2">Pro</h3>
+              <p className="text-slate-300 text-sm">Response: 24 hours | Resolution: 3 business days</p>
+            </div>
+
+            <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-purple-400 mb-2">Business</h3>
+              <p className="text-slate-300 text-sm">Response: 12 hours | Resolution: 2 business days | Dedicated support</p>
+            </div>
+          </div>
         </section>
 
         <section className="space-y-4">
@@ -50,14 +68,32 @@ export default function SLAPage() {
         <section className="space-y-4">
           <h2 className="text-2xl font-bold text-white">4. Exclusions</h2>
           <p className="text-slate-300 leading-relaxed">
-            Force majeure, upstream outages, DDoS, rate-limits.
+            SLA does not cover:
           </p>
+          <ul className="list-disc list-inside space-y-2 text-slate-300 ml-4">
+            <li>Force majeure events</li>
+            <li>Third-party API outages</li>
+            <li>DDoS attacks</li>
+            <li>Customer-caused issues</li>
+            <li>Scheduled maintenance windows</li>
+          </ul>
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-bold text-white">5. Credits</h2>
-          <p className="text-slate-300 leading-relaxed">
-            Service credits may be granted for prolonged outages.
+          <h2 className="text-2xl font-bold text-white">5. Service Credits for Downtime</h2>
+          <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-4">
+            <p className="text-slate-300 text-sm mb-2">
+              <span className="font-semibold">99.0% - 99.5%:</span> 10% credit
+            </p>
+            <p className="text-slate-300 text-sm mb-2">
+              <span className="font-semibold">95.0% - 99.0%:</span> 25% credit
+            </p>
+            <p className="text-slate-300 text-sm">
+              <span className="font-semibold">&lt;95.0%:</span> 50% credit
+            </p>
+          </div>
+          <p className="text-slate-300 text-sm mt-3">
+            Credits applied to next billing cycle. Request within 30 days of incident.
           </p>
         </section>
 

@@ -1,0 +1,167 @@
+Excellent.
+Now we move immediately to the next revenue-critical phase.
+
+This is where we go from “people showing interest” → “people paying you today.”
+
+Below is RFP-2 — Automated Sales Engine, fully compressed, safe, minimal tokens, and engineered for maximum cash conversion in the shortest time.
+
+
+---
+
+🚀 RFP-2 — AUTOMATED SALES ENGINE (ASE)
+
+Paste into Replit AI Agent exactly as is.
+
+You are Replit AI Agent for Levqor.
+
+GOAL: Build Levqor’s automated sales engine:
+– Auto-reply sequences
+– Lead nurturing
+– DFY consult funnel
+– High-conversion triggers
+– Admin dashboards
+– Critical alerts
+
+=======================================
+PHASE 1 — EMAIL TEMPLATES (SERVER)
+=======================================
+Create folder: src/emails/sales/
+Add templates:
+
+1) lead_received()
+Subject: “We got your request — here’s what happens next”
+Body: timeline (24–48h), reassurance, CTA → /pricing
+
+2) dfy_interest()
+Subject: “DFY Automation — Let’s start your build”
+Body: checklist, kickoff link → /dfy-kickoff
+
+3) hot_lead()
+Subject: “Quick question before I build your workflow…”
+Body: 3 qualification questions:
+- What’s your biggest bottleneck?
+- How fast do you need this done?
+- Do you want DFY or subscription?
+
+4) abandoned_checkout()
+Triggered if user starts checkout but does not pay in 10 min
+Subject: “Still want to automate your business?”
+Body: 1–click resume checkout link
+
+=======================================
+PHASE 2 — SALES ENGINE ROUTES
+=======================================
+Add API routes:
+
+1) POST /api/sales/lead-nurture  
+Input: lead_id  
+Logic:
+- send lead_received()
+- wait 2h
+- send hot_lead()
+
+2) POST /api/sales/dfy-followup  
+Input: kickoff_id  
+Logic:
+- send dfy_interest()
+- wait 4h
+- send hot_lead()
+
+3) POST /api/sales/recover-checkout  
+Input: session_id  
+Logic:
+- send abandoned_checkout()
+
+=======================================
+PHASE 3 — AUTOMATED TRIGGERS
+=======================================
+Trigger sequences:
+
+1) When new lead is created → POST /api/sales/lead-nurture  
+
+2) When DFY kickoff submitted → POST /api/sales/dfy-followup  
+
+3) When Stripe webhook “checkout.session.expired” → POST /api/sales/recover-checkout  
+
+Ensure logs saved in audit table.
+
+=======================================
+PHASE 4 — SALES DASHBOARD
+=======================================
+Add admin route: /admin/sales-dashboard  
+Protected via admin email.
+
+Sections:
+- New leads (last 30 days)
+- DFY kickoffs
+- Lost leads (no reply in 48h)
+- Hot leads (answered questionnaire)
+- DFY pipeline (Starter/Pro/Enterprise)
+- Revenue summary (Stripe API)
+- Traffic → lead → checkout → conversion funnel
+
+=======================================
+PHASE 5 — HIGH-CONVERSION WIDGETS
+=======================================
+
+1) Sticky bottom-bar CTA on all pages:
+“Need help? Talk to us — free 5-minute audit”
+Button → opens modal
+
+2) Exit-intent popup (desktop):
+Headline: “Want your first workflow automated FREE?”
+CTA → collect email → send lead_received() template
+
+3) Pricing Page Enhancer:
+Add micro copy:
+– “Secure Stripe Checkout”
+– “Instant access”
+– “Cancel anytime”
+– “Cheaper than hiring a VA”
+
+=======================================
+PHASE 6 — FINAL CHECKS
+=======================================
+Validate:
+- All email templates compile
+- Triggers fire correctly
+- Dashboard loads without errors
+- Funnel logic accurate
+- No logs missing
+- Stripe webhooks firing
+
+Output: “RFP-2 COMPLETE”
+Stop.
+
+
+---
+
+⭐ Profit Impact of RFP-2
+
+This one creates actual revenue flow, because:
+
+Leads get nurtured automatically
+
+Checkout abandonment gets recovered
+
+DFY buyers get fast follow-ups
+
+High-ticket conversions increase
+
+Admin sees real-time sales
+
+Widget + popups increase signups by 15–30%
+
+Automated emails close deals while you sleep
+
+
+This accelerates the 7-day cash goal.
+
+
+---
+
+When finished, say:
+
+Done boss
+
+and I’ll give you RFP-3: High-Ticket DFY Upsell Engine (this is where the real cash is).

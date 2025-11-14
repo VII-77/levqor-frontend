@@ -154,7 +154,7 @@ def set_opt_out():
         
         # Set timestamp if not already set
         if not current[5]:  # gdpr_opt_out_at
-            updates['gdpr_opt_out_at'] = now
+            updates['gdpr_opt_out_at'] = int(now)
         
         # Build UPDATE query
         set_clause = ', '.join([f"{k} = ?" for k in updates.keys()])
@@ -175,14 +175,26 @@ def set_opt_out():
         
         db.commit()
         
-        # Get final state
+        # Get final state and user info for email
         cursor.execute("""
-            SELECT gdpr_opt_out_all, gdpr_opt_out_at
+            SELECT gdpr_opt_out_all, gdpr_opt_out_at, email, name
             FROM users WHERE id = ?
         """, (user_id,))
         
         final_state = cursor.fetchone()
         db.close()
+        
+        # Send confirmation email
+        try:
+            from backend.services.gdpr_emails import send_optout_confirmation
+            user_email = final_state[2] if final_state else None
+            user_name = final_state[3] if final_state else None
+            if user_email:
+                send_optout_confirmation(user_email, user_name, applied)
+        except Exception as e:
+            # Log but don't fail the request if email fails
+            import logging
+            logging.getLogger("levqor.gdpr").error(f"Failed to send opt-out confirmation email: {e}")
         
         return jsonify({
             "ok": True,

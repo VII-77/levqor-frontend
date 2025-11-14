@@ -15,12 +15,26 @@ def get_billing_url():
     return f"{base_url}/billing"
 
 
-def send_billing_email(to: str, subject: str, body: str):
+def send_billing_email(to: str, subject: str, body: str, user_id=None, is_transactional=True):
     """
     Send billing email via Resend (or log if not configured)
     
+    Args:
+        to: Email address
+        subject: Email subject
+        body: Email body
+        user_id: Optional user ID for GDPR enforcement
+        is_transactional: If True, bypasses marketing opt-out (default True for billing)
+    
     TODO: Wire up to actual Resend API when RESEND_API_KEY is configured
     """
+    # GDPR Enforcement: Check opt-out (but allow transactional emails)
+    if user_id and not is_transactional:
+        from backend.services.gdpr_enforcement import should_send_marketing_email
+        if not should_send_marketing_email(user_id):
+            log.info(f"[GDPR] Skipping non-transactional email to {to} - user opted out of marketing")
+            return
+    
     resend_key = os.environ.get("RESEND_API_KEY")
     
     if not resend_key:

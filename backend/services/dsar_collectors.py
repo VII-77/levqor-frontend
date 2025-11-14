@@ -184,6 +184,60 @@ def collect_user_billing_events(user_id, db_connection):
     ]
 
 
+def collect_user_gdpr_objections(user_id, db_connection):
+    """Collect GDPR opt-out/objection data"""
+    cursor = db_connection.cursor()
+    
+    # Get current opt-out flags
+    cursor.execute("""
+        SELECT gdpr_opt_out_marketing, gdpr_opt_out_profiling,
+               gdpr_opt_out_automation, gdpr_opt_out_analytics,
+               gdpr_opt_out_all, gdpr_opt_out_at
+        FROM users WHERE id = ?
+    """, (user_id,))
+    
+    flags = cursor.fetchone()
+    
+    # Get objection log entries
+    cursor.execute("""
+        SELECT id, scope, ip_address, user_agent, created_at
+        FROM gdpr_objection_log WHERE user_id = ?
+        ORDER BY created_at DESC
+    """, (user_id,))
+    
+    log_entries = [
+        {
+            "log_id": entry[0],
+            "scope": entry[1],
+            "ip_address": entry[2],
+            "user_agent": entry[3],
+            "created_at": entry[4],
+        }
+        for entry in cursor.fetchall()
+    ]
+    
+    if not flags:
+        return {
+            "marketing": False,
+            "profiling": False,
+            "automation": False,
+            "analytics": False,
+            "all": False,
+            "opt_out_at": None,
+            "log_entries": log_entries
+        }
+    
+    return {
+        "marketing": bool(flags[0]),
+        "profiling": bool(flags[1]),
+        "automation": bool(flags[2]),
+        "analytics": bool(flags[3]),
+        "all": bool(flags[4]),
+        "opt_out_at": flags[5],
+        "log_entries": log_entries
+    }
+
+
 def collect_dsar_request_metadata(reference_id):
     """Collect DSAR request metadata using PostgreSQL session"""
     from app import db as postgres_db
@@ -228,5 +282,6 @@ def collect_all_user_data(user_id, reference_id, db_connection):
         "marketing_consent": collect_user_marketing_consent(user_id, db_connection),
         "risk_blocks": collect_user_risk_blocks(user_id, db_connection),
         "billing_events": collect_user_billing_events(user_id, db_connection),
+        "gdpr_objections": collect_user_gdpr_objections(user_id, db_connection),
         "dsar_request": collect_dsar_request_metadata(reference_id),
     }

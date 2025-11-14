@@ -1,9 +1,10 @@
 from flask import Blueprint, request, jsonify, send_file
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 import os
 from app import db
 from backend.models.dsar_request import DSARRequest
 from backend.utils.ids import generate_gdpr_reference
+from backend.config import GDPR_DSAR_EXPORT_RETENTION_DAYS
 
 dsar_bp = Blueprint("dsar", __name__, url_prefix="/api/dsar")
 
@@ -155,6 +156,19 @@ def download_dsar(reference_id: str):
     file_path = os.path.join(export_root, filename)
 
     if not os.path.isfile(file_path):
+        retention_days = GDPR_DSAR_EXPORT_RETENTION_DAYS
+        cutoff = datetime.now(timezone.utc) - timedelta(days=retention_days)
+
+        ts = req.completed_at or req.requested_at
+        if ts and ts.replace(tzinfo=timezone.utc) < cutoff:
+            return jsonify({
+                "ok": False,
+                "error": "Export expired",
+                "message": f"DSAR exports are automatically deleted after {retention_days} days for security purposes.",
+                "retention_days": retention_days,
+                "expired_on": (ts + timedelta(days=retention_days)).isoformat()
+            }), 410
+
         return jsonify({
             "ok": False,
             "error": "Export file not found on server. Please contact support.",

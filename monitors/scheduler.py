@@ -474,6 +474,23 @@ def run_alert_checks():
     except Exception as e:
         log.error(f"Alert checks error: {e}")
 
+def run_dsar_cleanup():
+    """DSAR export cleanup - daily at 03:30 UTC"""
+    log.info("Running DSAR export cleanup...")
+    try:
+        from backend.cli.dsar_commands import cleanup
+        from click.testing import CliRunner
+        
+        runner = CliRunner()
+        result = runner.invoke(cleanup)
+        
+        if result.exit_code == 0:
+            log.info(f"✅ DSAR cleanup complete: {result.output}")
+        else:
+            log.error(f"DSAR cleanup failed: {result.output}")
+    except Exception as e:
+        log.error(f"DSAR cleanup error: {e}")
+
 def init_scheduler():
     """Initialize and start APScheduler"""
     try:
@@ -660,8 +677,16 @@ def init_scheduler():
             replace_existing=True
         )
         
+        scheduler.add_job(
+            run_dsar_cleanup,
+            CronTrigger(hour=3, minute=30, timezone='UTC'),
+            id='dsar_cleanup',
+            name='Daily DSAR export cleanup',
+            replace_existing=True
+        )
+        
         scheduler.start()
-        log.info("✅ APScheduler initialized with 18 jobs (including 5 monitoring jobs for Go/No-Go)")
+        log.info("✅ APScheduler initialized with 19 jobs (including 5 monitoring jobs for Go/No-Go + DSAR cleanup)")
         return scheduler
         
     except ImportError:

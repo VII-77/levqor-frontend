@@ -16,13 +16,18 @@ The frontend is built with Next.js 14 and TypeScript, featuring a clear authenti
 - **Frontend Core**: Next.js 14 application utilizing `src/app/` for App Router pages and NextAuth v4 for authentication.
 - **Job Management**: In-memory storage for jobs, with future plans for PostgreSQL or Redis integration.
 - **User Management**: Idempotent email-based user management with an SQLite database for local development and PostgreSQL for production.
-- **Security**:
+- **Security & Compliance**:
     - API key authentication with zero-downtime rotation.
     - Rate limiting (20 requests/minute per IP, 200 requests/minute global).
     - Comprehensive security headers (HSTS, CSP, COOP, COEP).
     - Request size limits (512KB max body, 200KB max payload).
     - JSON schema validation with `FormatChecker`.
     - Structured logging with IP and User-Agent tracking.
+    - **GDPR/PECR Compliance Systems**:
+        - Cookie consent banner with granular controls (necessary, functional, analytics, marketing).
+        - TOS acceptance enforcement with database tracking (version, timestamp, IP).
+        - Middleware protection requiring TOS acceptance for all protected routes.
+        - User data schema includes terms_accepted_at, terms_version, terms_accepted_ip.
 - **Health & Monitoring**:
     - Dedicated endpoints for system status (`/health`, `/public/metrics`, etc.).
     - Sentry integration for telemetry and error tracking.
@@ -60,6 +65,10 @@ The frontend is built with Next.js 14 and TypeScript, featuring a clear authenti
 - **API Security**: API key system, rate limiting, and input validation.
 - **Operational Visibility**: Health endpoints, Sentry, and automated summaries.
 - **Scalability**: Designed for production with Gunicorn and Autoscale, with planned database/queue enhancements.
+- **Legal Compliance**:
+    - Cookie consent system (PECR/GDPR compliant) with localStorage persistence.
+    - TOS acceptance system with interstitial page, database tracking, and middleware enforcement.
+    - Protected routes: /workflow, /dashboard, /account, /settings, /developer, /api/workflows.
 
 ## External Dependencies
 - **Flask**: Web framework.

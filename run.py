@@ -79,7 +79,10 @@ def get_db():
             currency TEXT,
             meta TEXT,
             created_at REAL,
-            updated_at REAL
+            updated_at REAL,
+            terms_accepted_at REAL,
+            terms_version TEXT,
+            terms_accepted_ip TEXT
           )
         """)
         _db_connection.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email)")
@@ -478,7 +481,7 @@ def bad_request(message, details=None):
 def row_to_user(row):
     if not row:
         return None
-    (id_, email, name, locale, currency, meta, created_at, updated_at) = row
+    (id_, email, name, locale, currency, meta, created_at, updated_at, terms_accepted_at, terms_version, terms_accepted_ip) = row
     return {
         "id": id_,
         "email": email,
@@ -487,15 +490,18 @@ def row_to_user(row):
         "currency": currency,
         "meta": json.loads(meta) if meta else {},
         "created_at": created_at,
-        "updated_at": updated_at
+        "updated_at": updated_at,
+        "terms_accepted_at": terms_accepted_at,
+        "terms_version": terms_version,
+        "terms_accepted_ip": terms_accepted_ip
     }
 
 def fetch_user_by_email(email):
-    cur = get_db().execute("SELECT id,email,name,locale,currency,meta,created_at,updated_at FROM users WHERE email = ?", (email,))
+    cur = get_db().execute("SELECT id,email,name,locale,currency,meta,created_at,updated_at,terms_accepted_at,terms_version,terms_accepted_ip FROM users WHERE email = ?", (email,))
     return row_to_user(cur.fetchone())
 
 def fetch_user_by_id(uid):
-    cur = get_db().execute("SELECT id,email,name,locale,currency,meta,created_at,updated_at FROM users WHERE id = ?", (uid,))
+    cur = get_db().execute("SELECT id,email,name,locale,currency,meta,created_at,updated_at,terms_accepted_at,terms_version,terms_accepted_ip FROM users WHERE id = ?", (uid,))
     return row_to_user(cur.fetchone())
 
 @app.post("/api/v1/intake")
@@ -652,6 +658,42 @@ def users_get(user_id):
     if not u:
         return jsonify({"error": "not_found", "user_id": user_id}), 404
     return jsonify(u), 200
+
+@app.post("/api/v1/users/<user_id>/accept-terms")
+def accept_terms(user_id):
+    """Record TOS acceptance for a user"""
+    if not request.is_json:
+        return bad_request("Content-Type must be application/json")
+    
+    body = request.get_json(silent=True) or {}
+    version = body.get("version", "2025-11-14")
+    
+    u = fetch_user_by_id(user_id)
+    if not u:
+        return jsonify({"error": "not_found", "user_id": user_id}), 404
+    
+    x_forwarded_for = request.headers.get("X-Forwarded-For", "")
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(",")[0].strip()
+    else:
+        ip = request.remote_addr or "unknown"
+    
+    redacted_ip = ".".join(ip.split(".")[:3]) + ".xxx" if "." in ip else ip[:12] + "..."
+    
+    now = time()
+    get_db().execute(
+        "UPDATE users SET terms_accepted_at=?, terms_version=?, terms_accepted_ip=?, updated_at=? WHERE id=?",
+        (now, version, ip, now, user_id)
+    )
+    get_db().commit()
+    
+    print(f"[TOS] User {user_id} accepted terms v{version} at {now} from {redacted_ip}")
+    
+    return jsonify({
+        "ok": True,
+        "version": version,
+        "at": datetime.fromtimestamp(now).isoformat()
+    }), 200
 
 @app.post("/api/v1/referrals/track")
 def track_referral():

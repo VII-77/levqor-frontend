@@ -1,0 +1,227 @@
+You are an expert Next.js 14 + NextAuth + Tailwind engineer working on Levqor (levqor-site). Implement a FULL legally-compliant Terms of Service (TOS) acceptance system, wired end-to-end, without breaking any existing auth or pages.
+
+===========================
+OBJECTIVE
+===========================
+Implement a system where:
+
+1) Users MUST explicitly accept the Terms of Service before using protected areas.
+2) Acceptance is logged with:
+   - user id
+   - terms version
+   - timestamp
+   - IP address (best-effort from headers)
+3) Existing users who have not yet accepted are forced through an interstitial “Accept Terms” screen immediately after login, before accessing any dashboards/workflows.
+4) Sign-in UI clearly states “By continuing, you agree…” with links to Terms and Privacy.
+
+Do this in a way that matches the existing project structure and code style.
+
+===========================
+STEP 0 — DISCOVER EXISTING AUTH + USER MODEL
+===========================
+1) Inspect:
+   - src/app/api/auth/[...nextauth]/route.ts
+   - any auth-related config (e.g. src/lib/auth.ts, src/lib/prisma.ts, src/lib/db.ts, etc.)
+   - any user model definitions (Prisma schema, SQLAlchemy models, raw SQL, etc.)
+2) Find:
+   - Where the main “User” entity is stored (Postgres table name, fields).
+   - How the authenticated user is looked up in Next.js (e.g. getServerSession + db.user.findUnique).
+3) DO NOT invent a new auth system. Re-use the existing one.
+
+If you cannot find a user model easily, search repo for:
+   - “User {”
+   - “users (”
+   - “terms_accepted”
+   - “getCurrentUser”
+
+===========================
+STEP 1 — EXTEND USER MODEL FOR TERMS ACCEPTANCE
+===========================
+Add the following fields to the user record in the **actual source of truth** (Prisma/SQL/ORM/etc.):
+
+- terms_accepted_at: datetime / timestamptz (nullable initially)
+- terms_version: string or varchar(32) (nullable initially)
+- terms_accepted_ip: string / varchar(64) (nullable initially)
+
+Implementation requirements:
+- Use the project’s existing migration mechanism (Prisma migrate, Alembic, raw SQL migrations, etc.).
+- Pick a current TERMS_VERSION constant (e.g. "2025-11-13") and define it in a shared config file so we can bump it later:
+  e.g. src/config/legal.ts → export const CURRENT_TERMS_VERSION = "2025-11-13";
+
+===========================
+STEP 2 — CREATE API ENDPOINT TO RECORD ACCEPTANCE
+===========================
+Create a dedicated API endpoint:
+
+- Path: /api/legal/accept-terms
+- File: src/app/api/legal/accept-terms/route.ts (App Router)
+
+Behavior (POST only):
+- Require authenticated user.
+- Read JSON body:
+  {
+    "version": string;  // optional, default to CURRENT_TERMS_VERSION
+  }
+- Determine IP:
+  - Prefer X-Forwarded-For header (first IP in list).
+  - Fallback to request.ip or equivalent.
+- Update current user record:
+  - terms_accepted_at = now (UTC)
+  - terms_version = provided version or CURRENT_TERMS_VERSION
+  - terms_accepted_ip = derived IP
+- Return JSON:
+  { "ok": true, "version": "...", "at": "...ISO timestamp..." }
+
+If user is not authenticated:
+- Return 401 { "ok": false, "error": "UNAUTHENTICATED" }
+
+===========================
+STEP 3 — CREATE TERMS ACCEPTANCE INTERSTITIAL PAGE
+===========================
+Add a new page:
+
+- Path: /legal/accept-terms
+- File: src/app/legal/accept-terms/page.tsx
+
+Requirements:
+- Server component that checks current session/user.
+- If NO authenticated user:
+  - Redirect to /signin with a ?returnTo=/legal/accept-terms param.
+- If user already has:
+  - terms_accepted_at NOT NULL AND terms_version === CURRENT_TERMS_VERSION
+  → Redirect to the “returnTo” URL if provided, else to a sensible default (/workflow or /dashboard).
+
+UI (Tailwind, dark theme consistent with Genesis v8):
+- Centered card layout.
+- Title: “Accept the Levqor Terms of Service”
+- Short, human-readable summary (3–5 bullet points).
+- Links:
+  - “Read full Terms of Service” → /terms
+  - “Privacy Policy” → /privacy
+- Single checkbox:
+  - Label: “I have read and agree to the Levqor Terms of Service and Privacy Policy.”
+- Primary button:
+  - “Accept and continue”
+  - Disabled until checkbox is ticked.
+- On click:
+  - Call POST /api/legal/accept-terms with CURRENT_TERMS_VERSION via fetch.
+  - On success:
+    - Redirect to `returnTo` query param if present.
+    - Otherwise redirect to primary app route (/workflow or /dashboard according to existing app).
+  - On failure:
+    - Show error message in the card.
+
+Accessibility:
+- Use appropriate aria-labels.
+- Ensure keyboard navigation works (focus states).
+
+===========================
+STEP 4 — ADD ROUTE GUARD / MIDDLEWARE ENFORCEMENT
+===========================
+Goal: Any authenticated user trying to access protected areas must have accepted the current terms version.
+
+1) Inspect existing middleware:
+   - src/middleware.ts
+
+2) Implement logic in middleware.ts (or equivalent guard) to:
+   - Identify the authenticated user (reuse existing session/auth logic).
+   - Determine if the requested path is “protected”.
+     Examples (adjust to actual routes found):
+       - /workflow
+       - /dashboard
+       - /account
+       - /settings
+       - /api/workflows
+   - If user is authenticated BUT:
+       - terms_accepted_at is null OR
+       - terms_version !== CURRENT_TERMS_VERSION
+     → Redirect to /legal/accept-terms?returnTo=<original-path-and-query>
+
+3) DO NOT redirect for:
+   - /signin, /terms, /privacy, /cookies, /legal/*, /api/auth/*
+   - static assets, _next, etc.
+   (Make sure to guard only app pages and APIs that require auth.)
+
+Ensure no redirect loops:
+- /legal/accept-terms itself must not redirect back to itself.
+
+===========================
+STEP 5 — UPDATE SIGN-IN PAGE COPY (NON-BLOCKING NOTICE)
+===========================
+File: src/app/signin/page.tsx
+
+Under or near the OAuth buttons:
+- Add a small text in muted color:
+
+  “By continuing, you agree to the Levqor Terms of Service and Privacy Policy.”
+
+- Link “Terms of Service” → /terms
+- Link “Privacy Policy” → /privacy
+- This is informational only; the *blocking* enforcement is handled by the interstitial + middleware.
+
+Ensure text is responsive and looks good on mobile.
+
+===========================
+STEP 6 — LOGGING & DEBUGGABILITY
+===========================
+1) In /api/legal/accept-terms:
+   - Log (to server logs) a concise line when terms are accepted:
+     - user id
+     - version
+     - timestamp
+     - IP (redacted last octet for IPv4/IPv6)
+
+2) In middleware redirects:
+   - Add minimal logging for “redirected to /legal/accept-terms” including:
+     - requested path
+     - user id (if available)
+     - user terms_version (if available)
+
+Avoid noisy logs, but make debugging possible.
+
+===========================
+STEP 7 — TESTING CHECKLIST (YOU MUST RUN THESE)
+===========================
+Implement and then manually verify ALL of the following workflows:
+
+1) NEW USER FLOW
+- Sign in with Google/Microsoft (new user).
+- After OAuth, user must land on /legal/accept-terms.
+- Checkbox is required before “Accept and continue” is enabled.
+- After accept, user is redirected to main app (e.g. /workflow).
+
+2) EXISTING USER WITH NO TERMS ACCEPTED
+- Use an existing user in DB with terms_accepted_at null.
+- Go directly to /workflow while authenticated.
+- You must be redirected to /legal/accept-terms.
+- After accepting, you must be redirected back to /workflow.
+
+3) EXISTING USER WITH OLD TERMS VERSION
+- Manually set user.terms_version to something different from CURRENT_TERMS_VERSION.
+- Go to /workflow.
+- You must be forced through /legal/accept-terms again.
+- After accept, DB should show updated terms_version and terms_accepted_at.
+
+4) UNAUTHENTICATED USER
+- Visit /legal/accept-terms while logged out.
+- You should be redirected to /signin and then brought back after auth.
+
+5) SECURITY & EDGE CASES
+- Attempt to POST /api/legal/accept-terms while not authenticated → 401.
+- Confirm IP is stored (best-effort).
+- Confirm accepting terms on one device applies everywhere for that user.
+
+===========================
+CONSTRAINTS
+===========================
+- Do NOT break existing NextAuth configuration or current flows.
+- Do NOT change pricing logic, checkout, or workflows.
+- Maintain code style, TypeScript types, and ESLint hygiene.
+- If migrations are required, create them properly and ensure app still builds.
+
+After implementation, provide:
+- A summary of all files created/modified.
+- Confirmation that all 5 testing scenarios passed.
+- Any notes if you had to adapt paths (/workflow vs /dashboard/etc.) based on what you found in the repo.
+
+Begin now.

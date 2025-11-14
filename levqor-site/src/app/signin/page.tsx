@@ -104,14 +104,16 @@ export default function SignIn() {
           </div>
 
           {/* Legal Footer */}
-          <p className="mt-6 text-xs text-slate-400 text-center leading-relaxed">
-            By continuing, you agree to our{" "}
-            <Link href="/terms" className="underline hover:text-white font-medium">Terms of Service</Link>
-            {" "}and{" "}
-            <Link href="/privacy" className="underline hover:text-white font-medium">Privacy Policy</Link>.
-            <br/>
-            UK/GDPR compliant. Your data, your rights.
-          </p>
+          <div className="mt-6 p-4 bg-emerald-950/20 border border-emerald-900/30 rounded-lg">
+            <p className="text-xs text-slate-300 text-center leading-relaxed">
+              By continuing, you agree to the Levqor{" "}
+              <Link href="/terms" className="text-emerald-400 hover:underline font-semibold">Terms of Service</Link>
+              {" "}and{" "}
+              <Link href="/privacy" className="text-emerald-400 hover:underline font-semibold">Privacy Policy</Link>.
+              <br/>
+              <span className="text-slate-400">UK/GDPR compliant. Your data, your rights.</span>
+            </p>
+          </div>
         </div>
 
         {/* Back to home */}

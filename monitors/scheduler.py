@@ -129,30 +129,27 @@ def run_status_health_check():
         log.error(f"Status health check error: {e}")
 
 def run_retention_cleanup():
-    """Daily - Delete old logs and anonymize metrics (GDPR data minimization)"""
+    """Daily - Delete old records based on retention policies (GDPR data minimization)"""
     import sqlite3
     import os
     from time import time
+    from retention.cleanup import cleanup_expired_records
     
     log.info("Running retention cleanup...")
     
     try:
+        # Run policy-based cleanup
+        deleted_counts = cleanup_expired_records(dry_run=False)
+        total_deleted = sum(deleted_counts.values())
+        
+        log.info(f"✅ Retention cleanup complete: {total_deleted} records deleted across {len(deleted_counts)} tables")
+        
+        # Also clean up physical DSAR export files
         db = sqlite3.connect(os.getenv("DATABASE_PATH", "levqor.db"))
         cursor = db.cursor()
-        
         now = time()
-        ninety_days_ago = now - (90 * 24 * 60 * 60)
-        one_eighty_days_ago = now - (180 * 24 * 60 * 60)
-        twelve_months_ago = now - (365 * 24 * 60 * 60)
         
-        # Delete logs older than 90 days
-        cursor.execute("DELETE FROM dsar_audit_log WHERE timestamp < ?", (ninety_days_ago,))
-        logs_deleted = cursor.rowcount
-        
-        # Delete system events older than 180 days (if such table exists)
-        # cursor.execute("DELETE FROM system_events WHERE created_at < ?", (one_eighty_days_ago,))
-        
-        # Delete expired DSAR exports
+        # Delete expired DSAR export files
         cursor.execute("SELECT id, storage_path FROM dsar_exports WHERE expires_at < ?", (now,))
         expired_exports = cursor.fetchall()
         

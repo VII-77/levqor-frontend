@@ -59,7 +59,9 @@ with app.app_context():
     db.create_all()
 
 from backend.routes.dsar import dsar_bp
+from backend.routes.dsar_admin import dsar_admin_bp
 app.register_blueprint(dsar_bp)
+app.register_blueprint(dsar_admin_bp)
 
 _db_connection = None
 

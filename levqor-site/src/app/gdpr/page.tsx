@@ -30,6 +30,32 @@ export default function GDPRPage() {
           </ul>
         </section>
 
+        <section className="space-y-4 mt-8">
+          <h2 className="text-2xl font-bold text-white">Lawful Basis for Processing</h2>
+          
+          <div className="space-y-3">
+            <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-emerald-400 mb-2">Contract</h3>
+              <p className="text-slate-300 text-sm">Account data, workflows</p>
+            </div>
+
+            <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-blue-400 mb-2">Legitimate Interest</h3>
+              <p className="text-slate-300 text-sm">Monitoring, security</p>
+            </div>
+
+            <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-purple-400 mb-2">Consent</h3>
+              <p className="text-slate-300 text-sm">Cookies</p>
+            </div>
+
+            <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-amber-400 mb-2">Legal Obligation</h3>
+              <p className="text-slate-300 text-sm">Payment records, tax</p>
+            </div>
+          </div>
+        </section>
+
         <div className="mt-12 pt-8 border-t border-slate-800">
           <div className="flex gap-4 text-sm">
             <Link href="/privacy" className="text-emerald-400 hover:underline">Privacy Policy</Link>

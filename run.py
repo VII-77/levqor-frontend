@@ -265,6 +265,29 @@ def get_db():
         """)
         _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_status_snapshots_timestamp ON status_snapshots(timestamp)")
         
+        # Marketing consent tracking (PECR/GDPR compliant)
+        _db_connection.execute("""
+            CREATE TABLE IF NOT EXISTS user_marketing_consent(
+                id TEXT PRIMARY KEY,
+                user_id TEXT,
+                email TEXT NOT NULL,
+                scope TEXT NOT NULL,
+                status TEXT NOT NULL,
+                source TEXT NOT NULL,
+                ip_address TEXT,
+                user_agent TEXT,
+                created_at REAL NOT NULL,
+                updated_at REAL NOT NULL,
+                confirmed_at REAL,
+                token TEXT,
+                token_expires_at REAL,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+        """)
+        _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_marketing_consent_email ON user_marketing_consent(email)")
+        _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_marketing_consent_status ON user_marketing_consent(status)")
+        _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_marketing_consent_token ON user_marketing_consent(token)")
+        
         _db_connection.commit()
     return _db_connection
 
@@ -1881,6 +1904,191 @@ def admin_get_disputes():
         })
     
     return jsonify({"ok": True, "disputes": disputes}), 200
+
+
+# ============================================================================
+# Marketing Consent Flow (PECR/GDPR Double Opt-In)
+# ============================================================================
+
+@app.post("/api/marketing/consent/start")
+def marketing_consent_start():
+    """Start double opt-in marketing consent flow"""
+    data = request.get_json() or {}
+    email = data.get("email")
+    scope = data.get("scope", "marketing")
+    source = data.get("source", "signup_checkbox")
+    
+    if not email:
+        return jsonify({"ok": False, "error": "EMAIL_REQUIRED"}), 400
+    
+    db = get_db()
+    cursor = db.cursor()
+    
+    # Get user_id if exists
+    cursor.execute("SELECT id FROM users WHERE email = ?", (email,))
+    user_row = cursor.fetchone()
+    user_id = user_row[0] if user_row else None
+    
+    # Check if already granted
+    cursor.execute("""
+        SELECT status FROM user_marketing_consent 
+        WHERE email = ? AND scope = ? 
+        ORDER BY created_at DESC LIMIT 1
+    """, (email, scope))
+    existing = cursor.fetchone()
+    
+    if existing and existing[0] == "granted":
+        return jsonify({"ok": True, "message": "Already subscribed"}), 200
+    
+    # Create consent record with token
+    import secrets
+    consent_id = str(uuid4())
+    token = secrets.token_urlsafe(32)
+    now = time()
+    token_expires_at = now + (24 * 60 * 60)  # 24 hours
+    
+    ip_address = request.headers.get("X-Forwarded-For", request.remote_addr)
+    user_agent = request.headers.get("User-Agent", "")
+    
+    cursor.execute("""
+        INSERT INTO user_marketing_consent 
+        (id, user_id, email, scope, status, source, ip_address, user_agent, 
+         created_at, updated_at, token, token_expires_at)
+        VALUES (?, ?, ?, ?, 'pending_double_opt_in', ?, ?, ?, ?, ?, ?, ?)
+    """, (consent_id, user_id, email, scope, source, ip_address, user_agent, 
+          now, now, token, token_expires_at))
+    
+    db.commit()
+    
+    # TODO: Send double opt-in email with confirmation link
+    # confirm_url = f"https://levqor.ai/marketing/confirm?token={token}"
+    
+    log.info(f"[MARKETING] Double opt-in started for {email} (scope: {scope})")
+    
+    return jsonify({
+        "ok": True,
+        "message": "Please check your email to confirm subscription",
+        "token": token  # Return for testing (remove in production)
+    }), 201
+
+
+@app.get("/api/marketing/consent/confirm")
+def marketing_consent_confirm():
+    """Confirm marketing consent via token"""
+    token = request.args.get("token")
+    
+    if not token:
+        return jsonify({"ok": False, "error": "TOKEN_REQUIRED"}), 400
+    
+    db = get_db()
+    cursor = db.cursor()
+    
+    # Find consent record
+    cursor.execute("""
+        SELECT id, email, scope, status, token_expires_at 
+        FROM user_marketing_consent 
+        WHERE token = ?
+    """, (token,))
+    
+    record = cursor.fetchone()
+    
+    if not record:
+        return jsonify({"ok": False, "error": "INVALID_TOKEN"}), 404
+    
+    consent_id, email, scope, status, token_expires_at = record
+    
+    # Validate token not expired
+    if token_expires_at < time():
+        return jsonify({"ok": False, "error": "TOKEN_EXPIRED"}), 400
+    
+    # Validate not already confirmed
+    if status == "granted":
+        return jsonify({"ok": True, "message": "Already confirmed"}), 200
+    
+    # Update status to granted
+    now = time()
+    cursor.execute("""
+        UPDATE user_marketing_consent 
+        SET status = 'granted', confirmed_at = ?, updated_at = ?
+        WHERE id = ?
+    """, (now, now, consent_id))
+    
+    db.commit()
+    
+    log.info(f"[MARKETING] Consent confirmed for {email} (scope: {scope})")
+    
+    # Redirect to success page
+    return redirect("/marketing/confirmed")
+
+
+@app.get("/api/marketing/unsubscribe")
+def marketing_unsubscribe_token():
+    """Unsubscribe from marketing via token"""
+    token = request.args.get("token")
+    email = request.args.get("email")
+    
+    if not token and not email:
+        return jsonify({"ok": False, "error": "TOKEN_OR_EMAIL_REQUIRED"}), 400
+    
+    db = get_db()
+    cursor = db.cursor()
+    
+    if token:
+        # Decode token to get email (simplified - in production use signed tokens)
+        cursor.execute("""
+            SELECT email, scope FROM user_marketing_consent 
+            WHERE token = ?
+        """, (token,))
+        record = cursor.fetchone()
+        if record:
+            email, scope = record
+    
+    if not email:
+        return jsonify({"ok": False, "error": "INVALID_TOKEN"}), 404
+    
+    # Revoke all marketing consent for this email
+    now = time()
+    cursor.execute("""
+        UPDATE user_marketing_consent 
+        SET status = 'revoked', updated_at = ?
+        WHERE email = ? AND status != 'revoked'
+    """, (now, email))
+    
+    rows_updated = cursor.rowcount
+    db.commit()
+    
+    log.info(f"[MARKETING] Unsubscribed {email} ({rows_updated} consent records revoked)")
+    
+    # Redirect to unsubscribe confirmation page
+    return redirect("/marketing/unsubscribed")
+
+
+@app.post("/api/marketing/unsubscribe")
+def marketing_unsubscribe_post():
+    """Unsubscribe from marketing via POST (for email forms)"""
+    data = request.get_json() or {}
+    email = data.get("email")
+    
+    if not email:
+        return jsonify({"ok": False, "error": "EMAIL_REQUIRED"}), 400
+    
+    db = get_db()
+    cursor = db.cursor()
+    
+    # Revoke all marketing consent
+    now = time()
+    cursor.execute("""
+        UPDATE user_marketing_consent 
+        SET status = 'revoked', updated_at = ?
+        WHERE email = ? AND status != 'revoked'
+    """, (now, email))
+    
+    rows_updated = cursor.rowcount
+    db.commit()
+    
+    log.info(f"[MARKETING] Unsubscribed {email} ({rows_updated} consent records revoked)")
+    
+    return jsonify({"ok": True, "message": "Unsubscribed successfully"}), 200
 
 
 from monitors.scheduler import init_scheduler

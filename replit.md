@@ -64,7 +64,7 @@ The frontend is built with Next.js 14 and TypeScript, featuring a clear authenti
     - Dynamic Discount System.
     - Profit-Driven Autoscale.
     - Weekly Governance Reporter.
-- **Automated Jobs**: Extensive use of APScheduler for tasks like health monitoring, cost collection, Sentry testing, weekly pulse reports, insights generation, partner audits, and intelligence layer operations.
+- **Automated Jobs**: Extensive use of APScheduler for tasks like health monitoring, cost collection, Sentry testing, weekly pulse reports, insights generation, partner audits, intelligence layer operations, status snapshots (every 5 min), and daily retention cleanup (3am UTC).
 - **Expansion Packs**:
     - **Integrity + Finalizer Pack**: End-to-end integrity testing, deployment readiness checks, PDF evidence reports, and Stripe product integration.
     - **Developer Portal**: B2D platform with API key management, sandbox API, billing tiers, and API documentation.

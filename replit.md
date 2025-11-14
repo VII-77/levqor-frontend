@@ -82,10 +82,15 @@ The frontend is built with Next.js 14 and TypeScript, featuring a clear authenti
             - Updated /privacy and /data-requests pages documenting retention policy and deletion process.
             - Physical DSAR export file cleanup integrated into daily retention job.
         - **Compliance Documentation (Internal)**:
+            - **Compliance Pack v1.0** (docs/compliance/pack/):
+                - overview.md: Executive summary of GDPR posture, risk classification, subprocessors overview
+                - controls.md: Technical & organizational controls catalog (encryption, access control, retention, deletion)
+                - register.md: Document registry with review schedules, ownership, version control
             - ROPA (Record of Processing Activities) in docs/compliance/ropa.md documenting all data processing activities, legal basis, retention, subprocessors, and security measures.
             - DPIA (Data Protection Impact Assessment) in docs/compliance/dpia-levqor-automation.md assessing risks of AI automation and profiling with mitigation strategies.
             - LIA (Legitimate Interest Assessment) in docs/compliance/lia-marketing-and-analytics.md documenting legitimate interest processing for analytics and security.
-            - All docs reviewed annually or upon major feature changes.
+            - All docs cross-linked and reviewed annually (next: November 2026) or upon major feature changes.
+            - Owner: Data Protection Officer (privacy@levqor.ai).
         - **Legal Page Updates**:
             - /privacy page includes comprehensive Marketing Communications section (7A) explaining double opt-in, consent logging, and withdrawal process.
             - /terms page includes High-Risk Data Prohibition section (7A) with clear policy and liability disclaimers.

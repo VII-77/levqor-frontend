@@ -28,6 +28,7 @@ The frontend is built with Next.js 14 and TypeScript, featuring a clear authenti
         - TOS acceptance enforcement with database tracking (version, timestamp, IP).
         - Middleware protection requiring TOS acceptance for all protected routes.
         - Marketing consent system with double opt-in verification.
+        - High-risk data prohibition system blocking medical/legal/financial workflows.
         - User data schema includes terms_accepted_at, terms_version, terms_accepted_ip, marketing_consent, marketing_double_opt_in, marketing_double_opt_in_token.
 - **Health & Monitoring**:
     - Dedicated endpoints for system status (`/health`, `/public/metrics`, etc.).
@@ -70,6 +71,7 @@ The frontend is built with Next.js 14 and TypeScript, featuring a clear authenti
     - Cookie consent system (PECR/GDPR compliant) with localStorage persistence.
     - TOS acceptance system with interstitial page, database tracking, and middleware enforcement.
     - Marketing consent system with double opt-in confirmation via email.
+    - High-risk data prohibition system with keyword scanning and automatic rejection.
     - Unsubscribe mechanism with audit trail logging.
     - Protected routes: /workflow, /dashboard, /account, /settings, /developer, /api/workflows.
 

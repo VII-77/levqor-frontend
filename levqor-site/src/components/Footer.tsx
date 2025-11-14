@@ -51,8 +51,14 @@ export default function Footer() {
         </div>
         
         <div className="border-t border-slate-800 pt-8">
-          <div className="text-center text-sm text-slate-500 mb-4">
+          <div className="text-center text-sm text-slate-500 mb-2">
             All data stored in EU-based data centers.
+          </div>
+          <div className="text-center text-sm text-slate-500 mb-4">
+            Levqor does not automate medical, legal, financial, or other high-risk workflows. Learn more at{' '}
+            <Link href="/risk-disclosure" className="text-emerald-400 hover:underline">
+              /risk-disclosure
+            </Link>.
           </div>
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="text-slate-400 text-sm">

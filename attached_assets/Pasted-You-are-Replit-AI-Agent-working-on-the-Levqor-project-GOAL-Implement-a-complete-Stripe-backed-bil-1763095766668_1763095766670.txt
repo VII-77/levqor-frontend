@@ -1,0 +1,272 @@
+You are Replit AI Agent working on the Levqor project.
+
+GOAL
+Implement a complete, Stripe-backed billing failure + dunning + suspension system for Levqor, fully aligned with existing Billing, Refund, Cancellation, Fair Use, and Account Suspension policies — WITHOUT deploying to Vercel.
+
+Repo:
+- Frontend: `levqor-site` (Next.js 14 App Router)
+- Backend: Flask API at repo root
+
+HARD CONSTRAINTS
+- Do NOT:
+  - Change Stripe prices/plans.
+  - Change checkout logic for successful purchases.
+  - Deploy to Vercel.
+- DO:
+  - Use existing Stripe keys and env vars.
+  - Reuse legal copy from:
+    - `/billing`, `/refunds`, `/cancellation`, `/fair-use`, `/account-suspension`, `/sla`
+  - Make the system safe-by-default: on billing issues, degrade gracefully and show clear UI.
+
+────────────────────────
+STEP 0 — DISCOVERY (READ ONLY)
+────────────────────────
+
+1. BACKEND:
+   - Find Stripe integration:
+     - Search for `stripe.` and `webhook` in the repo.
+     - Identify any existing webhook handler (URL, events).
+     - Identify any subscription model / user model with billing fields.
+
+2. FRONTEND:
+   - Locate:
+     - Any “billing”, “subscription”, or “account” pages in `levqor-site/src/app`.
+     - Any banners or warnings for “billing issue”, “card declined”, etc.
+   - DO NOT change anything yet. Just understand structure.
+
+Keep notes internally; only print a short summary in the final output.
+
+────────────────────────
+STEP 1 — DATA MODEL FOR BILLING STATUS
+────────────────────────
+
+GOAL
+Have a simple, reliable representation of a user’s billing state that both:
+- Webhooks can update, and
+- Frontend can query to show banners / restrict access.
+
+1. If there is already a subscription/billing model:
+   - Extend it minimally to include:
+     - `billing_status` (e.g. `"ok" | "past_due" | "unpaid" | "canceled"`)
+     - `last_invoice_status` (optional)
+     - `last_billing_issue_at` (timestamp, nullable)
+
+2. If NO model exists:
+   - Create a small model, e.g. `CustomerBillingStatus`:
+     - `id`
+     - `user_id` (foreign key or email unique key)
+     - `stripe_customer_id`
+     - `billing_status` (enum-like string)
+     - `last_invoice_status`
+     - `last_billing_issue_at`
+     - `created_at`, `updated_at`
+
+3. Implement basic CRUD helper functions in backend:
+   - `get_or_create_billing_status(stripe_customer_id or user_id)`
+   - `update_billing_status(...)` that:
+     - Sets status.
+     - Updates timestamps.
+     - Logs changes.
+
+────────────────────────
+STEP 2 — STRIPE WEBHOOKS FOR DUNNING
+────────────────────────
+
+GOAL
+React to Stripe events to track billing failures and recoveries.
+
+1. Locate or create webhook endpoint:
+   - If exists (e.g. `/stripe/webhook`), extend it.
+   - If not, create:
+     - `POST /stripe/webhook`
+     - Use `stripe.Webhook.construct_event` with signing secret from env.
+
+2. Handle at least these events:
+   - `invoice.payment_failed`
+     - Set `billing_status = "past_due"` (or `"unpaid"` if Stripe marks it).
+     - Record `last_invoice_status = "failed"` and `last_billing_issue_at = now`.
+   - `customer.subscription.updated`
+     - If `status` becomes `past_due`, `unpaid`, or `canceled`:
+       - Update `billing_status` accordingly.
+   - `customer.subscription.deleted`
+     - Set `billing_status = "canceled"`.
+
+3. (Optional but ideal) Handle:
+   - `invoice.payment_succeeded`
+     - If previously `past_due`/`unpaid`, reset to `billing_status = "ok"`.
+
+4. Logging:
+   - Log all relevant webhook events (type, customer, subscription id, new status).
+
+Ensure webhooks never crash the process; fail safely with try/except.
+
+────────────────────────
+STEP 3 — DUNNING “LOGIC” (BEHAVIOUR)
+────────────────────────
+
+GOAL
+Model the dunning states, even if full email automation is not 100% wired yet.
+
+1. DUNNING STAGES (server-side only; keep it simple):
+   - Stage 0: `billing_status="ok"` → no issue.
+   - Stage 1: `billing_status="past_due"` → soft warning, reduced trust.
+   - Stage 2: `billing_status="unpaid"` or long-running `past_due`:
+     - Soft service restrictions (e.g., no new workflows).
+   - Stage 3: `billing_status="canceled"`:
+     - Hard restriction (no access to paid features).
+
+2. Add helper function:
+   - `get_effective_access_level(user)`:
+     - Returns something like `"full" | "limited" | "suspended"` based on `billing_status` and time since `last_billing_issue_at`.
+   - For now, you can:
+     - Use simple thresholds: e.g., after 14 days `past_due` => `"suspended"`.
+
+3. Respect this function in backend checks where appropriate:
+   - For critical “paid-only” endpoints (e.g. creating workflows beyond free tier):
+     - If `access_level="suspended"`, return 402/403 with a clear message: “Billing issue – please update your payment details”.
+
+────────────────────────
+STEP 4 — EMAIL DUNNING STUBS (LIGHT IMPLEMENTATION)
+────────────────────────
+
+GOAL
+Create a minimal framework for dunning emails that can be wired up later or triggered manually.
+
+1. Check for existing email-sending util:
+   - Likely using Resend or similar from previous work.
+   - Reuse existing helper (do NOT write raw SMTP if you already have an abstraction).
+
+2. Create email templates (plain text or simple HTML) for:
+   - Day 1: “We couldn’t process your payment”
+   - Day 7: “Your account is at risk of interruption”
+   - Day 14: “Your account has been suspended”
+
+3. Implement backend functions (but DO NOT schedule them yet if no scheduler exists):
+   - `send_billing_issue_email(user, stage)`
+     - Stage maps to template above.
+
+4. If we already have a scheduler / cron system:
+   - Add a light daily job:
+     - Find users with `billing_status != "ok"`, check `last_billing_issue_at`.
+     - Send appropriate stage email if not sent yet.
+   - If cron doesn’t exist or is overkill:
+     - Leave functions ready and document them in code comments.
+
+────────────────────────
+STEP 5 — FRONTEND: ACCOUNT BANNERS & MESSAGING
+────────────────────────
+
+GOAL
+Make billing issues very clear in the UI, especially where users work and pay.
+
+1. Locate:
+   - Main layout shell (e.g. `levqor-site/src/app/layout.tsx` or an app-level layout component).
+   - Dashboard/workflow pages.
+
+2. Add a small client component, e.g. `BillingBanner`:
+   - It should:
+     - Call a new backend endpoint, e.g. `GET /api/billing/status` (implement in backend to return `{ billingStatus, accessLevel }` for current user).
+     - If `billingStatus="past_due"`:
+       - Show yellow banner: “We couldn’t process your last payment. Please update your billing details to avoid interruptions.”
+     - If `"unpaid"` or `"canceled"`:
+       - Show red banner: “Your account is restricted due to billing issues. Update your payment method to restore full access.”
+
+3. Links:
+   - If you already have a Stripe Billing Portal link (customer portal):
+     - Use it as the primary CTA: “Open billing portal”.
+   - If not:
+     - Link to a basic `/billing` or `/contact` page with instructions.
+
+4. Where to show:
+   - Signed-in layout:
+     - Dashboard/workflow areas.
+   - Optional: On `/pricing` for logged-in users, add a small note if they are `past_due`.
+
+────────────────────────
+STEP 6 — ALIGN WITH EXISTING PAGES (COPY + LINKS)
+────────────────────────
+
+GOAL
+Ensure the new behaviour matches the text in your legal & policy pages.
+
+1. Read:
+   - `/billing`, `/refunds`, `/cancellation`, `/account-suspension`, `/fair-use`, `/sla`.
+
+2. Adjust copy in:
+   - Billing banners.
+   - Email templates.
+   - `/billing` page (if needed).
+
+   So that they:
+   - Use the same terms (e.g. “past due”, “suspended”, “terminated”, “grace period”).
+   - Are consistent about:
+     - Grace period length,
+     - When service is paused,
+     - When data might be deleted.
+
+3. Add cross-links:
+   - From `/billing` to `/account-suspension`.
+   - From `/account-suspension` to `/billing`.
+   - From `/sla` to `/sla-credits` (if that page exists from earlier work).
+
+────────────────────────
+STEP 7 — API: BILLING STATUS ENDPOINT
+────────────────────────
+
+GOAL
+Give the frontend a safe way to know the user’s current billing status.
+
+1. Add in backend:
+   - `GET /api/billing/status`:
+     - Authenticated only.
+     - Returns:
+       - `billingStatus` (`"ok"|"past_due"|"unpaid"|"canceled"`)
+       - `accessLevel` (`"full"|"limited"|"suspended"`)
+       - `lastBillingIssueAt` (ISO string or `null`)
+
+2. Secure it:
+   - Require logged-in user context.
+   - Derive user from auth mechanism already used in API.
+
+3. Frontend:
+   - Ensure `BillingBanner` uses this endpoint.
+   - Handle errors gracefully (if endpoint fails, hide banner instead of breaking layout).
+
+────────────────────────
+STEP 8 — VERIFICATION
+────────────────────────
+
+Backend:
+1. Run tests if any; otherwise:
+   - Restart backend.
+   - Use curl to check:
+     - Webhook endpoint returns 200 for a simple test POST (without signature verification).
+     - `GET /api/billing/status` (mock auth / console log behaviour if necessary).
+
+2. (Optional) Use Stripe CLI (if available in this environment):
+   - Trigger test events:
+     - `invoice.payment_failed`
+     - `invoice.payment_succeeded`
+   - Check logs to verify billing_status changes correctly.
+
+Frontend:
+1. `cd levqor-site && npm run lint && npm run build`.
+2. Ensure build passes.
+3. In dev server:
+   - Log in as a test user.
+   - Forcibly set their `billing_status` in DB to:
+     - `"ok"`, `"past_due"`, `"unpaid"`, `"canceled"` and confirm banners change accordingly.
+   - Confirm:
+     - No console errors.
+     - Pages still load fast.
+
+Output (for user):
+- List of new/modified files.
+- Summary of:
+  - Data model.
+  - Webhook handling.
+  - Dunning stages.
+  - Billing banners behaviour.
+- Confirmation that `npm run build` passes and that the app still runs in dev.
+
+Do NOT deploy or touch Vercel.

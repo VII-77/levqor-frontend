@@ -1,8 +1,34 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { STRIPE_DFY_PRICE_IDS, STRIPE_SUB_PRICE_IDS } from "@/config/pricing";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/auth";
 
 export const dynamic = "force-dynamic";
+
+// SECURITY NOTE: In-memory rate limiting for checkout endpoint
+// Prevents checkout spam and potential financial abuse
+const checkoutAttempts = new Map<string, number[]>();
+const MAX_CHECKOUT_ATTEMPTS = 3;
+const CHECKOUT_WINDOW_MS = 60000; // 1 minute
+
+function checkCheckoutRateLimit(identifier: string): { allowed: boolean; retryAfter?: number } {
+  const now = Date.now();
+  const windowStart = now - CHECKOUT_WINDOW_MS;
+  
+  const attempts = (checkoutAttempts.get(identifier) || []).filter(t => t > windowStart);
+  
+  if (attempts.length >= MAX_CHECKOUT_ATTEMPTS) {
+    const oldestAttempt = attempts[0];
+    const retryAfter = Math.ceil((oldestAttempt + CHECKOUT_WINDOW_MS - now) / 1000);
+    return { allowed: false, retryAfter };
+  }
+  
+  attempts.push(now);
+  checkoutAttempts.set(identifier, attempts);
+  
+  return { allowed: true };
+}
 
 function readEnv() {
   return {
@@ -64,6 +90,30 @@ type CheckoutBody = SubscriptionBody | DFYBody;
 
 export async function POST(req: Request) {
   try {
+    // SECURITY: Require authentication for checkout
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user?.email) {
+      console.warn("[checkout] Unauthenticated checkout attempt");
+      return NextResponse.json(
+        { ok: false, error: "Authentication required" },
+        { status: 401 }
+      );
+    }
+    
+    // SECURITY: Rate limit checkout attempts per user
+    const rateLimitCheck = checkCheckoutRateLimit(session.user.email);
+    if (!rateLimitCheck.allowed) {
+      console.warn(`[checkout] Rate limit exceeded for ${session.user.email}`);
+      return NextResponse.json(
+        { 
+          ok: false, 
+          error: `Too many checkout attempts. Please try again in ${rateLimitCheck.retryAfter} seconds.`,
+          retryAfter: rateLimitCheck.retryAfter
+        },
+        { status: 429, headers: { 'Retry-After': String(rateLimitCheck.retryAfter) } }
+      );
+    }
+    
     const env = readEnv();
     const body = await req.json() as CheckoutBody;
 

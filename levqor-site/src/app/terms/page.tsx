@@ -78,6 +78,28 @@ export default function TermsPage() {
           </p>
         </section>
 
+        <section className="bg-red-950/30 border-2 border-red-900/50 rounded-lg p-6 space-y-4">
+          <h2 className="text-2xl font-bold text-white">7A. High-Risk Data Prohibition</h2>
+          <p className="text-slate-300 leading-relaxed font-semibold">
+            Levqor is NOT designed for, and MUST NOT be used for:
+          </p>
+          <ul className="list-disc list-inside space-y-2 text-slate-300 ml-4">
+            <li><strong className="text-white">Medical or healthcare decisions</strong> - Including diagnosis, treatment, prescriptions, or health data processing</li>
+            <li><strong className="text-white">Legal advice or decision-making</strong> - Including legal reasoning, contract generation, or legal document creation</li>
+            <li><strong className="text-white">Financial advice, lending, credit scoring, or trading decisions</strong> - Including tax advice, investment recommendations, or automated financial workflows</li>
+            <li><strong className="text-white">Safety-critical systems</strong> - Including transport, emergency services, critical infrastructure, or life-safety automation</li>
+          </ul>
+          <p className="text-slate-300 leading-relaxed mt-4">
+            <strong className="text-white">Any such use is strictly prohibited</strong> and constitutes a material breach of these Terms.
+          </p>
+          <p className="text-slate-300 leading-relaxed">
+            All workflow submissions are automatically scanned for prohibited content. Workflows containing high-risk or regulated data will be immediately rejected.
+          </p>
+          <p className="text-slate-300 leading-relaxed">
+            You use Levqor for such purposes entirely at your own risk. We disclaim all liability for any harm, loss, or regulatory action resulting from prohibited use.
+          </p>
+        </section>
+
         <section className="space-y-4">
           <h2 className="text-2xl font-bold text-white">8. Intellectual Property</h2>
           <p className="text-slate-300 leading-relaxed">

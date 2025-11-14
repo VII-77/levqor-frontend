@@ -33,6 +33,25 @@ export default function AcceptableUsePage() {
           </ul>
         </section>
 
+        <section className="bg-red-950/30 border-2 border-red-900/50 rounded-lg p-6 mt-8 space-y-4">
+          <h2 className="text-2xl font-bold text-white">🚫 High-Risk Data Prohibited</h2>
+          <p className="text-slate-300 leading-relaxed">
+            You must NOT use Levqor to automate workflows involving:
+          </p>
+          <ul className="list-disc list-inside space-y-3 text-slate-300 ml-4">
+            <li><strong className="text-white">Medical or clinical workflows</strong> - No diagnosis, treatment recommendations, prescriptions, or health data processing</li>
+            <li><strong className="text-white">Legal advice automation</strong> - No legal reasoning, contract generation, or legal document creation</li>
+            <li><strong className="text-white">Financial advice or investment decisions</strong> - No automated trading, credit scoring, lending decisions, or tax advice</li>
+            <li><strong className="text-white">Safety-critical control systems</strong> - No transport, emergency services, or critical infrastructure automation</li>
+          </ul>
+          <p className="text-slate-300 leading-relaxed mt-4">
+            All workflow submissions are automatically scanned. Workflows containing prohibited content will be immediately rejected.
+          </p>
+          <p className="text-slate-300 leading-relaxed">
+            For more details, see our <Link href="/risk-disclosure" className="text-emerald-400 hover:underline">Risk Disclosure</Link> page.
+          </p>
+        </section>
+
         <section className="space-y-4 mt-8">
           <p className="text-slate-300 leading-relaxed">
             Violations may result in suspension.

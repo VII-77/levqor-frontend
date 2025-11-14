@@ -26,7 +26,7 @@ The frontend uses Next.js 14 and TypeScript, offering an authentication flow wit
         - TOS acceptance enforcement with database tracking.
         - Marketing consent system with double opt-in verification.
         - High-risk data prohibition system blocking medical/legal/financial workflows via keyword detection.
-        - DSAR (Data Subject Access Request) Export System for automated data export with secure delivery and audit trail.
+        - **DSAR (Data Subject Access Request) Export System v2.0**: Email-based data exports sent as ZIP attachments (max 5MB) with no download links or tokens. Includes rate limiting (1 request per 24h), in-memory ZIP generation, and comprehensive audit logging. Frontend at `/data-requests`.
         - Payment Dunning System (Stripe integration) for managing failed payments with scheduled email notifications and account suspension logic.
         - Data Retention & Deletion System with configurable retention policies and automated cleanup, including a user-initiated "Delete My Data" feature.
     - **Compliance Documentation**: Internal compliance pack, ROPA, DPIA, and LIA documents.

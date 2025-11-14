@@ -1,0 +1,29 @@
+# Subject: Reminder: Please update your payment method – Levqor
+
+Hello,
+
+We've attempted to charge your payment method multiple times for your Levqor subscription, but the payment has not been successful.
+
+Plan: {plan_name}
+Amount: {amount}
+Days overdue: 7
+
+To continue using Levqor without interruption, please update your payment method as soon as possible.
+
+→ Update payment method: https://www.levqor.ai/billing
+
+What happens if payment isn't resolved:
+If we don't receive payment within 7 days (by {pause_date}), your service will be temporarily paused. You'll still be able to access your billing settings to resolve the issue.
+
+Your workflows and automations are currently running normally.
+
+Need assistance?
+If you're experiencing financial difficulty or have questions about your subscription, please reach out to us at support@levqor.ai. We're happy to discuss options.
+
+Best regards,
+The Levqor Team
+
+---
+This is an automated reminder about your outstanding payment.
+For billing support: support@levqor.ai
+To cancel your subscription: https://www.levqor.ai/billing

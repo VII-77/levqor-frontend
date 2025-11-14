@@ -1,0 +1,67 @@
+import { AuthOptions } from "next-auth"
+import GoogleProvider from "next-auth/providers/google"
+import AzureADProvider from "next-auth/providers/azure-ad"
+
+const DENYLIST = ['mailinator.com', 'tempmail.com', 'guerrillamail.com', 'temp-mail.org'];
+
+async function sendAuditEvent(event: string, email: string, userAgent?: string, ip?: string) {
+  try {
+    await fetch('https://api.levqor.ai/audit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        event,
+        email,
+        user_agent: userAgent,
+        ip,
+        ts: Date.now()
+      })
+    }).catch(() => {});
+  } catch (err) {
+    // Fire-and-forget
+  }
+}
+
+export const authOptions: AuthOptions = {
+  providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID || "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+      allowDangerousEmailAccountLinking: true,
+    }),
+    AzureADProvider({
+      clientId: process.env.MICROSOFT_CLIENT_ID || "",
+      clientSecret: process.env.MICROSOFT_CLIENT_SECRET || "",
+      allowDangerousEmailAccountLinking: true,
+    }),
+  ],
+  pages: {
+    signIn: '/signin',
+  },
+  session: { 
+    strategy: "jwt",
+    maxAge: 60 * 60,
+  },
+  callbacks: {
+    async signIn({ user, account, profile }) {
+      const email = user.email || '';
+      const domain = email.split('@')[1];
+      
+      if (DENYLIST.includes(domain)) {
+        return false;
+      }
+      
+      return true;
+    },
+  },
+  events: {
+    async signIn(message) {
+      const email = message.user.email || 'unknown';
+      await sendAuditEvent('sign_in', email, undefined, undefined);
+    },
+    async signOut(message) {
+      const email = (message as any).token?.email || 'unknown';
+      await sendAuditEvent('sign_out', email, undefined, undefined);
+    },
+  },
+};

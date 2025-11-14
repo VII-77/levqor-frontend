@@ -1,0 +1,289 @@
+set -euo pipefail
+
+### WHY
+# Needed: production-grade UI + real auth + protected routes.
+# Benefit: credible product surface, lower bounce, demo-ready flows.
+# If ignored: site looks unfinished; users can’t sign in or see live data.
+
+### 0) Preconditions
+git fetch -ap
+git rev-list --left-right --count origin/main...HEAD
+git switch -c genesis-v8-ui-auth || git checkout -b genesis-v8-ui-auth
+
+### 1) Env + config
+# Add API base URL for all client/server calls.
+grep -q '^NEXT_PUBLIC_API_BASE=' .env.local 2>/dev/null || echo "NEXT_PUBLIC_API_BASE=https://api.levqor.ai" >> .env.local
+
+### 2) Shared auth utilities (cookie token, fetch wrapper, guards)
+mkdir -p src/lib src/components src/app/(auth) src/app/(app)
+cat > src/lib/auth.ts <<'TS'
+export const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'https://api.levqor.ai';
+
+export function getToken(): string | null {
+  if (typeof document === 'undefined') return null;
+  const m = document.cookie.match(/(?:^|;\s*)auth_token=([^;]+)/);
+  return m ? decodeURIComponent(m[1]) : null;
+}
+
+export function setToken(token: string, ttlDays = 7) {
+  const exp = new Date(Date.now() + ttlDays*864e5).toUTCString();
+  document.cookie = `auth_token=${encodeURIComponent(token)}; Path=/; Expires=${exp}; Secure; SameSite=Lax`;
+}
+
+export function clearToken() {
+  document.cookie = `auth_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure; SameSite=Lax`;
+}
+
+export async function apiFetch(path: string, init: RequestInit = {}) {
+  const url = `${API_BASE}${path.startsWith('/')?path:`/${path}`}`;
+  const headers = new Headers(init.headers || {});
+  if (!headers.has('Content-Type')) headers.set('Content-Type','application/json');
+  const t = typeof window !== 'undefined' ? getToken() : null;
+  if (t) headers.set('Authorization', `Bearer ${t}`);
+  const res = await fetch(url, { ...init, headers, cache: 'no-store' });
+  if (res.status === 401) {
+    if (typeof window !== 'undefined') {
+      clearToken();
+      const from = encodeURIComponent(window.location.pathname);
+      window.location.href = `/signin?from=${from}`;
+    }
+    throw new Error('unauthorized');
+  }
+  if (!res.ok) {
+    const text = await res.text().catch(()=> '');
+    throw new Error(text || `HTTP ${res.status}`);
+  }
+  const ct = res.headers.get('content-type') || '';
+  return ct.includes('application/json') ? res.json() : res.text();
+}
+TS
+
+### 3) Global layout polish (keeps your existing tokens if present)
+mkdir -p src/styles
+cat > src/styles/tokens.css <<'CSS'
+:root{--bg:#0b0f17;--card:#111827;--muted:#9ca3af;--text:#e5e7eb;--accent:#60a5fa;--ring:#93c5fd}
+@media (prefers-color-scheme: light){
+:root{--bg:#ffffff;--card:#f8fafc;--muted:#6b7280;--text:#0b1220;--accent:#2563eb;--ring:#1d4ed8}}
+CSS
+
+mkdir -p src/app
+cat > src/app/layout.tsx <<'TSX'
+import './globals.css';
+import '../styles/tokens.css';
+
+export const metadata = { title: 'Levqor — Automate work. Ship faster. Pay only for results.', description: 'Self-healing workflows. Pay only for results.' };
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+export default function RootLayout({ children }:{children:React.ReactNode}) {
+  return (
+    <html lang="en" className="h-full">
+      <body className="min-h-screen bg-[var(--bg)] text-[var(--text)] antialiased">
+        <header className="border-b border-white/10">
+          <div className="mx-auto max-w-6xl px-4 py-4 flex items-center justify-between">
+            <a href="/" className="font-semibold tracking-tight">Levqor</a>
+            <nav className="flex items-center gap-6 text-sm">
+              <a href="/pricing" className="opacity-80 hover:opacity-100">Pricing</a>
+              <a href="/workflow" className="opacity-80 hover:opacity-100">Workflows</a>
+              <a href="/signin" className="px-3 py-1.5 rounded-lg bg-[var(--accent)] text-white hover:ring-2 ring-[var(--ring)]">Sign in</a>
+            </nav>
+          </div>
+        </header>
+        <main className="mx-auto max-w-6xl px-4 py-10">{children}</main>
+        <footer className="mt-20 border-t border-white/10">
+          <div className="mx-auto max-w-6xl px-4 py-8 text-sm opacity-70">© {new Date().getFullYear()} Levqor</div>
+        </footer>
+      </body>
+    </html>
+  );
+}
+TSX
+
+cat > src/app/globals.css <<'CSS'
+@tailwind base; @tailwind components; @tailwind utilities;
+html,body{margin:0;padding:0}
+*{outline-color:var(--ring)}
+CSS
+
+### 4) Home + tiles
+mkdir -p src/components
+cat > src/components/Hero.tsx <<'TSX'
+export default function Hero(){
+  return (
+    <section className="py-10 md:py-16">
+      <h1 className="text-3xl md:text-5xl font-bold leading-tight">
+        Automate work. Ship faster.<br/>Pay only for results.
+      </h1>
+      <p className="mt-4 max-w-2xl text-base md:text-lg opacity-80">
+        Levqor runs your workflows, monitors failures, and self-heals. Email, Sheets, Slack, CRM, and more.
+      </p>
+      <div className="mt-6 flex gap-3">
+        <a href="/signin" className="px-4 py-2 rounded-lg bg-[var(--accent)] text-white hover:ring-2 ring-[var(--ring)]">Start free</a>
+        <a href="/pricing" className="px-4 py-2 rounded-lg border border-white/10 hover:border-white/20">See pricing</a>
+      </div>
+    </section>
+  );
+}
+TSX
+
+cat > src/components/WorkflowTiles.tsx <<'TSX'
+type Tile = { title:string; desc:string; href:string };
+const TILES: Tile[] = [
+  { title:'Self-healing runs', desc:'Auto-retry with backoff and diff isolation.', href:'/workflow' },
+  { title:'Visual builder', desc:'Drag-drop steps, inline AI prompts, reusable blocks.', href:'/workflow' },
+  { title:'Audit & governance', desc:'Every change signed, searchable, exportable.', href:'/workflow' },
+  { title:'Connect anything', desc:'Email, Sheets, Slack, Webhooks, CRMs.', href:'/workflow' },
+];
+export default function WorkflowTiles(){
+  return (
+    <section className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+      {TILES.map((t)=>(
+        <a key={t.title} href={t.href} className="rounded-2xl bg-[var(--card)] p-4 md:p-5 border border-white/5 hover:border-white/15 transition">
+          <div className="font-semibold">{t.title}</div>
+          <div className="mt-2 text-sm opacity-80">{t.desc}</div>
+        </a>
+      ))}
+    </section>
+  );
+}
+TSX
+
+cat > src/app/page.tsx <<'TSX'
+import Hero from '../components/Hero';
+import WorkflowTiles from '../components/WorkflowTiles';
+export default function Page(){
+  return (<div className="space-y-10 md:space-y-14"><Hero/><WorkflowTiles/></div>);
+}
+TSX
+
+### 5) Pricing page
+mkdir -p src/app/pricing
+cat > src/components/Pricing.tsx <<'TSX'
+type Plan={name:string;price:string;period:string;points:string[];cta:string;href:string;featured?:boolean};
+const PLANS:Plan[]=[
+ {name:'Starter',price:'£0',period:'/mo',points:['100 runs','Email + Webhooks','Community support'],cta:'Start free',href:'/signin'},
+ {name:'Pro',price:'£49',period:'/mo',points:['10k runs','All connectors','Priority support'],cta:'Upgrade',href:'/signin',featured:true},
+ {name:'Business',price:'£149',period:'/mo',points:['50k runs','SLA + SSO','Audit exports'],cta:'Talk to sales',href:'/contact'},
+];
+export default function Pricing(){
+  return (
+    <div className="grid md:grid-cols-3 gap-4 md:gap-6">
+      {PLANS.map(p=>(
+        <div key={p.name} className={`rounded-2xl p-6 border ${p.featured?'border-[var(--accent)]':'border-white/10'} bg-[var(--card)]`}>
+          <div className="text-xl font-semibold">{p.name}</div>
+          <div className="mt-3 text-3xl font-bold">{p.price}<span className="text-base opacity-70">{p.period}</span></div>
+          <ul className="mt-4 space-y-2 text-sm opacity-90">{p.points.map(x=><li key={x}>• {x}</li>)}</ul>
+          <a href={p.href} className={`mt-6 inline-block w-full text-center px-4 py-2 rounded-lg ${p.featured?'bg-[var(--accent)] text-white':'border border-white/10 hover:border-white/20'}`}>{p.cta}</a>
+        </div>
+      ))}
+    </div>
+  );
+}
+TSX
+
+cat > src/app/pricing/page.tsx <<'TSX'
+import Pricing from '../../components/Pricing';
+export default function Page(){return(<div className="space-y-8"><h1 className="text-3xl md:text-4xl font-bold">Simple, transparent pricing</h1><Pricing/></div>);}
+TSX
+
+### 6) Sign-in page with real backend call
+mkdir -p src/app/signin
+cat > src/app/signin/page.tsx <<'TSX'
+'use client'
+import { useState } from 'react';
+import { apiFetch, setToken } from '../../lib/auth';
+
+export default function SignIn(){
+  const [email,setEmail]=useState(''); const [pass,setPass]=useState(''); const [msg,setMsg]=useState<string|undefined>(''); const [busy,setBusy]=useState(false);
+  const submit=async(e:React.FormEvent)=>{e.preventDefault(); setBusy(true); setMsg(''); try{
+      const res:any = await apiFetch('/auth/login',{ method:'POST', body: JSON.stringify({ email, password: pass })});
+      const token = res?.token || res?.access_token;
+      if(!token) throw new Error('missing token');
+      setToken(token);
+      const params = new URLSearchParams(window.location.search);
+      const to = params.get('from') || '/workflow';
+      window.location.href = to;
+  }catch(err:any){ setMsg('Error: '+(err?.message||'login failed')); } finally{ setBusy(false); }};
+  return (
+    <div className="max-w-sm mx-auto space-y-6">
+      <h1 className="text-2xl font-bold">Sign in</h1>
+      <form onSubmit={submit} className="space-y-3">
+        <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="email" className="w-full px-3 py-2 rounded border border-white/10 bg-transparent"/>
+        <input value={pass} onChange={e=>setPass(e.target.value)} type="password" placeholder="password" className="w-full px-3 py-2 rounded border border-white/10 bg-transparent"/>
+        <button disabled={busy} className="w-full px-3 py-2 rounded-lg bg-[var(--accent)] text-white hover:ring-2 ring-[var(--ring)]" type="submit">{busy?'Signing in…':'Continue'}</button>
+      </form>
+      {msg && <div className="text-sm opacity-80">{msg}</div>}
+    </div>
+  );
+}
+TSX
+
+### 7) Protected workflow page: fetch real data, handle 401
+mkdir -p src/app/workflow
+cat > src/app/workflow/page.tsx <<'TSX'
+'use client'
+import { useEffect, useState } from 'react';
+import { apiFetch } from '../../lib/auth';
+
+type Flow = { id:string; name:string; status:'healthy'|'degraded'|'failed'; runs:number };
+export default function Page(){
+  const [data,setData]=useState<Flow[]|null>(null); const [err,setErr]=useState<string|''>(''); const [loading,setLoading]=useState(true);
+  useEffect(()=>{ (async()=>{
+    try{
+      const res:any = await apiFetch('/api/intelligence/recommendations'); // replace with your real workflows list endpoint when ready
+      const mapped:Flow[] = Array.isArray(res?.items)? res.items.map((x:any)=>({ id: String(x.id||x.name), name: x.name||'Flow', status:(x.status||'healthy'), runs: Number(x.runs||0)})) : [];
+      setData(mapped);
+    }catch(e:any){ setErr(e?.message||'error'); }
+    finally{ setLoading(false); }
+  })(); },[]);
+  if(loading) return <div>Loading workflows…</div>;
+  if(err) return <div className="text-sm opacity-80">Error: {err}</div>;
+  return (
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold">Workflows</h1>
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {data?.map(f=>(
+          <a key={f.id} href={`/workflow/${encodeURIComponent(f.id)}`} className="rounded-2xl bg-[var(--card)] p-4 border border-white/5 hover:border-white/15">
+            <div className="flex items-center justify-between"><div className="font-medium">{f.name}</div>
+              <span className="text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">{f.status}</span>
+            </div>
+            <div className="mt-2 text-sm opacity-80">{f.runs} runs this week</div>
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}
+TSX
+
+### 8) Optional: sign-out helper
+mkdir -p src/app/signout
+cat > src/app/signout/page.tsx <<'TSX'
+'use client'
+import { useEffect } from 'react';
+import { clearToken } from '../lib/auth';
+export default function Page(){
+  useEffect(()=>{ clearToken(); window.location.href='/' },[]);
+  return <div>Signing out…</div>;
+}
+TSX
+
+### 9) Commit, push, merge, deploy
+git add -A
+git commit -m "genesis(v8): UI polish + real auth + protected workflows + loading/error states"
+git push -u origin genesis-v8-ui-auth
+git fetch -ap
+git checkout main
+git merge --ff-only genesis-v8-ui-auth
+git push origin main
+
+### 10) Verify production
+for i in 1 2 3; do
+  curl -sSI https://levqor.ai | grep -Ei "date:|age:|x-vercel-(id|cache)|cf-ray|server"
+  sleep 20
+done
+curl -sS https://levqor.ai/robots.txt | head -3
+curl -sS https://api.levqor.ai/health
+
+echo "DONE"

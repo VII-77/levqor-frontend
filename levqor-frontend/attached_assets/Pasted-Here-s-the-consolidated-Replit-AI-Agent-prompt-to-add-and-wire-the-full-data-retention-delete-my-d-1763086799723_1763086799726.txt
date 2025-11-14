@@ -1,0 +1,361 @@
+Here’s the consolidated Replit AI Agent prompt to add and wire the full data-retention + delete-my-data system.
+
+You are Replit AI Agent working on the Levqor project.
+
+GOAL
+Implement a fully working, GDPR-compliant data retention + “delete my data” system:
+- Automatic retention-based cleanup of old records
+- A DSAR-style “delete my data” endpoint
+- A simple UI button under Settings → Privacy
+- Minimal but clear legal text updates
+- NO breaking changes to billing/financial records
+
+CONSTRAINTS
+- Do NOT delete or corrupt Stripe billing data or core financial records.
+- Reuse existing scheduler/job patterns already used in this backend.
+- Keep everything small, readable, and consistent with existing code style.
+- Verify with real queries/logs, not assumptions.
+
+REPO CONTEXT
+- Backend: Python/Flask app at repo root (Levqor backend).
+- Frontend: Next.js app in `levqor-site` (App Router).
+- Database: PostgreSQL already in use (jobs, workflows, logs, audit, etc.).
+- There is already a scheduler/job runner in place (18 jobs active) — REUSE it.
+
+--------------------------------
+PHASE 1 — RETENTION CONFIG
+--------------------------------
+1. Inspect backend code to see how models/tables are named for:
+   - workflow logs
+   - jobs / job runs
+   - error logs
+   - audit logs
+   - support tickets
+   - DSAR exports (if not present, we will anticipate it for future DSAR export)
+
+2. Create a new backend file:
+
+   `retention_config.py` (or similar, under backend package)
+
+   Implement a central config like:
+
+   ```python
+   DATA_RETENTION = {
+       "logs": 90,              # workflow logs
+       "billing_events": 365,   # finance logs (must keep longer)
+       "jobs": 30,              # successful jobs
+       "errors": 180,           # error logs
+       "audit": 365,            # audit trails
+       "support_tickets": 365,  # customer support
+       "dsar_exports": 30       # exported data files/rows
+   }
+
+Map these logical keys to real tables/models used in this project.
+
+If some categories don’t have an obvious table, document them in code comments and skip deletion for now.
+
+
+3. Ensure there is one clear place where retention_days per model/table are defined to avoid magic numbers scattered across code.
+
+
+
+
+---
+
+PHASE 2 — CLEANUP ENGINE
+
+4. Create a new backend module:
+
+retention_cleanup.py
+
+Add a function:
+
+def cleanup_expired_records(now=None):
+    """
+    Delete records older than their retention policy.
+    Logs each deletion into the audit log.
+    NEVER deletes billing/Stripe core records.
+    """
+
+Implementation requirements:
+
+Use the existing DB ORM/session layer already used in the app.
+
+For each category in DATA_RETENTION, delete rows where created_at (or equivalent timestamp) is older than NOW - retention_days.
+
+Be defensive: if a model/table or timestamp field doesn’t exist or is named differently, handle safely and log a warning instead of crashing.
+
+For every cleanup run, write an entry into audit logging (whatever mechanism exists, e.g. audit_log table or logging helper) with:
+
+category name
+
+count of rows deleted
+
+timestamp
+
+
+
+VERY IMPORTANT:
+
+DO NOT delete Stripe charge/payment records or core billing history.
+
+DO NOT delete user accounts.
+
+Only delete logs, jobs, and other ephemeral/operational data.
+
+
+
+5. Add a small CLI-style or function-level test that can be manually invoked, e.g.:
+
+if __name__ == "__main__":
+    cleanup_expired_records()
+
+This is for local/manual testing only.
+
+
+
+
+---
+
+PHASE 3 — DAILY SCHEDULED JOB
+
+6. Find the existing scheduler/job runner in backend:
+
+Search for scheduler, cron, apscheduler, or any “jobs” pattern.
+
+Identify how recurring jobs are registered today.
+
+
+
+7. Add a daily job to call cleanup_expired_records():
+
+Run once every 24h (e.g. night-time UTC).
+
+If there is a central job registration file, register this job there.
+
+Job name should be something like "retention_cleanup_daily".
+
+
+
+8. Verify scheduler wiring by:
+
+Showing registration code.
+
+If there is a job listing endpoint/log, ensure the new job appears.
+
+
+
+
+
+---
+
+PHASE 4 — “DELETE MY DATA” API ENDPOINT
+
+9. Add a new authenticated backend endpoint:
+
+POST /api/privacy/delete-my-data
+
+Requirements:
+
+Only accessible by an authenticated user.
+
+Use existing auth/session mechanism to identify current user.
+
+Delete all user-specific data from:
+
+workflows owned by user (or mark as anonymised if needed)
+
+workflow/job logs tied to user
+
+stored tokens/credentials for that user
+
+support tickets belonging to user
+
+DSAR exports tied to user
+
+
+Do NOT delete:
+
+Stripe customer/charge/payment data
+
+Legally-required billing metadata (invoices, VAT, etc.)
+
+
+
+Response JSON:
+
+{
+    "ok": true,
+    "deleted": {
+        "workflows": N,
+        "jobs": N,
+        "logs": N,
+        "support_tickets": N,
+        "tokens": N,
+        "dsar_exports": N
+    }
+}
+
+Additional requirements:
+
+Write an audit log entry: “User requested full data deletion” with user id and timestamp.
+
+If anything fails, return {"ok": false, "error": "..."} with a sensible message and log the internal exception.
+
+
+
+10. Add basic unit/integration tests (if test framework exists) to verify:
+
+Unauthenticated requests are rejected.
+
+Authenticated user gets 200 + ok: true.
+
+Data linked to that user is actually gone (or anonymised), but billing records remain.
+
+
+
+
+
+---
+
+PHASE 5 — FRONTEND “DELETE MY DATA” UI
+
+11. In the frontend app (Next.js, App Router), add a privacy settings section if not present:
+
+
+
+Route: /settings/privacy (or extend existing settings page).
+
+If a settings shell already exists, integrate there.
+
+
+12. Add a button in the Privacy section:
+
+
+
+Label: Delete my data (GDPR)
+
+Behavior:
+
+On click, show a confirmation modal:
+
+Title: “Are you sure you want to delete your data?”
+
+Text: “This will delete your workflows, logs, and related data. Billing records and invoices will be kept as required by law.”
+
+Confirm button: “Yes, delete my data”
+
+Cancel button: “Cancel”
+
+
+On confirm:
+
+Call POST /api/privacy/delete-my-data.
+
+Show loading state while call is in progress.
+
+On success: show green success alert “Your data has been deleted. Some billing records are retained as required by law.”
+
+On error: show red error alert with returned message.
+
+
+
+UI details:
+
+Use existing design system (buttons, modals, alerts) already used in the app.
+
+Ensure page works on mobile.
+
+
+13. Add a small inline note under the button:
+
+
+
+> “This deletes your workflows, logs, and related data. We keep limited billing records to comply with tax and accounting laws.”
+
+
+
+
+---
+
+PHASE 6 — LEGAL TEXT UPDATES
+
+14. Update /privacy page text:
+
+
+
+Add a short section called “Data Retention & Deletion” that states:
+
+Operational logs are automatically deleted after their retention period.
+
+Users may request deletion of their personal data at any time.
+
+Certain billing records are retained for legal and tax reasons.
+
+
+15. Update /data-requests page:
+
+
+
+Add a line explaining that:
+
+Automated cleanup runs daily based on the retention policy.
+
+The “Delete my data (GDPR)” button is available under account settings to self-initiate deletion.
+
+
+
+
+---
+
+PHASE 7 — VERIFICATION & PROOF
+
+16. Demonstrate correctness with real checks, not opinions:
+
+
+
+BACKEND:
+
+Show DATA_RETENTION contents.
+
+Show cleanup_expired_records() implementation.
+
+Show scheduler job registration.
+
+Run cleanup once against a test user or test data and print how many rows were deleted per category.
+
+
+API:
+
+Show example curl or HTTP request to POST /api/privacy/delete-my-data and the JSON response.
+
+Verify user’s non-billing data is gone from DB (show sample queries).
+
+
+FRONTEND:
+
+Show JSX/TSX snippet for the “Delete my data (GDPR)” button and modal.
+
+Describe a manual test path:
+
+Sign in as test user
+
+Create some workflows/jobs
+
+Use Delete-my-data button
+
+Confirm that data disappears while Stripe test charges remain.
+
+
+
+17. Keep all changes minimal and focused. Do NOT refactor unrelated code.
+
+
+
+ONCE COMPLETE
+
+Summarize all files changed.
+
+Summarize what gets deleted, what is retained, and how often cleanup runs.
+
+Confirm that billing/financial data is never deleted by this system.

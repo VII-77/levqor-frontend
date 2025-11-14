@@ -1,0 +1,147 @@
+You are the Replit AI Agent working on the Levqor project.
+
+GOAL
+Find exactly what changed in the frontend (levqor-site) AFTER the last known successful Vercel deployment commit `51038fb` ("Remove unused catchall"), and summarize the differences versus the current `main` branch. Do NOT modify any files; this is a read-only diff + summary task.
+
+CONTEXT
+- Frontend repo: `levqor-site` (Next.js)
+- Last known good deployment: Vercel built commit `51038fb` successfully ~15 hours ago.
+- Current deployments are failing on newer commits.
+- We want to see: which commits and which files changed since `51038fb`, with special attention to:
+  - cookie consent / `useCookieConsent` / `@/lib/cookies`
+  - new legal/compliance pages
+  - any config changes (tsconfig, next.config, package.json, vercel.json, env usage)
+
+HIGH-LEVEL PLAN
+1. Verify git history and confirm `51038fb` exists locally.
+2. Show the list of commits between `51038fb` and current HEAD on `main`.
+3. Show a readable diff summary (files added/changed/removed).
+4. Highlight changes touching cookies/consent, hooks, config, and routing.
+5. Output a clear human-readable summary for the user.
+
+STEP 1 — ENTER FRONTEND REPO & CONFIRM COMMIT
+1. From workspace root:
+
+   ```bash
+   cd levqor-site
+   git status
+   git log --oneline -n 15
+
+2. Confirm that a commit with SHA starting 51038fb is present.
+
+If it is NOT present, search more:
+
+git log --oneline --grep="Remove unused catchall" -n 5 || git log --oneline | head -40
+
+
+
+3. Note the exact full SHA for that commit (e.g. 51038fb1234abcd…).
+
+
+
+STEP 2 — LIST COMMITS SINCE LAST GOOD DEPLOY
+
+1. Assuming the good commit is exactly 51038fb (or its full SHA), list all commits after it on main:
+
+git rev-parse 51038fb
+git rev-parse HEAD
+git log --oneline 51038fb..HEAD
+
+
+2. This shows the sequence of changes that happened AFTER the successful deployment.
+
+Keep this output for the final report.
+
+
+
+
+STEP 3 — HIGH-LEVEL DIFF SUMMARY
+
+1. Show which files changed between 51038fb and current HEAD:
+
+git diff --stat 51038fb..HEAD
+
+
+2. Show a more detailed summary (no full patch yet):
+
+git diff --name-status 51038fb..HEAD
+
+
+3. Pay attention to:
+
+any files under src/hooks/
+
+any files under src/components/cookies/
+
+src/lib/*
+
+src/app/**/page.tsx
+
+package.json, tsconfig.json, next.config.mjs, vercel.json
+
+
+
+
+STEP 4 — TARGETED DIFFS FOR RISKY AREAS
+
+1. If these files exist in the diff, show focused patches:
+
+# Cookie consent + hooks
+git diff 51038fb..HEAD -- src/hooks/useCookieConsent.ts || true
+git diff 51038fb..HEAD -- "src/components/cookies" || true
+git diff 51038fb..HEAD -- src/lib/cookies.ts || true
+
+# Routing and pages
+git diff 51038fb..HEAD -- "src/app" || true
+
+# Config / build behavior
+git diff 51038fb..HEAD -- package.json tsconfig.json next.config.* vercel.* || true
+
+
+2. If any of those paths don’t exist, let them fail gracefully (|| true) and continue.
+
+
+
+STEP 5 — SUMMARIZE FOR THE USER
+
+1. Based on the diffs above, produce a concise human-readable summary that answers:
+
+How many commits since 51038fb, and their short messages.
+
+Which major areas changed (e.g. “Added cookie consent system”, “Added DSAR page”, “Modified footer links”, “Added new pages for X”).
+
+Any new imports/aliases such as @/lib/cookies that did not exist at 51038fb.
+
+Any config changes that could affect builds or routes.
+
+
+
+2. Present the summary in this structure:
+
+Commits since last good deploy (51038fb → HEAD)
+
+SHA1 message
+
+SHA2 message
+
+…
+
+
+Key file changes (grouped by area: cookies/hooks, pages, config)
+
+Likely causes of new build/deploy risk
+(e.g. “introduced new hook that imports '@/lib/cookies' but file was missing before we added it”).
+
+
+
+
+IMPORTANT RULES
+
+This is a READ-ONLY investigation: do NOT modify, stage, or commit any files.
+
+Do NOT run formatters or linters that change files.
+
+If anything is unclear, still provide best-effort analysis based purely on the git history and diffs.
+
+
+When you’re done, print the final summary clearly so the user can see exactly what changed since the last successful deployment.

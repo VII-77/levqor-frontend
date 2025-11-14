@@ -1,0 +1,103 @@
+You’re one change away: route api.levqor.ai to the Replit autoscale deployment. Do this exactly.
+
+1) Replit → bind custom domain
+
+Replit → your backend → Deployments → Autoscale → Manage domains → Add domain → api.levqor.ai.
+
+Replit shows two DNS entries:
+
+CNAME target like xxxx.kirk.replit.dev
+
+Sometimes a short TXT for ownership
+
+
+Keep this page open.
+
+
+2) Cloudflare DNS
+
+DNS → Add record
+
+Type: CNAME
+
+Name: api
+
+Target: the exact xxxx.kirk.replit.dev from Replit
+
+Proxy status: Proxied (orange cloud)
+
+
+If Replit asked for a TXT, add it too.
+
+SSL/TLS: Full (strict) (already set)
+
+
+3) Finish verification
+
+Return to Replit domain wizard → Verify → it should issue the cert and attach HTTPS.
+
+Purge CF cache (optional): Caching → Purge → https://api.levqor.ai/*.
+
+
+4) Sanity tests
+
+# DNS resolution
+dig +short api.levqor.ai
+
+# Headers through Cloudflare to Replit
+curl -sI https://api.levqor.ai | sed -n '1,20p'
+
+# Core endpoints
+CID="audit-$(date +%s)"
+curl -s -H "X-Request-ID: $CID" https://api.levqor.ai/api/intelligence/status | jq .
+curl -s https://api.levqor.ai/api/intelligence/health | jq .
+curl -s https://api.levqor.ai/public/metrics | jq .
+
+Expect: HTTP/2 200, server: cloudflare, cf-cache-status: DYNAMIC/BYPASS, and JSON with meta.correlation_id echoing your CID.
+
+5) Frontend base URL
+
+Confirm the frontend targets the new domain:
+
+NEXT_PUBLIC_API_BASE=https://api.levqor.ai
+
+If changed, redeploy levqor-site.
+
+
+6) CORS (if needed)
+
+Backend env or middleware should allow:
+
+Origin: https://levqor.ai
+
+If CORS errors appear, whitelist that origin.
+
+
+---
+
+Temporary bridge (if DNS must wait)
+
+Add a rewrite in the frontend so /api/* hits Replit directly:
+
+// next.config.js
+module.exports = {
+  async rewrites() {
+    return [{ source: "/api/:path*", destination: "https://<your>.kirk.replit.dev/api/:path*" }];
+  },
+};
+
+Redeploy frontend. Remove once api.levqor.ai is live.
+
+
+---
+
+Success criteria
+
+curl -sI https://api.levqor.ai shows Cloudflare headers.
+
+All three endpoints return 200 with valid JSON.
+
+Frontend calls the new domain without CORS errors.
+
+
+Send the first 20 response headers from https://api.levqor.ai after DNS cutover if anything looks off.

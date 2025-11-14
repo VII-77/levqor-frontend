@@ -1,0 +1,278 @@
+You are Replit AI Agent working on the Levqor project.
+
+GOAL
+Implement the remaining user-facing trust/compliance UX pieces for Levqor WITHOUT deploying to Vercel:
+
+1) DFY “Master Contract” page (single, clear, client-friendly contract)
+2) Public Status page
+3) Service Credits / SLA claim flow
+4) Dispute Resolution page + simple workflow
+5) Explicit high-risk data warnings wired into real UI screens
+6) Basic API docs page (even if the API is not fully public yet)
+
+CONSTRAINTS
+- Repo:
+  - Frontend: `levqor-site` (Next.js 14 App Router)
+  - Backend: Flask API at repo root
+- Do NOT:
+  - Change Stripe prices/plans or checkout logic.
+  - Deploy to Vercel.
+- DO:
+  - Reuse existing legal pages and policies (Terms, SLA, Fair Use, Risk Disclosure, etc.).
+  - Keep copy consistent with existing language (UK, GDPR, DFY + subscriptions).
+  - Verify everything with `npm run build` and curl where relevant.
+
+────────────────────────
+STEP 0 — QUICK DISCOVERY (READ-ONLY)
+────────────────────────
+
+1. FRONTEND:
+   - List existing legal/policy pages under `levqor-site/src/app`:
+     - Especially: `terms`, `sla`, `refunds`, `fair-use`, `acceptable-use`, `risk-disclosure`, `onboarding`, `delivery`, `revisions`, `offboarding`, `support-policy`.
+   - Find:
+     - Layout components (header/footer) used for global nav.
+     - Where we link to legal pages in footer and sign-in page.
+
+2. BACKEND:
+   - Check for any existing:
+     - `/api/status` or similar health endpoints.
+     - Models/endpoints for SLA credits, disputes, or support tickets.
+   - Do NOT modify anything yet; just understand what’s there.
+
+Keep notes internally; only print final summaries and code diffs.
+
+────────────────────────
+STEP 1 — DFY MASTER CONTRACT PAGE
+────────────────────────
+
+GOAL
+Single, human-readable but serious DFY contract page that consolidates:
+- Scope, deliverables, and responsibilities
+- Timelines and revision rules
+- Out-of-scope work
+- Liability, disclaimers, and termination
+- Links back to Terms, SLA, Fair Use, Refunds
+
+A) NEW PAGE
+
+1. Add: `levqor-site/src/app/dfy-contract/page.tsx`
+   - Content structure (suggested):
+     - H1: “Managed Automation (Done-For-You) Agreement”
+     - Sections:
+       - 1) Scope of Services
+         - Reference DFY tiers (Starter, Professional, Enterprise).
+         - Use existing copy from `/delivery`, `/revisions`, `/onboarding`.
+       - 2) Client Responsibilities
+         - Access, credentials, timely responses, testing.
+       - 3) Deliverables & Timelines
+         - Pull from `/delivery` (48h/3–4 days/7 days).
+       - 4) Revisions & Changes
+         - Pull from `/revisions` (revision counts, out-of-scope work).
+       - 5) Limitations & Exclusions
+         - MUST mention that high-risk domains (medical/legal/financial etc.) are restricted and must follow `/risk-disclosure` & `/acceptable-use`.
+       - 6) Payment, Refunds, and Cancellation
+         - Refer to `/billing`, `/refunds`, `/cancellation`.
+       - 7) Liability & Disclaimers
+         - Link to `/terms` §§ for limitation of liability and warranties.
+       - 8) Data & Confidentiality
+         - Refer to `/privacy` and `/dpa`.
+       - 9) Governing Law & Disputes
+         - Link to `/terms` dispute clause and the Dispute page you’ll create in Step 3.
+
+   - Use a similar layout to other legal pages, with a table-of-contents at top.
+
+B) NAVIGATION
+
+1. Add link in footer:
+   - E.g. under “Legal & Policies” section: “DFY Agreement” → `/dfy-contract`.
+
+────────────────────────
+STEP 2 — PUBLIC STATUS PAGE
+────────────────────────
+
+GOAL
+Simple `/status` page that shows current system status (manual for now, can be wired later).
+
+A) BACKEND (OPTIONAL, LIGHTWEIGHT)
+
+1. If there is already a health endpoint (e.g. `/api/status/health`), reuse it.
+2. If not:
+   - Add a minimal Flask endpoint:
+     - `GET /api/status/health`
+     - Returns JSON: `{ "ok": true, "api": "healthy" }`
+   - This is NOT a full status platform, just a basic health check.
+
+B) FRONTEND: `/status` PAGE
+
+1. Add: `levqor-site/src/app/status/page.tsx`
+   - Client page that:
+     - Calls the health endpoint (if available).
+     - Shows:
+       - Overall status: “Operational” / “Degraded” / “Major outage” (hard-coded as “Operational” for now unless API says otherwise).
+       - Sections:
+         - API (Levqor backend)
+         - Frontend (Levqor app)
+         - Third-party services (Stripe, OpenAI, Vercel, Google, Microsoft).
+       - Link to:
+         - Incident response page (`/incident-response`)
+         - Business continuity (`/business-continuity`)
+   - For now, you can:
+     - Treat the API response as a simple boolean.
+     - Show timestamp “Last checked: [client time]”.
+
+2. Footer:
+   - Add “Status” link to `/status`.
+
+────────────────────────
+STEP 3 — SERVICE CREDITS / SLA CLAIM FLOW
+────────────────────────
+
+GOAL
+Give customers a clear way to request SLA credits when uptime/response targets are missed.
+
+A) BACKEND: SIMPLE ENDPOINT
+
+1. Add a minimal model or reuse an existing “support ticket”/“contact” model if present. If none exists:
+   - `SlaCreditRequest` model:
+     - `id`, `user_id` (nullable if not logged in), `email`, `plan`, `incident_date`, `description`, `status` (`"open"|"reviewing"|"approved"|"rejected"`), timestamps.
+
+2. Endpoint:
+   - `POST /api/sla/credits/request`
+     - Accepts JSON:
+       - `email`, `plan`, `incidentDate`, `description`.
+     - Creates record with `status="open"`.
+     - Returns `{ ok: true }`.
+   - `GET /api/sla/credits/my` (auth optional):
+     - If logged in, return user’s own requests.
+     - If not, this can be skipped or later implemented; not critical.
+
+B) FRONTEND: `/sla-credits` PAGE
+
+1. Add: `levqor-site/src/app/sla-credits/page.tsx`
+   - Content:
+     - Explain SLA briefly:
+       - Link to `/sla`.
+       - Explain when credits apply.
+     - Form:
+       - Fields: email, plan (Starter/Growth/Pro/Business/DFY), date of incident, description.
+       - On submit, POST to `/api/sla/credits/request`.
+       - Show success message.
+     - If user is logged in and we can auto-fill email/plan, do so.
+
+2. Add link:
+   - From `/sla` page → “Request SLA credit” → `/sla-credits`.
+   - Footer → under “Support” or “Legal”.
+
+────────────────────────
+STEP 4 — DISPUTE RESOLUTION PAGE
+────────────────────────
+
+GOAL
+Clear, simple “Here’s how we resolve problems” page, aligned with Terms.
+
+A) NEW PAGE
+
+1. Add: `levqor-site/src/app/disputes/page.tsx`
+   - Content:
+     - Overview:
+       - “If something goes wrong, here’s how we handle it.”
+     - Steps:
+       - Step 1: Contact support (link to `/support-policy`).
+       - Step 2: Escalation (link to `/support-escalation`).
+       - Step 3: Mediation / resolution timelines.
+     - For DFY vs subscriptions, mention differences if any.
+     - Clarify:
+       - We try to resolve directly.
+       - Link to governing law and jurisdiction in `/terms`.
+     - Add note: This page does NOT override legal Terms but explains them in plain English.
+
+B) LINKS
+
+1. From `/terms`:
+   - Add a small note / link in the disputes section: “See also our Dispute Resolution page” → `/disputes`.
+2. Footer:
+   - Add “Disputes” under Legal/Support.
+
+────────────────────────
+STEP 5 — HIGH-RISK DATA WARNINGS IN REAL UI
+────────────────────────
+
+GOAL
+Move high-risk exclusions from “just policy text” into the product experience.
+
+A) WORKFLOW CREATION / BUILDER
+
+1. Find the main workflow creation or onboarding UI in `levqor-site`:
+   - E.g. pages under `/workflow`, `/dashboard`, or wherever users define automations.
+
+2. Add a clearly visible warning component:
+   - A small callout box near workflow name/description fields:
+     - Text (paraphrase, UK-friendly):
+       - “Levqor is not designed for medical, legal, or financial advice, or for decisions that could seriously affect someone’s rights, health, or finances. Please do not automate these workflows here.”
+     - Links to `/risk-disclosure` and `/acceptable-use`.
+
+3. For DFY purchase flows:
+   - On `/pricing` or DFY-specific section:
+     - Add a small disclaimer under DFY tiers echoing the same limitation.
+
+B) OPTIONAL HARD GUARDRAIL (LIGHT)
+
+1. If the workflow creation form has description tags/keywords:
+   - Add a light front-end check:
+     - If description includes obvious keywords (“medical”, “diagnosis”, “legal advice”, “investment recommendation”, etc.), show a strong warning and ask user to confirm they are not using it for prohibited use.
+   - Do NOT block completely at this stage; just warn and log.
+
+────────────────────────
+STEP 6 — API DOCS PAGE (BASIC)
+────────────────────────
+
+GOAL
+Have at least a placeholder `/api-docs` describing what exists, even if it’s not fully public.
+
+A) NEW PAGE
+
+1. Add: `levqor-site/src/app/api-docs/page.tsx`
+   - Content:
+     - Overview of Levqor API (high-level):
+       - Authentication (if any public endpoints exist).
+       - Rate limits (refer to `/rate-limits`).
+       - Main conceptual resources (workflows, runs, logs) – keep generic if API isn’t fully stable.
+     - Explicit note:
+       - “This API is currently in private beta. Access is by invitation only.”
+     - Link to:
+       - `/rate-limits`, `/security`, `/privacy`, `/gdpr`.
+
+2. Footer:
+   - Add “API Docs” link under “Developers” or similar section.
+
+────────────────────────
+STEP 7 — VERIFY & SUMMARISE
+────────────────────────
+
+1. BACKEND:
+   - Run tests if they exist.
+   - Manually verify with curl:
+     - `GET /api/status/health` (if you created/updated it).
+     - `POST /api/sla/credits/request` with a dummy payload.
+
+2. FRONTEND:
+   - `cd levqor-site && npm run lint && npm run build`.
+   - Confirm pages exist locally:
+     - `/dfy-contract`
+     - `/status`
+     - `/sla-credits`
+     - `/disputes`
+     - `/api-docs`
+   - Click:
+     - Footer links for all new pages.
+     - Links from `/terms`, `/sla`, etc. to new pages.
+     - Warning banners in workflow builder and DFY pricing.
+
+3. OUTPUT:
+   - Print:
+     - List of new/modified files.
+     - Short summary of each new page/endpoint.
+     - Confirmation that build passed and key routes return 200 in dev.
+
+DO NOT deploy or touch Vercel. Leave code ready for later deployment.
+```0

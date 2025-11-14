@@ -1,0 +1,236 @@
+You are Replit AI Agent working on the Levqor project.
+
+GOAL (STAGE 1 – LEGAL FRONTEND HARDENING, NO DEPLOY):
+Implement the minimum required UX + light backend stubs so that:
+- We have a real cookie consent banner (blocking non-essential cookies).
+- Users must accept Terms/Privacy before signing in.
+- We clearly warn against high-risk / prohibited data.
+- We collect explicit, separate marketing consent + prepare double-opt-in/unsubscribe stubs.
+Do NOT touch deployment or Vercel. All work is local in this Replit.
+
+PROJECT CONTEXT (DO NOT CHANGE):
+- Frontend: Next.js 14 App Router, TypeScript, Tailwind, app dir.
+- Root path: ~/workspace/levqor-site
+- Important routes (already exist): /, /pricing, /signin, /terms, /privacy, /cookies, /risk-disclosure, /ai-disclosure
+- Backend: separate Flask API (leave it alone).
+- You MAY add new Next.js API routes under src/app/api but keep them simple (log to console only).
+
+GENERAL RULES:
+- Keep changes tightly scoped to: levqor-site/src/app and levqor-site/src/components and levqor-site/src/config.
+- Do NOT break existing auth, pricing, or checkout logic.
+- Prefer small, focused components over huge files.
+- Always run `npm run lint` and `npm run build` at the end and show results.
+- Verify routes with curl and grep; don’t assume.
+
+────────────────────────────────────
+PHASE 0 – PROJECT DISCOVERY (READ-ONLY)
+────────────────────────────────────
+1) Go to project:
+   - cd ~/workspace/levqor-site
+   - ls src/app
+2) Open and read (NO edits yet):
+   - src/app/layout.tsx
+   - src/app/page.tsx
+   - src/app/signin/page.tsx
+   - src/app/pricing/page.tsx
+   - src/app/(maybe)/legal pages: terms, privacy, cookies, risk-disclosure, ai-disclosure if present
+3) Confirm Tailwind + shadcn are available (we already fixed Tailwind earlier; just re-verify):
+   - tailwind.config.js
+   - postcss.config.js
+   - src/app/globals.css
+
+Do not modify anything in this phase; just understand structure.
+
+────────────────────────────────────
+PHASE 1 – COOKIE CONSENT BANNER (UI + STORAGE)
+────────────────────────────────────
+TARGET: Real banner + stored preferences. No actual tracking scripts yet, just the framework.
+
+1) Create a reusable component:
+   - File: src/components/CookieConsent.tsx
+   - Requirements:
+     - Uses React client component (`"use client"`).
+     - Fixed bottom bar on desktop, full-width.
+     - Content:
+       - Short text explaining cookies and a link to /cookies and /privacy.
+       - Buttons:
+         - “Accept all”
+         - “Reject non-essential”
+         - “Manage settings” (optional: opens a simple modal or expands extra checkboxes)
+       - Categories in state:
+         - strictlyNecessary (always true, disabled checkbox)
+         - analytics
+         - marketing
+     - Behaviour:
+       - On first visit (no stored consent), banner shows.
+       - On “Accept all”: set analytics=true, marketing=true, hide banner.
+       - On “Reject non-essential”: analytics=false, marketing=false, hide banner.
+       - On “Manage settings”: allow toggling analytics/marketing checkboxes, then a “Save” button to store and hide.
+     - Storage:
+       - Store JSON in a cookie named `levqor_cookie_consent` with:
+         - { version: "2024-11-01", strictlyNecessary: true, analytics: bool, marketing: bool, timestamp: ISO string }
+       - Expiry: 12 months.
+       - Use `document.cookie` or a simple helper; no extra libs.
+2) Wire into layout:
+   - In src/app/layout.tsx:
+     - Import CookieConsent.
+     - Render `<CookieConsent />` near the bottom of <body>, but only in the main layout (not for /api).
+   - Ensure it is wrapped appropriately so it doesn’t conflict with existing nav/footer.
+
+3) Provide a minimal “hook” for future scripts:
+   - In CookieConsent, expose a simple util or function:
+     - `export function hasAnalyticsConsent()` reading the cookie.
+   - For now, just ensure it works; we’ll plug GA/etc. later.
+
+4) QUICK CHECK:
+   - `npm run lint -- --max-warnings=0` (or closest) – fix any issues in CookieConsent.
+   - `npm run build` – ensure no type errors.
+   - `curl -sS https://www.example.com` is NOT needed; we only check local:
+     - `curl -sS http://localhost:5000 | head -40` from the Replit/Nix env after running dev if needed.
+   - Use `grep -R "CookieConsent" src/app src/components` to ensure it’s imported only once in layout.
+
+────────────────────────────────────
+PHASE 2 – TOS ACCEPTANCE FLOW (FRONTEND + LOGGING STUB)
+────────────────────────────────────
+TARGET: User must explicitly accept Terms/Privacy before OAuth sign-in. We log a stub entry via a Next.js API route.
+
+1) Update signin page UI:
+   - File: src/app/signin/page.tsx
+   - Under/near the auth buttons, add:
+     - A REQUIRED checkbox:
+       - Label: “I agree to the Terms of Service and Privacy Policy.”
+       - “Terms of Service” → link to /terms (target: _blank or same tab)
+       - “Privacy Policy” → link to /privacy
+     - Logic:
+       - Google/Microsoft sign-in buttons must be disabled (or onClick blocked) until checkbox is checked.
+       - Do NOT break existing auth; just gate the action.
+
+2) Add consent logging stub API:
+   - New file: src/app/api/consent/accept/route.ts
+   - App router, TypeScript, minimal:
+     - Accept POST with JSON:
+       - { email?: string; tosVersion: string; privacyVersion: string; marketingConsent?: boolean }
+     - Get IP if possible from headers (`x-forwarded-for` best-effort).
+     - Log to server console as a single JSON line:
+       - `{ type: "tos_accept", email, tosVersion, privacyVersion, marketingConsent, ip, userAgent, ts }`
+     - Return { ok: true } on success; { ok: false, error } on failure with appropriate HTTP status.
+
+   - IMPORTANT: Do NOT try to write to DB, files, or external services. Console logging only for now.
+
+3) Wire logging from signin UI:
+   - When user clicks Google/Microsoft sign-in AND the checkbox is checked:
+     - First call `fetch("/api/consent/accept", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ tosVersion: "2024-11-01", privacyVersion: "2024-11-01", marketingConsent: <from separate checkbox if exists> }) })`.
+     - Don’t block sign-in on failure; log to console if the fetch fails, then proceed with signIn().
+   - Keep the logic minimal and robust: no race conditions, no fragile state.
+
+4) QUICK CHECK:
+   - `npm run lint src/app/signin/page.tsx src/app/api/consent/accept/route.ts -- --max-warnings=0`
+   - `npm run build`
+   - Run dev (if not already): `npm run dev` (in Replit this may be via the workflow).
+   - `curl -sI http://localhost:5000/signin | head -10`
+   - Confirm checkbox text “I agree to the Terms of Service and Privacy Policy” appears:
+     - `curl -sS http://localhost:5000/signin | grep -i "Terms of Service" | head -5`
+
+────────────────────────────────────
+PHASE 3 – HIGH-RISK DATA WARNINGS (UI ONLY)
+────────────────────────────────────
+TARGET: Clear, unavoidable warning against high-risk automation on key pages.
+
+1) Create a small reusable banner:
+   - File: src/components/HighRiskWarning.tsx
+   - Client-safe component, Tailwind-based alert:
+     - Text (or similar, don’t water down):
+       - “Do NOT use Levqor to automate medical, financial, or legal advice, or any processing of special-category personal data (health, biometrics, religion, politics, etc.). See Risk Disclosure and AI Disclosure for details.”
+     - Links:
+       - /risk-disclosure
+       - /ai-disclosure
+     - Styling: small, but clear; maybe yellow/amber background for visibility.
+
+2) Embed on:
+   - src/app/pricing/page.tsx – near the top (above plans or just below the hero content).
+   - src/app/page.tsx – near the section where core value props are shown OR just before main CTA.
+   - If a workflow/dashboard page exists (e.g. src/app/workflow/page.tsx or similar), add it high in that page too.
+
+3) QUICK CHECK:
+   - `grep -R "Do NOT use Levqor" src/app src/components`
+   - `npm run build`
+   - `curl -sS http://localhost:5000/pricing | grep -i "Do NOT use Levqor" | head -5`
+
+────────────────────────────────────
+PHASE 4 – MARKETING CONSENT UX + DOUBLE-OPT-IN STUB
+────────────────────────────────────
+TARGET: Separate marketing consent from TOS, and prepare hooks for double opt-in & unsubscribe.
+
+1) Create a reusable marketing consent component:
+   - File: src/components/MarketingConsent.tsx
+   - Client component with:
+     - Checkbox: “I agree to receive product updates and occasional marketing emails from Levqor.”
+     - Short line below: “You can unsubscribe at any time. See our Privacy Policy.”
+     - Link to /privacy.
+   - Expose props:
+     - `checked: boolean`
+     - `onChange: (checked: boolean) => void`
+
+2) Integrate into signin page:
+   - In src/app/signin/page.tsx:
+     - Add optional marketing checkbox using MarketingConsent.
+     - Do NOT require it for sign-in; it must be optional.
+     - When sending POST to /api/consent/accept, include `marketingConsent: true/false` from this checkbox.
+
+3) Double opt-in stub:
+   - In src/app/api/consent/accept/route.ts:
+     - If `marketingConsent === true` and `email` exists in body, after logging, call a stub function like:
+       - `queueMarketingDoubleOptIn(email: string)`
+     - Implement this as a simple function in the same file that just does:
+       - `console.log(JSON.stringify({ type: "marketing_double_opt_in_stub", email, ts: new Date().toISOString() }));`
+     - Add a comment clearly stating:
+       - This is a stub; later we will integrate with Resend/Mail provider to send a confirmation email.
+
+4) Unsubscribe UX stub:
+   - New route: src/app/unsubscribe/page.tsx
+     - Simple page:
+       - Heading: “Manage your email preferences”
+       - Short text explaining:
+         - Emails contain an unsubscribe link.
+         - Users can contact support@levqor.ai to be removed.
+         - Later this page will be wired to a real token-based unsubscribe.
+       - Basic form (optional, stub):
+         - Email input + “Request unsubscribe” button.
+         - On submit, POST to `/api/unsubscribe` (to be implemented later) or simply `console.log` on client.
+       - Make it clear this is a placeholder until full integration.
+
+5) QUICK CHECK:
+   - `grep -R "marketingConsent" src/app src/components src/app/api`
+   - `grep -R "unsubscribe" src/app | head -20`
+   - `npm run lint -- --max-warnings=0`
+   - `npm run build`
+   - `curl -sS http://localhost:5000/signin | grep -i "product updates" | head -5`
+   - `curl -sS http://localhost:5000/unsubscribe | head -20`
+
+────────────────────────────────────
+PHASE 5 – FINAL VERIFICATION & SUMMARY
+────────────────────────────────────
+1) Static analysis:
+   - From ~/workspace/levqor-site:
+     - `npm run lint -- --max-warnings=0`
+     - `npm run build`
+2) Route checks (local):
+   - `curl -sI http://localhost:5000 | head -10`
+   - `curl -sI http://localhost:5000/signin | head -10`
+   - `curl -sI http://localhost:5000/pricing | head -10`
+   - `curl -sI http://localhost:5000/unsubscribe | head -10`
+3) Content presence:
+   - `curl -sS http://localhost:5000 | grep -i "cookie" | head -10`
+   - `curl -sS http://localhost:5000/signin | grep -i "I agree to the Terms of Service and Privacy Policy" | head -5`
+   - `curl -sS http://localhost:5000/pricing | grep -i "Do NOT use Levqor" | head -5`
+4) Summarise changes in a short log printed to stdout:
+   - List files created/modified.
+   - Confirm that:
+     - Cookie consent banner appears on first visit.
+     - Signin buttons are gated by TOS checkbox.
+     - High-risk warning appears.
+     - Marketing checkbox is optional and wired into consent API.
+     - Unsubscribe page exists and renders.
+
+STOP after everything passes locally. Do NOT deploy, do NOT touch Vercel. Only modify the files described above.
+```0

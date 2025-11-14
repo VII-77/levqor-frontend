@@ -108,4 +108,4 @@ run = ["gunicorn", "--workers", "2", "--threads", "4", "--timeout", "30", "--gra
 
 [nix]
 channel = "stable-25_05"
-packages = ["freetype", "glibcLocales"]
+packages = ["freetype", "glibcLocales", "dit"]

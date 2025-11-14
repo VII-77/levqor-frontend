@@ -1,0 +1,214 @@
+You are an expert full-stack engineer and DevOps lead working on the Levqor project.
+
+CONTEXT (DO NOT SKIP):
+- Frontend: Next.js 14 app in directory: `levqor-site`
+- Backend: Flask API (`run.py`) running behind `https://api.levqor.ai`
+- Production frontend domain: `https://www.levqor.ai`
+- Pricing system: Dual model already implemented in code:
+  - DFY (Done-For-You) one-time builds
+  - Subscription (monthly / yearly)
+
+PRICING MODEL (MUST STAY EXACTLY AS FOLLOWS):
+
+1) DFY (ONE-TIME) — “mode: payment”
+   - Starter:      £99   — 1 workflow, 48-hour delivery, 7-day support
+   - Professional: £249  — 3 workflows, 3-4 day delivery, 30-day support + monitoring
+   - Enterprise:   £599  — 7 workflows, 7-day delivery, 30-day support + dashboard
+
+   Expected Stripe price IDs / env vars (ONE-TIME):
+   - STRIPE_PRICE_DFY_STARTER        → £99 one-time
+   - STRIPE_PRICE_DFY_PROFESSIONAL   → £249 one-time
+   - STRIPE_PRICE_DFY_ENTERPRISE     → £599 one-time
+
+2) SUBSCRIPTIONS — “mode: subscription”
+   Monthly (front-end):
+   - Starter:   £29  / month
+   - Growth:    £79  / month
+   - Pro:       £149 / month
+   - Business:  £299 / month
+
+   Yearly (front-end, 2 months free: 10× monthly):
+   - Starter:   £290   / year
+   - Growth:    £790   / year
+   - Pro:       £1,490 / year
+   - Business:  £2,990 / year
+
+   Expected Stripe price IDs / env vars (RECURRING):
+   - STRIPE_PRICE_STARTER        → £29/mo
+   - STRIPE_PRICE_STARTER_YEAR   → £290/yr
+   - STRIPE_PRICE_GROWTH         → £79/mo
+   - STRIPE_PRICE_GROWTH_YEAR    → £790/yr
+   - STRIPE_PRICE_PRO            → £149/mo
+   - STRIPE_PRICE_PRO_YEAR       → £1,490/yr
+   - STRIPE_PRICE_BUSINESS       → £299/mo
+   - STRIPE_PRICE_BUSINESS_YEAR  → £2,990/yr
+
+CONFIG FILES ALREADY IN REPO (DO NOT DELETE, ONLY USE/ADJUST):
+- `levqor-site/src/config/pricing.ts`:
+  - Contains DFY + subscription config and documentation
+- `levqor-site/src/app/api/checkout/route.ts`:
+  - Already supports:
+    - `mode: "dfy" | "subscription"`
+    - `plan: "starter" | "professional" | "enterprise"` for DFY
+    - `plan: "starter" | "growth" | "pro" | "business"` for subscription
+    - `term: "monthly" | "yearly"` for subscription
+  - Uses Stripe Checkout:
+    - DFY:       `mode: "payment"`
+    - Subscriptions: `mode: "subscription"`
+- `levqor-site/src/app/pricing/page.tsx`:
+  - Already renders dual pricing sections, uses config from `pricing.ts`, and calls `/api/checkout`.
+
+GLOBAL RULES (VERY IMPORTANT):
+- DO NOT change prices, plan names, or what each tier offers.
+- DO NOT “simplify” the model to only DFY or only subscriptions.
+- DO NOT assume success — always verify by actually calling endpoints and grepping HTML.
+- Where you cannot perform an action (Stripe dashboard, Vercel GUI, etc.), output a precise, copy-pasteable manual checklist for the user.
+
+YOUR TASK:
+Make Levqor’s full revenue path 100% working and tested, with as much automation as possible:
+
+  Homepage → Pricing → Plan selection → Stripe Checkout → Success page
+  for BOTH:
+    - DFY one-time purchases
+    - Subscription (monthly/yearly) plans
+
+PHASED EXECUTION (FOLLOW IN ORDER):
+
+PHASE 1 — REPO & ENV DIAGNOSTICS
+1. Go to frontend project:
+   - `cd ~/workspace/levqor-site`
+   - Show:
+     - `ls`
+     - `ls src/app`
+     - `ls src/app/api`
+2. Check for pricing and checkout code:
+   - `ls src/config`
+   - `ls src/app/api/checkout`
+   - `ls src/app/pricing`
+3. Confirm TypeScript builds:
+   - Run: `npm run build`
+   - If it fails, fix any errors in the least invasive way possible.
+4. Check environment variables available in this environment:
+   - Print any `STRIPE_` env vars you can see (without printing secret keys).
+   - If you cannot read envs directly, call the GET status of checkout API (see PHASE 3).
+
+PHASE 2 — STRIPE PRICE ID DISCOVERY / CREATION
+Goal: Ensure all required price IDs exist and are wired correctly.
+
+1. Check if STRIPE_SECRET_KEY is present (without printing its value).
+   - If missing:
+     - STOP Stripe automation.
+     - Output a *manual* checklist for the user explaining exactly which products/prices they must create in Stripe and which env vars they must set (see mapping above).
+2. If STRIPE_SECRET_KEY **is present** and you can use Node or Python:
+   - Prefer using Stripe’s official libraries or bare HTTP requests to:
+     - List existing prices.
+     - Find any prices that match the amounts above (99, 249, 599, 29, 79, 149, 299, 290, 790, 1490, 2990) in GBP.
+   - For each env var needed:
+     - If a matching Stripe price already exists, map it.
+     - If it does NOT exist:
+       - Automatically create it via Stripe API using sensible product names:
+         - “Levqor DFY Starter (One-Time)”
+         - “Levqor DFY Professional (One-Time)”
+         - “Levqor DFY Enterprise (One-Time)”
+         - “Levqor Starter (Subscription)”
+         - “Levqor Growth (Subscription)”
+         - “Levqor Pro (Subscription)”
+         - “Levqor Business (Subscription)”
+       - Correctly set currency = GBP and recurring vs one-time as required.
+
+3. After discovery/creation, you must produce a table:
+   - Columns: ENV VAR NAME | Stripe price_id | Amount | Recurring? | Interval
+   - This table will be part of the final report.
+
+PHASE 3 — ENV VAR WIRING (REPLIT + VERCEL)
+1. In this environment:
+   - For each required env var name:
+     - Check if it is already set.
+     - If not, and you have determined the price_id in Phase 2:
+       - Set it in `.replit` / Replit secrets if you are allowed.
+       - If you cannot set secrets programmatically, emit explicit manual instructions like:
+         - “Add to Vercel Project Env: STRIPE_PRICE_DFY_STARTER=price_123…”
+2. Call the checkout config endpoint (GET):
+   - `curl -sS https://www.levqor.ai/api/checkout`
+   - Or (if only localhost is available) `curl -sS http://localhost:5000/api/checkout`
+   - Confirm it returns:
+     - `subscriptionConfigured: true`
+     - `dfyConfigured: true`
+     - `missing: []`
+   - If any keys are still missing, clearly list them and what the user must do manually.
+
+PHASE 4 — END-TO-END CHECKOUT TESTS (AUTOMATED)
+For each of the following, simulate requests to the checkout API and validate:
+
+A. DFY PLANS (ONE-TIME)
+- POST `/api/checkout` with JSON:
+  - `{ "mode": "dfy", "plan": "starter" }`
+  - `{ "mode": "dfy", "plan": "professional" }`
+  - `{ "mode": "dfy", "plan": "enterprise" }`
+Expectations:
+- HTTP 200
+- JSON body: `{ ok: true, url: "https://checkout.stripe.com/..." }`
+- url must contain `https://checkout.stripe.com/`
+
+B. SUBSCRIPTIONS (MONTHLY)
+- POST `/api/checkout` with JSON:
+  - `{ "mode": "subscription", "plan": "starter", "term": "monthly" }`
+  - `{ "mode": "subscription", "plan": "growth", "term": "monthly" }`
+  - `{ "mode": "subscription", "plan": "pro", "term": "monthly" }`
+  - `{ "mode": "subscription", "plan": "business", "term": "monthly" }`
+Expectations same as above.
+
+C. SUBSCRIPTIONS (YEARLY)
+- POST `/api/checkout` with JSON:
+  - `{ "mode": "subscription", "plan": "starter", "term": "yearly" }`
+  - `{ "mode": "subscription", "plan": "growth", "term": "yearly" }`
+  - `{ "mode": "subscription", "plan": "pro", "term": "yearly" }`
+  - `{ "mode": "subscription", "plan": "business", "term": "yearly" }`
+
+If ANY of these fail:
+- Do NOT hide it.
+- Print the failing payload, status code, and error body.
+- Suggest the minimal code/env change needed to fix.
+
+PHASE 5 — FRONTEND / UX VERIFICATION
+1. Build frontend again:
+   - `cd ~/workspace/levqor-site`
+   - `npm run build`
+   - Fix any build issues if they appear.
+2. Start dev server if not already running, or assume Vercel production is available.
+3. For `https://www.levqor.ai/pricing` (or `http://localhost:5000/pricing`):
+   - Fetch HTML:
+     - `curl -sS https://www.levqor.ai/pricing > /tmp/pricing.html`
+   - Grep to confirm:
+     - DFY prices: “£99”, “£249”, “£599”
+     - Subscription prices: “£29/mo”, “£79/mo”, “£149/mo”, “£299/mo”
+     - Yearly toggle: “£290/yr”, “£790/yr”, “£1,490/yr”, “£2,990/yr”
+     - DFY section headings and subscription section headings both present.
+4. Confirm the legal/compliance links exist and work:
+   - `/signin` includes links to `/terms` and `/privacy`
+   - `/terms`, `/privacy`, `/cookies`, `/refunds`, `/security`, `/legal/data-processing` all return HTTP 200.
+
+PHASE 6 — FINAL HUMAN TEST CHECKLIST (FOR THE USER)
+At the end, produce a **short, bullet-point checklist** for the human to test in a browser, such as:
+
+- Go to `/pricing`
+- Click each DFY plan → See Stripe checkout with correct price and ONE-TIME charge
+- Toggle to monthly → Click each subscription → See Stripe checkout with correct monthly amount
+- Toggle to yearly → Click each subscription → See Stripe checkout with correct yearly amount
+- Complete a test payment (in Stripe test mode) → Land on `/success` with correct messaging and type=dfy or type=subscription
+- Cancel from Stripe → Land on `/cancel`
+
+If any step cannot be fully automated (e.g., actually completing Stripe payment), clearly state that and give exact instructions.
+
+OUTPUT FORMAT:
+At the end, output:
+
+1. A short status summary:
+   - “DFY: fully configured / partially configured / not configured”
+   - “Subscriptions: fully configured / partially configured / not configured”
+2. The Stripe env table (ENV VAR → price_id → amount → recurring/interval).
+3. Any remaining manual steps for the user (Vercel env, Stripe dashboard, etc.).
+4. Explicit note: “If all manual steps above are done, the system is READY TO TAKE MONEY.”
+
+Now start PHASE 1 and proceed step by step. Do not skip verification steps. Do not assume success — prove it with real commands and outputs.
+```0

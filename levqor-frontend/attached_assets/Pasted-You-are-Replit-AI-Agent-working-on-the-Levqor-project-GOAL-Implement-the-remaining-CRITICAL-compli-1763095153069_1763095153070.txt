@@ -1,0 +1,345 @@
+You are Replit AI Agent working on the Levqor project.
+
+GOAL
+Implement the remaining CRITICAL compliance + UX safeguards for Levqor WITHOUT deploying to Vercel:
+
+1) Cookie consent banner (real PECR-compliant, not just a policy page)
+2) Legal/TOS acceptance gate after first sign-in (with logging)
+3) Marketing consent & unsubscribe plumbing
+4) DSAR + account deletion flows (UI + backend) reusing prior work where possible
+5) Automated data-retention cleanup for logs
+6) Lightweight internal compliance docs (ROPA, DPIA, LIA) as markdown
+
+CONSTRAINTS
+- Repo layout (same as before):
+  - Frontend: `levqor-site` (Next.js 14 App Router)
+  - Backend: Flask app at repo root (Postgres, Stripe, schedulers, etc.)
+- DO NOT:
+  - Touch Stripe prices/plans or checkout logic.
+  - Deploy to Vercel.
+- DO:
+  - Reuse existing DB/model/migration patterns.
+  - Reuse existing auth (NextAuth) and legal pages (`/terms`, `/privacy`, `/cookies`, `/data-requests`, etc.).
+  - Verify with real builds and curl calls.
+
+────────────────────────
+STEP 0 — QUICK DISCOVERY
+────────────────────────
+
+1. BACKEND:
+   - Find:
+     - User/tenant model(s) (e.g. `User`, `TenantUser` etc.).
+     - Any existing `consent` / `legal` / `audit` tables.
+     - Existing DSAR/data request handlers if we already added `data-requests`.
+     - Any retention/cleanup jobs (cron/scheduler).
+
+2. FRONTEND (`levqor-site`):
+   - Confirm:
+     - `/cookies`, `/privacy`, `/terms`, `/data-requests` pages exist.
+     - Sign-in flow: `/signin` using NextAuth (Google/Microsoft).
+     - Where layout/footers are defined (for banner & links).
+
+Keep notes in your head; only print changes and verification summaries.
+
+────────────────────────
+STEP 1 — COOKIE CONSENT BANNER (PECR COMPLIANT)
+────────────────────────
+
+GOAL
+Real cookie banner + preference storage + respect choices for non-essential cookies (analytics/marketing).
+
+A) FRONTEND: BANNER & PREFERENCES
+
+1. Add a small consent state helper:
+   - New file: `levqor-site/src/lib/cookiesConsent.ts` with helpers to:
+     - Read `levqor_cookie_consent` cookie (JSON with categories).
+     - Default to: `{ necessary: true, functional: false, analytics: false, marketing: false }`.
+
+2. Create banner component:
+   - New file: `levqor-site/src/components/CookieBanner.tsx`
+   - Requirements:
+     - Shows only if no `levqor_cookie_consent` cookie OR user hasn’t confirmed.
+     - Text: brief explanation + link to `/cookies`.
+     - Buttons:
+       - “Accept all”
+       - “Reject non-essential”
+       - “Manage preferences” (opens a small dialog or inline controls).
+     - If “Accept all”:
+       - Set cookie with all categories = true.
+     - If “Reject non-essential”:
+       - Set only `necessary: true` (others false).
+     - Store cookie for e.g. 6–12 months.
+
+3. Integrate banner:
+   - In `src/app/layout.tsx`:
+     - Import and render `<CookieBanner />` near top-level (after `<body>` content wrapper).
+     - Ensure banner doesn’t break hydration (use client component where needed).
+
+4. Optional preferences page:
+   - Add `/cookies/preferences` or extend `/cookies` page:
+     - Show toggles for `functional`, `analytics`, `marketing`.
+     - Update cookie when user saves.
+     - Link from banner: “Cookie settings”.
+
+B) RESPECT CONSENT FOR ANALYTICS
+
+1. Locate any analytics integration (GA/Plausible/etc.) in:
+   - `layout.tsx`, `_document` equivalent, or components.
+2. Wrap analytics scripts so they only load if:
+   - Client-side check: `analytics` category is true.
+   - If no consent: do NOT load analytics.
+
+C) VERIFY
+
+1. In dev:
+   - Open site in private window:
+     - Banner appears.
+   - Click “Reject non-essential”:
+     - Verify cookie set; analytics script NOT present in DOM.
+   - Clear storage; click “Accept all”:
+     - Cookie set; analytics script present.
+
+────────────────────────
+STEP 2 — TOS / PRIVACY ACCEPTANCE GATE
+────────────────────────
+
+GOAL
+After first successful OAuth sign-in, user must explicitly accept Terms + Privacy before accessing app. We log timestamp + IP.
+
+A) BACKEND: LEGAL CONSENT FIELDS
+
+1. In main user/tenant-user model:
+   - Add fields:
+     - `tos_accepted_at` (nullable datetime)
+     - `privacy_accepted_at` (nullable datetime)
+     - `legal_consent_ip` (nullable string, last IP used when accepting)
+
+2. Add migration.
+
+3. Add endpoints:
+   - `GET /api/legal/consent` (auth required)
+     - Returns:
+       - `{"tosAccepted": boolean, "privacyAccepted": boolean}`
+   - `POST /api/legal/consent` (auth required)
+     - Body: `{ acceptTos: boolean, acceptPrivacy: boolean }`
+     - If both true:
+       - Set `tos_accepted_at` and/or `privacy_accepted_at` if not already set.
+       - Set `legal_consent_ip` from request IP (if available).
+     - Return updated flags.
+
+B) FRONTEND: LEGAL GATE PAGE & FLOW
+
+1. New page: `levqor-site/src/app/legal-consent/page.tsx`
+   - Client page that:
+     - Calls `GET /api/legal/consent`.
+     - If already accepted both -> redirect to main app (e.g. `/workflow` or `/`).
+     - If not accepted:
+       - Show checkboxes:
+         - “I agree to the Terms of Service” (link to `/terms`).
+         - “I have read the Privacy Policy” (link to `/privacy`).
+       - Button: “Continue”.
+     - On submit:
+       - Call `POST /api/legal/consent` with both = true.
+       - On success, redirect to main app.
+
+2. Redirect logic after sign-in:
+   - In NextAuth `callbacks.redirect` or similar:
+     - If user is new or doesn’t have legal consent flags yet:
+       - Redirect to `/legal-consent`.
+     - Otherwise redirect to normal destination.
+
+3. Optional: visible indicator
+   - On account/profile page:
+     - Show when Terms/Privacy were accepted.
+
+C) VERIFY
+
+1. In dev:
+   - Use a test user with `tos_accepted_at` = null.
+   - Sign in:
+     - You should be redirected to `/legal-consent`.
+   - Accept both:
+     - DB fields set.
+     - Future sign-ins skip the gate.
+
+────────────────────────
+STEP 3 — MARKETING CONSENT & UNSUBSCRIBE
+────────────────────────
+
+GOAL
+PECR-compliant marketing consent: explicit opt-in, logging, and unsubscribe.
+
+A) BACKEND: MARKETING CONSENT
+
+1. Extend user model OR add new `MarketingConsent` table:
+   - Basic minimal approach:
+     - Add fields to user:
+       - `marketing_opt_in` (bool, default false)
+       - `marketing_opt_in_at` (datetime, nullable)
+   - Optionally separate table `marketing_consents` if pattern already exists.
+
+2. New endpoint:
+   - `POST /api/marketing/consent` (auth required)
+     - Body: `{ optIn: boolean }`
+     - If `optIn = true`:
+       - Set `marketing_opt_in = true`, `marketing_opt_in_at = now()`.
+     - If `optIn = false`:
+       - Set `marketing_opt_in = false`.
+   - `GET /api/marketing/consent` returns current state.
+
+3. Unsubscribe endpoint:
+   - `POST /api/marketing/unsubscribe`:
+     - Accepts signed token or user identifier.
+     - Sets `marketing_opt_in = false`.
+   - Create a simple token scheme (e.g., signed JWT or secure hash) matching existing email patterns, if any.
+
+B) FRONTEND: LEGAL-CONSENT + PROFILE
+
+1. On `/legal-consent` page:
+   - Add **optional** checkbox:
+     - “Yes, I’d like to receive occasional product updates and tips via email.”
+   - On submit:
+     - Call both:
+       - `/api/legal/consent`
+       - `/api/marketing/consent` with `optIn` based on checkbox.
+
+2. On account/profile page:
+   - Add toggle for marketing emails:
+     - Reads from `/api/marketing/consent`.
+     - Updates via `POST /api/marketing/consent`.
+
+C) EMAIL TEMPLATE SUPPORT
+
+1. Ensure all marketing-style emails:
+   - Include “Unsubscribe” link pointing to a simple route like `/unsubscribe?token=...`.
+2. Implement `/unsubscribe` page in Next.js:
+   - Reads token, calls `/api/marketing/unsubscribe`, shows confirmation.
+
+D) VERIFY
+
+1. In dev:
+   - Set user marketing opt-in on `/legal-consent`.
+   - Confirm DB updates.
+   - Hit `/unsubscribe?token=...` in a simulated way to ensure it flips `marketing_opt_in` to false.
+
+────────────────────────
+STEP 4 — DSAR + ACCOUNT DELETION UI (HOOK INTO /data-requests)
+────────────────────────
+
+GOAL
+Expose simple, working flows for:
+- “Get a copy of my data”
+- “Delete my account”
+
+We already have policy pages; now wire front + backend.
+
+A) BACKEND: DSAR & DELETION (REUSE OR ADD)
+
+1. If a DSAR request table already exists from earlier work, reuse it.
+   - If not, create `DsarRequest` model:
+     - `id`, `user_id`, `type` (`"export"|"delete"`), `status` (`"pending"|"processing"|"completed"|"rejected"`), `created_at`, `updated_at`, `result_location` (URL of export, nullable), `reason` (for delete).
+   - Migration accordingly.
+
+2. Endpoints:
+   - `POST /api/data-requests`:
+     - Body: `{ type: "export" | "delete", reason?: string }`.
+     - Create `DsarRequest` with `status="pending"`.
+   - `GET /api/data-requests/my`:
+     - Return list of that user’s requests.
+
+3. Worker / job for processing:
+   - Minimal viable:
+     - For `type="export"`:
+       - For now, mark as `status="completed"` with a placeholder `result_location` like “We will email you a copy of your data” OR use simple export pipeline if already implemented.
+     - For `type="delete"`:
+       - Mark account for deletion flag OR directly delete user + personal data, respecting retention rules (see next step).
+   - If a full export system already exists, just integrate with `DsarRequest`.
+
+B) DATA RETENTION CLEANUP JOB
+
+1. Find logs tables (e.g. `audit_logs`, `job_logs`, etc.).
+2. Add scheduled job:
+   - Runs daily.
+   - Deletes/soft-deletes records older than policy (e.g. 90 days for logs).
+3. If retention rules are already in policy pages, align durations.
+
+C) FRONTEND: `/data-requests` PAGE UPGRADE
+
+1. Update existing `/data-requests` page (if present) or create it:
+   - Sections:
+     - “Request a copy of your data”: button -> opens small form (optional reason) -> POST `type="export"`.
+     - “Request account deletion”: button -> confirm dialog -> POST `type="delete"`.
+     - “Your previous requests”: table listing `type`, `status`, dates.
+
+2. Show text referencing existing policy:
+   - Link to `/privacy`, `/dpa`, `/gdpr`.
+
+D) VERIFY
+
+1. In dev:
+   - Auth user visits `/data-requests`.
+   - Submit export + delete requests.
+   - Confirm DB records created.
+   - Confirm retention job deletes old logs in a dry-run or test DB.
+
+────────────────────────
+STEP 5 — INTERNAL COMPLIANCE DOCS (ROPA, DPIA, LIA)
+────────────────────────
+
+GOAL
+Create internal markdown docs for auditor-level compliance. They do NOT need UI pages; just files in repo.
+
+A) ADD MARKDOWN FILES UNDER /docs/compliance
+
+1. Create directory if missing: `docs/compliance/`.
+
+2. Files:
+   - `docs/compliance/ROPA.md`
+     - Table-style description:
+       - Processing activities (user account management, billing, workflow automation, logs).
+       - Categories of data.
+       - Purpose, legal basis, retention, recipients, storage location.
+   - `docs/compliance/DPIA.md`
+     - Identify high-risk processing (automation, profiling, error-prone workflows).
+     - Risks + mitigations (logging, human review, constraints).
+   - `docs/compliance/LIA.md`
+     - If legitimate interest is used: outline interest, necessity, balancing test.
+
+3. Use simple markdown; keep it consistent with actual platform behavior as implemented.
+
+B) VERIFY
+
+1. Ensure files are committed and readable (no build impact).
+2. Optionally reference them in `README` or dev docs, not in public UI.
+
+────────────────────────
+STEP 6 — VERIFICATION & SUMMARY
+────────────────────────
+
+1. BACKEND CHECKS
+   - Run tests (if present).
+   - At minimum:
+     - Start backend and hit via curl:
+       - `GET /api/status/health` (from previous step).
+       - `GET /api/legal/consent` (logged-in via some session).
+       - `POST /api/legal/consent`.
+       - `GET /api/marketing/consent`, `POST /api/marketing/consent`, `POST /api/marketing/unsubscribe`.
+       - `POST /api/data-requests`, `GET /api/data-requests/my`.
+
+2. FRONTEND CHECKS
+   - `cd levqor-site && npm run lint && npm run build`.
+   - Run dev server (if not already) and test manually:
+     - Cookie banner: new user, accept/reject/adjust preferences.
+     - Sign-in: redirected to `/legal-consent` until Terms & Privacy accepted.
+     - Marketing checkbox on legal-consent & profile page.
+     - `/data-requests`: export + delete flows visible.
+     - Legal links from footer still work.
+
+3. OUTPUT SUMMARY
+   - List all files created/modified.
+   - DB models + migrations added.
+   - New endpoints and their purpose.
+   - Anything left intentionally as “stub” (e.g. DSAR export email pipeline if not fully wired).
+
+DO NOT DEPLOY or touch Vercel. Just leave repo in a fully ready state for later deployment.
+```0

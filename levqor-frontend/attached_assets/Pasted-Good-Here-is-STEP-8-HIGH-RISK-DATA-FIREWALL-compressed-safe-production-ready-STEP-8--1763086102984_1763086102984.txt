@@ -1,0 +1,103 @@
+Good.
+Here is STEP 8 — HIGH-RISK DATA FIREWALL (compressed, safe, production-ready).
+
+
+---
+
+STEP 8 — HIGH-RISK DATA FIREWALL (COMPRESSED VERSION)
+
+1. Backend Rule — Reject Prohibited Data
+
+Add to all workflow creation & task execution endpoints:
+
+// forbidden terms list
+const BLOCKED = [
+  "medical", "diagnosis", "treatment", "symptom",
+  "legal advice", "lawsuit", "attorney", "contract drafting",
+  "tax advice", "financial advice", "investment", "trading signals",
+  "credit score", "loan approval"
+];
+
+function containsBlocked(text: string) {
+  return BLOCKED.some(x => text.toLowerCase().includes(x));
+}
+
+// middleware
+if (containsBlocked(req.body.description) || containsBlocked(JSON.stringify(req.body))) {
+  return res.status(400).json({
+    ok: false,
+    error: "This type of workflow is not permitted. High-risk categories are blocked for safety."
+  });
+}
+
+
+---
+
+2. UI Warning Banner (Create Workflow Page)
+
+⚠️ High-Risk Data Prohibited  
+Levqor does NOT automate:  
+• Medical or health decisions  
+• Legal workflows or document creation  
+• Financial advice or investment decisions  
+• Anything involving personal health, taxes, credit, or regulated decisions  
+Your workflow must not contain high-risk or regulated data.
+
+
+---
+
+3. Terms Update (Auto-Insert Into /risk-disclosure)
+
+Levqor will not process, store, or automate:
+- Medical decisions, health data, or diagnosis assistance  
+- Legal reasoning, legal workflows, or legal document generation  
+- Financial recommendations, credit scoring, lending, or investment decisions  
+- Any workflow that could materially impact health, legal standing, or financial status  
+Such workflows are automatically rejected at the system level.
+
+
+---
+
+4. Logging & Enforcement
+
+EVENT_LOG.push({
+  type: "high_risk_block",
+  user_id,
+  payload_snippet,
+  timestamp: new Date()
+});
+
+Store only sanitized snippets, never full content.
+
+
+---
+
+5. Customer-Facing Error Response
+
+{
+  "ok": false,
+  "category": "high_risk_data",
+  "message": "This workflow cannot be created because it contains restricted medical, legal, or financial content."
+}
+
+
+---
+
+6. Dashboard Flag (Optional)
+
+If user triggers >3 high-risk blocks in 24h → require manual approval for next workflow.
+
+
+---
+
+7. Compliance Notes (Internal Only)
+
+• Required for GDPR, UK GDPR, ICO guidance on automated decision making.  
+• Prevents illegal processing of regulated data.  
+• Protects Levqor from medical/legal/financial liability.  
+• Required before public launch.
+
+
+---
+
+Ready for STEP 9 when you say “Next boss.”

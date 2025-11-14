@@ -1,0 +1,222 @@
+You are a Replit AI Agent working in my existing project.
+
+CONTEXT
+- Repo root: ~/workspace/levqor-site
+- Framework: Next.js 14 (app router) + TailwindCSS
+- Hosting: Vercel, production domain https://www.levqor.ai
+- Problem: The production site renders as plain unstyled HTML (white background, no tiles/branding). Visiting https://levqor.ai/_next/static/css returns 404 and the homepage clearly has no CSS applied.
+- Goal: FIX THE STYLING PIPELINE so that Genesis v8 homepage and /signin use the full Tailwind + global styles in production, with proper CSS bundles generated and loaded.
+
+CRITICAL RULES
+- Treat “it should work” as a failure. VERIFY everything with real commands.
+- Always:
+  - Show file diffs before committing.
+  - Verify build locally if possible.
+  - Verify production with curl against https://www.levqor.ai, including actual CSS asset URLs.
+- Do NOT rename or delete core app files (except where explicitly stated). Keep layout/page components intact.
+
+HIGH-LEVEL PLAN
+1. Diagnose why CSS is missing.
+2. Restore global CSS file and import.
+3. Ensure Tailwind is configured to see all app files.
+4. Run a local sanity check build.
+5. Commit and push changes to origin main.
+6. Wait for Vercel to deploy, then verify that CSS assets exist and the homepage is styled.
+
+STEP-BY-STEP INSTRUCTIONS
+
+1) GO TO PROJECT ROOT AND QUICK DIAGNOSTICS
+- In shell:
+  - cd ~/workspace/levqor-site
+  - ls
+- Confirm this directory contains:
+  - package.json
+  - next.config.js
+  - tailwind.config.js
+  - src/app/layout.tsx
+- Show me the current global styling situation:
+  - ls src/app
+  - if globals.css exists, print first ~40 lines:
+    - sed -n '1,80p' src/app/globals.css 2>/dev/null || echo "no globals.css"
+  - Show layout imports:
+    - sed -n '1,80p' src/app/layout.tsx
+- Check Tailwind config:
+  - sed -n '1,120p' tailwind.config.js
+
+2) VERIFY THAT PRODUCTION HTML IS MISSING CSS LINKS
+(If Cloudflare blocks curl to api paths, that’s fine; we only care about HTML and static assets.)
+
+- Run:
+  - curl -sS https://www.levqor.ai | grep -i "<link" | head -20
+- Interpret:
+  - If there is NO `<link rel="stylesheet"` pointing at `/_next/static/css/...`, that confirms the layout/globals import is broken.
+  - If there IS a `<link rel="stylesheet" href="/_next/static/css/...">` then capture the URL in an ASSET variable and test it:
+    - ASSET=$(curl -sS https://www.levqor.ai | grep -Eo "/_next/static/css/[A-Za-z0-9._-]+\.css" | head -1)
+    - echo "ASSET=$ASSET"
+    - test -n "$ASSET" && curl -sSI "https://www.levqor.ai$ASSET" | sed -n '1,10p'
+  - If ASSET is empty OR the CSS asset is 404, we still treat it as a broken CSS pipeline.
+
+3) FIX OR CREATE src/app/globals.css
+Goal: ensure a proper Tailwind entry file exists.
+
+- In src/app, ensure a file `globals.css` exists with Tailwind directives at minimum. If it does not exist, create it. If it exists but is missing Tailwind directives, prepend/fix it.
+- SAFE UPDATE STRATEGY:
+  - If file exists:
+    - cp src/app/globals.css src/app/globals.css.bak
+  - Then overwrite with:
+
+    cat > src/app/globals.css << 'EOF'
+    @tailwind base;
+    @tailwind components;
+    @tailwind utilities;
+
+    /* Levqor global styling */
+    html,
+    body {
+      min-height: 100%;
+      background-color: #020617; /* slate-950 */
+      color: #0f172a;            /* slate-900, overridden by sections */
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+    }
+
+    a {
+      text-decoration: none;
+    }
+    EOF
+
+  - Show the resulting file:
+    - sed -n '1,80p' src/app/globals.css
+
+4) ENSURE LAYOUT IMPORTS THE GLOBAL CSS
+- Open src/app/layout.tsx and make sure it has:
+
+  import "./globals.css";
+
+  near the top, before other local imports. Only one import; no duplicates.
+
+- Implementation:
+  - If layout.tsx does NOT have that line, insert it right after any “use client” or next/font imports.
+  - Use a small script like:
+
+    python - << 'EOF'
+    from pathlib import Path
+    p = Path("src/app/layout.tsx")
+    text = p.read_text()
+    if 'import "./globals.css";' not in text:
+        lines = text.splitlines()
+        out = []
+        inserted = False
+        for line in lines:
+            out.append(line)
+            # Insert after "use client" or first import block start
+            if not inserted and (line.strip().startswith("import ") or line.strip().startswith('"use client"') or line.strip().startswith("'use client'")):
+                # We'll insert just once at the first import block boundary
+                # But only when we hit the first non-empty, non-comment import line
+                pass
+        # Simple approach: ensure it’s at top if not found
+        if 'import "./globals.css";' not in out[0:5]:
+            out.insert(0, 'import "./globals.css";')
+        p.write_text("\n".join(out))
+    EOF
+
+  - Then print the top of layout.tsx:
+    - sed -n '1,40p' src/app/layout.tsx
+
+  The important part: verify `import "./globals.css";` is present exactly once and the file still compiles logically (no syntax junk).
+
+5) FIX TAILWIND CONFIG CONTENT GLOB
+- Ensure `tailwind.config.js` has a `content` array that includes the app and components directories in `src`.
+- Desired minimal config (keep any theme/extend plugins that already exist, just fix `content`):
+
+  - If config is simple, you can replace the whole file with:
+
+    cat > tailwind.config.js << 'EOF'
+    /** @type {import('tailwindcss').Config} */
+    module.exports = {
+      content: [
+        "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+        "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+      ],
+      theme: {
+        extend: {},
+      },
+      plugins: [],
+    };
+    EOF
+
+  - If there is already a more complex `theme` or `plugins`, keep them and only update the `content` array to include those two lines. Show the final file:
+    - sed -n '1,120p' tailwind.config.js
+
+6) LOCAL SANITY BUILD (OPTIONAL BUT PREFERRED)
+- In repo root, run:
+  - npm install  # only if node_modules is missing or outdated (check existence first)
+  - Then:
+    - npm run lint || echo "lint failed (capture output but DO NOT stop here automatically)"
+    - npm run build || echo "build failed (capture output)"
+
+- If build fails, STOP and show full error logs instead of committing. The priority is not to break production. Diagnose quickly:
+  - If build error is clearly unrelated to CSS (e.g. type error in some new file), highlight it in the logs and pause for me.
+
+7) GIT DIFF, COMMIT, PUSH
+- Show status:
+  - git status
+- Show diffs for the changed files ONLY:
+  - git diff src/app/globals.css src/app/layout.tsx tailwind.config.js
+- If diffs look correct (new globals.css, added import, updated content glob), then:
+
+  - git add src/app/globals.css src/app/layout.tsx tailwind.config.js
+  - git commit -m "fix: restore global Tailwind styles and CSS pipeline"
+  - git push origin main
+
+- If git index behaves strangely (no diff despite file changes), run:
+  - git status
+  - git ls-files src/app/globals.css src/app/layout.tsx tailwind.config.js
+  - DO NOT run destructive commands like git reset --hard without explicit instruction. Just show me the strange state.
+
+8) WAIT FOR VERCEL AUTO DEPLOY
+(Vercel is connected to this repo; push to main should trigger a production build.)
+
+- We can’t click the dashboard here, but we can approximate by waiting and checking the live site.
+
+- Wait ~60–90 seconds:
+  - sleep 90
+- Then verify new build headers and CSS links:
+
+  # Check that we’re hitting a fresh deployment
+  curl -sSI https://www.levqor.ai | grep -Ei "HTTP/|x-vercel-id|age:"
+
+  # Capture CSS asset from HTML
+  ASSET=$(curl -sS https://www.levqor.ai | grep -Eo "/_next/static/css/[A-Za-z0-9._-]+\.css" | head -1)
+  echo "ASSET=$ASSET"
+  test -n "$ASSET" && curl -sSI "https://www.levqor.ai$ASSET" | sed -n '1,10p'
+
+- EXPECTED RESULT:
+  - Home page HTML contains a `<link rel="stylesheet" href="/_next/static/css/xxxx.css">`.
+  - The CSS asset request returns:
+    - HTTP/2 200
+    - content-type: text/css
+
+9) FINAL VISUAL VERIFICATION (TEXT-BASED)
+Because you can’t see the browser visually, approximate that styling is active by checking that the HTML is no longer just raw unstyled elements:
+
+- Run:
+  - curl -sS https://www.levqor.ai | sed -n '1,140p'
+- Interpretation:
+  - If the CSS link tag is present and the asset is 200, the page in a real browser will use the full Tailwind + global CSS. Combined with earlier design work, that’s what restores tiles/branding.
+
+10) REPORT BACK
+At the end, output a concise summary for me:
+
+- What was wrong (missing globals import, missing globals.css, bad Tailwind content glob, etc.).
+- Exactly what files you changed.
+- Confirmation of:
+  - CSS asset URL found
+  - HTTP 200 for that asset
+  - New build headers (x-vercel-id, age: 0–a few seconds)
+
+If at ANY point a step fails (build error, git push error, CSS asset still 404), STOP, print the exact command output, and do NOT attempt hacky workarounds. I want a clean, well-audited fix with verifiable commands.
+```0

@@ -1,0 +1,237 @@
+You are the Replit AI Agent with full access to this workspace.
+
+Goal:
+- Make Levqor READY TO TAKE MONEY.
+- Fix and verify the **full revenue path**:
+  Homepage → Pricing → Sign in → Choose plan → Stripe Checkout → Success page.
+- Fix any broken links or missing routes in this path.
+- Preserve all Genesis v8 UI and dark theme.
+
+You MUST follow the user’s rules:
+- Always verify with real commands: curl endpoints, grep HTML, show diffs.
+- “Should work” is a red flag. You only say “working” after checking.
+- No half-done work. If something is ambiguous, print what you found and stop.
+
+============================================================
+PHASE 0 — PROJECT ROOT & CONTEXT
+============================================================
+
+1. Confirm repo structure:
+   - There is a frontend app (Next.js) — likely `levqor-site` or similar.
+   - There is a backend API — likely `levqor-backend` or similar.
+
+2. Print:
+   - `pwd`
+   - `ls -la`
+   - Names of folders that look like frontend & backend.
+
+3. From root, identify:
+   - Frontend folder path (contains `package.json` with `next`, `src/app`).
+   - Backend folder path (contains `app.py` or `run.py` or Flask).
+
+Use that frontend folder for all Next.js work below.
+
+============================================================
+PHASE 1 — MAP THE REVENUE USER JOURNEY
+============================================================
+
+In the **frontend folder**:
+
+1. List existing key routes:
+   - `src/app/page.tsx`
+   - `src/app/pricing/page.tsx`
+   - `src/app/signin/page.tsx`
+   - Any `/checkout`, `/success`, `/dashboard`, `/workflow` routes.
+
+2. Open and inspect:
+   - `src/app/page.tsx`
+   - `src/app/pricing/page.tsx`
+   - `src/app/signin/page.tsx`
+
+3. Map the user journey in plain text (print it out):
+
+   - On `/` (homepage):
+     - Which buttons are visible? (e.g. “Start free trial”, “View pricing”, “Sign in”)
+     - For each button: which `href` or `onClick` are used?
+
+   - On `/pricing`:
+     - Current plans (names + prices) that appear.
+     - Which buttons are clickable for each tier and where they go.
+
+   - On `/signin`:
+     - Which auth methods are visible (Google, Microsoft, magic link).
+     - What happens after a successful sign-in (redirect target).
+
+4. Print a clear bullet list of:
+   - All CTAs and their destinations.
+   - Any CTA that currently goes nowhere (`#`, `javascript:void`, missing href).
+
+============================================================
+PHASE 2 — STRIPE CONFIG DISCOVERY (NO GUESSING)
+============================================================
+
+1. Search for Stripe configuration in the **entire repo**:
+
+   - `grep -R "STRIPE" -n . || true`
+   - `grep -R "price_" -n . || true`
+   - `grep -R "checkout" -n src || true`
+
+2. Identify:
+   - Environment variable names that look like price IDs (e.g. `STRIPE_PRICE_`, `STRIPE_PLAN_`).
+   - Any existing Next.js API routes using Stripe (e.g. `src/app/api/checkout/route.ts`, `src/pages/api/checkout_sessions.ts`).
+   - Any backend (Flask) endpoints that call Stripe directly.
+
+3. Print:
+   - List of all Stripe-related env vars (names only, not values).
+   - All files that import `stripe` or mention `checkout`.
+
+Do NOT invent new env vars. Only use what exists.
+
+============================================================
+PHASE 3 — WIRE PRICING UI → STRIPE CHECKOUT
+============================================================
+
+Business model:
+- Done-for-you pricing (GBP):
+  - Starter: £99 (1 workflow, 48h)
+  - Professional: £249 (3 workflows, 2–4 days)
+  - Enterprise: £599 (7 workflows, 7 days + support)
+
+Task:
+
+1. In `src/app/pricing/page.tsx`:
+   - Ensure the **visible prices** are these three exact values: £99, £249, £599.
+   - Ensure each tier has a primary button, e.g.:
+     - Starter: “Get Starter”
+     - Professional: “Get Professional”
+     - Enterprise: “Get Enterprise”
+
+2. Decide the click behaviour:
+   - For each CTA, either:
+     - Link to a dedicated checkout route with query param:
+       - `/checkout?plan=starter`
+       - `/checkout?plan=professional`
+       - `/checkout?plan=enterprise`
+     OR
+     - Call a Next.js API route that creates a Stripe Checkout Session, e.g. `/api/checkout`.
+
+   Choose the approach that best matches the existing code (if there is an existing checkout API, reuse it; don’t duplicate).
+
+3. If a Checkout API route already exists:
+   - Standardise its input (plan type or price ID).
+   - Map each tier to a specific env var for price ID (e.g. `STRIPE_PRICE_STARTER`, etc. — if they exist).
+   - If you find more than 3 Stripe price IDs, choose 3 that are clearly DFY workflow related; otherwise print a WARNING in your output saying mapping is ambiguous.
+
+4. If there is NO Checkout API route at all:
+   - Create `src/app/api/checkout/route.ts` (App Router style) that:
+     - Accepts POST body or query param `plan`.
+     - Looks up the corresponding Stripe price ID from env.
+     - Creates a Stripe Checkout Session (TEST MODE or using existing live env).
+     - Returns `{ url: "<checkout-url>" }`.
+
+   - On the frontend, for each pricing CTA:
+     - Call `/api/checkout` via `fetch` (POST).
+     - On success: `window.location.href = url`.
+
+5. Do NOT hard-code any secret keys.
+   - Use `process.env.STRIPE_SECRET_KEY` and price env vars only.
+
+============================================================
+PHASE 4 — SUCCESS & CANCEL PAGES
+============================================================
+
+1. Check if these routes exist:
+
+   - `/success`
+   - `/cancel`
+
+2. If missing, create them:
+
+   - `src/app/success/page.tsx`
+     - Friendly thank-you message
+     - “We’ll start building your automation and contact you within 24h”
+     - Link back to `/` and `/signin`.
+
+   - `src/app/cancel/page.tsx`
+     - Explains that payment was cancelled
+     - Button: “Back to pricing”
+
+3. Make sure Stripe Checkout redirects to these URLs (success/cancel URLs in the checkout API).
+
+============================================================
+PHASE 5 — LINK & STATUS VERIFICATION (NO GUESSING)
+============================================================
+
+From within the frontend folder, after changes:
+
+1. Run a local build:
+
+   - `npm run build`
+   - If it fails, FIX all issues.
+   - Print the last 40 lines of the build output.
+
+2. If build succeeds, run a **link sanity script** (create a simple Node or bash script) to check these paths return at least 200/3xx locally (or in deployed env if we can curl domain):
+
+   Critical paths:
+
+   - `/`
+   - `/pricing`
+   - `/signin`
+   - `/success`
+   - `/cancel`
+   - `/api/checkout`   (or equivalent)
+   - Any existing `/api/checkout_sessions` route
+   - `/workflow` (if exists)
+
+3. Use `curl` to verify where you can:
+
+   - `curl -sI https://www.levqor.ai/pricing || true`
+   - `curl -sI https://www.levqor.ai/signin || true`
+   - `curl -sI https://www.levqor.ai/success || true`
+   - `curl -sI https://www.levqor.ai/cancel || true`
+
+If Cloudflare blocks curl, explicitly state that and rely on local route checks (`npm run dev` + `curl http://localhost:3000/...`).
+
+============================================================
+PHASE 6 — FINAL AUDIT OUTPUT (MANDATORY)
+============================================================
+
+At the end, output a clear, structured report:
+
+1. FILES CHANGED / CREATED
+   - List all relevant files with short description.
+   - Example:
+     - `src/app/pricing/page.tsx` — wired CTAs to checkout
+     - `src/app/api/checkout/route.ts` — creates Stripe Checkout Sessions
+     - `src/app/success/page.tsx` — success page
+     - `src/app/cancel/page.tsx` — cancel page
+
+2. STRIPE CONFIG
+   - List the env vars you relied on (names only).
+   - For each plan, specify which env var it uses (or state “AMBIGUOUS — please map manually”).
+
+3. USER JOURNEY
+   - Describe the full flow:
+     - From homepage → pricing → checkout → success.
+   - Confirm all buttons are wired correctly (no dead links or `#`).
+
+4. VERIFICATION RESULTS
+   - Build: PASS/FAIL
+   - Any TypeScript errors: YES/NO
+   - curl checks: which routes returned 200/3xx.
+   - Note any Cloudflare blocks.
+
+5. READY FOR PRODUCTION?
+   - YES, if:
+     - Build passes
+     - All paths exist
+     - CTAs wired
+     - No critical errors
+
+   - If NO, explain exactly what is missing/ambiguous.
+
+============================================================
+
+Now perform ALL phases (0–6), obeying the verification rules.
+Do not skip any sanity checks.
+Do not say “done” without showing logs, diffs, and route checks.

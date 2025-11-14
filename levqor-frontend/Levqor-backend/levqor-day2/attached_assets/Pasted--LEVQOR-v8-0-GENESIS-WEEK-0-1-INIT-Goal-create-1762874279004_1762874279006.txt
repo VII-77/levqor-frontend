@@ -1,0 +1,200 @@
+#############################################
+# LEVQOR v8.0 "GENESIS" — WEEK 0–1 INIT
+# Goal: create safe rollback point, enable dual-mode tenancy, prep migrations.
+# Assumptions: Postgres, Gunicorn/ASGI, Notion + APScheduler live.
+#############################################
+
+# ========== 0) SAFETY SNAPSHOTS ==========
+# DB snapshot (adjust connection as needed)
+export PGURL="${PGURL:-postgres://user:pass@host:5432/levqor}"
+mkdir -p backups/genesis && ts=$(date -u +%Y%m%dT%H%M%SZ)
+pg_dump --no-owner --format=custom --file="backups/genesis/pre_genesis_${ts}.dump" "$PGURL"
+
+# App config snapshot
+mkdir -p backups/genesis/config_${ts}
+cp -a config/* backups/genesis/config_${ts}/ 2>/dev/null || true
+cp -a .env*  backups/genesis/config_${ts}/ 2>/dev/null || true
+
+# Artifact integrity
+sha256sum backups/genesis/pre_genesis_${ts}.dump > backups/genesis/pre_genesis_${ts}.sha256
+
+# ========== 1) ENABLE DUAL MODE ==========
+# Add to backend env (keep existing .env)
+cat >> .env.genesis <<'ENV'
+TENANCY_MODE=dual
+TENANT_HEADER=x-tenant-id
+DEFAULT_TENANT_ID=000-CORE
+# hard-stop guard: refuses hard multi until cutover approved
+TENANCY_HARD_MULTI_GUARD=true
+ENV
+
+# Do not restart yet; we gate rollout after migrations compile.
+
+# ========== 2) TENANT MASTER TABLES ==========
+# Create idempotent SQL migration 001_genesis_master.sql
+mkdir -p migrations/genesis
+cat > migrations/genesis/001_genesis_master.sql <<'SQL'
+-- 001_genesis_master.sql
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+CREATE TABLE IF NOT EXISTS tenants (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  ext_id TEXT UNIQUE,       -- optional human-readable ID (e.g., '000-CORE')
+  name TEXT NOT NULL,
+  plan TEXT NOT NULL DEFAULT 'enterprise',
+  region TEXT NOT NULL DEFAULT 'eu-west-1',
+  status TEXT NOT NULL DEFAULT 'active',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS tenant_users (
+  tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL,
+  role TEXT NOT NULL DEFAULT 'owner',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (tenant_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS tenant_audit (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  event TEXT NOT NULL,
+  actor TEXT,
+  metadata JSONB,
+  ts TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+SQL
+
+psql "$PGURL" -f migrations/genesis/001_genesis_master.sql
+
+# ========== 3) SEED LEGACY TENANT ==========
+# Migration 002 seed core tenant and map existing users
+cat > migrations/genesis/002_seed_core.sql <<'SQL'
+-- 002_seed_core.sql
+WITH core AS (
+  INSERT INTO tenants (ext_id, name, plan, region, status)
+  VALUES ('000-CORE','Levqor Core','enterprise','eu-west-1','active')
+  ON CONFLICT (ext_id) DO UPDATE SET name=EXCLUDED.name
+  RETURNING id
+)
+INSERT INTO tenant_users (tenant_id, user_id, role)
+SELECT (SELECT id FROM core), u.id, 'owner'
+FROM users u
+ON CONFLICT DO NOTHING;
+SQL
+
+psql "$PGURL" -f migrations/genesis/002_seed_core.sql
+
+# Capture seeded tenant UUID for checks
+core_id=$(psql "$PGURL" -tAc "SELECT id FROM tenants WHERE ext_id='000-CORE'")
+
+# ========== 4) CONNECTION BROKER SCAFFOLD ==========
+mkdir -p backend/middleware backend/tenancy
+
+cat > backend/tenancy/broker.py <<'PY'
+import contextlib, os
+from psycopg2.extensions import ISOLATION_LEVEL_READ_COMMITTED
+import psycopg2
+
+DEFAULT_TENANT = os.getenv("DEFAULT_TENANT_ID","000-CORE")
+TENANCY_MODE   = os.getenv("TENANCY_MODE","single")
+
+def resolve_schema(tenant_ext_id:str)->str:
+    # schema-per-tenant naming: tenant_<ext_id_lower>
+    return f"tenant_{tenant_ext_id.lower().replace('-','_')}"
+
+@contextlib.contextmanager
+def tenant_conn(base_dsn:str, tenant_ext_id:str=DEFAULT_TENANT):
+    conn = psycopg2.connect(base_dsn)
+    conn.set_isolation_level(ISOLATION_LEVEL_READ_COMMITTED)
+    cur = conn.cursor()
+    if TENANCY_MODE in ("dual","multi"):
+        schema = resolve_schema(tenant_ext_id)
+        cur.execute(f'CREATE SCHEMA IF NOT EXISTS "{schema}"')
+        cur.execute(f'SET search_path TO "{schema}", public')
+    try:
+        yield conn
+    finally:
+        conn.close()
+PY
+
+cat > backend/middleware/tenant_context.py <<'PY'
+from flask import request, g
+import os
+DEFAULT_TENANT = os.getenv("DEFAULT_TENANT_ID","000-CORE")
+TENANT_HEADER  = os.getenv("TENANT_HEADER","x-tenant-id")
+
+def load_tenant():
+    tid = request.headers.get(TENANT_HEADER, DEFAULT_TENANT)
+    g.tenant_ext_id = tid
+PY
+
+# Wire middleware in app factory (pseudo-diff):
+# app.before_request(load_tenant)
+
+# ========== 5) READ-ONLY SHIM (NO BEHAVIOR CHANGE) ==========
+# Replace direct connections in read paths with broker, write paths still to public.
+# Minimal example utility.
+cat > backend/tenancy/db_read.py <<'PY'
+import os
+from backend.tenancy.broker import tenant_conn
+BASE_DSN = os.getenv("PGURL")
+def fetch_health_counts(tenant_ext_id:str):
+    with tenant_conn(BASE_DSN, tenant_ext_id) as conn:
+        cur=conn.cursor()
+        cur.execute("SELECT 1")
+        return cur.fetchone()[0]
+PY
+
+# ========== 6) DRILL: TENANT SCHEMA READINESS ==========
+# Create the initial schema clone for core tenant (no destructive ops).
+cat > scripts/genesis/clone_public_to_tenant.sql <<'SQL'
+DO $$
+DECLARE schema_name TEXT := 'tenant_000_core';
+BEGIN
+  EXECUTE format('CREATE SCHEMA IF NOT EXISTS %I', schema_name);
+  -- Clone table structure only, no data yet
+  -- Use pg_dump for structure export and sed schema rename if needed (done below).
+END $$;
+SQL
+
+psql "$PGURL" -f scripts/genesis/clone_public_to_tenant.sql
+
+# Structure-only clone via pg_dump (schema rewrite to tenant schema)
+pg_dump --schema=public --schema-only "$PGURL" | \
+  sed 's/SET search_path = public;/SET search_path = tenant_000_core, public;/' | \
+  sed 's/ IN SCHEMA public/ IN SCHEMA tenant_000_core/g' | \
+  psql "$PGURL"
+
+# ========== 7) GUARDRAILS ==========
+# Feature flag switches (env)
+cat >> .env.genesis <<'ENV'
+# fail-safe kill-switches
+TENANCY_RW_MIGRATIONS_ENABLED=false
+TENANCY_BLOCK_CROSS_TENANT=true
+ENV
+
+# ========== 8) VALIDATION (WEEK 0–1) ==========
+# 8.1 Snapshot integrity
+sha256sum -c backups/genesis/pre_genesis_${ts}.sha256
+
+# 8.2 Master tables present
+psql "$PGURL" -tAc "SELECT count(*) FROM tenants;" | grep -q '^[0-9]' && echo "OK tenants table"
+
+# 8.3 Core tenant seeded
+psql "$PGURL" -tAc "SELECT ext_id FROM tenants WHERE ext_id='000-CORE';" | grep -q '000-CORE' && echo "OK core tenant"
+
+# 8.4 Tenant schema exists
+psql "$PGURL" -tAc "SELECT schema_name FROM information_schema.schemata WHERE schema_name='tenant_000_core';" | grep -q tenant_000_core && echo "OK tenant schema"
+
+# 8.5 App boots with dual-mode (dry-run)
+echo "TENANCY_MODE=dual" >> .env.local
+# start app in staging/sandbox; check /health returns 200 and no tenant header regression
+
+# ========== 9) ROLLBACK READY ==========
+# One-command DB restore (document only; do NOT run now):
+# pg_restore --clean --if-exists --no-owner --dbname="$PGURL" backups/genesis/pre_genesis_${ts}.dump
+
+# ========== 10) NOTION LOG ENTRY ==========
+# Add a single line to your ops log (pseudo; use your existing script)
+# notion.log("Genesis Week 0–1", "Snapshots complete; dual-mode env prepared; core tenant seeded; tenant schema cloned (structure-only).")

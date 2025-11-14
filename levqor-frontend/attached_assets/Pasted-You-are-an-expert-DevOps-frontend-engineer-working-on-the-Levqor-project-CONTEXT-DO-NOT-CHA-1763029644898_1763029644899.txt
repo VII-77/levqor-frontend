@@ -1,0 +1,180 @@
+You are an expert DevOps & frontend engineer working on the **Levqor** project.
+
+CONTEXT (DO NOT CHANGE):
+- Local project path: `~/workspace/levqor-site`
+- Git repo: `VII-77/levqor-frontend` (default branch: `main`)
+- Vercel project: `levqor-site` in team `vii-77s-projects`
+- Primary domains: `https://levqor.ai` and `https://www.levqor.ai`
+- Cloudflare sits in front of Vercel and sometimes blocks `curl` as a bot.
+- We recently had:
+  - Vercel deployment limits hit
+  - Git index corruption for `src/app/page.tsx`
+  - Vercel serving a **Dependabot** build instead of the user’s Genesis v8 homepage
+
+YOUR JOB:
+1. **Verify** that the live production site at `levqor.ai` is now serving the **Genesis v8** frontend from the current `main` branch.
+2. If it is NOT, determine exactly why (wrong deployment, wrong branch, Dependabot, etc.).
+3. If it is safe and necessary, trigger a correct deployment or give precise, minimal instructions for the user to re-point production in the Vercel UI.
+4. Follow strict verification rules – never assume “build succeeded” means “site is correct”.
+
+ABSOLUTE RULES:
+- DO NOT delete any Vercel project, domain, or repo.
+- DO NOT edit Cloudflare settings.
+- DO NOT rename the project or unlink Git.
+- DO NOT spam deployments. Deploy ONLY if you prove it is needed.
+- Prefer **diagnosis and verification** over guessing.
+- Every fix must end with real checks (HTML content, headers, SHAs).
+
+----------------------------------------------------------------------
+STEP 1 — CHECK LOCAL STATE (GIT + FRONTEND FILE)
+----------------------------------------------------------------------
+
+1. `cd ~/workspace/levqor-site`
+2. Run and SHOW output:
+   - `pwd`
+   - `git remote -v`
+   - `git status`
+   - `git rev-parse --abbrev-ref HEAD`
+   - `git log -1 --oneline`
+3. Confirm the Genesis v8 homepage is present locally:
+   - Show first ~60 lines of `src/app/page.tsx`
+     (use `sed -n '1,60p' src/app/page.tsx`).
+   - Confirm it clearly includes the Genesis v8 UI elements (hero, tagline, etc.).
+4. If `src/app/page.tsx` is missing or looks like an old minimal page, STOP and report that local code is wrong.
+
+----------------------------------------------------------------------
+STEP 2 — CHECK LIVE PRODUCTION HTML (NO GUESSING)
+----------------------------------------------------------------------
+
+We need to see what `levqor.ai` is actually serving.
+
+1. Try standard curl:
+   - `curl -sSI https://levqor.ai | head -20`
+2. Then fetch HTML with a browser-like User-Agent:
+   - `curl -sSL -A "Mozilla/5.0 (LevqorAudit)" https://levqor.ai > /tmp/levqor_live.html || true`
+3. If Cloudflare blocks curl with a “Sorry, you have been blocked” style page, make that explicit in your notes.
+4. Inspect the HTML (show key parts, not the whole file):
+   - `grep -Ei "Automate work|Self-healing runs|Levqor" -n /tmp/levqor_live.html | head -20`
+   - Also show the top of the file: `sed -n '1,40p' /tmp/levqor_live.html`
+5. Compare **structure & content** of `src/app/page.tsx` vs `/tmp/levqor_live.html`.
+   - We want to know: does the live HTML match Genesis v8 (hero, layout, sections), or does it look like an old/unstyled page?
+
+Be explicit in your reasoning: “Live HTML looks like OLD version because…”, or “Live HTML clearly matches Genesis v8 because…”.
+
+----------------------------------------------------------------------
+STEP 3 — IDENTIFY WHICH DEPLOYMENT IS LIVE
+----------------------------------------------------------------------
+
+Use the Vercel API or CLI to see what deployment is currently serving production.
+
+Assume a `VERCEL_TOKEN` exists in env.
+
+1. Get project info:
+   - `export LEVQOR_PROJECT="prj_0uD8XkWsrf6z7F9DHlUvyfDinas5"`
+   - `export LEVQOR_TEAM="team_brpiJYLXLxoOUdPwhMJ2TJ6e"`
+   - `curl -sS "https://api.vercel.com/v9/projects/$LEVQOR_PROJECT?teamId=$LEVQOR_TEAM" -H "Authorization: Bearer $VERCEL_TOKEN" | jq '{name, link, git: .link, prodBranch: .link.productionBranch}'`
+2. List last 5 deployments:
+   - `curl -sS "https://api.vercel.com/v6/deployments?projectId=$LEVQOR_PROJECT&teamId=$LEVQOR_TEAM&limit=5" -H "Authorization: Bearer $VERCEL_TOKEN" > /tmp/deploys.json`
+   - Summarize with:
+     `python3 - << 'PY'
+import json, pathlib
+d=json.loads(pathlib.Path("/tmp/deploys.json").read_text())
+for i,dep in enumerate(d.get("deployments",[]),1):
+    print(f"{i}. state={dep.get('state')}  target={dep.get('target')}  url={dep.get('url')}")
+    print("   created:", dep.get('createdAt'))
+    meta = dep.get('meta', {})
+    print("   commitMsg:", meta.get('githubCommitMessage', 'N/A'))
+    print("   commitSha:", meta.get('githubCommitSha', 'N/A'))
+    print()
+PY`
+3. Determine which deployment currently owns the `levqor.ai` alias, if possible (if needed, call the alias API).
+4. Compare:
+   - Local `git rev-parse HEAD`
+   - Production deployment `meta.githubCommitSha`
+   - If the production deployment SHA doesn’t match local HEAD, note that clearly.
+
+The goal: **prove** whether the production deployment is from:
+- your Genesis v8 commit on `main`, or
+- an old commit (e.g., Dependabot).
+
+----------------------------------------------------------------------
+STEP 4 — DECIDE IF A NEW DEPLOY IS NEEDED
+----------------------------------------------------------------------
+
+Use this logic:
+
+- IF:
+  - Local `src/app/page.tsx` has Genesis v8 UI
+  - Local `git status` is clean
+  - Production deployment SHA ≠ local HEAD **OR** live HTML looks like the old page
+  THEN: production is out of sync → a deployment is justified.
+
+- ELSE IF:
+  - Production deployment SHA == local HEAD
+  - AND live HTML looks like Genesis v8
+  THEN: STOP. System is correct; just report success.
+
+Also:
+
+- If the Vercel API or CLI returns a rate limit error (e.g., 100 deploys/day), DO NOT try to brute force. Just report the limit and give manual next steps instead of deploying.
+
+----------------------------------------------------------------------
+STEP 5 — IF NEEDED, DEPLOY SAFELY (OR GIVE MANUAL STEPS)
+----------------------------------------------------------------------
+
+ONLY if your checks show production is out of sync AND it is safe to deploy:
+
+1. Try a single production deployment from the current directory:
+   - `cd ~/workspace/levqor-site`
+   - `vercel --prod --yes`   # do NOT re-link project; it’s already linked.
+2. If the CLI asks interactive questions, answer **non-destructively** (no new project, no unlinking).
+3. If you hit a deployment rate limit, STOP immediately and switch to “manual steps only” (see below).
+
+If you cannot safely deploy (rate limit, config issues, or CLI failure):
+
+- Output **clear manual instructions** for the user to:
+  - Go to Vercel → levqor-site → Deployments.
+  - Identify the deployment built from the **latest Genesis v8 commit** on `main`.
+  - Use the `…` menu → **Assign domain** → point `levqor.ai` (and `www.levqor.ai`) to that deployment.
+  - Avoid selecting Dependabot/automated commits.
+
+----------------------------------------------------------------------
+STEP 6 — FINAL VERIFICATION (MANDATORY)
+----------------------------------------------------------------------
+
+After any successful deployment OR manual re-pointing, you MUST:
+
+1. Re-run:
+   - `curl -sSI https://levqor.ai | head -20`
+   - `curl -sSL -A "Mozilla/5.0 (LevqorAudit)" https://levqor.ai > /tmp/levqor_live.html || true`
+   - `grep -Ei "Automate work|Self-healing runs|Levqor" -n /tmp/levqor_live.html | head -20`
+2. Confirm that:
+   - The live HTML clearly shows the Genesis v8 layout/content.
+   - Headers look sane (no obvious 4xx/5xx, not a Cloudflare block page).
+
+----------------------------------------------------------------------
+OUTPUT FORMAT
+----------------------------------------------------------------------
+
+At the end, print a clear human-readable summary:
+
+1. **Local repo**
+   - HEAD SHA
+   - Latest commit message
+   - Whether `src/app/page.tsx` is Genesis v8
+
+2. **Production deployment**
+   - Deployment URL
+   - Commit SHA + message
+   - Whether it matches local HEAD
+
+3. **Live site check**
+   - Does `levqor.ai` HTML match Genesis v8? (YES/NO + 1–2 proof lines)
+
+4. **Actions taken**
+   - e.g. “No deploy needed”, OR “Triggered vercel --prod”, OR “Rate limited, gave manual instructions only”.
+
+5. **Next steps for the user**
+   - Only what is absolutely necessary (e.g. “In Vercel app, set deployment XYZ as production”).
+
+Remember: verification is more important than speed. Never say “it’s all good” without backing it up with concrete checks.

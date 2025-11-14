@@ -1,0 +1,62 @@
+Next blocker to clear:
+PECR-compliant Marketing Consent System (double-opt-in + consent logging).
+
+Here is your next Replit Agent prompt (clean, safe, focused, money-ready):
+
+You are Replit AI Agent working on the Levqor project.
+
+GOAL: Implement a full PECR-compliant marketing-consent system so Levqor can legally send marketing emails and run campaigns.
+
+✔ Requirements:
+1. Add a marketing-consent toggle to the signin/signup screen:
+   - Label: “I agree to receive marketing updates”
+   - Optional (NOT required for account)
+   - Store preference in `marketing_consent` boolean column in `users` table.
+
+2. Add backend endpoint:
+   POST /api/marketing/consent
+   Body: { userId, consent: true/false }
+   - Write to DB
+   - Log timestamp + IP
+   - Return ok:true
+
+3. Add double opt-in:
+   - When `marketing_consent=true`, send confirmation email:
+     Subject: “Confirm your email preferences”
+     Body: “Click to confirm marketing updates”
+     Link: https://www.levqor.ai/api/marketing/confirm?token=XYZ
+
+4. Add token confirmation endpoint:
+   GET /api/marketing/confirm?token=...
+   - Validate token (24h expiry)
+   - Set `marketing_confirmed=true`
+   - Redirect user to a success page: /marketing-confirmed
+
+5. Add unsubscribe endpoint:
+   GET /api/marketing/unsubscribe?token=...
+   - Immediately set marketing_consent=false
+   - Redirect: /marketing-unsubscribed
+
+6. Add pages:
+   /marketing-confirmed
+   /marketing-unsubscribed
+
+7. Modify all marketing email templates:
+   - Footer must contain working unsubscribe link
+   - Include company address + sender identity
+
+8. Add admin export tool:
+   GET /api/admin/marketing/export
+   - CSV of all users with:
+     email, marketing_consent, marketing_confirmed, timestamp, ip
+
+✔ Final checks:
+- Run npm run build
+- Verify /signin shows marketing toggle
+- Verify opt-in → email → confirm → DB updated
+- Verify unsubscribe works
+- Verify admin export works
+
+End.
+
+When done, say “Done boss” and I’ll give you the next compliance/money-critical prompt.

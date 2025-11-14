@@ -1,0 +1,170 @@
+You are Replit AI Agent working on the Levqor project.
+
+GOAL  
+Deploy Levqor to production using the already-pushed code, verify everything end-to-end, and confirm the site is ready to accept real customers.
+
+CONTEXT  
+- Frontend: Next.js 14 app in `levqor-site/`, Vercel project: `levqor-site`, production domain: https://www.levqor.ai  
+- Backend: Python/Flask API in repo root, exposed as `api.levqor.ai`, running via Gunicorn + APScheduler (Replit/other host).  
+- Code status: All latest changes pushed to `main` (legal pages, cookie banner, DSAR, DFY contract, dual pricing, dunning, autosuspend, revenue engine).  
+- Secrets: User has already set Stripe, OAuth, and email (Resend) env vars in Vercel + backend host.  
+- DNS: `levqor.ai` → Vercel, `api.levqor.ai` → backend (assume correct; only report if broken).  
+
+HARD RULES  
+1) Do NOT change copy, prices, or legal text.  
+2) Do NOT refactor business logic.  
+3) Only fix things if they are clearly broken (build error, 500, missing env var).  
+4) Treat “build succeeded” as NOT enough – always verify via real HTTP calls.  
+5) Prefer small, surgical fixes over big rewrites.
+
+TASKS  
+
+PHASE 1 — Sanity & Build  
+1. Show the current branch and git status:  
+   - `git rev-parse --abbrev-ref HEAD`  
+   - `git status -sb`  
+2. Confirm frontend builds cleanly:  
+   - `cd levqor-site && npm run build`  
+   - If build fails, stop, print full error, and DO NOT attempt deployment.
+
+PHASE 2 — Backend Production Check  
+1. Identify how the backend is run (Gunicorn/Procfile/run script) and confirm the production process is running.  
+2. Hit these backend health endpoints (using the actual prod API base, ideally `https://api.levqor.ai` and also localhost if available):  
+   - `/health`  
+   - `/metrics`  
+   - `/billing/preview`  
+   - `/dsar/self-check`  
+3. Confirm in logs / responses that:  
+   - Dunning scheduler is registered.  
+   - Retention cleanup job is registered.  
+   - Auto-suspend job is registered.  
+4. If any of those jobs are missing or crashed, restart the backend and re-check.  
+5. Report backend base URL and health status.
+
+PHASE 3 — Vercel Production Deploy (Frontend)  
+Use `$VERCEL_TOKEN` and the existing Vercel project (`levqor-site`):
+
+1. List last 3 deployments for project to confirm current state.  
+2. Trigger a **new production deploy from `main` with no build cache**, either via:  
+   - `cd levqor-site && npx vercel --prod --force`, OR  
+   - Vercel API: create a new deployment with `target=production`.  
+3. Poll Vercel deployments API until this new deployment is `READY` or `ERROR`.  
+4. If `ERROR`, fetch and print the deployment logs and STOP.
+
+PHASE 4 — CDN / Cache Flush  
+1. After a successful deploy, call Vercel cache purge for at least these paths:  
+   - `/`  
+   - `/pricing`  
+   - `/signin`  
+   - `/success`  
+   - `/api/checkout`  
+   - `/my-data`  
+   - `/dfy-contract`  
+   - `/cookie-settings`  
+2. For each of the above, run `curl -sSI https://www.levqor.ai<path> | head -10` and confirm:  
+   - `HTTP/2 200` (or 3xx redirect to 200)  
+   - `x-vercel-cache: MISS` (or HIT with very low `age`).  
+
+PHASE 5 — Frontend Smoke Tests (Production)  
+For each URL, fetch headers and body (`curl -sSI` and `curl -sS`) and grep for key markers:
+
+1. `/`  
+   - Status 200.  
+   - HTML contains: `Genesis v8.0`, `Automate work. Ship faster.`, `Start free trial`.  
+
+2. `/pricing`  
+   - Status 200.  
+   - Contains DFY prices: `£99`, `£249`, `£599`.  
+   - Contains subscription prices: `£29`, `£79`, `£149`, `£299`.  
+   - Contains separate “Done-for-you” and “Subscription” sections.  
+
+3. `/signin`  
+   - Status 200.  
+   - Contains: `Continue with Google`, `Continue with Microsoft`.  
+   - Contains visible links to `/terms` and `/privacy`.  
+
+4. `/my-data`  
+   - Status 200.  
+   - Contains: `Request my data`, `30 days`.  
+
+5. `/dfy-contract`  
+   - Status 200.  
+   - Contains: `DFY Service Agreement`, `England and Wales`.  
+
+6. `/cookie-settings`  
+   - Status 200.  
+   - Contains: `Essential`, `Analytics`, `Marketing`, `Functional`.
+
+PHASE 6 — Cookie Banner + Consent Logic  
+1. Fetch the homepage HTML and verify the cookie banner markup exists (look for something like `data-cookie-banner`, “Accept all”, “Reject non-essential”, “Cookie settings”).  
+2. Confirm non-essential scripts (analytics/marketing) are only enabled when consent is given (look for JS conditions or data attributes controlling them).  
+3. If the banner is missing or always accepts everything by default, report as a failure – do NOT hack around it.
+
+PHASE 7 — Stripe Checkout Verification (PRODUCTION)  
+Hit `https://www.levqor.ai/api/checkout` with POST JSON for all 11 plans:
+
+DFY (one-time):  
+- `{ "mode": "dfy", "plan": "starter" }`  
+- `{ "mode": "dfy", "plan": "professional" }`  
+- `{ "mode": "dfy", "plan": "enterprise" }`  
+
+Subscriptions (monthly):  
+- `{ "mode": "subscription", "plan": "starter", "term": "monthly" }`  
+- `{ "mode": "subscription", "plan": "growth",  "term": "monthly" }`  
+- `{ "mode": "subscription", "plan": "pro",     "term": "monthly" }`  
+- `{ "mode": "subscription", "plan": "business","term": "monthly" }`  
+
+Subscriptions (yearly):  
+- `{ "mode": "subscription", "plan": "starter", "term": "yearly" }`  
+- `{ "mode": "subscription", "plan": "growth",  "term": "yearly" }`  
+- `{ "mode": "subscription", "plan": "pro",     "term": "yearly" }`  
+- `{ "mode": "subscription", "plan": "business","term": "yearly" }`  
+
+For each:  
+1. Confirm HTTP 200.  
+2. Confirm JSON includes `"ok": true` and `"url": "https://checkout.stripe.com/..."`.  
+3. If any returns `ok: false`, print the plan, the error message, and which env var it complains about, then STOP.
+
+PHASE 8 — Legal & Policy Routes  
+For each path below, check `curl -sSI` and `curl -sS`:
+
+`/terms`, `/privacy`, `/cookies`, `/fair-use`, `/acceptable-use`, `/sla`, `/refunds`,  
+`/support-policy`, `/risk-disclosure`, `/ai-disclosure`, `/gdpr`, `/subprocessors`,  
+`/security`, `/incident-response`, `/business-continuity`, `/billing`, `/maintenance`,  
+`/monitoring`, `/rate-limits`, `/support-escalation`, `/onboarding`, `/delivery`,  
+`/revisions`, `/offboarding`, `/dpa`  
+
+Confirm for each:  
+- Status 200.  
+- There is a non-empty `<main>` or equivalent heading content.  
+
+Also verify the footer on `/` contains at least links to:  
+- Terms, Privacy, Cookies  
+- My Data (`/my-data`)  
+- DFY Contract (`/dfy-contract`)  
+- Accessibility (`/accessibility`)  
+
+PHASE 9 — Final Launch Report  
+At the end, output a **short, structured report** with:
+
+1. Overall status: `SUCCESS` or `FAILED`.  
+2. Frontend:  
+   - Active deployment URL  
+   - Deployment ID  
+   - Commit SHA  
+3. Backend:  
+   - Base URL used for health checks  
+   - Health summary (OK / issues found)  
+4. Payments:  
+   - List all 11 plans with PASS/FAIL for checkout URL.  
+5. Compliance:  
+   - Cookie banner: OK / FAIL  
+   - Terms acceptance flow: OK / NOT VERIFIED  
+   - DSAR `/my-data`: OK / FAIL  
+6. If anything failed, list the **exact** fix steps needed (max 5 bullets).  
+7. If everything passed, explicitly state:  
+   - `"Levqor is fully deployed and ready to accept real customers."`
+
+Do NOT edit copy, prices, or legal text.  
+Begin now.
+```0

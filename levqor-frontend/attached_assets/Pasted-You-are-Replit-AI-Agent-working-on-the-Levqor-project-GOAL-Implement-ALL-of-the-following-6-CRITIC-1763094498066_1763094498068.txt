@@ -1,0 +1,468 @@
+You are Replit AI Agent working on the Levqor project.
+
+GOAL
+Implement ALL of the following 6 CRITICAL COMPLIANCE FEATURES in one pass, in the existing Levqor repo, WITHOUT deploying to Vercel:
+
+1) Full cookie consent banner (PECR/GDPR-compliant)
+2) TOS acceptance flow (enforced and logged)
+3) Marketing consent system (double opt-in, logged, unsubscribe)
+4) High-risk data safety enforcement (block dangerous workflows)
+5) Data retention automation (logs/tokens/user data cleanup)
+6) DSAR export system (GDPR-compliant data export bundle)
+
+CONSTRAINTS
+- Repo: same Levqor monorepo as before:
+  - Frontend: `levqor-site` (Next.js 14 App Router)
+  - Backend: Flask app in root (API, DB, schedulers, Stripe, etc.)
+- Do NOT touch Stripe pricing logic, payments, or existing legal page content except where explicitly asked.
+- Do NOT call Vercel CLI, do NOT trigger deploys. Local-only changes + local verification.
+- Follow the existing patterns for:
+  - DB models + migrations
+  - Background jobs / schedulers
+  - Email sending (Resend / existing mail helpers)
+  - API routing structure
+- Always verify via real commands (curl/grep, test, build). Never say “should work” without an actual check.
+
+HIGH-LEVEL PLAN
+1) Scan codebase to re-familiarize:
+   - Project structure, existing API routes, schedulers, DB models, auth, email helpers.
+   - Existing legal/policy URLs (terms, privacy, cookies, fair-use, acceptable-use, refunds, dpa, gdpr, etc.)
+2) Implement the 6 features one by one, but keep changes small, consistent with existing architecture.
+3) After implementation, run:
+   - Backend unit/functional tests (if present)
+   - `cd levqor-site && npm run lint` and `npm run build`
+   - Local curl checks for new endpoints and flows.
+
+────────────────────────────────────────
+1) COOKIE CONSENT BANNER (FULLY FUNCTIONAL)
+────────────────────────────────────────
+
+GOAL
+Implement a PECR/GDPR-compliant cookie system:
+- Banner with: [Accept all] [Reject non-essential] [Customise]
+- Preferences modal (4 categories): strictly necessary, functional, analytics, marketing
+- Persist choice (cookie or localStorage + server log)
+- Ensure **non-essential** scripts only run if consent is given.
+
+STEPS
+
+1. DISCOVER
+   - In `levqor-site`, check:
+     - `src/app/layout.tsx`
+     - Any existing cookie components or banners
+     - Any analytics/marketing integrations (e.g., Google Analytics, scripts in `_document`/layout)
+
+2. IMPLEMENT COMPONENTS
+   - Create `levqor-site/src/components/cookies/CookieConsentBanner.tsx`:
+     - Client component (`"use client"`).
+     - On first visit (no stored preference), show banner at bottom of screen:
+       - Short text: “We use cookies to improve Levqor. You control what we use.”
+       - Buttons:
+         - “Accept all”
+         - “Reject non-essential”
+         - “Customise”
+     - When clicked:
+       - Store a JSON object in `localStorage` or cookie, e.g. `levqor_cookie_prefs`:
+         ```json
+         {
+           "necessary": true,
+           "functional": true|false,
+           "analytics": true|false,
+           "marketing": true|false,
+           "updatedAt": "ISO8601"
+         }
+         ```
+       - For “Reject non-essential”: set functional/analytics/marketing = false, necessary = true.
+       - Hide banner.
+
+   - Create `levqor-site/src/components/cookies/CookiePreferencesModal.tsx`:
+     - Client component.
+     - Shows 4 toggles:
+       - Strictly necessary (always on, disabled)
+       - Functional
+       - Analytics
+       - Marketing
+     - Save button: updates the same `levqor_cookie_prefs` object.
+     - Provide a small “Cookie settings” link in footer (e.g. in existing footer component) that re-opens this modal.
+
+3. HOOK INTO LAYOUT
+   - In `src/app/layout.tsx`:
+     - Import and render `<CookieConsentBanner />` at the root (as part of `<body>`).
+     - Optionally render a `<CookiePreferencesModal />` controlled by some global state/hook.
+
+4. CONDITIONAL SCRIPTS (SAFE STUB)
+   - If there are existing analytics/marketing scripts:
+     - Wrap their init calls in a helper to check consent before running.
+   - Implement helper module `levqor-site/src/lib/cookies/consent.ts`:
+     - Export functions like:
+       - `getCookiePrefsClient()` (client-side) – reads stored prefs.
+       - `canUseAnalytics()`, `canUseMarketing()` – convenience functions.
+   - If no analytics scripts exist yet:
+     - Just implement helpers and add a comment for future usage.
+     - Do NOT add any new tracking services.
+
+5. SERVER LOGGING
+   - Add a lightweight API route to record consent changes, e.g.:
+     - `levqor-site/src/app/api/cookies/consent/route.ts`
+     - POST `{prefs}` and (if user authenticated) their user id.
+     - Log to backend via existing logging/audit system OR simple DB table (if one exists).
+   - If there is already a central audit logging mechanism in backend, use that rather than inventing a new table.
+
+6. VERIFY
+   - `cd levqor-site && npm run lint && npm run build`
+   - Start frontend and manually check:
+     - First load → banner appears.
+     - Click Accept/Reject/Customise:
+       - Banner hides.
+       - `localStorage` or cookie value contains correct JSON.
+     - Refresh page → banner does NOT reappear (preference respected).
+
+────────────────────────────────────────
+2) TOS ACCEPTANCE FLOW (ENFORCED & LOGGED)
+────────────────────────────────────────
+
+GOAL
+Make Terms of Service enforceable:
+- Users must explicitly accept ToS once.
+- Acceptance is **persisted in DB** with timestamp and TOS version.
+- Access to dashboard/workflows is blocked until accepted.
+
+STEPS
+
+1. DISCOVER
+   - Find user model + DB schema in backend:
+     - e.g. `models.py`, `schemas.py`, `alembic/versions`, etc.
+   - Find auth/session logic:
+     - How the frontend identifies current user (JWT? Session token? API token?).
+     - The endpoint used by frontend to fetch current user profile.
+
+2. DB MIGRATION
+   - Add columns to users table (or equivalent):
+     - `tos_accepted_at` TIMESTAMP (nullable).
+     - `tos_version` VARCHAR (e.g., default null).
+   - Use existing migration tooling (Alembic or similar):
+     - Create new migration file following existing pattern.
+     - Upgrade path: add columns.
+     - Downgrade path: drop columns.
+
+3. BACKEND API
+   - Add endpoint: `POST /api/legal/accept-tos`:
+     - Auth required.
+     - Body: `{ "version": "2025-11-01" }` (or similar).
+     - Set `tos_accepted_at = now()` and `tos_version = version`.
+     - Append an audit log entry (reuse existing audit logging if available).
+     - Return updated user object or status `{ok:true}`.
+
+   - Ensure “get current user” endpoint includes `tos_accepted_at` and `tos_version` in response.
+
+4. FRONTEND ENFORCEMENT
+   - In frontend (levqor-site), find the code that:
+     - Fetches current user.
+     - Renders the main app/dashboard after sign-in.
+   - Implement a “TOS Gate”:
+     - If user is logged in AND `tos_accepted_at` is null:
+       - Show full-screen modal or blocking page:
+         - Summary: “Please review and accept the Levqor Terms of Service.”
+         - Link to `/terms` in new tab.
+         - Checkbox: “I have read and agree to the Terms of Service”.
+         - Confirm button.
+       - On confirm:
+         - Call `POST /api/legal/accept-tos`.
+         - On success, hide gate and allow normal app.
+   - Make sure the gate appears only once per account (unless TOS version changes later).
+
+5. VERIFY
+   - Create a fresh test user:
+     - Sign in → verify you are blocked with TOS modal.
+     - Accept → endpoint called and returns ok.
+   - Check DB:
+     - Confirm `tos_accepted_at` and `tos_version` populated.
+   - Try to access core pages:
+     - Before acceptance → blocked.
+     - After acceptance → allowed.
+
+────────────────────────────────────────
+3) MARKETING CONSENT SYSTEM (DOUBLE OPT-IN)
+────────────────────────────────────────
+
+GOAL
+Implement compliant marketing consent:
+- Opt-in is optional, NOT bundled with TOS.
+- Double opt-in.
+- Consent logged with timestamp, scope, and IP.
+- Unsubscribe mechanism.
+
+STEPS
+
+1. DB DESIGN
+   - Create a new table (e.g. `marketing_consents`) OR extend user profile, depending on existing patterns.
+   - Suggested table fields:
+     - `id` (PK)
+     - `user_id` (FK)
+     - `email`
+     - `status` ENUM: `pending`, `subscribed`, `unsubscribed`
+     - `scope` TEXT (e.g. `"product-updates,offers"`)
+     - `created_at`, `updated_at`
+     - `confirmed_at` TIMESTAMP (for double opt-in)
+     - `unsubscribed_at` TIMESTAMP
+     - `ip_address` (optional)
+   - Add migration for this table.
+
+2. OPT-IN FLOW (FRONTEND)
+   - On signup/signin or on a dedicated `/email-preferences` page:
+     - Add a checkbox: “Send me Levqor news and product updates (optional).”
+     - When a logged-in user ticks and submits:
+       - Call `POST /api/marketing/consent` with `{scope, email?}`.
+
+3. BACKEND MARKETING ENDPOINTS
+   - `POST /api/marketing/consent`:
+     - Create a record with `status="pending"`.
+     - Generate a secure token (stored hashed in DB).
+     - Send email to user via existing email helper:
+       - Subject: “Confirm your Levqor email preferences”
+       - Link: `/email-preferences/confirm?token=...`
+   - `GET /api/marketing/confirm?token=...`:
+     - Validate token, mark record as `subscribed`, set `confirmed_at`.
+   - `POST /api/marketing/unsubscribe`:
+     - Body: `{ email }` OR tokenized link.
+     - Mark record as `unsubscribed`, set `unsubscribed_at`.
+   - Ensure all changes write to audit log.
+
+4. FRONTEND PAGES
+   - `/email-preferences`:
+     - Show current status: subscribed/unsubscribed.
+     - Button to unsubscribe.
+   - `/email-preferences/confirm`:
+     - Simple page: “Thanks, your email preferences are confirmed.”
+
+5. EMAIL TEMPLATES
+   - Reuse existing email sending module.
+   - Two templates:
+     - Confirm subscription.
+     - Confirm unsubscription.
+
+6. VERIFY
+   - Flow:
+     - Opt-in → record created with `pending`.
+     - Receive email → click link → status `subscribed`.
+     - Click unsubscribe link → status `unsubscribed`.
+   - Confirm DB reflects all correct timestamps and status.
+
+────────────────────────────────────────
+4) HIGH-RISK DATA SAFETY ENFORCEMENT
+────────────────────────────────────────
+
+GOAL
+Block or warn when users try to automate sensitive/high-risk domains:
+- Medical diagnoses, legal decisions, financial advice, gambling, etc.
+- Apply BOTH frontend and backend safeguards.
+
+STEPS
+
+1. DEFINE RISK CATEGORIES
+   - Create a config file in backend, e.g. `compliance/high_risk_rules.py`:
+     - Include lists of keywords/phrases for:
+       - medical/health
+       - legal/criminal
+       - financial/investment
+       - political targeting
+   - Also include generic “do not automate” disclaimers as constants.
+
+2. BACKEND ENFORCEMENT
+   - Identify endpoints handling:
+     - Workflow creation/update
+     - Job definitions
+   - Add a helper `check_high_risk(text) -> (bool, category, reason)`.
+   - When creating/updating a workflow:
+     - Combine relevant fields (name, description, instructions).
+     - Run `check_high_risk`.
+     - If high risk detected:
+       - Return 400 with error JSON:
+         - `{"error": "high_risk_blocked", "category": "...", "message": "...", "docsUrl": "/risk-disclosure"}`
+
+3. FRONTEND WARNINGS
+   - In workflow builder UI:
+     - Implement a client-side check that mirrors backend rules (shared list, or simple subset).
+     - Show inline warning banner:
+       - Red alert: “Levqor cannot automate workflows involving medical, legal, or financial advice…”
+     - Option A (safest): block submit and require user to change text.
+     - Option B: allowed only if in low-risk category (you choose the safest approach: prefer blocking for clearly high-risk words).
+
+4. RISK DISCLOSURE PAGE TWEAK
+   - Update `/risk-disclosure` content (if needed) to explicitly mention:
+     - “We do not automate: (1) medical diagnosis or treatment, (2) legal decisions, (3) regulated financial advice…”
+   - Ensure this URL is referenced in error responses and warnings.
+
+5. VERIFY
+   - Try to create a workflow including text like:
+     - “Diagnose cancer”, “legal case outcome”, “give stock trading advice”.
+   - Confirm:
+     - Frontend shows warning and blocks.
+     - Backend rejects the request with clear message.
+
+────────────────────────────────────────
+5) DATA RETENTION AUTOMATION
+────────────────────────────────────────
+
+GOAL
+Implement automatic deletion based on retention periods (30/90/365 days) for:
+- Logs
+- Old jobs / runs
+- Expired tokens
+- Closed accounts
+
+STEPS
+
+1. DISCOVER
+   - Find:
+     - Tables for logs, audit events, job runs, auth tokens, closed accounts.
+     - Existing schedulers (there were 18+ jobs already).
+   - Identify where retention rules are currently documented (e.g. `/backups`, `/privacy`).
+
+2. CONFIG
+   - Create a config module in backend, e.g. `config/retention.py`:
+     - Define constants:
+       - `LOG_RETENTION_DAYS = 30`
+       - `JOB_RETENTION_DAYS = 90`
+       - `ACCOUNT_RETENTION_DAYS = 365`
+     - These should match what is stated in legal pages.
+
+3. SCHEDULER TASK
+   - Add a new scheduled job (or extend an existing housekeeping job) to:
+     - Delete logs older than LOG_RETENTION_DAYS.
+     - Delete job runs older than JOB_RETENTION_DAYS.
+     - Anonymise or delete closed accounts older than ACCOUNT_RETENTION_DAYS.
+     - Delete expired tokens/sessions.
+   - Use existing DB access patterns and scheduler framework.
+
+4. AUDIT LOGGING
+   - Every cleanup run should:
+     - Record number of rows deleted per table.
+     - Log a summary entry in an admin/audit log table.
+
+5. VERIFY
+   - Create some test rows with old timestamps.
+   - Trigger job manually (e.g. via management command or direct call).
+   - Confirm rows are deleted as expected.
+   - Check audit log entry.
+
+────────────────────────────────────────
+6) DSAR EXPORT SYSTEM (SECURE GDPR DATA BUNDLE)
+────────────────────────────────────────
+
+GOAL
+Provide users with a GDPR-compliant export of all their personal data:
+- Single request → generate ZIP bundle → email secure link.
+- Contains all personal data across your DB.
+- Logs the request & fulfillment.
+
+STEPS
+
+1. DISCOVER
+   - Identify all DB tables that contain user personal data:
+     - Users, workflows, workflow runs, audit logs, billing records, tokens, etc.
+   - Identify existing email helper function for sending system emails.
+   - Check if there’s any job queue / background execution facility.
+
+2. DB SUPPORT (OPTIONAL TABLE)
+   - Create a `dsar_requests` table:
+     - `id`, `user_id`, `status` (`pending`, `processing`, `completed`, `failed`)
+     - `created_at`, `completed_at`
+     - `download_token` (secure random, hashed)
+     - `expires_at`
+     - `error_message` (nullable)
+   - Add migration.
+
+3. BACKEND ENDPOINTS
+   - `POST /api/compliance/dsar-request`:
+     - Auth required.
+     - Rate limit (e.g. 1 active request per X days).
+     - Create `dsar_requests` record with `pending`.
+     - Kick off background job or direct processing function.
+
+   - `GET /api/compliance/dsar-download?token=...`:
+     - Validate token, ensure not expired.
+     - Stream ZIP file (or instruct to fetch from storage).
+     - Optionally expire token after first download.
+
+4. EXPORT GENERATION LOGIC
+   - Implement a function in backend (e.g. `compliance/dsar_export.py`):
+     - Given `user_id`, query all relevant tables.
+     - Create a folder structure in a temp dir, e.g.:
+       - `/profile.json`
+       - `/workflows.json`
+       - `/workflow_runs.json`
+       - `/audit_logs.json`
+       - `/billing.json`
+     - Serialize as JSON (and/or CSV where appropriate).
+     - Package into a ZIP file (e.g. in `/tmp`).
+   - For storage:
+     - Option A: Store ZIP temporarily on disk (Replit ephemeral) and stream directly.
+     - Option B: If S3-like storage already exists, upload ZIP and store signed URL in DB.
+
+5. EMAIL FLOW
+   - After ZIP is generated:
+     - Generate a secure `download_token` (store hashed).
+     - Set `expires_at` (e.g., now + 7 days).
+     - Update `dsar_requests` status → `completed`.
+     - Send email to user:
+       - Subject: “Your Levqor data export is ready”
+       - Body contains link to frontend route: `/account/data-export?token=...`.
+   - Frontend route:
+     - Call `GET /api/compliance/dsar-download?token=...` to trigger download.
+
+6. FRONTEND UI
+   - Add section in account/settings page, e.g. `/account/security` or `/account/privacy`:
+     - Button: “Request data export (GDPR)”.
+     - Text: “We’ll email you a secure link when your export is ready.”
+     - Show last request status if available.
+   - Optional `/account/data-export` page:
+     - Reads `token` from query.
+     - Calls download endpoint and triggers browser download.
+
+7. SECURITY
+   - Only allow DSAR export for *authenticated user themselves*.
+   - Tokens must be time-limited and one-time use (or limited use).
+   - Avoid including secrets (API keys, internal config) in export; only user personal data.
+
+8. VERIFY
+   - Flow:
+     - Logged-in user → click “Request export”.
+     - DSAR request record created.
+     - Export function runs and builds ZIP.
+     - Email sent with link.
+     - Clicking link downloads ZIP.
+     - ZIP contents contain expected data and nothing extra.
+
+────────────────────────────────────────
+FINAL VERIFICATION CHECKLIST (MANDATORY)
+────────────────────────────────────────
+
+1) BACKEND
+   - Run backend tests if present (e.g. `pytest` or similar).
+   - Manually test new endpoints:
+     - `POST /api/legal/accept-tos`
+     - `POST /api/marketing/consent`
+     - `GET /api/marketing/confirm`
+     - `POST /api/marketing/unsubscribe`
+     - `POST /api/compliance/dsar-request`
+     - `GET /api/compliance/dsar-download?token=...`
+
+2) FRONTEND
+   - `cd levqor-site && npm run lint && npm run build`
+   - Run dev server and test:
+     - Cookie banner + preferences.
+     - TOS gate on first sign-in.
+     - Email marketing checkbox + confirm/unsubscribe.
+     - High-risk text in workflow creation is blocked/warned.
+     - Account/Privacy page has DSAR request button.
+
+3) NO DEPLOYS
+   - Do NOT run any Vercel deploy commands.
+   - All work stays local (Replit) and is ready for a future deployment once Vercel limits reset.
+
+When you’re done, output:
+- Summary of changes (files touched + new endpoints)
+- Any DB migrations created
+- Exact commands you ran to verify behavior
+- Any TODOs that must be completed before production deploy.

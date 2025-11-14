@@ -1,0 +1,306 @@
+# =========================================
+# LEVQOR — DEVELOPER PORTAL FRONTEND + STRIPE SETUP
+# Scope: Next.js pages (/developer, /developer/keys, /docs/api) + Stripe products + upgrade flows
+# WHY: Unlock B2D growth and paid tiers now
+# IMPACT IF IGNORED: Partners and enterprise cannot self-serve; lost MRR
+# =========================================
+
+# ---------- 0) PREREQS ----------
+# Assumes: Next.js App Router at levqor-site/src/app, Tailwind, env via Vercel
+# Backend live at https://api.levqor.ai  (CORS must allow levqor.ai)
+# OpenAPI served at https://levqor.ai/openapi.json or https://api.levqor.ai/public/openapi.json
+
+# ---------- 1) FILE STRUCTURE ----------
+mkdir -p levqor-site/src/app/developer levqor-site/src/app/developer/keys levqor-site/src/app/docs
+mkdir -p levqor-site/src/components/devportal
+touch levqor-site/src/components/devportal/{KeyRow.tsx,QuotaBadge.tsx,TierTable.tsx}
+touch levqor-site/src/app/developer/page.tsx
+touch levqor-site/src/app/developer/keys/page.tsx
+touch levqor-site/src/app/docs/api/page.tsx
+
+# ---------- 2) SHARED COMPONENTS ----------
+cat > levqor-site/src/components/devportal/QuotaBadge.tsx << 'TS'
+export default function QuotaBadge({ used, limit }: { used:number; limit:number }) {
+  const pct = Math.min(100, Math.round((used / Math.max(1, limit)) * 100));
+  return (
+    <div className="inline-flex items-center gap-2 text-sm">
+      <div className="w-40 h-2 bg-gray-200 rounded">
+        <div className="h-2 rounded" style={{ width: pct + '%' }} />
+      </div>
+      <span>{used}/{limit}</span>
+    </div>
+  );
+}
+TS
+
+cat > levqor-site/src/components/devportal/KeyRow.tsx << 'TS'
+'use client';
+import { useState } from 'react';
+export default function KeyRow({ k, onRevoke }: { k:{id:string; last4:string; createdAt:string; tier:string}; onRevoke:(id:string)=>void }) {
+  const [busy,setBusy]=useState(false);
+  return (
+    <div className="flex items-center justify-between border p-3 rounded-xl">
+      <div className="flex flex-col">
+        <span className="font-mono text-sm">••••-••••-••••-{k.last4}</span>
+        <span className="text-xs text-gray-500">{new Date(k.createdAt).toLocaleString()} · {k.tier}</span>
+      </div>
+      <button
+        disabled={busy}
+        onClick={async ()=>{ setBusy(true); await onRevoke(k.id); setBusy(false); }}
+        className="px-3 py-1 rounded-xl border"
+      >Revoke</button>
+    </div>
+  );
+}
+TS
+
+cat > levqor-site/src/components/devportal/TierTable.tsx << 'TS'
+'use client';
+export default function TierTable({ onUpgrade }:{ onUpgrade:(tier:'pro'|'enterprise')=>void }) {
+  const rows = [
+    { name:'Sandbox', calls:'1,000/mo', support:'Community', price:'Free', cta:null },
+    { name:'Pro', calls:'10,000/mo', support:'Email', price:'$19/mo', cta:'pro' },
+    { name:'Enterprise', calls:'Unlimited', support:'SLA', price:'$199/mo', cta:'enterprise' },
+  ];
+  return (
+    <div className="grid md:grid-cols-3 gap-4">
+      {rows.map(r=>(
+        <div key={r.name} className="border rounded-2xl p-4">
+          <div className="text-xl font-semibold">{r.name}</div>
+          <div className="mt-2 text-sm">Calls: {r.calls}</div>
+          <div className="text-sm">Support: {r.support}</div>
+          <div className="mt-2 text-2xl">{r.price}</div>
+          {r.cta ? (
+            <button onClick={()=>onUpgrade(r.cta as any)} className="mt-4 w-full border rounded-xl py-2">Upgrade</button>
+          ) : <div className="mt-6 text-center text-sm">Included</div>}
+        </div>
+      ))}
+    </div>
+  );
+}
+TS
+
+# ---------- 3) /developer (landing) ----------
+cat > levqor-site/src/app/developer/page.tsx << 'TSX'
+'use client';
+import { useRouter } from 'next/navigation';
+import TierTable from '@/components/devportal/TierTable';
+export default function DeveloperLanding() {
+  const r = useRouter();
+  async function onUpgrade(tier:'pro'|'enterprise'){
+    const res = await fetch('/api/portal/checkout', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ tier })});
+    const { url } = await res.json();
+    window.location.href = url;
+  }
+  return (
+    <div className="max-w-4xl mx-auto p-6 space-y-6">
+      <h1 className="text-3xl font-bold">Build with Levqor</h1>
+      <p>Get an API key, explore docs, and ship integrations. Sandbox is free.</p>
+      <div className="flex gap-3">
+        <button onClick={()=>r.push('/developer/keys')} className="border rounded-xl px-4 py-2">Get API Key</button>
+        <button onClick={()=>r.push('/docs/api')} className="border rounded-xl px-4 py-2">View API Docs</button>
+      </div>
+      <h2 className="text-2xl font-semibold pt-4">Plans</h2>
+      <TierTable onUpgrade={onUpgrade}/>
+      <section className="pt-6">
+        <h3 className="text-xl font-semibold">Features</h3>
+        <ul className="list-disc pl-6 text-sm">
+          <li>Sandbox endpoint with mock data</li>
+          <li>Usage dashboard and quotas</li>
+          <li>SDKs for Python and Node</li>
+        </ul>
+      </section>
+    </div>
+  );
+}
+TSX
+
+# ---------- 4) /developer/keys (manage keys) ----------
+cat > levqor-site/src/app/developer/keys/page.tsx << 'TSX'
+'use client';
+import { useEffect, useState } from 'react';
+import KeyRow from '@/components/devportal/KeyRow';
+import QuotaBadge from '@/components/devportal/QuotaBadge';
+
+type KeyInfo = { id:string; last4:string; createdAt:string; tier:string };
+export default function KeysPage() {
+  const [keys, setKeys] = useState<KeyInfo[]>([]);
+  const [usage, setUsage] = useState<{used:number;limit:number}>({used:0,limit:1000});
+  const [busy,setBusy]=useState(false);
+
+  async function load() {
+    const [k,u] = await Promise.all([
+      fetch('https://api.levqor.ai/api/developer/keys', { credentials:'include' }).then(r=>r.json()),
+      fetch('https://api.levqor.ai/api/developer/usage', { credentials:'include' }).then(r=>r.json()),
+    ]);
+    setKeys(k.keys || []);
+    setUsage({ used:u.used||0, limit:u.limit||1000 });
+  }
+  useEffect(()=>{ load(); },[]);
+
+  async function createKey() {
+    setBusy(true);
+    const res = await fetch('https://api.levqor.ai/api/developer/keys', { method:'POST', credentials:'include', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ tier:'sandbox' })});
+    if (res.ok) await load();
+    setBusy(false);
+  }
+  async function revoke(id:string) {
+    await fetch(`https://api.levqor.ai/api/developer/keys/${id}`, { method:'DELETE', credentials:'include' });
+    await load();
+  }
+
+  return (
+    <div className="max-w-3xl mx-auto p-6 space-y-6">
+      <h1 className="text-2xl font-bold">Your API Keys</h1>
+      <div className="flex items-center gap-3">
+        <button disabled={busy} onClick={createKey} className="border rounded-xl px-4 py-2">Generate Key</button>
+        <div className="text-sm">Monthly quota:</div>
+        <QuotaBadge used={usage.used} limit={usage.limit}/>
+      </div>
+      <div className="space-y-3">
+        {keys.length===0 && <div className="text-sm text-gray-500">No keys yet.</div>}
+        {keys.map(k => <KeyRow key={k.id} k={k} onRevoke={revoke}/>)}
+      </div>
+    </div>
+  );
+}
+TSX
+
+# ---------- 5) /docs/api (Swagger UI) ----------
+# Install swagger-ui-react if not present: npm i swagger-ui-react
+cat > levqor-site/src/app/docs/api/page.tsx << 'TSX'
+'use client';
+import SwaggerUI from 'swagger-ui-react';
+import 'swagger-ui-react/swagger-ui.css';
+
+export default function ApiDocs() {
+  const specUrl = '/openapi.json'; // ensure this path proxies/serves your OpenAPI
+  return (
+    <div className="max-w-6xl mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Levqor API</h1>
+      <SwaggerUI url={specUrl} />
+    </div>
+  );
+}
+TSX
+
+# ---------- 6) FRONTEND API FOR CHECKOUT (calls backend Stripe session) ----------
+mkdir -p levqor-site/src/app/api/portal/checkout
+cat > levqor-site/src/app/api/portal/checkout/route.ts << 'TS'
+import { NextRequest, NextResponse } from 'next/server';
+
+export async function POST(req: NextRequest) {
+  const body = await req.json();
+  const tier = body?.tier as 'pro'|'enterprise';
+  if (!['pro','enterprise'].includes(tier)) return NextResponse.json({error:'bad tier'}, { status:400 });
+  const apiBase = process.env.NEXT_PUBLIC_API_BASE || 'https://api.levqor.ai';
+  const r = await fetch(`${apiBase}/api/billing/checkout`, {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json' },
+    body: JSON.stringify({ tier }),
+    credentials: 'include'
+  });
+  const j = await r.json();
+  return NextResponse.json(j, { status: r.status });
+}
+TS
+
+# ---------- 7) BACKEND BILLING CHECKOUT ENDPOINT (if not already present) ----------
+# Add to api.levqor.ai service:
+# File: api/routes/billing/checkout.py
+# Requires STRIPE_SECRET_KEY and price IDs
+cat > api/routes/billing/checkout.py << 'PY'
+import os
+from flask import Blueprint, request, jsonify
+import stripe
+
+bp = Blueprint('billing_checkout', __name__)
+stripe.api_key = os.environ['STRIPE_SECRET_KEY']
+
+PRICE_MAP = {
+  'pro': os.environ['STRIPE_PRICE_DEV_PRO'],
+  'enterprise': os.environ['STRIPE_PRICE_DEV_ENTERPRISE'],
+}
+
+@bp.route('/api/billing/checkout', methods=['POST'])
+def create_checkout():
+  data = request.get_json() or {}
+  tier = data.get('tier')
+  if tier not in PRICE_MAP: return jsonify({'error':'bad tier'}), 400
+  session = stripe.checkout.Session.create(
+    mode='subscription',
+    line_items=[{ 'price': PRICE_MAP[tier], 'quantity': 1 }],
+    success_url=os.environ.get('CHECKOUT_SUCCESS_URL','https://levqor.ai/developer?success=1'),
+    cancel_url=os.environ.get('CHECKOUT_CANCEL_URL','https://levqor.ai/developer?canceled=1'),
+  )
+  return jsonify({'url': session.url})
+PY
+
+# Register blueprint in your Flask/FastAPI app factory accordingly.
+
+# ---------- 8) STRIPE PRODUCT/PRICE CREATION SCRIPT ----------
+# Local helper to create products and prices, prints IDs to set in env
+mkdir -p ops/stripe
+cat > ops/stripe/create_dev_products.js << 'JS'
+/* node ops/stripe/create_dev_products.js */
+const Stripe = require('stripe');
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+(async () => {
+  const pro = await stripe.products.create({ name: 'Developer Pro' });
+  const proPrice = await stripe.prices.create({ unit_amount: 1900, currency: 'usd', recurring:{interval:'month'}, product: pro.id });
+  const ent = await stripe.products.create({ name: 'Developer Enterprise' });
+  const entPrice = await stripe.prices.create({ unit_amount: 19900, currency: 'usd', recurring:{interval:'month'}, product: ent.id });
+  console.log('STRIPE_PRICE_DEV_PRO=', proPrice.id);
+  console.log('STRIPE_PRICE_DEV_ENTERPRISE=', entPrice.id);
+})();
+JS
+
+# Run:
+#   node ops/stripe/create_dev_products.js
+# Copy printed IDs to env
+
+# ---------- 9) ENV VARS (Vercel + Backend) ----------
+# Vercel (Frontend):
+# NEXT_PUBLIC_API_BASE=https://api.levqor.ai
+
+# Backend:
+# STRIPE_SECRET_KEY=sk_live_xxx
+# STRIPE_PRICE_DEV_PRO=price_xxx
+# STRIPE_PRICE_DEV_ENTERPRISE=price_yyy
+# CHECKOUT_SUCCESS_URL=https://levqor.ai/developer?success=1
+# CHECKOUT_CANCEL_URL=https://levqor.ai/developer?canceled=1
+
+# ---------- 10) OPENAPI EXPOSURE ----------
+# Serve JSON at one of:
+#  - Frontend: public/openapi.json  (copy from backend build output)
+#  - or proxy to backend public spec
+mkdir -p levqor-site/public
+# cp path/to/generated/openapi.json levqor-site/public/openapi.json
+
+# ---------- 11) VALIDATION ----------
+# Backend:
+# Create prices: node ops/stripe/create_dev_products.js
+# Test checkout creation:
+curl -s -X POST https://api.levqor.ai/api/billing/checkout -H 'Content-Type: application/json' -d '{"tier":"pro"}'
+
+# Keys + usage (requires auth/session as configured):
+# curl -H "Authorization: Bearer <JWT>" -H "Content-Type: application/json" -d '{"tier":"sandbox"}' https://api.levqor.ai/api/developer/keys
+# curl -H "Authorization: Bearer <JWT>" https://api.levqor.ai/api/developer/usage
+
+# Frontend:
+# Visit https://levqor.ai/developer
+# Generate key → visible on /developer/keys
+# Open /docs/api → Swagger UI renders
+
+# ---------- 12) PULSE + NOTION METRICS WIRING ----------
+# Ensure your existing jobs include:
+# - Stripe MRR from these price IDs
+# - API Keys count from Notion "API Keys" DB
+# - Checkout success count from Stripe events
+# No schema change needed; just map the two new price IDs.
+
+# ---------- 13) ROLLBACK PLAN ----------
+# Disable /api/portal/checkout route in frontend
+# Unset STRIPE_PRICE_* envs to prevent new checkouts
+# Re-enable once fixed

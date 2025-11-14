@@ -1,0 +1,97 @@
+You are Replit AI Agent for Levqor.
+
+GOAL:
+Add a minimal backend-only DSAR download endpoint:
+- Only for authenticated user
+- Only returns their own ZIP
+- Only if DSARRequest status == completed
+- Streams file safely
+No UI buttons yet. No DSAR creation here. Only read/download.
+
+STACK:
+Flask + SQLAlchemy backend
+DSARRequest model already present
+Exporter step C-4 is already implemented
+
+TASKS:
+
+1) CREATE/UPDATE FILE:
+backend/routes/dsar.py
+
+CONTENTS:
+
+import os
+from flask import Blueprint, send_file, jsonify
+from flask_jwt_extended import jwt_required, get_jwt_identity
+from backend.models.dsar_request import DSARRequest
+
+bp = Blueprint("dsar", __name__, url_prefix="/api/dsar")
+
+
+@bp.get("/download/<reference_id>")
+@jwt_required()
+def download_dsar(reference_id):
+    """
+    Authenticated users can download their completed DSAR ZIP.
+    Only returns file if:
+    - DSARRequest exists
+    - Belongs to current user
+    - Status == completed
+    - export file exists
+    """
+    user_id = get_jwt_identity()
+
+    req = DSARRequest.query.filter_by(gdpr_reference_id=reference_id).first()
+    if not req:
+        return jsonify({"ok": False, "error": "Not found"}), 404
+
+    if req.user_id != user_id:
+        return jsonify({"ok": False, "error": "Forbidden"}), 403
+
+    status = getattr(req, "status", None)
+    if status not in ("completed", getattr(req, "STATUS_COMPLETED", "completed")):
+        return jsonify({"ok": False, "error": "Not ready"}), 400
+
+    file_path = getattr(req, "export_storage_path", None)
+    if not file_path or not os.path.isfile(file_path):
+        return jsonify({"ok": False, "error": "File missing"}), 500
+
+    return send_file(
+        file_path,
+        mimetype="application/zip",
+        as_attachment=True,
+        download_name=os.path.basename(file_path)
+    )
+
+
+2) REGISTER BLUEPRINT  
+In backend/routes/__init__.py add:
+
+from backend.routes.dsar import bp as dsar_bp
+app.register_blueprint(dsar_bp)
+
+
+3) SECURITY RULES:
+- JWT required.
+- Users can ONLY download their own ZIP.
+- No browsing folders.
+- No listing DSARs.
+- Only completed requests.
+
+4) QUICK DEV TEST:
+
+# run exporter first
+python -m backend.cli.dsar_commands export GDPR-ABC-123
+
+# then test authenticated GET:
+curl -H "Authorization: Bearer <token>" \
+     https://localhost:5000/api/dsar/download/GDPR-ABC-123 \
+     -OJ
+
+Expected:
+- ZIP downloads
+- No 500s
+- Forbidden if wrong user
+
+
+END.

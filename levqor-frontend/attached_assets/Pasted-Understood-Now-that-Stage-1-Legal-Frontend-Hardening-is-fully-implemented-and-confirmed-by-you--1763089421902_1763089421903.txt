@@ -1,0 +1,155 @@
+Understood.
+Now that Stage 1 (Legal Frontend Hardening) is fully implemented and confirmed by you:
+
+Here is your next step, in simple English — Stage 1B: Verification + Lock-In
+(small, fast, safe, zero-deploy)
+
+
+---
+
+✅ Stage 1B — Final Lock-In Tasks (15 minutes total)
+
+These steps make sure everything we just added works, survives restarts, and is ready for Stage 2.
+
+1. Screenshot verification (3 screenshots)
+
+Open your browser (local preview in Replit):
+
+Take 3 screenshots:
+
+1. Homepage
+Showing: Cookie banner + High-Risk warning
+
+
+2. Sign-In page
+Showing:
+
+Terms checkbox
+
+Marketing checkbox
+
+Disabled sign-in buttons before accept
+
+
+
+3. Pricing page
+Showing:
+
+High-risk warning
+
+DFY + Subscription pricing
+
+
+
+
+Send the screenshots here.
+(This confirms UI is actually visible — the biggest GDPR requirement.)
+
+
+---
+
+2. Confirm consent cookie exists
+
+In Chrome dev tools → Application → Cookies → your local hostname:
+
+You should see:
+
+levqor_cookie_consent
+
+Contains JSON with analytics/marketing fields
+
+
+Tell me “cookie exists” once confirmed.
+
+
+---
+
+3. Confirm the console logs appear
+
+In your Replit console, after interacting with the sign-in page:
+
+You should see:
+
+{ type: "tos_accept", ... }
+
+And if marketing is ticked:
+
+{ type: "marketing_double_opt_in_stub", ... }
+
+Tell me “logs appear”.
+
+
+---
+
+4. Confirm the new pages load
+
+Open each of the following (local preview or 5000 port):
+
+/unsubscribe
+
+/risk-disclosure
+
+/ai-disclosure
+
+/support-policy
+
+/acceptable-use
+
+/fair-use
+
+/account-suspension
+
+
+Tell me “pages load”.
+
+
+---
+
+📌 Once ALL 4 confirmations are done…
+
+I will deliver:
+
+Stage 2 — DSAR System (Full GDPR Export Flow)
+
+This includes:
+
+Export my data (UI)
+
+Email export link (stub)
+
+JSON/CSV generation
+
+Logging + audit
+
+30-day deletion tracking
+
+User identity verification check
+
+Secure download flow
+
+Internal compliance logs
+
+
+It will be delivered as one compressed, safe, fully executable Replit prompt.
+
+
+---
+
+Your turn
+
+Reply with:
+
+1. Screenshots
+
+
+2. “cookie exists”
+
+
+3. “logs appear”
+
+
+4. “pages load”
+
+
+
+When all 4 are done, I activate Stage 2.

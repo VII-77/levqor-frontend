@@ -1,0 +1,63 @@
+You are the Replit AI Agent working on the Levqor frontend.
+
+GOAL:
+Fix the Vercel deployment failure caused by a missing module:
+"Module not found: Can't resolve '@/lib/cookies'".
+
+TASKS:
+1. Create the file:
+   levqor-site/src/lib/cookies.ts
+
+2. Insert the following safe fallback cookie utility code into that file:
+
+   --------------------------------------------------
+   // Safe universal cookie helpers used by cookie banner + analytics loader
+
+   export function getCookie(name: string): string | null {
+     if (typeof document === "undefined") return null;
+     const value = `; ${document.cookie}`;
+     const parts = value.split(`; ${name}=`);
+     if (parts.length === 2) return parts.pop()!.split(";").shift() || null;
+     return null;
+   }
+
+   export function setCookie(
+     name: string,
+     value: string,
+     days = 365
+   ): void {
+     if (typeof document === "undefined") return;
+     const expires = new Date(Date.now() + days * 86400000).toUTCString();
+     document.cookie = `${name}=${value}; expires=${expires}; path=/; SameSite=Lax`;
+   }
+
+   export function deleteCookie(name: string): void {
+     if (typeof document === "undefined") return;
+     document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+   }
+   --------------------------------------------------
+
+3. Verify the import path:
+   Search the codebase for:
+     "@/lib/cookies"
+   Confirm that the new file resolves correctly.
+
+4. Run a local build and verify no errors:
+   cd levqor-site
+   npm run build
+   (or the equivalent command used in this repo)
+
+5. Show me the exact lines changed and confirm build success.
+   Use grep or search verification to prove the module exists.
+
+RULES:
+- Do not modify any other files unless absolutely required.
+- Do not delete or rename any existing components.
+- Only create the missing module and verify the build.
+
+After completing the tasks:
+- Show a diff of the new file.
+- Show the successful build output.
+- Confirm "Module not found" is resolved.
+
+Begin.

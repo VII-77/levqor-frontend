@@ -1,0 +1,452 @@
+You are Replit AI Agent working on the Levqor project.
+
+GOAL
+Implement a full GDPR “Right to Object / Opt-out” system end-to-end (backend + frontend + DSAR export) for Levqor, so a user can object to marketing, profiling, automation and analytics, and the system reliably enforces this everywhere.
+
+HIGH-LEVEL REQUIREMENTS
+- Add per-user GDPR opt-out flags in the backend (marketing, profiling, automation, analytics, all, timestamp).
+- Expose a secure authenticated API endpoint: POST /api/gdpr/opt-out.
+- Enforce the flags in:
+  - email sending
+  - automation/workflow engine
+  - profiling/AI suggestions
+  - analytics collection
+- Log all opt-out actions for audit.
+- Add a simple UI page at /privacy-tools/opt-out with toggles that call the API.
+- Include objections in DSAR export.
+
+CONSTRAINTS
+- Do not break existing behaviour for users with all flags = False.
+- Keep naming consistent with existing models and style.
+- Verify everything with real HTTP calls and DSAR export checks at the end.
+
+-------------------------------------------------------------------------------
+PHASE 1 — DISCOVER CURRENT STRUCTURE
+1) From repo root, identify backend and user model:
+   - Find Flask app & models (likely run.py, app/__init__.py, app/models.py or similar).
+   - Find existing User model and DSAR/“data export” logic, if any.
+   - Find email sending helpers, workflow engine, AI/profiling code, analytics hooks.
+
+   Commands to run and inspect:
+   - `ls`
+   - `grep -R "SQLAlchemy" -n . || grep -R "db.Model" -n .`
+   - `grep -R "class User" -n .`
+   - `grep -R "DSAR" -n . || grep -R "data export" -n . || grep -R "subject_access" -n .`
+   - `grep -R "send_email" -n .`
+   - `grep -R "workflow" -n .`
+   - `grep -R "analytics" -n .`
+   - `grep -R "recommendation" -n . || grep -R "suggestion" -n .`
+
+   Summarise where:
+   - User model is defined
+   - Email is sent
+   - Automation/workflows are triggered
+   - Profiling/AI suggestions are generated
+   - Analytics is recorded
+   - DSAR export (if exists) is generated
+
+-------------------------------------------------------------------------------
+PHASE 2 — DB MODEL UPDATE (USER FLAGS)
+2) In the main User model (e.g. app/models.py), add the following fields:
+
+   ```python
+   gdpr_opt_out_marketing = db.Column(db.Boolean, default=False, nullable=False)
+   gdpr_opt_out_profiling = db.Column(db.Boolean, default=False, nullable=False)
+   gdpr_opt_out_automation = db.Column(db.Boolean, default=False, nullable=False)
+   gdpr_opt_out_analytics = db.Column(db.Boolean, default=False, nullable=False)
+   gdpr_opt_out_all = db.Column(db.Boolean, default=False, nullable=False)
+   gdpr_opt_out_at = db.Column(db.DateTime, nullable=True)
+
+3. If the project uses migrations (Alembic or Flask-Migrate):
+
+Generate a migration and ensure these columns are added to the users table.
+
+Apply the migration.
+
+
+Example (adapt to actual tooling):
+
+alembic revision -m "Add GDPR opt-out fields to users"
+
+Edit revision to add columns.
+
+alembic upgrade head
+
+
+
+4. If no migration framework is used, update whatever schema init/upgrade code exists accordingly and ensure a fresh DB can be created with these fields.
+
+
+5. Run backend tests / basic import check:
+
+python -m compileall . (or project’s test command)
+
+Confirm no syntax errors.
+
+
+
+
+
+---
+
+PHASE 3 — AUDIT LOG FOR GDPR OBJECTIONS 6) Check if there is an existing audit/log model (e.g. AuditLog, EventLog).
+
+grep -R "AuditLog" -n . || grep -R "audit_log" -n .
+
+
+If exists:
+
+Use it to store GDPR opt-out events.
+
+
+If not, create a minimal log model (e.g. GdprObjectionLog) in the same models file:
+
+class GdprObjectionLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    scope = db.Column(db.String(64), nullable=False)  # marketing/profiling/automation/analytics/all
+    ip_address = db.Column(db.String(64), nullable=True)
+    user_agent = db.Column(db.String(256), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+Add migration for this table if needed.
+
+Ensure relationship on User if consistent with style (optional).
+
+
+
+---
+
+PHASE 4 — API ENDPOINT: POST /api/gdpr/opt-out 7) Locate API/route registration (e.g. app/routes.py, app/api/gdpr.py, blueprints).
+
+Create a new authenticated route group if needed (e.g. Blueprint gdpr_bp) or add to existing API:
+
+Behaviour:
+
+Method: POST
+
+URL: /api/gdpr/opt-out
+
+Auth required: yes (use the project’s existing auth decorator/middleware).
+
+Input JSON:
+
+{ "scope": "all" | "marketing" | "profiling" | "automation" | "analytics" }
+
+If scope invalid → 400.
+
+On success:
+
+Update corresponding User flags:
+
+If "all": set gdpr_opt_out_all=True and all other gdpr flags True.
+
+If individual: set that flag True; also set gdpr_opt_out_all=True if ALL individual flags end up True.
+
+
+Set gdpr_opt_out_at = now (if not already set).
+
+Insert row into GdprObjectionLog (scope + IP + user agent).
+
+Commit transaction.
+
+
+
+Response JSON example:
+
+{
+  "ok": true,
+  "applied": ["marketing", "automation"],
+  "opt_out_all": false,
+  "effective_at": "2025-11-14T12:34:56Z"
+}
+
+8. Implement a GET endpoint for diagnostics (internal):
+
+GET /api/gdpr/opt-out
+
+Returns current flags for the authenticated user:
+
+
+{
+  "ok": true,
+  "marketing": false,
+  "profiling": true,
+  "automation": false,
+  "analytics": true,
+  "all": false,
+  "timestamp": "..."
+}
+
+This will be used by the frontend toggles.
+
+
+9. Verification:
+
+Start backend.
+
+Use curl or httpie with an authenticated session (reuse whatever auth mechanism is in place or create a quick test user flow).
+
+Test:
+
+POST with {"scope":"marketing"}.
+
+GET and confirm marketing flag is true.
+
+POST with {"scope":"all"}, confirm all flags true and gdpr_opt_out_all true.
+
+
+Confirm logs are created in the DB.
+
+
+
+
+
+---
+
+PHASE 5 — ENFORCEMENT LOGIC (BACKEND) 10) EMAIL SENDING
+
+Locate central email send function (e.g. send_email, mailer.py).
+
+BEFORE sending any “non-transactional / marketing” emails, add enforcement:
+
+
+Pseudocode:
+
+if user.gdpr_opt_out_marketing or user.gdpr_opt_out_all:
+    # Do NOT send marketing email; optionally log skip.
+    return
+
+Keep transactional emails (password reset, receipts, DSAR export) unaffected.
+
+If there is a distinction “marketing vs transactional” already, hook into that.
+
+
+11. WORKFLOW / AUTOMATION ENGINE
+
+
+
+Locate the place where workflows run for a user (e.g. run_workflow(user, workflow)).
+
+Before running “non-essential / marketing / suggestion / outreach” workflows, enforce:
+
+
+if user.gdpr_opt_out_automation or user.gdpr_opt_out_all:
+    # Skip non-essential automation for this user.
+    # Optionally log the skip.
+    return
+
+Do NOT block core operations the user explicitly triggers, only background/behavioural automation.
+
+If you can distinguish categories (marketing, outreach, etc.), enforce more strictly there.
+
+
+12. PROFILING / AI SUGGESTIONS
+
+
+
+Find any code that generates AI-driven recommendations, behaviour-based ranking, or “smart suggestions”.
+
+Add:
+
+
+if user.gdpr_opt_out_profiling or user.gdpr_opt_out_all:
+    # Return neutral/no profiling-based suggestions.
+    return jsonify({"ok": true, "suggestions": []})
+
+Keep basic non-profiling functionality if possible.
+
+
+13. ANALYTICS
+
+
+
+Find where analytics events for individual users are recorded (server-side tracking, per-user event logs, etc.).
+
+Add:
+
+
+if user.gdpr_opt_out_analytics or user.gdpr_opt_out_all:
+    # Do not record personal analytics events for this user.
+    return
+
+This should avoid new tracking events; old historical data will still be covered by retention policy.
+
+
+
+---
+
+PHASE 6 — FRONTEND PAGE /privacy-tools/opt-out 14) In levqor-site Next.js app, create:
+
+File: src/app/privacy-tools/opt-out/page.tsx
+
+Client component with simple UI:
+
+
+UI spec:
+
+Heading: “Manage data & privacy preferences”
+
+4 toggles (checkboxes or switches):
+
+“Marketing emails”
+
+“Profiling & personalisation”
+
+“Automation & workflow triggers”
+
+“Analytics tracking”
+
+
+One “Disable everything (recommended)” button.
+
+Show current state by calling GET /api/gdpr/opt-out on mount.
+
+Each toggle change POSTs to /api/gdpr/opt-out with appropriate scope:
+
+If user disables a single toggle: send its scope.
+
+If user clicks “Disable everything”: send {"scope":"all"}.
+
+
+Show small info text: “Changes can take a few minutes to propagate.”
+
+
+Implementation notes:
+
+Reuse existing fetch helper or auth mechanism.
+
+Gracefully handle 401 (redirect to /signin).
+
+Show success / error toast or inline message.
+
+
+15. Add link into footer:
+
+
+
+Footer should have “Privacy & Legal” section already.
+
+Add a link: “Privacy tools (opt-out)” → /privacy-tools/opt-out.
+
+
+
+---
+
+PHASE 7 — CONFIRMATION EMAIL TEMPLATE 16) Add a simple transactional email template for opt-out confirmation, re-using existing email infrastructure.
+
+Template content (adapt to project style):
+
+Subject: “Your Levqor privacy preferences have been updated”
+
+Body:
+
+Confirm what they opted out of (list scopes).
+
+Clarify what will and will not happen going forward.
+
+Link back to /privacy-tools/opt-out to adjust preferences.
+
+Include DPO/Privacy contact email.
+
+
+
+Trigger:
+
+When user calls POST /api/gdpr/opt-out and at least one new flag transitions from False → True, send this email.
+
+
+
+---
+
+PHASE 8 — DSAR EXPORT INTEGRATION 17) Locate DSAR/data export generator (implemented earlier for Levqor).
+
+Extend export JSON to include:
+
+
+"gdpr_objections": {
+  "marketing": true/false,
+  "profiling": true/false,
+  "automation": true/false,
+  "analytics": true/false,
+  "all": true/false,
+  "opt_out_at": "ISO timestamp or null",
+  "log_entries": [
+    {
+      "scope": "all",
+      "ip_address": "x.x.x.x",
+      "user_agent": "...",
+      "created_at": "..."
+    }
+  ]
+}
+
+Pull data from User flags and GdprObjectionLog.
+
+
+18. Regenerate a test DSAR for a user with some flags set and confirm the new section appears.
+
+
+
+
+---
+
+PHASE 9 — VERIFICATION CHECKLIST 19) Backend checks:
+
+Run tests / lint as defined in project.
+
+Manually:
+
+POST /api/gdpr/opt-out with all scopes and verify DB flags.
+
+GET /api/gdpr/opt-out returns expected JSON.
+
+Confirm logs are written.
+
+
+
+20. Enforcement checks (local or staging):
+
+
+
+Turn on gdpr_opt_out_marketing and attempt to send a marketing email → ensure it is prevented.
+
+Turn on gdpr_opt_out_automation and trigger a non-essential automation → ensure it is skipped.
+
+Turn on gdpr_opt_out_profiling and request suggestions → ensure empty/non-profiling result.
+
+Turn on gdpr_opt_out_analytics and trigger analytics logging → ensure no per-user event recorded.
+
+
+21. Frontend checks:
+
+
+
+Visit /privacy-tools/opt-out while logged in:
+
+Confirm toggles reflect current backend state.
+
+Toggle each switch and confirm it hits the API and updates backend flags.
+
+Click “Disable everything” and confirm all flags are set and DSAR export includes them.
+
+
+Confirm footer link appears and works.
+
+
+22. DSAR check:
+
+
+
+Generate a DSAR export for a user with objections.
+
+Verify the gdpr_objections section is present and correct.
+
+
+Deliver a short summary of:
+
+Files changed/created.
+
+Final DSAR export example (anonymised).
+
+Any caveats or TODOs you found.

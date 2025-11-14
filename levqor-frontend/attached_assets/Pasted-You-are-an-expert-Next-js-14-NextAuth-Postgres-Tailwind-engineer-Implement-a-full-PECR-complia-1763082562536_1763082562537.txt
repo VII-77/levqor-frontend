@@ -1,0 +1,163 @@
+You are an expert Next.js 14 + NextAuth + Postgres/Tailwind engineer. 
+Implement a full PECR-compliant **marketing consent + double opt-in system** 
+for Levqor (levqor-site), without breaking any existing authentication 
+or user workflow.
+
+========================================
+OBJECTIVE
+========================================
+Implement the legal requirement for marketing emails:
+
+1) Users cannot be added to ANY mailing list unless they explicitly opt-in.
+2) Opt-in must be **double confirmed**:
+   - Step 1: User ticks the “marketing consent” checkbox on signup.
+   - Step 2: User clicks a confirmation link emailed to them.
+3) A marketing consent log is saved with:
+   - user id
+   - consent = true/false
+   - consent method ("checkbox", "double_opt_in")
+   - timestamp
+   - IP address
+4) Every marketing email must contain an unsubscribe link.
+5) Unsubscribe writes a log entry AND updates the user’s marketing_consent field.
+
+========================================
+STEP 0 — DISCOVER USER MODEL
+========================================
+Search for the User model inside:
+- prisma schema OR sql migrations OR orm files
+- any existing fields like `marketing_consent`, `email_opt_in`, etc.
+If none exist, prepare to add the fields in Step 1.
+
+========================================
+STEP 1 — UPDATE USER MODEL
+========================================
+Extend the user table with:
+
+- marketing_consent: boolean (default false)
+- marketing_consent_at: datetime (nullable)
+- marketing_consent_ip: varchar(64)
+- marketing_double_opt_in: boolean (default false)
+- marketing_double_opt_in_at: datetime (nullable)
+- marketing_double_opt_in_token: varchar(128) (nullable and unique)
+
+Implement using the project’s existing migrations.
+
+========================================
+STEP 2 — UPDATE SIGN-IN PAGE UI
+========================================
+Edit: src/app/signin/page.tsx
+
+Add below the OAuth buttons:
+- A checkbox:
+  “I agree to receive product updates, news, and automation tips.”
+- It should not block sign-in; it only sets initial marketing_consent = true.
+
+On submit:
+- If checked:
+   - Call `/api/marketing/consent` with { consent: true }
+- If unchecked:
+   - No change (defaults to false)
+
+========================================
+STEP 3 — CREATE MARKETING CONSENT API
+========================================
+File: src/app/api/marketing/consent/route.ts
+
+POST /api/marketing/consent
+- Require authentication.
+- Body:
+  { "consent": true | false }
+- If true:
+    - Set marketing_consent = true
+    - Set marketing_consent_at = now()
+    - Set marketing_consent_ip = derived IP
+    - Create a double_opt_in token (random UUID or crypto.randomBytes)
+    - Email user a confirmation link:
+      https://www.levqor.ai/marketing/confirm?token=xxxxx
+- If false:
+    - Set marketing_consent = false
+    - Reset double_opt_in flags & timestamps
+
+Return:
+{ ok: true }
+
+========================================
+STEP 4 — DOUBLE OPT-IN CONFIRMATION API
+========================================
+Page: src/app/marketing/confirm/page.tsx
+API: src/app/api/marketing/confirm/route.ts
+
+Flow:
+1) GET /marketing/confirm?token=xxx
+2) In server component:
+   - Look up user with matching token.
+   - If not found → Show “Invalid or expired link.”
+   - If found:
+       - Set marketing_double_opt_in = true
+       - Set marketing_double_opt_in_at = now()
+       - Clear marketing_double_opt_in_token
+       - Show success screen:
+            “Your subscription is confirmed.”
+
+========================================
+STEP 5 — UNSUBSCRIBE FLOW
+========================================
+Create:
+- Page: /marketing/unsubscribe
+- API: /api/marketing/unsubscribe
+
+POST /api/marketing/unsubscribe:
+- Look up user by email + token (to prevent abuse)
+- Set marketing_consent = false
+- Set marketing_double_opt_in = false
+- Log timestamp + IP
+
+Show a success page:
+“Your email preferences have been updated.”
+
+========================================
+STEP 6 — EMAIL TEMPLATE (CONFIRMATION)
+========================================
+Create HTML template:
+- Simple dark theme
+- Button: “Confirm subscription”
+- Footer with unsubscribe link
+
+========================================
+STEP 7 — LOGGING
+========================================
+Every marketing consent change must log:
+- user id
+- old values → new values
+- IP
+- timestamp
+- action: “opt_in”, “opt_out”, “double_opt_in_confirmed”
+
+Write logs to console (server side).  
+Do not create a separate table unless already present.
+
+========================================
+STEP 8 — TESTING SCENARIOS (REQUIRED)
+========================================
+You must verify ALL of these:
+
+1) User checks “marketing consent” → receives email → confirms.
+2) User unchecks → no email, no consent stored.
+3) User clicks confirmation link → consent becomes fully active.
+4) User unsubscribes → consent removed.
+5) Consent survives logout/login.
+
+========================================
+CONSTRAINTS
+========================================
+- DO NOT break the auth system.
+- Use existing email provider in repo (if present).
+- If no email system exists, create a stub API function and console.log the email body.
+- Use project folder structure exactly as-is.
+
+After implementation:
+- Output list of files added/modified.
+- Confirm all 5 test scenarios passed.
+
+Begin now.

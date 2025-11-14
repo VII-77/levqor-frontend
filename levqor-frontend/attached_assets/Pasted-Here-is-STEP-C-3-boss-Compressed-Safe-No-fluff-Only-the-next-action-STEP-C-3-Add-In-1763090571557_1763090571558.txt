@@ -1,0 +1,170 @@
+Here is STEP C-3, boss.
+Compressed. Safe. No fluff. Only the next action.
+
+
+---
+
+✅ STEP C-3 — Add Internal “DSAR Fetcher” Functions (Server-Side Data Collectors)
+
+These functions gather all user data from your DB in one place.
+They do not send emails, do not zip, do not expose anything.
+Pure internal collectors.
+
+
+---
+
+PROMPT
+
+You are Replit AI Agent working on the Levqor project.
+
+GOAL:
+Add internal DSAR data collectors so the backend can gather all user data before generating exports.
+
+TASKS:
+
+1) CREATE FILE:
+backend/services/dsar_collectors.py
+
+CONTENTS:
+
+from app import db
+from backend.models.user import User
+from backend.models.workflow import Workflow
+from backend.models.workflow_run import WorkflowRun
+from backend.models.api_token import APIToken
+from backend.models.audit_log import AuditLog
+from backend.models.dsar_request import DSARRequest
+
+
+def collect_user_account(user_id):
+    user = User.query.filter_by(id=user_id).first()
+    if not user:
+        return None
+
+    return {
+        "user_id": user.id,
+        "email": user.email,
+        "full_name": user.full_name,
+        "created_at": user.created_at.isoformat() if user.created_at else None,
+        "last_login": user.last_login.isoformat() if user.last_login else None,
+        "plan": user.plan,
+        "plan_started_at": user.plan_started_at.isoformat() if user.plan_started_at else None,
+        "plan_expires_at": user.plan_expires_at.isoformat() if user.plan_expires_at else None,
+    }
+
+
+def collect_user_workflows(user_id):
+    items = Workflow.query.filter_by(user_id=user_id).all()
+    return [
+        {
+            "workflow_id": w.id,
+            "name": w.name,
+            "status": w.status,
+            "created_at": w.created_at.isoformat() if w.created_at else None,
+            "updated_at": w.updated_at.isoformat() if w.updated_at else None,
+        }
+        for w in items
+    ]
+
+
+def collect_user_workflow_runs(user_id):
+    items = (
+        WorkflowRun.query
+        .join(Workflow, WorkflowRun.workflow_id == Workflow.id)
+        .filter(Workflow.user_id == user_id)
+        .all()
+    )
+    return [
+        {
+            "run_id": r.id,
+            "workflow_id": r.workflow_id,
+            "status": r.status,
+            "started_at": r.started_at.isoformat() if r.started_at else None,
+            "finished_at": r.finished_at.isoformat() if r.finished_at else None,
+            "duration_seconds": r.duration_seconds,
+        }
+        for r in items
+    ]
+
+
+def collect_user_api_tokens(user_id):
+    items = APIToken.query.filter_by(user_id=user_id).all()
+    return [
+        {
+            "token_id": t.id,
+            "created_at": t.created_at.isoformat() if t.created_at else None,
+            "last_used_at": t.last_used_at.isoformat() if t.last_used_at else None,
+            "label": t.label,
+            "token_prefix": t.token_prefix,
+        }
+        for t in items
+    ]
+
+
+def collect_user_audit_logs(user_id):
+    items = AuditLog.query.filter_by(user_id=user_id).all()
+    return [
+        {
+            "entry_id": a.id,
+            "event": a.event,
+            "ip": a.ip,
+            "timestamp": a.timestamp.isoformat() if a.timestamp else None,
+            "details": a.details,
+        }
+        for a in items
+    ]
+
+
+def collect_dsar_request_metadata(reference_id):
+    req = DSARRequest.query.filter_by(gdpr_reference_id=reference_id).first()
+    if not req:
+        return None
+
+    return {
+        "gdpr_reference_id": req.gdpr_reference_id,
+        "email": req.email,
+        "status": req.status,
+        "requested_at": req.requested_at.isoformat() if req.requested_at else None,
+        "completed_at": req.completed_at.isoformat() if req.completed_at else None,
+        "export_bytes_size": req.export_bytes_size,
+        "last_error": req.last_error,
+        "request_ip": req.request_ip,
+    }
+
+
+def collect_all_user_data(user_id, reference_id):
+    """
+    Main collector used by the DSAR export generator.
+    Returns a dict containing ALL user-associated data.
+    """
+    return {
+        "account": collect_user_account(user_id),
+        "workflows": collect_user_workflows(user_id),
+        "workflow_runs": collect_user_workflow_runs(user_id),
+        "api_tokens": collect_user_api_tokens(user_id),
+        "audit_logs": collect_user_audit_logs(user_id),
+        "dsar_request": collect_dsar_request_metadata(reference_id),
+    }
+
+
+2) NO BLUEPRINTS. NO ROUTES.
+These are internal use only.
+
+3) TEST:
+In Python shell:
+
+from backend.services.dsar_collectors import collect_all_user_data
+collect_all_user_data(1, "GDPR-TEST-ID")
+
+Expect:
+dict with 6 categories of data.
+
+END.
+
+
+---
+
+Reply:
+
+Done boss
+when ready for STEP C-4 — DSAR Export ZIP Generator (the heavy one).

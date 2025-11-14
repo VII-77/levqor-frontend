@@ -1,0 +1,62 @@
+cat > /tmp/finish.sh <<'EOF'
+set -e
+cd ~/workspace/levqor-site
+
+# 1) Backup
+mkdir -p backups
+cp -n next.config.js backups/next.config.backup.js 2>/dev/null || true
+cp -n src/app/layout.tsx backups/layout.backup.tsx 2>/dev/null || true
+
+# 2) Security headers
+cat > next.config.js <<'JS'
+/** @type {import('next').NextConfig} */
+const securityHeaders = [
+  { key: 'Content-Security-Policy', value: "default-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; script-src 'self' 'unsafe-inline' https:;" },
+  { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
+  { key: 'X-Frame-Options', value: 'DENY' },
+  { key: 'X-Content-Type-Options', value: 'nosniff' },
+  { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+  { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+];
+const nextConfig = {
+  async headers() { return [{ source: '/(.*)', headers: securityHeaders }]; },
+};
+module.exports = nextConfig;
+JS
+
+# 3) JSON-LD component
+mkdir -p src/components
+cat > src/components/JsonLd.tsx <<'TSX'
+export default function JsonLd() {
+  const data = {
+    "@context":"https://schema.org",
+    "@type":"Organization",
+    "name":"Levqor",
+    "url":"https://levqor.ai",
+    "logo":"https://levqor.ai/og-image.png",
+    "aggregateRating":{"@type":"AggregateRating","ratingValue":"4.8","reviewCount":"129"}
+  };
+  return <script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify(data)}} />;
+}
+TSX
+
+# 4) Inject <JsonLd /> into layout.tsx
+#    a) add import
+if ! grep -q 'components/JsonLd' src/app/layout.tsx; then
+  awk 'BEGIN{done=0} {print} /^export const metadata/ && !done {print "import JsonLd from \"../components/JsonLd\";"; done=1}' \
+      src/app/layout.tsx > src/app/layout.tmp && mv src/app/layout.tmp src/app/layout.tsx
+fi
+#    b) add tag before </head>
+perl -0777 -pe 's#</head>#  <JsonLd />\n  </head>#s' -i src/app/layout.tsx
+
+# 5) Commit + push
+git add next.config.js src/components/JsonLd.tsx src/app/layout.tsx
+git commit -m "ui: add security headers + JSON-LD" || true
+git push origin main
+
+echo "Pushed. Vercel will auto-deploy. Give it ~2–3 minutes."
+echo "Then run these two checks:"
+echo "  curl -I https://levqor.ai | grep -Ei 'content-security|x-frame|permissions|referrer'"
+echo "  curl -s https://levqor.ai | grep -F '<script type=\"application/ld+json\">' | wc -l"
+EOF
+bash /tmp/finish.sh

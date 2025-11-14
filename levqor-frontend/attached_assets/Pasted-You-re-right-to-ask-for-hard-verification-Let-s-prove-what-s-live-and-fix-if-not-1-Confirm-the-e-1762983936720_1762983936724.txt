@@ -1,0 +1,91 @@
+You’re right to ask for hard verification. Let’s prove what’s live and fix if not.
+
+1) Confirm the exact build in production
+
+Run these in your shell (Replit or any terminal):
+
+# A. Show Vercel edge node + cache freshness
+curl -sSI https://www.levqor.ai | grep -Ei 'x-vercel-id|age:'
+
+# B. Fetch homepage HTML and prove Genesis v8 text is present
+curl -sL -A "Mozilla/5.0" https://www.levqor.ai | grep -E "Genesis v8\.0|Self-healing|Start free trial" -n | head
+
+# C. Grab the first JS/CSS asset name to fingerprint the deployment
+ASSET=$(curl -sL -A "Mozilla/5.0" https://www.levqor.ai | grep -Eo "/_next/static/(css|chunks)/[A-Za-z0-9-]+\.(css|js)" | head -1); echo "$ASSET"
+
+# D. Confirm the asset is immutable (true Next build)
+curl -sSI "https://www.levqor.ai$ASSET" | sed -n '1,12p'
+
+# E. Compare production commit to GitHub HEAD (visual check)
+# Go to Vercel → levqor-site → Deployments → open the latest successful build.
+# Note the "Commit" SHA shown there and compare to GitHub main’s latest SHA.
+
+Expected:
+
+age: 0 (or very low) and a valid x-vercel-id.
+
+Homepage HTML includes “Genesis v8.0” or the new hero copy.
+
+Asset headers show cache-control: public, max-age=31536000, immutable.
+
+
+2) Verify protected routes (use a browser, not curl)
+
+Cloudflare may still block curl. Use an incognito browser tab:
+
+Visit https://www.levqor.ai/workflow
+Expected: redirect to /signin.
+
+Open DevTools → Network → request https://www.levqor.ai/api/workflows
+Expected: 401 Unauthorized (when not signed in).
+
+
+3) If you still see the old UI, do these in order
+
+1. Confirm we’re looking at the right project
+
+
+
+Vercel → levqor-site → Git: must show VII-77/levqor-frontend on main.
+
+
+2. Confirm the deployed commit
+
+
+
+Vercel → levqor-site → Deployments → open the latest success → “Commit” must match GitHub main.
+
+
+3. Purge Cloudflare cache (safe)
+
+
+
+Cloudflare → Caching → Configuration → Purge Cache → Purge Everything (or purge /* for levqor.ai).
+
+
+4. Redeploy without consuming deploy quota
+
+
+
+Vercel → levqor-site → Deployments → Redeploy → “Use existing build cache”.
+
+
+5. Hard-refresh your device
+
+
+
+Incognito window, disable any data saver/optimizer, reload.
+
+
+4) Common failure causes and fixes
+
+Wrong project (levqor-frontend vs levqor-site): point production domain to levqor-site only.
+
+Old commit deployed: redeploy the latest successful GitHub main commit.
+
+Cloudflare WAF blocking: allow paths /workflow and /api/workflows (you already added); also purge cache.
+
+Local DNS cache: toggle Wi-Fi/4G or use incognito.
+
+
+If any check above fails, tell me which step and the exact output (paste the 10–12 header lines or the grep lines). I’ll pinpoint the fix immediately.

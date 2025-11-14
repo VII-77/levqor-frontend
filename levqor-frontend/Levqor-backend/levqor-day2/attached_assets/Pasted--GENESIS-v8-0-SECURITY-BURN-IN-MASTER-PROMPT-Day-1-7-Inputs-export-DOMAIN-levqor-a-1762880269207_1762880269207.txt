@@ -1,0 +1,110 @@
+# === GENESIS v8.0 — SECURITY + BURN-IN MASTER PROMPT (Day 1–7) ===
+# Inputs
+export DOMAIN="levqor.ai"
+export API_HOST="api.levqor.ai"
+export PROD_PROJECT="levqor-site"
+export CLOUDFLARE="yes"        # yes|no
+export CID="burnin-$(date +%s)"
+set -euo pipefail
+
+echo "== SECTION A: FRONTEND DEPLOY + HEADERS (no-store, baseline security) =="
+# Assumes you already staged the dynamic/revalidate fix in src/app/layout.tsx
+# Add baseline headers if not already present:
+cat > /tmp/next.headers.snippet.js <<'JS'
+const securityHeaders = [
+  { key: "Cache-Control", value: "no-store" },
+  { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
+  { key: "X-Frame-Options", value: "DENY" },
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" }
+];
+module.exports = {
+  async headers() {
+    return [{ source: "/:path*", headers: securityHeaders }];
+  },
+};
+JS
+echo "=> Ensure next.config.js includes the snippet above. Commit and push to main, deploy to production alias."
+
+echo "== VERIFY A.1: HTML freshness and headers =="
+for u in "https://$DOMAIN" "https://www.$DOMAIN" "https://$DOMAIN/?t=$RANDOM"; do
+  echo "--- $u"
+  curl -sI "$u" | grep -iE 'HTTP/|content-type|cache-control|age: |x-vercel-cache|x-frame-options|strict-transport-security|permissions-policy' || true
+done
+# Hard checks
+H=$(curl -sI "https://$DOMAIN" | tr '[:upper:]' '[:lower:]')
+echo "$H" | grep -q "text/html"
+echo "$H" | grep -q "cache-control: no-store"
+! echo "$H" | grep -qE "^age: [1-9]" || { echo "FAIL: HTML cached at edge"; exit 1; }
+
+echo "== SECTION B: BACKEND ACTIVATE NEW CODE + STRUCTURED LOGGING =="
+echo "=> Clear bytecode cache and restart your process manager (Replit/Autoscale already staged)."
+# Verify meta fields on all intelligence endpoints
+for e in status anomalies forecasts recommendations health; do
+  URL="https://$API_HOST/api/intelligence/$e"
+  echo "--- $URL"
+  R=$(curl -s -H "X-Request-ID: $CID" "$URL" || true)
+  echo "$R" | jq . >/dev/null 2>&1 || echo "$R"
+  echo "$R" | jq -e '.meta.correlation_id' >/dev/null 2>&1
+  echo "$R" | jq -e '.meta.duration_ms' >/dev/null 2>&1
+done
+
+echo "== SECTION C: CLOUDFLARE EDGE RULES (if enabled) =="
+if [ "$CLOUDFLARE" = "yes" ]; then
+  echo "Manual checks required:"
+  echo "- TLS mode: Full (strict)"
+  echo "- WAF: Managed Rules = ON"
+  echo "- Rate limit: /api/* to ~100 req/min per IP"
+  echo "- Cache rule: if content-type contains text/html -> BYPASS"
+fi
+
+echo "== SECTION D: API SECURITY (CORS, rate limits, typed errors) =="
+# Negative test to ensure typed error, not generic internal_error
+NEG=$(curl -s -H "X-Request-ID: $CID-neg" "https://$API_HOST/api/intelligence/forecasts?start=INVALID_DATE" || true)
+echo "$NEG" | jq . || echo "$NEG"
+echo "$NEG" | grep -q '"error"' && echo "$NEG" | grep -q '"type"' || { echo "FAIL: Typed error not returned"; exit 1; }
+
+echo "== SECTION E: DEPENDENCY + SECRET AUDITS =="
+npm audit --omit=dev || true
+pip-audit || true
+echo "=> Confirm no secrets in repo. Rotate any keys older than 90 days."
+
+echo "== SECTION F: DATA & DB HARDENING CHECKS (manual confirm) =="
+echo "- DB TLS required, at-rest encryption, least-privilege users (read/write/admin)."
+echo "- Daily encrypted backups + last restore-test date logged."
+
+echo "== SECTION G: ACCESS CONTROL =="
+echo "- Enforce 2FA on Vercel, Cloudflare, Stripe, Git provider."
+echo "- Review role scopes. Remove unused accounts."
+
+echo "== SECTION H: MONITORING & BURN-IN METRICS =="
+python3 scripts/monitoring/notion_go_nogo_dashboard.py || true
+curl -s https://$API_HOST/public/metrics | jq . || true
+echo "Expect: error_rate<=0.5%, P1=0, cost<=\$10. Uptime and Intel API days accumulate over time."
+
+echo "== SECTION I: SUPPLY CHAIN & RUNTIME INTEGRITY =="
+echo "- Lockfiles committed, Dependabot enabled, pin versions."
+echo "- No third-party <script> without SRI; prefer self-hosted."
+
+echo "== SECTION J: INCIDENT READINESS =="
+echo "- Ensure docs/incident_response.md exists with isolate->rollback->postmortem steps."
+echo "- Snapshot/rollback path verified for frontend and backend."
+
+echo "== SECTION K: COMPLIANCE GUARDRAILS =="
+echo "- GDPR/UK DPA basics: no PII in logs; provide deletion path; Stripe handles PCI."
+echo "- Cookie policy ready if analytics added."
+
+echo "== SECTION L: REPORT OUT =="
+{
+  echo "# Day-1 Security + Burn-In Verification"
+  date -u
+  echo "## HTML headers (/$DOMAIN)"
+  curl -sI "https://$DOMAIN"
+  echo "## Intelligence /status meta"
+  curl -s -H "X-Request-ID: $CID" "https://$API_HOST/api/intelligence/status"
+} > SECURITY-HARDENING-REPORT.md
+echo "Report written to SECURITY-HARDENING-REPORT.md"
+
+echo "== DONE =="
+echo "If any step above fails due to disclosure/safety limits, response will be: PITCH"

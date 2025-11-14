@@ -1,0 +1,164 @@
+You are Replit AI Agent working on the Levqor project.
+
+GOAL:
+Complete RFP-2, RFP-3, and RFP-4 to enable revenue within 7 days.
+
+SCOPE:
+Implement the following 3 engines inside levqor-site + levqor-backend:
+
+────────────────────────────────────────
+RFP-2 — ASE (AUTOMATED SALES ENGINE)
+────────────────────────────────────────
+1. Create /lead-magnet endpoint with form:
+   - name, email, business type, problem, optional phone.
+   - store in leads table (create if missing).
+   - send autoresponder email with free guide (static PDF).
+   - tag lead: “LM-OPTIN”.
+
+2. Build /sales-page route:
+   - Dynamic offer blocks.
+   - CTA → /api/checkout DFY Starter by default.
+   - Testimonials block (3 placeholders).
+   - FAQ block (use existing 84-item FAQ dataset, auto-trim to 12).
+   - Scarcity banner: “48h delivery included this week”.
+
+3. Add Lead Score Engine:
+   - Rule-based scoring (0–100):
+     * Provided phone: +20
+     * DFY interest keyword: +30
+     * Business type (Agency/E-comm): +25
+     * Completed form fully: +10
+   - Store scores in leads table.
+
+4. Auto-Followup Engine:
+   - Create /scripts/ase-followup.mjs:
+     * Fetch leads with last-contact >24h.
+     * Send Email #1 (value).
+     * After 48h send Email #2 (case study).
+     * After 72h send Email #3 (soft pitch).
+   - Log sends to lead_activity table.
+
+5. Add “Book a Call” page (/call):
+   - Embed Calendly-style placeholder.
+   - Button triggers mailto:sales@levqor.ai for now.
+
+────────────────────────────────────────
+RFP-3 — HIGH-TICKET DFY UPSELL ENGINE
+────────────────────────────────────────
+1. Create /dfy-upgrade page:
+   - Show: Starter → Professional → Enterprise.
+   - Real examples block.
+   - CTA buttons routed to /api/checkout for each DFY tier.
+   - Add comparison table: workflows, timelines, support.
+
+2. Post-Purchase Upsell Emails:
+   - After DFY Starter purchase:
+       Email #1 (0h): “Welcome”
+       Email #2 (12h): “Upgrade to Pro for £150 off – 24h only”
+       Email #3 (36h): “Last chance”
+   - Create /scripts/dfy-upsells.mjs with Stripe webhook lookups.
+   - Store activity in upsell_log table.
+
+3. Upgrade Flow:
+   - For existing DFY buyers who upgrade:
+     * Create new Stripe checkout, mark original as “upgraded”.
+     * Prevent duplicate charge for same tier.
+     * Add logic in backend: dfy_orders → field upgraded_from.
+
+4. DFY Pipeline Tracker:
+   - Create dfy_orders table with:
+     id, customer_id, tier, status, deadline, revisions_left, files_url.
+   - Statuses: NEW, IN_PROGRESS, WAITING_CLIENT, REVISION, COMPLETE.
+
+────────────────────────────────────────
+RFP-4 — CLIENT DELIVERY MACHINE (CDM)
+────────────────────────────────────────
+1. Delivery Dashboard (/dashboard/delivery):
+   - Fetch dfy_orders for logged-in user.
+   - Show:
+     * Order details
+     * Deadline countdown
+     * Revision count
+     * Uploaded files list
+
+2. Revision Workflow:
+   - Customer can request revision:
+       POST /api/dfy/revision:
+          * decrement revisions_left
+          * set status=REVISION
+          * log to dfy_activity table
+   - If revisions_left = 0 → show message “No revisions remaining”.
+
+3. File Delivery System:
+   - Add /api/dfy/upload for internal use.
+   - Files stored in /storage/dfy/<orderId>/.
+   - Customer downloads from dashboard.
+
+4. Final Handover Flow:
+   - When order marked COMPLETE:
+       * Trigger “Delivery Email”
+       * Generate Final Package:
+            bundle: summary.txt, workflows.json, final-assets.zip
+       * Store package link in dfy_orders.final_package_url.
+
+5. QA Checklist:
+   - Add checklist.json:
+       * Tested? yes/no
+       * Error-free? yes/no
+       * Naming standards? yes/no
+       * Documentation included? yes/no
+   - Require checklist=PASS before allowing status=COMPLETE.
+
+────────────────────────────────────────
+REQUIRED BACKEND CHANGES
+────────────────────────────────────────
+1. Create tables:
+   leads
+   lead_activity
+   dfy_orders
+   dfy_activity
+   upsell_log
+
+2. Add helper utils:
+   - email.send(template, to, data)
+   - stripe.createCheckout(mode, plan)
+   - storage.saveFile(orderId, file)
+
+3. Add cron placeholders for followups/upsells.
+
+────────────────────────────────────────
+REQUIRED FRONTEND CHANGES
+────────────────────────────────────────
+Add routes:
+   /lead-magnet
+   /sales-page
+   /dfy-upgrade
+   /call
+   /dashboard/delivery
+
+Use existing Tailwind + Genesis v8 theme.
+
+────────────────────────────────────────
+VALIDATION REQUIREMENTS
+────────────────────────────────────────
+After implementation, run:
+1. npm run build (frontend) — ensure zero TS errors.
+2. Test all checkout buttons.
+3. Verify email templates exist.
+4. Confirm new routes load without error.
+
+────────────────────────────────────────
+DO NOT:
+────────────────────────────────────────
+• Modify pricing
+• Modify existing policies
+• Modify existing checkout API
+• Touch auth flow
+
+────────────────────────────────────────
+OUTPUT FORMAT:
+────────────────────────────────────────
+• Apply changes directly
+• Show diff summary
+• List files created/modified
+• Zero commentary outside technical execution

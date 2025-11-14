@@ -1,0 +1,245 @@
+You’re not wrong. What you’re seeing in the browser is the truth, and the truth is:
+
+The Genesis v8 visual design (tiles, colours, logo, “designed” layout) has never actually been implemented and shipped in the production levqor-site project.
+
+What has been done so far is mostly:
+
+Wiring backend + env vars
+
+Fixing auth/middleware, Cloudflare, Vercel limits
+
+Getting a working text-based homepage live
+
+
+
+That earlier “it looks gorgeous, tiles, logos, etc.” message from the agent was based on an assumed design state, not what is currently in your repo or on Vercel. Your Vercel previews and your live site both show a mostly white, minimal layout → that means the colourful tile UI simply isn’t in the deployed code yet.
+
+So:
+
+No, you’re not crazy.
+
+Yes, the branding, tiles, and colours we talked about are not in the code yet.
+
+The fix is straightforward: we now actually implement the Genesis v8 layout in src/app/page.tsx (and any needed CSS) and push it.
+
+
+Below is a single, final Replit AI Agent prompt that:
+
+1. Audits the current homepage.
+
+
+2. Replaces it with a proper Genesis v8 marketing page:
+
+Hero with Levqor logo/brand.
+
+Coloured tiles/cards for the key value props.
+
+Sectioning, spacing, proper visual hierarchy.
+
+“Sign in with Google” + “Get magic link” CTAs that go to /signin (no backend changes).
+
+
+
+3. Uses the existing styling system (Tailwind if present, otherwise the project’s CSS approach).
+
+
+4. Verifies with real commands.
+
+
+5. Commits and pushes one clean commit so Vercel redeploys.
+
+
+
+Copy–paste this into the Replit AI Agent for levqor-site:
+
+You are the Replit AI Agent working on the project at:
+
+  ~/workspace/levqor-site
+
+This is the **production Next.js App Router project** for https://levqor.ai, deployed via Vercel (project “levqor-site”). The backend is already healthy; our job now is the **visual homepage** only.
+
+ABSOLUTE RULES
+- Do NOT change any backend auth logic, API routes, env vars or NextAuth configuration.
+- Do NOT add heavy new backend dependencies (no Prisma, no DB adapters).
+- Frontend-only change: we are implementing the Genesis v8 marketing layout.
+- Keep all changes focused in the homepage and any directly related styling files.
+- Always show diffs for every file you modify.
+- Always run and show:
+  - `npm run lint`
+  - `npm run build`
+- If either fails, FIX the issues and rerun until both succeed before committing.
+
+GOAL
+The current live site is mostly plain white text. We want the homepage to match a **Genesis v8 marketing page**:
+
+- Strong hero with brand + tagline.
+- Clear sections.
+- Coloured “tiles” / cards for value propositions.
+- Nice spacing, responsive layout, visually modern.
+
+We also want two primary CTAs in the hero:
+
+- “Sign in with Google”
+- “Get magic link”
+
+Both buttons should simply navigate to `/signin` (do NOT touch backend auth; this is only UI).
+
+STEP 1 – PROJECT & STYLING DISCOVERY
+1. Run:
+   - `pwd`
+   - `ls`
+   - `ls src`
+   - `ls src/app`
+2. Confirm we are in `~/workspace/levqor-site` and using the Next.js App Router (there should be `src/app/page.tsx`).
+3. Detect the styling system:
+   - Check for Tailwind: `ls -1 | grep tailwind || ls src | grep tailwind || [ -f tailwind.config.js ] && cat tailwind.config.js`
+   - Check for global CSS / modules: `ls src/app | grep -E "globals\\.css|global\\.css"` and inspect.
+4. Based on what you find:
+   - If Tailwind is configured, use Tailwind utility classes.
+   - Otherwise, follow the existing CSS pattern (e.g. CSS modules or global styles) and extend it.
+
+Show me a short summary of what you found:
+- Styling system
+- Whether App Router is confirmed
+- Current homepage file path
+
+STEP 2 – INSPECT CURRENT HOMEPAGE
+1. Open and print the current homepage file in a readable form:
+   - `sed -n '1,200p' src/app/page.tsx`
+2. Briefly summarize:
+   - Current structure (sections, headings).
+   - Any existing components it uses.
+   - Why it looks flat (e.g. no grid, no cards, no colour, etc.).
+
+STEP 3 – IMPLEMENT GENESIS V8 HOMEPAGE LAYOUT
+You are now going to **rewrite `src/app/page.tsx`** to a proper Genesis v8 landing page.
+
+Requirements:
+
+A. Overall structure
+- Use a <main> container with sensible max-width, padding, and responsive breakpoints.
+- Use semantic sections: <header>, <main>, <section>, <footer>.
+
+B. Navigation / Header
+- Top nav with:
+  - Simple Levqor logo on the left (use text “Levqor” with a subtle accent or a tiny inline SVG if appropriate).
+  - Right side: links “Pricing”, “Docs”, “Contact”, and a “Sign in” button linking to `/signin`.
+- Sticky or at least visually separated with a subtle border or background.
+
+C. Hero Section
+- Big, clear hero with:
+  - Tagline: `Automate work. Ship faster.`
+  - Subheading emphasizing: `Self-healing automation for workflows, monitoring, alerts, and runbooks.`
+  - Two primary buttons:
+    - Primary: “Start free trial” → route to `/signup` (or `/signin` if `/signup` doesn’t exist).
+    - Secondary: “Book a demo” → `mailto:founders@levqor.ai` OR `href="/contact"` if that route exists.
+  - Two auth-related CTAs:
+    - “Sign in with Google” → `/signin` (regular link or button – DO NOT implement OAuth here).
+    - “Get magic link” → `/signin?method=magic-link` (just a URL; no backend changes).
+- Use a modern layout:
+  - On desktop: text on the left, a simple “dashboard” style preview / card stack on the right.
+  - On mobile: stack vertically.
+
+D. Coloured Tiles / Value Props (“Why teams choose Levqor”)
+Below the hero, add a **tile grid** section. For example, 3–4 cards:
+
+- Card 1: “Self-healing runs”
+  - Short text: “Workflows auto-retry and heal without manual babysitting.”
+- Card 2: “Visual builder”
+  - Short text: “Design automations like Lego – no wall of YAML.”
+- Card 3: “Signals, not noise”
+  - Short text: “Smart aggregation so you see issues, not raw logs.”
+- Card 4: “Fast onboarding”
+  - Short text: “Connect your stack in minutes, not weeks.”
+
+Styling:
+- Use background colours per card (pastel blues, violets, greens) or Tailwind equivalents.
+- Use rounded corners, drop shadows, and hover effects on desktop.
+- Grid should be responsive: 1 column on mobile, 2 on tablet, up to 4 on large screens.
+
+E. Social proof / logos strip
+- Add a strip like “Teams use Levqor to ship safer, faster” with a horizontal row of placeholder logos (simple text placeholders e.g. “Acme”, “Northwind”, etc., or small neutral shapes).
+- Keep it subtle (lower contrast so it doesn’t overpower the hero).
+
+F. Feature section
+- Add a 2-column section:
+  - Left: headline “Built for self-healing automation”.
+  - Bulleted list:
+    - “Runbook automations with guardrails.”
+    - “Multi-step workflows with retries and fallbacks.”
+    - “End-to-end tracing from trigger to outcome.”
+  - Right: a code block or pseudo-graph showing a workflow with steps.
+- Make sure text hierarchy is strong: larger headings, smaller body text.
+
+G. CTA footer
+- At the bottom, add a strong CTA:
+  - “Ready to automate the boring parts?”
+  - Button: “Get started with Levqor” → `/signup` or `/signin`.
+- Small text about “No long-term contracts. Cancel anytime.”
+
+H. Accessibility & details
+- Use proper <h1>, <h2>, etc.
+- Ensure buttons have discernible text and good colour contrast.
+- Don’t hard-code any secrets or environment values.
+
+Implementation details:
+
+1. Replace the content of `src/app/page.tsx` with the new layout.
+   - Keep the default export signature compatible with the current Next.js version.
+   - If the project already uses any design system or component library, reuse what you find instead of inventing a new one.
+2. If Tailwind is available:
+   - Use a background gradient for the hero (e.g. `from-slate-900 via-slate-900 to-slate-950`) and coloured tiles with Tailwind classes.
+3. If not Tailwind:
+   - Create or extend a CSS module or global class with simple, reusable styles: `.hero`, `.tilesGrid`, `.tile`, `.buttonPrimary`, `.buttonSecondary`, etc.
+
+Show me the full new `src/app/page.tsx` code and any new/updated CSS you created.
+
+STEP 4 – VERIFY LOCALLY
+1. Run:
+   - `npm install`   # only if node_modules not present; skip if already installed
+   - `npm run lint`
+   - `npm run build`
+2. If there are any TypeScript or lint errors, FIX them in the relevant files and rerun until both commands succeed.
+3. Show me:
+   - Any warnings (fine).
+   - Confirmation that both commands exited with code 0.
+
+STEP 5 – GIT STATUS, COMMIT, PUSH
+1. Show git status:
+   - `git status`
+2. You should see only:
+   - `src/app/page.tsx`
+   - Any related CSS file(s) you created/modified.
+3. Stage, commit, push:
+   - `git add src/app/page.tsx` [and any CSS file]
+   - `git commit -m "feat(ui): Genesis v8 homepage layout with tiles and CTAs"`
+   - `git push origin main`
+4. Show me the output of `git status` (should be “working tree clean”).
+
+STEP 6 – DEPLOYMENT VERIFICATION COMMANDS
+After the push (Vercel auto-deploys main):
+
+1. Wait ~60 seconds, then run:
+   - `curl -sSI https://levqor.ai | grep -E "HTTP/2|x-vercel-id"`
+2. Fetch the homepage HTML and confirm key strings are present:
+   - `curl -s https://levqor.ai | grep -E "Genesis v8|Self-healing runs|Visual builder|Get magic link" | head -5`
+3. Return:
+   - The HTTP status line and x-vercel-id.
+   - The matching lines showing the new content.
+
+If any of those strings do NOT appear in the HTML, or the status is not `HTTP/2 200`, investigate and adjust until the deployed HTML clearly contains the new Genesis v8 layout.
+
+END OF INSTRUCTIONS
+
+When this runs successfully, you should see:
+
+Brand/logo at the top, not just bland text.
+
+A proper hero with buttons and clear sections.
+
+Coloured tiles/cards for the value props.
+
+“Sign in with Google” and “Get magic link” buttons visible in the hero, both taking you to /signin (or /signin?method=magic-link).
+
+
+After you run it, send me a screenshot of the new homepage and I’ll nitpick it for polish (spacing, colours, mobile view) so we can truly call this Genesis v8, not v4.5 in pyjamas.

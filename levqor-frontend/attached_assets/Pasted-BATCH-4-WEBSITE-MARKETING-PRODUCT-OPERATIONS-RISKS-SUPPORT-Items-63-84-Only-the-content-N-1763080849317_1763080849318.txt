@@ -1,0 +1,235 @@
+BATCH 4 — WEBSITE, MARKETING, PRODUCT, OPERATIONS, RISKS, SUPPORT (Items 63–84)
+(Only the content. No explanations. No commentary.)
+
+
+---
+
+63. WEBSITE ACCESSIBILITY STATEMENT
+
+We aim for WCAG 2.1 AA compliance.  
+Keyboard navigation supported.  
+Alt text required for all images.  
+Users may request accessible formats.
+
+
+---
+
+64. WEBSITE AVAILABILITY POLICY
+
+Target uptime: 99.5%  
+Maintenance windows announced 24h in advance.  
+Emergency maintenance may occur when required.
+
+
+---
+
+65. FULL FAIR USE POLICY (FINAL VERSION)
+
+Workflows per plan must match advertised limits.  
+Unlimited plans operate under fair-use thresholds:
+- No more than reasonable daily usage  
+- No abuse of external APIs  
+- No mass automated scraping  
+- No recurring high-volume tasks without review  
+
+We reserve the right to throttle or review usage.
+
+
+---
+
+66. SLA POLICY (For Subscription Plans)
+
+Starter: No SLA  
+Growth: 48h response  
+Pro: 24h response  
+Business: 12h response + dedicated support
+
+
+---
+
+67. REFUND POLICY (FINAL)
+
+Refunds available within 14 days if:
+- No deliverables were created  
+- No workflow was delivered  
+- No automation was executed  
+
+DFY builds are non-refundable once work begins.
+
+
+---
+
+68. CANCELLATION POLICY
+
+Subscriptions renew automatically.  
+Users may cancel anytime.  
+Access continues until the end of the billing period.  
+DFY: Payments are one-time and non-cancellable once work begins.
+
+
+---
+
+69. DELIVERABLE ACCEPTANCE POLICY
+
+DFY work is considered accepted unless issues are reported within 5 days of delivery.
+
+
+---
+
+70. SUPPORT POLICY
+
+Support channels:
+- Email  
+- Dashboard inbox  
+- Priority support for Pro & Business  
+Support hours: Monday–Friday, 9am–6pm UK time.
+
+
+---
+
+71. INTERNAL TICKETING FLOW
+
+Support inbox → Triage → Engineer → Resolution → Close  
+SLA timers tracked automatically.
+
+
+---
+
+72. CHANGELOG REQUIREMENT
+
+Every new feature must be logged.  
+Every fix must be documented.  
+Changes visible in the /changelog page.
+
+
+---
+
+73. MAINTENANCE POLICY
+
+Minor updates weekly  
+Major updates monthly  
+Security updates immediately
+
+
+---
+
+74. CONTENT ACCURACY DISCLAIMER
+
+Content is provided "as-is" without warranty.  
+Workflows and AI output should be reviewed by the user.
+
+
+---
+
+75. PAYMENT FAILURE POLICY
+
+Failed subscription payments:
+- 1st attempt: immediate retry  
+- 2nd attempt: 3 days  
+- 3rd attempt: 7 days  
+- Account restricted after 14 days  
+- Cancellation after 30 days
+
+
+---
+
+76. FRAUD DETECTION POLICY
+
+Stripe Radar enabled  
+Suspicious transactions reviewed  
+High-risk orders require manual verification
+
+
+---
+
+77. PRODUCT ROADMAP DISCLOSURE
+
+Roadmap is not a guarantee.  
+Features may change based on:
+- Technical constraints  
+- Third-party platforms  
+- Security needs  
+- Market demand
+
+
+---
+
+78. AI MODEL VERSION POLICY
+
+Levqor may upgrade or change AI models without notice.  
+Improvements included at no additional cost.  
+Downgrades or rollbacks possible if stability issues occur.
+
+
+---
+
+79. SYSTEM MONITORING POLICY
+
+Uptime monitoring  
+Error tracking  
+Performance metrics  
+Usage analytics  
+Automated incident alerts
+
+
+---
+
+80. BUSINESS CONTINUITY / DISASTER RECOVERY
+
+Daily backups  
+Redundant infrastructure  
+DR plan tested quarterly  
+Recovery window target: < 12 hours
+
+
+---
+
+81. MISCONDUCT & ABUSE RESPONSE
+
+Illegal or abusive use triggers:
+- Immediate suspension  
+- Evidence preservation  
+- Report to authorities if required
+
+
+---
+
+82. BRAND & TRADEMARK POLICY
+
+Users cannot:
+- Impersonate Levqor  
+- Reuse brand assets  
+- Resell platform without permission  
+Brand use allowed only via approved partnerships.
+
+
+---
+
+83. DISCLAIMER ON THIRD-PARTY LIMITS
+
+Levqor is not responsible for changes in:
+- API limits  
+- Pricing  
+- Outages  
+- Third-party ecosystem shifts
+
+We adapt workflows but cannot guarantee stability of external systems.
+
+
+---
+
+84. FINAL FULL-SYSTEM DISCLAIMER
+
+Levqor provides tools for workflow automation,
+but the user is responsible for:
+- Ensuring legality  
+- Verifying outputs  
+- Reviewing data usage  
+- Maintaining ethical compliance  
+
+Service is provided "as-is" with no guarantees beyond the SLA.
+
+
+---
+
+Batch 4 complete.

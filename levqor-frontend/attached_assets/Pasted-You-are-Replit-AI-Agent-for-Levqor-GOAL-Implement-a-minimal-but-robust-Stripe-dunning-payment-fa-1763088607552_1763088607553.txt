@@ -1,0 +1,150 @@
+You are Replit AI Agent for Levqor.
+
+GOAL:
+Implement a minimal but robust Stripe dunning (payment failure) system for Levqor subscriptions. No UI changes, just backend + docs. Must be safe to enable later without breaking current billing.
+
+CONTEXT:
+- Backend: Flask app in repo root (run.py + api modules).
+- Stripe already integrated for checkout.
+- Email: Resend (or similar) already wired for transactional mail.
+- DB: PostgreSQL already in use.
+
+TASKS:
+
+1) CREATE DUNNING DOC
+- Add file: docs/billing/dunning.md
+- Document:
+  - Events: invoice.payment_failed, customer.subscription.updated
+  - Flow:
+    - Day 0: payment fails → email #1
+    - Day 7: second attempt → email #2
+    - Day 14: final attempt → email #3 + auto pause
+  - States: active, dunning, paused, cancelled
+  - Policy: after Day 14 unpaid → downgrade/pause account
+  - Mention: UK + EU friendly, no hidden re-attempts beyond schedule.
+
+2) DB TABLE FOR DUNNING
+- Create migration or SQL file (do NOT run it, just prepare) at:
+  - db/migrations/XXXX_add_billing_dunning_events.sql
+- Table name: billing_dunning_events
+- Columns:
+  - id (uuid, pk)
+  - created_at (timestamptz default now())
+  - updated_at (timestamptz default now())
+  - stripe_customer_id (text, indexed)
+  - stripe_subscription_id (text, indexed)
+  - invoice_id (text)
+  - email (text)
+  - plan (text)
+  - attempt_number (integer)
+  - scheduled_for (timestamptz)
+  - sent_at (timestamptz, nullable)
+  - status (text) -- values: pending, sent, skipped, error
+  - error_message (text, nullable)
+
+3) BACKEND CONFIG
+- In backend config/module (where other Stripe constants live), add:
+  - DUNNING_ENABLED = False  # IMPORTANT: stays False until we flip it
+  - DUNNING_SCHEDULE_DAYS = [1, 7, 14]
+- Add a small helper to compute scheduled_for = failed_at + N days.
+
+4) STRIPE WEBHOOK HANDLER (LOGIC ONLY)
+- Find existing Stripe webhook endpoint (likely /webhooks/stripe or similar).
+- If missing, add one new blueprint route:
+  - POST /webhooks/stripe
+- In handler:
+  - Verify Stripe signature using STRIPE_WEBHOOK_SECRET (if present).
+  - Handle events:
+    a) invoice.payment_failed
+       - Extract customer, subscription, invoice, client_email, plan.
+       - If DUNNING_ENABLED is False:
+           - Log: "Dunning disabled, recording payment_failed only."
+           - Do NOT schedule emails.
+           - Return 200.
+       - If DUNNING_ENABLED is True:
+           - Insert billing_dunning_events rows for the schedule if not already created for this invoice:
+             - attempt 1 → scheduled_for = now + 1 day
+             - attempt 2 → now + 7 days
+             - attempt 3 → now + 14 days
+    b) customer.subscription.updated
+       - If status becomes "active" again:
+         - Mark related billing_dunning_events for that subscription as status = 'skipped' where sent_at is null.
+- Always return 200 on handled events, 400 for invalid signature.
+
+5) DUNNING SENDER JOB (CRON-FRIENDLY)
+- Add new module: backend/billing/dunning.py (or similar).
+- Implement function:
+  - run_dunning_cycle(db, email_client, now_utc):
+    - Query billing_dunning_events where:
+      - status = 'pending'
+      - scheduled_for <= now_utc
+    - For each row:
+      - Render dunning email content (see #6).
+      - If DUNNING_ENABLED is False:
+          - Log only, do NOT send, keep status = 'pending'.
+      - If enabled:
+          - Attempt to send via existing email utility.
+          - On success:
+              - Update status='sent', sent_at=now_utc.
+          - On error:
+              - status='error', record error_message.
+- Add small CLI entry or script:
+  - scripts/run_dunning_cycle.py
+  - Imports Flask app context and calls run_dunning_cycle() with now_utc=timezone.now().
+
+6) EMAIL TEMPLATES (TEXT-ONLY, NO MARKETING)
+- Create templates/email/dunning_1.txt, dunning_2.txt, dunning_3.txt
+  Each must include:
+  - Subject suggestion in first comment line, e.g.:
+    - # Subject: Action required – Levqor could not process your payment
+  - Body (plain text), including:
+    - Plan name and amount (if known)
+    - Clear statement payment failed
+    - Link to "Manage billing" (placeholder URL: https://www.levqor.ai/billing)
+    - Mention service may be paused after Day 14
+    - Support email: support@levqor.ai
+- In dunning.py:
+  - Map attempt_number 1/2/3 to these templates.
+  - Keep wording neutral, no threats, clear and respectful.
+
+7) WIRES INTO BACKEND (SAFE MODE)
+- In main backend startup (where schedulers are defined), do NOT wire an actual cron yet.
+- Add commented example showing how we would run:
+  - "# Example: run_dunning_cycle(db, email_client, datetime.utcnow())"
+- Ensure that with DUNNING_ENABLED = False, no emails are sent even if run_dunning_cycle is called.
+
+8) LOGGING & AUDIT
+- Everywhere in dunning flow:
+  - Use structured logs, e.g.:
+    - "dunning.schedule_created", "dunning.email_sent", "dunning.skipped", "dunning.error"
+  - Include:
+    - subscription_id, customer_id, invoice_id, attempt_number, status.
+
+9) VERIFICATION (MANDATORY)
+Run all of this in sequence and paste output for the user:
+
+- Check migrations file:
+  - ls db/migrations | grep dunning
+  - head -40 db/migrations/*dunning*.sql
+
+- Check dunning module + templates exist:
+  - ls backend/billing
+  - ls templates/email | grep dunning
+
+- Static checks (no run of real webhooks):
+  - grep -R "DUNNING_ENABLED" -n .
+  - grep -R "billing_dunning_events" -n .
+
+- Dry-run test (no emails should actually send with flag False):
+  - Add a tiny script under scripts/ called scripts/dunning_smoke_test.py that:
+      - Creates a fake "now", calls run_dunning_cycle with DUNNING_ENABLED assumed False.
+      - Prints "DUNNING_SMOKE_TEST_OK".
+  - Run:
+      - python scripts/dunning_smoke_test.py
+
+RULES:
+- Do NOT flip DUNNING_ENABLED to True.
+- Do NOT create any external cron/scheduler. Only create code hooks and documentation.
+- Do NOT change existing working checkout or subscription logic.
+- Fail fast on any error; fix until all verification commands succeed.
+```0

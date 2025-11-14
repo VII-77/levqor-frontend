@@ -1,0 +1,438 @@
+You are Replit AI Agent working on the Levqor project.
+
+GOAL
+Implement the remaining HIGH-IMPACT compliance + ops pieces for Levqor, WITHOUT deploying to Vercel:
+
+1) Full payment failure “dunning” system (Stripe webhooks + emails + auto-pause)
+2) Public status page + JSON health endpoint
+3) SLA credits request flow
+4) Dispute resolution logging flow
+5) Consolidated DFY contract page (single “Managed Automation Agreement”)
+6) Public API docs page (for future developer usage)
+
+CONSTRAINTS
+- Repo: same Levqor monorepo:
+  - Frontend: `levqor-site` (Next.js 14 App Router)
+  - Backend: Flask app at repo root (API, DB, schedulers, Stripe, etc.)
+- Assume:
+  - Stripe already configured (secret key + subscription webhooks).
+  - Legal/policy pages already exist (terms, privacy, refunds, fair-use, acceptable-use, sla, risk-disclosure, etc.).
+- Do NOT:
+  - Change Stripe pricing, plans, or checkout logic.
+  - Deploy to Vercel (no CLI, no API deploy calls).
+- DO:
+  - Reuse existing patterns for DB models, migrations, email, logging, and job scheduling.
+  - Verify with real commands (curl, tests, build). No “should work” claims.
+
+HIGH-LEVEL PLAN
+1) Scan repo quickly (backend + frontend) to recall:
+   - Where Stripe webhooks live.
+   - Where email helpers live.
+   - Where DB models + migrations live.
+   - Where existing policy pages + layout live.
+2) Implement 6 features in this order:
+   1. Dunning system
+   2. Status page + health JSON
+   3. SLA credits flow
+   4. Dispute logging flow
+   5. DFY contract page
+   6. Public API docs page
+3) Run backend tests, frontend lint/build, and local curl checks.
+
+────────────────────────
+STEP 0 — DISCOVERY
+────────────────────────
+
+1. BACKEND:
+   - Locate:
+     - Stripe webhook handler file (e.g. `stripe_webhooks.py`, `routes/stripe.py`, etc.).
+     - Email helper module (e.g. `email_utils.py`, `notifications.py`, or similar).
+     - DB models (`models.py`, `db/models/*.py`, etc.).
+     - Migrations folder (e.g. `migrations/`, `alembic/`).
+     - Any existing scheduled jobs (cron / APScheduler / Celery / custom).
+   - Identify subscription model:
+     - Subscriptions / plans / invoices tables (if any).
+     - How we link Stripe subscription IDs to Levqor `user_id` / `tenant`.
+
+2. FRONTEND:
+   - In `levqor-site`:
+     - Check `src/app/layout.tsx`, `src/components`, `src/app/(marketing)` and `(app)` segments.
+     - Confirm existing legal pages: `/sla`, `/refunds`, `/billing`, `/risk-disclosure`, `/support-policy`, etc.
+     - Identify a good spot for:
+       - `/status`
+       - `/sla-credits`
+       - `/disputes`
+       - `/dfy-contract`
+       - `/api-docs`
+
+Keep notes mentally; do not print every file you read.
+
+────────────────────────
+STEP 1 — PAYMENT FAILURE “DUNNING” SYSTEM
+────────────────────────
+
+GOAL
+When Stripe billing fails:
+- Track failures.
+- Send 3-tier email sequence (Day 0, 7, 14).
+- Auto-pause account after final failure.
+- All events logged for audit.
+
+A) DB: DUNNING TABLE
+
+1. Create a new model, e.g. `DunningEvent`:
+   - Fields:
+     - `id` (PK)
+     - `user_id` (FK to users)
+     - `stripe_customer_id` (STRING)
+     - `stripe_subscription_id` (STRING, nullable if invoice-only)
+     - `invoice_id` (STRING, nullable)
+     - `status` ENUM: `"pending" | "recovered" | "canceled"`
+     - `stage` ENUM: `"day0" | "day7" | "day14"`
+     - `failure_reason` (TEXT)
+     - `created_at`, `updated_at`
+   - Create migration using existing tooling (match style of other migrations).
+
+2. Optional: If there is already a `billing_events` or `invoices` table, reuse it or create a minimal `dunning_events` table with the above.
+
+B) STRIPE WEBHOOK INTEGRATION
+
+1. Find existing Stripe webhook handler and:
+   - Ensure we handle at least:
+     - `invoice.payment_failed`
+     - `customer.subscription.updated` (to detect canceled or unpaid state).
+2. On `invoice.payment_failed`:
+   - Extract:
+     - `customer` (Stripe customer id)
+     - `subscription` (if present)
+     - `invoice.id`
+     - Failure message / code.
+   - Map Stripe customer to Levqor user/tenant (use existing mapping).
+   - Create or update `DunningEvent`:
+     - If no existing, create at stage `"day0"`, status `"pending"`.
+     - If an existing unresolved one exists, keep stage, but update latest failure info.
+
+3. On `customer.subscription.updated` with `status = 'active'`:
+   - Mark any pending dunning events for that subscription as `status = "recovered"`.
+
+C) SCHEDULED DUNNING JOB
+
+1. Add a scheduled job (using existing scheduler) that runs daily:
+   - Find all `DunningEvent` with `status="pending"`.
+   - For each:
+     - Calculate how many days since `created_at`.
+     - If 0 days → send Day 0 email (if not already sent).
+     - If ≥7 days and `<14` and stage is still `"day0"` → send Day 7 email, stage `"day7"`.
+     - If ≥14 days and stage `"day7"` → send Day 14 email, stage `"day14"`, then:
+       - Mark relevant subscription/tenant as “paused for billing failure” using existing account status fields.
+   - Log all sends to audit log.
+
+2. Emails:
+   - Reuse existing email helper.
+   - Templates (simple text):
+     - Day 0: “Payment failed, please update your card to avoid interruption.”
+     - Day 7: “Second reminder, service will be paused if payment is not fixed.”
+     - Day 14: “Account paused due to non-payment, contact support to restore.”
+
+D) FRONTEND INDICATORS (OPTIONAL BUT USEFUL)
+
+1. In account/billing page:
+   - If account is flagged “billing_paused” (or equivalent):
+     - Show banner “Your account is paused due to failed payments. Please update billing.”
+
+E) VERIFY
+
+1. Simulate:
+   - Insert a fake `DunningEvent` with `created_at` 0 days ago.
+   - Run dunning job manually → Day 0 email logged.
+   - Modify `created_at` to 8+ days → run job → Day 7 email.
+   - Modify `created_at` to 15+ days → run job → Day 14 email + account paused.
+
+2. Confirm:
+   - DB records updated as expected.
+   - Email helper called (log output).
+   - No stack traces.
+
+────────────────────────
+STEP 2 — PUBLIC STATUS PAGE + JSON HEALTH
+────────────────────────
+
+GOAL
+- A nice public `/status` page.
+- A machine-readable `/api/status/health` JSON endpoint.
+- Pulls from existing health checks, not fake.
+
+A) BACKEND: HEALTH ENDPOINT
+
+1. Implement endpoint, e.g. `GET /api/status/health`:
+   - Check:
+     - DB connectivity (simple SELECT 1 or minimal query).
+     - Redis/queue, if present.
+     - Stripe API connectivity (optional or cached).
+   - Return JSON:
+     ```json
+     {
+       "ok": true/false,
+       "timestamp": "...",
+       "components": {
+         "db": {"ok": true, "latencyMs": 12},
+         "queue": {"ok": true},
+         "stripe": {"ok": true}
+       }
+     }
+     ```
+   - Ensure this is **read-only**, no secrets in response.
+
+B) FRONTEND: `/status` PAGE
+
+1. Add `levqor-site/src/app/status/page.tsx`:
+   - Server component that fetches `/api/status/health` (either via server-side fetch or client).
+   - Displays:
+     - Overall status: “Operational” / “Degraded” / “Outage” based on components.
+     - Per-component statuses with icons.
+   - Link to `/business-continuity` and `/sla`.
+
+2. Optional:
+   - Include last updated time (from JSON timestamp).
+   - Show incident history stub if any (you can leave as “No incidents reported” for now or tie into an existing incident model if one exists).
+
+C) VERIFY
+
+1. `curl -sS http://localhost:5000/api/status/health` → JSON with `ok` field.
+2. Open `/status` in dev:
+   - Page loads.
+   - Shows correct “Operational” state.
+
+────────────────────────
+STEP 3 — SLA CREDITS REQUEST FLOW
+────────────────────────
+
+GOAL
+Implement front-to-back flow for customers to request SLA credits (downtime compensation), aligned with `/sla` and `/pricing-changes` pages.
+
+A) DB: SLA CREDIT REQUESTS
+
+1. New table, e.g. `SlaCreditRequest`:
+   - `id` (PK)
+   - `user_id` (FK)
+   - `plan` (STRING)
+   - `incident_date` (DATE/TIMESTAMP)
+   - `description` (TEXT)
+   - `impact_level` (ENUM or STRING)
+   - `status` ENUM: `"pending" | "approved" | "rejected" | "needs-more-info"`
+   - `created_at`, `updated_at`
+   - `resolution_notes` (TEXT, nullable)
+
+2. Add migration.
+
+B) BACKEND API
+
+1. `POST /api/sla-credits/request`:
+   - Auth required.
+   - Accepts JSON: `{ plan, incidentDate, description, impactLevel }`.
+   - Creates `SlaCreditRequest` with status `"pending"`.
+   - Logs to audit.
+   - Optionally sends internal notification email to support.
+
+2. `GET /api/sla-credits/my-requests`:
+   - Auth required.
+   - Returns list of requests for that user.
+
+3. (Admin-only) Endpoint for updating status optional; can be done later.
+
+C) FRONTEND: `/sla-credits` PAGE
+
+1. Add `levqor-site/src/app/sla-credits/page.tsx`:
+   - For logged-in users:
+     - Form with:
+       - Plan (dropdown: Starter/Growth/Pro/Business).
+       - Incident date.
+       - Impact description.
+       - Impact level (e.g., Minor / Major / Critical).
+     - On submit:
+       - Call `POST /api/sla-credits/request`.
+       - Show success/error message.
+   - Below form:
+     - List previous requests with status and dates.
+
+2. Add link from `/sla` page and footer to `/sla-credits`.
+
+D) VERIFY
+
+1. Logged-in in dev:
+   - Go to `/sla-credits`.
+   - Submit test request.
+   - Confirm DB row created and shows in “My requests” list.
+
+────────────────────────
+STEP 4 — DISPUTE RESOLUTION LOGGING FLOW
+────────────────────────
+
+GOAL
+Have a clear, trackable dispute channel:
+- Customer can log a dispute.
+- System stores it for operations/legal.
+- Aligned with Refunds & Billing policies.
+
+A) DB: DISPUTES TABLE
+
+1. New table: `Dispute`:
+   - `id` (PK)
+   - `user_id` (FK)
+   - `category` (STRING) — e.g. `billing`, `service-quality`, `security`, `other`
+   - `subject` (STRING)
+   - `description` (TEXT)
+   - `status` ENUM: `"open" | "in-review" | "resolved" | "closed"`
+   - `created_at`, `updated_at`
+   - `resolution_notes` (TEXT, nullable)
+
+2. Add migration.
+
+B) BACKEND API
+
+1. `POST /api/disputes`:
+   - Auth required.
+   - JSON: `{ category, subject, description }`.
+   - Creates dispute with status `"open"`.
+   - Logs to audit.
+   - Optionally, send email to support team.
+
+2. `GET /api/disputes/my`:
+   - Auth required.
+   - Returns list of current user’s disputes.
+
+C) FRONTEND: `/disputes` PAGE
+
+1. Add `levqor-site/src/app/disputes/page.tsx`:
+   - Show information:
+     - Reference to `/refunds`, `/billing`, `/terms` for policy context.
+   - Form:
+     - Category dropdown.
+     - Subject field.
+     - Description textarea.
+   - Below, table listing:
+     - Created date, category, status, and short description.
+
+2. Add links:
+   - From `/refunds` and `/billing` to `/disputes`.
+
+D) VERIFY
+
+1. In dev:
+   - Create dispute via UI.
+   - Confirm DB row created with status `"open"`.
+   - Confirm `GET /api/disputes/my` returns it.
+
+────────────────────────
+STEP 5 — CONSOLIDATED DFY CONTRACT PAGE
+────────────────────────
+
+GOAL
+Create a single “Managed Automation Agreement” page that consolidates DFY terms scattered across:
+- `/delivery`
+- `/revisions`
+- `/onboarding`
+- `/fair-use`
+- `/acceptable-use`
+- `/risk-disclosure`
+
+A) FRONTEND: `/dfy-contract` PAGE
+
+1. Add `levqor-site/src/app/dfy-contract/page.tsx`:
+   - Create a well-structured legal page titled “Managed Automation Services Agreement”.
+   - Sections (pull content/structure from existing pages, but unify):
+     - Scope of Work
+     - Deliverables & Timelines (referencing DFY Starter/Pro/Enterprise)
+     - Revisions & Change Requests (from `/revisions`)
+     - Customer Responsibilities (access, data, communication)
+     - Exclusions & Limitations (refer `/risk-disclosure`, `/acceptable-use`)
+     - Payment & Refunds (link to `/billing` and `/refunds`)
+     - Term & Termination
+     - Liability & Indemnity (reference `/terms`)
+   - Use existing typography and layout components for legal pages.
+
+2. Link this page from:
+   - `/delivery`, `/revisions`, `/onboarding` (add “See full DFY contract” link).
+   - `/pricing` near DFY tiers.
+
+B) NO BACKEND CHANGES REQUIRED (purely content + links).
+
+C) VERIFY
+
+1. `npm run build` to ensure no TS/JSX errors.
+2. Open `/dfy-contract` in dev and click through links.
+
+────────────────────────
+STEP 6 — PUBLIC API DOCS PAGE (BASIC, NON-SENSITIVE)
+────────────────────────
+
+GOAL
+Provide a starter API docs page for future developer users, aligned with current public endpoints and not leaking secrets.
+
+A) DISCOVER
+
+1. List a few safe public or auth-protected API endpoints that are stable and intended for external integration (if any exist).
+2. If there is no public API intended yet:
+   - Create docs that describe future plan and mention “API access by request”.
+
+B) FRONTEND: `/api-docs` PAGE
+
+1. Add `levqor-site/src/app/api-docs/page.tsx`:
+   - Sections:
+     - Overview:
+       - “Levqor provides a REST API for workflow management and analytics. API access is currently available on request.”
+     - Authentication:
+       - High-level description (bearer tokens / API keys) as used today.
+       - No secrets, no keys rendered.
+     - Example Endpoints (documented, no code changes required):
+       - `GET /api/status/health` – health check.
+       - `GET /api/workflows` (if exists) – list workflows (requires auth).
+       - `POST /api/workflows` (if exists) – create workflow (requires auth).
+     - Rate limits:
+       - Reference `/rate-limits` page.
+     - Terms:
+       - “All API usage is subject to Terms of Service, Fair Use Policy, and Acceptable Use Policy.”
+
+2. Use existing docs layout style (similar to other policy pages) — no heavy UI needed.
+
+C) VERIFY
+
+1. `npm run lint && npm run build` in `levqor-site`.
+2. Visit `/api-docs` in dev.
+
+────────────────────────
+FINAL VERIFICATION & SUMMARY
+────────────────────────
+
+After implementing ALL the above:
+
+1) BACKEND CHECKS
+   - Run the project’s test suite (e.g. `pytest` or existing test runner).
+   - Manually test via curl:
+     - `GET /api/status/health`
+     - `POST /api/sla-credits/request`
+     - `GET /api/sla-credits/my-requests`
+     - `POST /api/disputes`
+     - `GET /api/disputes/my`
+     - Trigger dunning job on test data.
+     - (If implemented) `POST /api/compliance/dsar-request` already from previous work.
+
+2) FRONTEND CHECKS
+   - `cd levqor-site && npm run lint && npm run build`
+   - In dev server:
+     - Visit `/status` → shows component statuses.
+     - Visit `/sla-credits` → can file a request.
+     - Visit `/disputes` → can file a dispute and see it listed.
+     - Visit `/dfy-contract` → full DFY agreement visible.
+     - Visit `/api-docs` → docs visible and consistent.
+
+3) NO DEPLOYS
+   - Do NOT run Vercel deploys from within the agent.
+   - All changes are local and ready for a future deployment.
+
+When done, output:
+- List of files created/modified.
+- Migrations added.
+- New endpoints with brief descriptions.
+- Any follow-up TODOs that must be completed before public launch.
+```0

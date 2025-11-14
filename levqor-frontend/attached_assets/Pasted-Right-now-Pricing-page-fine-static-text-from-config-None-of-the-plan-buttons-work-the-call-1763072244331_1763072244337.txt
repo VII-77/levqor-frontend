@@ -1,0 +1,178 @@
+Right now:
+
+Pricing page = fine (static text from config).
+
+None of the plan buttons work = the calls to /api/checkout are failing.
+
+Hitting https://www.levqor.ai/api/checkout in the browser gives 404 = the API route is not exposed in the deployed app (or the domain points at the wrong build).
+
+
+So the problem is not prices or Stripe IDs any more – it’s:
+
+> “Why is /api/checkout missing in production even though the code exists?”
+
+
+
+Use this Replit AI Agent prompt to diagnose and fix that end-to-end.
+
+
+---
+
+You are Replit AI Agent operating as Levqor’s lead engineer.
+
+GOAL
+Fix the revenue path so that:
+- https://www.levqor.ai/api/checkout returns JSON (not 404)
+- Every button on /pricing opens a real Stripe Checkout page (no silent failures)
+
+CONTEXT (VERY IMPORTANT)
+- Frontend repo: levqor-site (Next.js 14 App Router, TypeScript, Tailwind)
+- Backend: separate Flask API (api.levqor.ai) – DO NOT TOUCH for this task
+- Domain: www.levqor.ai → Vercel project linked to this repo
+- Pricing + checks: already implemented and correct; user has added ALL Stripe env vars in BOTH Vercel and Replit
+- Current symptom: 
+  - /pricing loads, prices look right
+  - Plan buttons do not open Stripe
+  - Hitting /api/checkout on production returns 404 (Vercel-level 404 or HTML)
+
+OPERATING RULES
+1. Always verify with real commands and real responses (no guessing).
+2. Every “should work” must be proven by curl, grep, or logs.
+3. Do not change working logic (pricing math, amounts, plan names) unless it’s clearly wrong.
+4. Keep changes minimal and targeted around:
+   - API route exposure
+   - Button → API wiring
+5. If you change code, ALWAYS re-run a build and re-test the live routes.
+
+PHASE 0 — PROJECT & ROUTE SANITY
+1. Change into the frontend project:
+   - cd ~/workspace/levqor-site
+2. Confirm the app-router API route exists with the EXACT expected path:
+   - It must be: src/app/api/checkout/route.ts
+3. List the directory:
+   - ls -R src/app/api
+   - CONFIRM you see: checkout/route.ts (not index.ts, not routes.ts, not a different folder name)
+4. If path is wrong:
+   - Create the correct folder structure: src/app/api/checkout/
+   - Move/rename any existing checkout route file into that folder as route.ts
+
+PHASE 1 — CHECKOUT ROUTE IMPLEMENTATION
+1. Open src/app/api/checkout/route.ts and inspect:
+   - There must be top-level named exports:
+       export async function POST(req: NextRequest) { ... }
+       export async function GET(req: NextRequest) { ... }
+   - There must NOT be a default export.
+2. Verify imports:
+   - Uses “next/server” (NextRequest, NextResponse)
+   - No Node-only APIs that would break on edge runtime unless explicitly configured
+3. Fix any obvious TypeScript/ES syntax errors:
+   - Missing imports
+   - Duplicate exports
+   - Mis-typed types
+4. DO NOT change business logic (pricing, plan names, modes) unless code is clearly broken.
+5. At the very end of route.ts, ensure no stray export or unreachable code.
+
+PHASE 2 — PRICING PAGE → API WIRING
+1. Open src/app/pricing/page.tsx.
+2. Find the checkout handler (handleCheckout or equivalent).
+   - Confirm it calls fetch("/api/checkout", { method: "POST", ... })
+   - If it’s calling an absolute URL, or /checkout, or api.levqor.ai directly, CHANGE it to “/api/checkout”.
+3. Confirm:
+   - method: "POST"
+   - headers: { "Content-Type": "application/json" }
+   - body: JSON.stringify({ mode, plan, term }) according to our dual-pricing model
+4. Confirm button onClick definitions:
+   - DFY buttons → call handleCheckout with mode: "dfy" and correct DFY plan keys
+   - Subscription buttons → call handleCheckout with mode: "subscription", correct plan, and term "monthly" or "yearly"
+5. Ensure the handler:
+   - Awaits the fetch
+   - Checks res.ok and parses JSON
+   - If json.ok && json.url → do window.location.href = json.url
+   - Logs errors to console or shows a small on-page error message (no silent fail).
+
+PHASE 3 — LOCAL BUILD & ROUTE CHECK
+1. From levqor-site root:
+   - npm run build
+2. If build fails:
+   - STOP and fix the errors in route.ts and/or pricing/page.tsx.
+   - Re-run npm run build until it prints “Compiled successfully”.
+3. After a successful build, confirm the route is actually included:
+   - find .next/server/app -maxdepth 4 -type f | grep -i "checkout" || echo "NO_CHECKOUT_ROUTE"
+   - If “NO_CHECKOUT_ROUTE” appears, it means Next did not emit a server handler → route config is still wrong.
+   - In that case, re-check:
+       - Path: src/app/api/checkout/route.ts
+       - Exports: named POST/GET functions
+       - No weird middleware stripping the route.
+4. Start dev or rely on existing workflow, then from inside Replit:
+   - curl -sS -X GET http://localhost:5000/api/checkout
+   - Confirm you get JSON (status/config) not HTML / 404.
+   - curl -sS -X POST http://localhost:5000/api/checkout \
+        -H "Content-Type: application/json" \
+        -d '{"mode":"subscription","plan":"starter","term":"monthly"}'
+   - Confirm you get { ok: true, url: "https://checkout.stripe.com/..." }.
+
+If any of these local calls fail, FIX route.ts until they pass.
+
+PHASE 4 — GIT + VERCEL DEPLOY
+1. Still from levqor-site root:
+   - git status
+2. If code changed:
+   - git add src/app/api/checkout/route.ts src/app/pricing/page.tsx
+   - git commit -m "fix: expose /api/checkout and wire pricing buttons to Stripe checkout"
+   - git push origin main
+3. Confirm .vercel/project.json (if present) still points to the correct project (levqor-site).
+   - DO NOT change project linkage unless obviously wrong.
+
+PHASE 5 — PRODUCTION VERIFICATION (REAL URLs)
+Now verify against **production** (Vercel) from the Replit shell:
+
+1. Check /api/checkout:
+   - curl -i https://www.levqor.ai/api/checkout | sed -n '1,12p'
+   - If you see:
+       - “HTTP/2 200” and JSON body → GOOD.
+       - “HTTP/2 404” and Vercel’s not found HTML → route still not part of the build.
+       - Cloudflare / WAF HTML → note that and try again with a User-Agent header:
+           curl -i -H "User-Agent: Mozilla/5.0" https://www.levqor.ai/api/checkout | sed -n '1,12p'
+2. Document EXACTLY what you see and adjust:
+   - If 404 from Vercel: route path/export is still wrong → go back to PHASE 1/3 and fix.
+   - If HTML block page (e.g. Cloudflare 403): note that API is there but blocked from curl; browser testing will still work.
+3. Test a POST to production:
+   - curl -i -X POST https://www.levqor.ai/api/checkout \
+       -H "Content-Type: application/json" \
+       -d '{"mode":"subscription","plan":"starter","term":"monthly"}' \
+       | sed -n '1,20p'
+   - Confirm:
+       - HTTP/2 200
+       - JSON with ok:true and url present.
+
+PHASE 6 — FRONTEND BUTTON BEHAVIOUR (HEADLESS CHECK)
+1. Fetch the pricing page HTML:
+   - curl -sS https://www.levqor.ai/pricing > /tmp/pricing.html
+2. Grep for the button markup to ensure React compiled it:
+   - grep -n "Get Starter" /tmp/pricing.html | head -5
+3. (Optional) Use a small script to confirm that clicking the button would call /api/checkout, by inspecting the compiled bundle:
+   - grep -R "api/checkout" .next -n | head -10
+
+PHASE 7 — FINAL REPORT (PRINT TO CONSOLE)
+At the end, print a clear, user-facing summary covering:
+
+1) Local status (http://localhost:5000/api/checkout GET + POST)
+2) Production status (https://www.levqor.ai/api/checkout GET + POST)
+3) Whether:
+   - /api/checkout exists and returns JSON (not 404)
+   - Pricing buttons successfully redirect to Stripe checkout URL in logs/tests
+4) EXACT commands you used and their key outputs.
+
+IMPORTANT:
+- Do NOT touch pricing amounts, plan names, or Stripe env var names.
+- ONLY touch:
+   - src/app/api/checkout/route.ts
+   - src/app/pricing/page.tsx
+   - any absolutely necessary config for the route to be seen by Next.js.
+- Treat “it should be fine” as a failure – prove everything with commands.
+
+End by confirming in your summary whether the system is:
+- “READY TO TAKE MONEY end-to-end” OR
+- “BLOCKED by X (with exact error/response)”.
+
+Paste that into Replit AI Agent, let it run, and then send me its final report (or screenshots of the key bits). Once we see exactly whether /api/checkout is still 404 in production or finally returning JSON, I can tell you if we’re truly “ready to take money” or what single remaining thing is blocking.

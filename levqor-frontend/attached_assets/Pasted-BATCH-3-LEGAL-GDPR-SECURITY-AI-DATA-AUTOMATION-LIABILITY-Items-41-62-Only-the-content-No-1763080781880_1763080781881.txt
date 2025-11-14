@@ -1,0 +1,239 @@
+BATCH 3 — LEGAL, GDPR, SECURITY, AI, DATA, AUTOMATION, LIABILITY (Items 41–62)
+(Only the content. No explanations. No commentary.)
+
+
+---
+
+41. GDPR LAWFUL BASIS POLICY
+
+We process data under:
+- Contractual necessity  
+- Legitimate interests  
+- Explicit consent (marketing)
+
+
+---
+
+42. GDPR USER RIGHTS SECTION
+
+Right to access  
+Right to rectification  
+Right to erasure  
+Right to restrict processing  
+Right to data portability  
+Right to object  
+Right to withdraw consent
+
+
+---
+
+43. DATA SUBJECT REQUEST PROCEDURE
+
+Submit via privacy@levqor.ai  
+Identity verification required  
+Response within 30 days (extendable to 60)
+
+
+---
+
+44. SUB-PROCESSOR LIST
+
+Stripe — Payments  
+Vercel — Hosting  
+Replit — Compute  
+OpenAI — AI processing  
+Google — Auth  
+Microsoft — Auth  
+Cloudflare — CDN  
+Notion — Internal documentation
+
+
+---
+
+45. SUB-PROCESSOR CHANGE POLICY
+
+We will notify users 30 days before adding or removing sub-processors whenever legally required.
+
+
+---
+
+46. COOKIE USAGE POLICY
+
+Essential cookies — strictly necessary  
+Analytics cookies — opt-in  
+Marketing cookies — opt-in  
+Cookie banner required for UK/EU users
+
+
+---
+
+47. DATA RETENTION POLICY
+
+Account data → retained while active  
+Backups → 14–30 days  
+Logs → 7–14 days  
+Billing records → 6 years (legal requirement)  
+AI output → not stored unless necessary for service
+
+
+---
+
+48. THIRD-PARTY API DEPENDENCY DISCLOSURE
+
+Levqor depends on third-party APIs.  
+Outages, rate limits, schema changes can impact workflows.  
+We provide fixes but cannot control external systems.
+
+
+---
+
+49. AUTOMATION DISCLAIMERS
+
+Automations run as provided.  
+Customers must ensure legality and compliance of their own workflows.  
+We do not automate prohibited or harmful activities.
+
+
+---
+
+50. PROHIBITED USE LIST
+
+Spam  
+Fraud  
+Harassment  
+Scraping protected content  
+Bypassing security  
+Illegal data processing  
+Automating harmful behaviour  
+Deepfakes of real individuals
+
+
+---
+
+51. AI DISCLOSURE POLICY
+
+Levqor uses AI to provide workflow generation, optimisation, debugging and monitoring.  
+Outputs may occasionally be inaccurate.  
+Human review recommended for critical processes.
+
+
+---
+
+52. AI LIMITATIONS NOTICE
+
+AI predictions are probabilistic.  
+Not suitable for life-critical or financial-trading decisions.  
+We do not guarantee accuracy or correctness of AI output.
+
+
+---
+
+53. DATA ENCRYPTION POLICY
+
+TLS 1.2+ in transit  
+AES-256 at rest  
+API keys stored encrypted  
+Access logs monitored
+
+
+---
+
+54. PASSWORD & AUTH POLICY
+
+OAuth only (Google + Microsoft)  
+No password storage  
+Sessions encrypted  
+Refresh tokens rotated
+
+
+---
+
+55. ACCESS LOGGING POLICY
+
+All admin actions logged  
+Logs stored for 14–30 days  
+Suspicious activity triggers alerts
+
+
+---
+
+56. BREACH NOTIFICATION PROCEDURE
+
+Notify affected users within 72 hours  
+Explain type, scope, and impact  
+Provide mitigation steps  
+Notify ICO if applicable
+
+
+---
+
+57. INTERNAL INCIDENT ESCALATION
+
+Tier 1 — Support review  
+Tier 2 — Engineer response  
+Tier 3 — Founder/CTO escalation  
+Tier 4 — Legal + regulatory escalation
+
+
+---
+
+58. LEGAL GOVERNING JURISDICTION
+
+Governing Law: England & Wales  
+Jurisdiction: UK courts  
+Dispute resolution: email → mediation → legal
+
+
+---
+
+59. LIABILITY LIMITATION STATEMENT
+
+We are not liable for:
+- Indirect damages  
+- Data loss  
+- Third-party changes  
+- Business interruption  
+- Misuse of automations  
+
+Maximum liability = amount paid in last 12 months.
+
+
+---
+
+60. INDEMNITY CLAUSE
+
+Users agree to indemnify Levqor against claims resulting from:
+- Misuse  
+- Illegal automation  
+- Third-party disputes  
+- Security violations caused by user negligence
+
+
+---
+
+61. TERMINATION OF SERVICE POLICY
+
+We may suspend or terminate accounts for:
+- Abuse  
+- Illegal use  
+- Unpaid invoices  
+- Violations of Fair Use  
+- Security risks
+
+
+---
+
+62. RECORD-KEEPING POLICY
+
+We maintain:
+- Billing history (6 years)  
+- Contracts  
+- Consent logs  
+- Security incident logs  
+- Sub-processor agreements
+
+
+---
+
+Batch 3 complete.
+Ask for Batch 4.

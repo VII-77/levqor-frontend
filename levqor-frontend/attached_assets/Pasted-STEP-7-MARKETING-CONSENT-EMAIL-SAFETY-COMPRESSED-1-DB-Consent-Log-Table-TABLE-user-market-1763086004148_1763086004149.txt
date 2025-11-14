@@ -1,0 +1,68 @@
+STEP 7 — MARKETING CONSENT + EMAIL SAFETY (COMPRESSED)
+
+1. DB – Consent Log Table
+
+TABLE user_marketing_consent (
+  id UUID PK,
+  user_id UUID NOT NULL,
+  email TEXT NOT NULL,
+  scope TEXT NOT NULL,         -- "product_updates" | "marketing" | "critical_only"
+  status TEXT NOT NULL,        -- "pending_double_opt_in" | "granted" | "revoked"
+  source TEXT NOT NULL,        -- "signup_checkbox" | "settings" | "import"
+  ip_address TEXT,
+  user_agent TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  confirmed_at TIMESTAMPTZ
+);
+
+2. Backend – Start Opt-In Flow
+
+POST /api/marketing/consent/start
+- auth optional (email field required)
+- create record:
+    status = "pending_double_opt_in"
+    scope = requested scope
+- send double-opt-in email with secure token link:
+    https://levqor.ai/marketing/confirm?token=XYZ
+
+3. Backend – Confirm Opt-In
+
+GET /api/marketing/consent/confirm?token=XYZ
+- validate token (one-time use, 24h expiry)
+- set status="granted", confirmed_at=now()
+- redirect → /marketing/confirmed (success page)
+
+4. Backend – Unsubscribe Endpoint
+
+GET /api/marketing/unsubscribe?token=XYZ
+- token encodes user_id + scope
+- set status="revoked"
+- log event: "marketing_unsubscribed"
+- redirect → /marketing/unsubscribed
+
+5. UI – Signup + Settings Checkboxes
+
+At signup:
+[ ] I agree to receive product updates and marketing emails (optional)
+- If checked → call /api/marketing/consent/start(scope="marketing")
+
+In account settings:
+Toggle: "Email updates & offers"
+- ON  → start consent flow if not granted
+- OFF → call /api/marketing/unsubscribe
+
+6. Email Templates – Footer Requirements
+
+Add to all marketing / product update emails:
+
+You are receiving this because you opted in at levqor.ai.
+Levqor Ltd, London, United Kingdom.
+Manage preferences or unsubscribe: https://levqor.ai/marketing/unsubscribe?token=XYZ
+
+7. System Rule – Send Policy
+
+- Marketing emails ONLY to status="granted"
+- Transactional emails (receipts, security alerts) allowed without consent
+- No bulk send to "pending" or "revoked"
+```0

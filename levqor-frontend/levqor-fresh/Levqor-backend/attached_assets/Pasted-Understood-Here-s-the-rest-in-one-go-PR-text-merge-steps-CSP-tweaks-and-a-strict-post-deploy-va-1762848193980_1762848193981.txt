@@ -1,0 +1,271 @@
+Understood. Here’s the rest in one go: PR text, merge steps, CSP tweaks, and a strict post-deploy validation plan.
+
+PR description (copy-paste into GitHub)
+
+Title: Finish-line polish: SEO, trust, error states, security headers, PWA, JSON-LD
+
+Summary
+
+Converts the site from “scaffold” to “production.”
+
+Adds trust band, consistent feature cards, 404/500, loading skeletons.
+
+Ships OpenGraph/Twitter meta, sitemap, robots, JSON-LD.
+
+Adds PWA manifest and icons.
+
+Applies security headers including CSP.
+
+
+Changes
+
+app/layout.tsx: canonical metadata, OG/Twitter, preconnect, body class.
+
+app/loading.tsx: skeletons.
+
+app/not-found.tsx, app/error.tsx: professional error pages.
+
+app/robots.ts, app/sitemap.ts: SEO surfaces.
+
+app/(shared)/JsonLd.tsx: JSON-LD helper.
+
+components/TrustBand.tsx, components/FeatureCard.tsx: credibility + consistency.
+
+public/manifest.webmanifest, public/icons/*, public/og/og.png: PWA + share image.
+
+next.config.js: security headers (CSP, XFO, Referrer-Policy, Permissions-Policy).
+
+
+Why
+
+Increases perceived product maturity, improves link previews and indexing, and satisfies basic security checks.
+
+
+Test plan
+
+1. Build: npm run build passes locally and on CI.
+
+
+2. Navigate: /, /pricing, non-existent route → 404.
+
+
+3. View-source on /: OG/Twitter tags present, title correct.
+
+
+4. Headers: confirm CSP, X-Content-Type-Options, X-Frame-Options, Referrer-Policy.
+
+
+5. PWA: Chrome Application tab shows manifest + icons.
+
+
+6. Sitemap: https://levqor.ai/sitemap.xml loads; robots.txt references it.
+
+
+7. Lighthouse desktop and mobile ≥ 90 for Performance/SEO/Best Practices.
+
+
+8. No console errors on load.
+
+
+9. Pricing page shows VAT note and FAQs anchor.
+
+
+
+Roll-back
+
+Revert the PR. No schema or backend changes.
+
+
+
+---
+
+Merge and deploy steps
+
+git checkout -b chore/finish-line-polish
+# If you already applied files manually, just add/commit them:
+git add .
+git commit -m "Polish: SEO, trust, error states, security headers, PWA, JSON-LD"
+git push -u origin chore/finish-line-polish
+# Open PR with the text above and merge when green
+
+
+---
+
+CSP and integrations (adjust before deploy if you use these)
+
+Edit next.config.js header Content-Security-Policy as needed:
+
+Stripe:
+
+script-src: https://js.stripe.com
+
+frame-src: https://js.stripe.com https://hooks.stripe.com
+
+connect-src: https://api.stripe.com
+
+
+Analytics
+
+Plausible: script-src https://plausible.io; connect-src https://plausible.io
+
+PostHog: script-src https://app.posthog.com; connect-src https://app.posthog.com
+
+Google: script-src https://www.googletagmanager.com https://www.google-analytics.com; connect-src https://www.google-analytics.com
+
+
+Fonts (if using Google Fonts stylesheet): add style-src https://fonts.googleapis.com and font-src https://fonts.gstatic.com
+
+Images from CDNs: add their domains to img-src.
+
+
+Minimal example with Stripe + Plausible:
+
+Content-Security-Policy:
+default-src 'self';
+img-src 'self' data: https:;
+style-src 'self' 'unsafe-inline' https:;
+script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://plausible.io;
+font-src 'self' https: data:;
+connect-src 'self' https: https://api.stripe.com https://plausible.io;
+frame-src https://js.stripe.com https://hooks.stripe.com;
+
+
+---
+
+Replace placeholders before final deploy
+
+public/og/og.png: swap for a branded 1200×630 PNG.
+
+public/icons/icon-192.png and icon-512.png: replace with your real app icons.
+
+If you keep the gray “logo blocks” in TrustBand, replace with real SVGs or brand logos.
+
+
+
+---
+
+Post-deploy validation (do all)
+
+1. Caching and CDN
+
+Purge CDN cache.
+
+Hard refresh and Private window check.
+
+
+
+2. Headers
+
+DevTools → Network → /: check CSP, X-Frame-Options=DENY, Referrer-Policy=strict-origin-when-cross-origin, Permissions-Policy, X-Content-Type-Options=nosniff.
+
+
+
+3. HTML
+
+curl -s https://levqor.ai | grep -E "og:title|twitter:card|application/ld\\+json".
+
+
+
+4. Routes
+
+/ 200, /pricing 200, random /abc shows 404 page, force an error path shows 500 UI in dev.
+
+
+
+5. PWA
+
+Chrome → Application tab: manifest detected, icons correct.
+
+
+
+6. Sitemap/robots
+
+Visit /sitemap.xml and /robots.txt. Robots must reference sitemap.
+
+
+
+7. Share preview
+
+Paste https://levqor.ai into Slack/Discord/Twitter preview to confirm OG image and title.
+
+
+
+8. Lighthouse
+
+Run from Chrome DevTools. If fonts or images drop score, set next/font and ensure next/image uses fill or sizes.
+
+
+
+9. Console
+
+Page load with zero errors and zero CSP violations.
+
+
+
+10. Pricing
+
+
+
+VAT note visible, FAQs anchor scroll works, Stripe checkout still green.
+
+
+
+---
+
+Optional quick wins (1 file each)
+
+1. Preload your main font to avoid CLS (if using a file font):
+
+
+
+<link rel="preload" href="/fonts/YourFont-Variable.woff2" as="font" type="font/woff2" crossorigin>
+
+2. next/image defaults:
+
+
+
+Set images.domains in next.config.js for any external logos.
+
+Add priority to hero image if you have one.
+
+
+3. Canonical URL: Add to app/layout.tsx metadata if you see duplicate paths.
+
+
+
+alternates: { canonical: 'https://levqor.ai' }
+
+4. Status link: Add a small “Status” link in the footer to your status page or /status.
+
+
+5. Legal footer: Add registered company line and contact email if not present.
+
+
+
+
+---
+
+Minimal rollback plan
+
+If CSP breaks third-party scripts, temporarily loosen:
+
+Remove 'unsafe-eval' only if you know all scripts are eval-free.
+
+For a quick unblock, add the missing domain to script-src or connect-src.
+
+
+If previews look wrong, revert only metadata changes in app/layout.tsx and keep 404/500/skeletons.
+
+
+
+---
+
+Next action from you
+
+Replace placeholder images.
+
+Adjust CSP for your exact third-party stack.
+
+Merge and deploy.
+
+Tell me your analytics and payment providers if any are missing; I’ll return a CSP line ready to paste.

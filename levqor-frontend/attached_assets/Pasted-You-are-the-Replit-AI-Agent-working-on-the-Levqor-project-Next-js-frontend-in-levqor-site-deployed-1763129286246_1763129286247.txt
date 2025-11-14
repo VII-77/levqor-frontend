@@ -1,0 +1,182 @@
+You are the Replit AI Agent working on the Levqor project (Next.js frontend in levqor-site, deployed to Vercel as levqor-site / levqor-frontend).
+
+GOAL
+Fix the Vercel build error:
+
+  ./src/hooks/useCookieConsent.ts
+  Module not found: Can't resolve '@/lib/cookies'
+
+and make sure `npm run build` passes locally, then push the fix.
+
+HIGH-LEVEL PLAN
+1) Confirm the exact error.
+2) Find all usages of "@/lib/cookies".
+3) Implement a safe, SSR-compatible cookies utility in `src/lib/cookies.ts`.
+4) Make sure imports point to that file.
+5) Run `npm run build` to verify.
+6) Show me the diff and git commands to push.
+
+DO NOT refactor unrelated code.
+
+STEP 1 — CONFIRM ERROR
+1. In the workspace root, run:
+
+   - `cd levqor-site && npm run build 2>&1 | tail -40`
+
+2. Confirm that the failure is specifically:
+   - `Module not found: Can't resolve '@/lib/cookies'`
+   - Note any other missing modules, but focus on this one first.
+
+STEP 2 — FIND ALL REFERENCES
+1. Still inside `levqor-site`, run:
+
+   - `rg "@/lib/cookies" src || echo "no-direct-cookie-imports"`
+   - `rg "useCookieConsent" src || echo "no-use-cookie-consent"`
+
+2. Open the files that show up, especially:
+   - `src/hooks/useCookieConsent.ts`
+   - any component under `src/components/cookies/` that imports the cookies helper.
+
+STEP 3 — CREATE SAFE COOKIES UTILITY
+1. Ensure the directory exists:
+
+   - `mkdir -p src/lib`
+
+2. Create the file `levqor-site/src/lib/cookies.ts` with this EXACT content (overwrite if it already exists):
+
+   ```ts
+   // src/lib/cookies.ts
+   // Small, SSR-safe cookie helpers for browser use only.
+
+   function isBrowser(): boolean {
+     return typeof window !== "undefined" && typeof document !== "undefined";
+   }
+
+   export function getCookie(name: string): string | null {
+     if (!isBrowser()) return null;
+     const value = `; ${document.cookie}`;
+     const parts = value.split(`; ${name}=`);
+     if (parts.length === 2) {
+       return parts.pop()!.split(";").shift() ?? null;
+     }
+     return null;
+   }
+
+   export function setCookie(
+     name: string,
+     value: string,
+     days: number = 365,
+     options: { path?: string; sameSite?: "Lax" | "Strict" | "None"; secure?: boolean } = {},
+   ): void {
+     if (!isBrowser()) return;
+
+     const { path = "/", sameSite = "Lax", secure = false } = options;
+     const expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString();
+
+     let cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=${path}; SameSite=${sameSite}`;
+     if (secure) cookie += "; Secure";
+
+     document.cookie = cookie;
+   }
+
+   export function deleteCookie(name: string, path: string = "/"): void {
+     if (!isBrowser()) return;
+     document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=${path}; SameSite=Lax`;
+   }
+
+STEP 4 — ALIGN IMPORTS
+
+1. Ensure every import is consistent. For each file that uses cookies helpers:
+
+If you see things like:
+
+import { getCookie, setCookie } from "@/lib/cookies";
+
+import * as cookies from "@/lib/cookies"; then leave the path as "@/lib/cookies" so it resolves to the new file.
+
+
+
+
+2. If any file imports from a slightly different path, normalize them to:
+
+import { getCookie, setCookie, deleteCookie } from "@/lib/cookies";
+
+
+3. Do NOT change tsconfig.json or path aliases unless you see an obvious misconfiguration. Just make sure the file path + alias match:
+
+File: levqor-site/src/lib/cookies.ts
+
+Import: @/lib/cookies
+
+
+
+
+STEP 5 — VERIFY BUILD
+
+1. Run the build again from levqor-site:
+
+cd levqor-site && npm run build 2>&1 | tail -80
+
+
+
+2. If the build still fails:
+
+Copy the last 40 lines of the error into a comment for me.
+
+If there are NEW missing modules (e.g. another @/... import), fix them in the same style:
+
+Create the missing file under src/...
+
+Keep implementations minimal but correct
+
+Re-run npm run build until it passes.
+
+
+
+
+
+STEP 6 — SHOW DIFF AND GIT COMMANDS
+
+1. Once npm run build succeeds, show me exactly what changed:
+
+From the workspace root:
+
+git status
+
+git diff
+
+
+
+
+2. Then prepare the commit (DO NOT AUTO-PUSH, just show commands):
+
+git add levqor-site/src/lib/cookies.ts
+git add levqor-site/src/hooks/useCookieConsent.ts
+git add levqor-site/src/components/cookies/*
+git commit -m "fix: add SSR-safe cookies helper and resolve @/lib/cookies import"
+git push origin main
+
+
+3. If some of these paths do not exist or are unchanged, omit them from git add and adjust the commit message accordingly.
+
+
+
+CONSTRAINTS
+
+Do NOT refactor unrelated components.
+
+Do NOT remove cookie consent logic or banners.
+
+Keep the implementation minimal, safe, and SSR-friendly.
+
+Your work is done when:
+
+npm run build passes locally with no errors AND
+
+The only new code is the cookies helper + any necessary import fixes AND
+
+You’ve printed git status and git diff so the user can review and push.
+
+
+
+Begin now and narrate each major step (what you ran, what you changed, the final build output).

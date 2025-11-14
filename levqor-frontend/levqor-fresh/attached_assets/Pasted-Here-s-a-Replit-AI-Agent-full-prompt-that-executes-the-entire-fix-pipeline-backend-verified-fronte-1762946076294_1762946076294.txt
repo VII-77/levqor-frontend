@@ -1,0 +1,100 @@
+Here’s a Replit AI Agent full prompt that executes the entire fix pipeline (backend verified, frontend auth + API protection repairs, redeploy, verify).
+You can copy-paste it into the Replit “Agent” chat directly.
+
+
+---
+
+🧠 Replit AI Agent Prompt
+
+You are operating inside the Replit workspace for `levqor-site` (frontend repo). 
+Your goal: fix authentication and proxy routing so that:
+- `/workflow` redirects to `/signin` when unauthenticated.
+- `/api/workflows` returns 401 (not 403) when unauthenticated and proxies backend data correctly when logged in.
+
+Follow this exact sequence and verify each step.
+
+────────────────────────────
+STEP 1 — VERIFY CONTEXT
+────────────────────────────
+1. Confirm current directory is ~/workspace/levqor-site
+   → If not, `cd ~/workspace/levqor-site`
+2. Show folder structure under `src/app/api` and `src/`
+   → Use `tree -L 3 src/app/api` or `find src/app/api -type f | sort`
+   → Confirm that `auth/[...nextauth]/route.ts` exists.
+
+────────────────────────────
+STEP 2 — FIX FRONTEND AUTH + API ROUTES
+────────────────────────────
+1. Ensure the `middleware.ts` exists and correctly protects `/workflow`:
+   ```bash
+   cat > src/middleware.ts <<'TS'
+   export { default } from "next-auth/middleware";
+   export const config = { matcher: ["/workflow"] };
+   TS
+
+2. Recreate the /api/workflows route with the correct logic:
+
+mkdir -p src/app/api/workflows
+cat > src/app/api/workflows/route.ts <<'TS'
+import { getServerSession } from "next-auth";
+import { NextResponse } from "next/server";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+
+export async function GET() {
+  const session = await getServerSession(authOptions);
+  if (!session)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const res = await fetch("https://api.levqor.ai/api/intelligence/recommendations", { cache: "no-store" });
+  const data = await res.json();
+  return NextResponse.json({ items: data });
+}
+TS
+
+
+3. Ensure all files use Node runtime for NextAuth compatibility:
+
+grep -q "runtime" src/app/api/auth/[...nextauth]/route.ts || \
+  sed -i '1i export const runtime = "nodejs";' src/app/api/auth/[...nextauth]/route.ts
+
+
+
+──────────────────────────── STEP 3 — COMMIT AND PUSH ────────────────────────────
+
+git add -A
+git commit -m "fix(auth): enforce middleware + Node runtime + workflows API proxy"
+git push origin main
+
+──────────────────────────── STEP 4 — VERIFY DEPLOYMENT (after 90s) ──────────────────────────── Run these after build completes:
+
+# Verify new build deployed
+curl -sSI https://levqor.ai | grep -E "x-vercel-id|age:"
+
+# Check unauthenticated API should now return 401
+curl -sI https://levqor.ai/api/workflows | head -5
+
+# Check /workflow should now redirect (307/308 → /signin)
+curl -sI https://levqor.ai/workflow | grep -Ei "HTTP|location"
+
+──────────────────────────── VERIFICATION CRITERIA ──────────────────────────── ✅ /api/workflows → HTTP/2 401 Unauthorized (unauthenticated)
+✅ /workflow → 307 or 308 redirect to /signin
+✅ Build header (x-vercel-id) shows new deployment
+✅ No 403 HTML responses from Cloudflare
+
+If any verification fails:
+
+Print next.config.js (first 20 lines)
+
+Print Vercel build log for /api/workflows function
+
+Then reattempt build fix for Edge vs Node runtime.
+
+
+──────────────────────────── END OF TASK ────────────────────────────
+
+---
+
+**Purpose:**  
+This script systematically re-creates missing files, enforces Node runtime for NextAuth, protects `/workflow`, pushes to GitHub (triggering Vercel deploy), and validates both redirect + auth proxy behavior end-to-end.  
+
+Once it finishes, you should see `/workflow` redirect to sign-in and `/api/workflows` respond with `401`.

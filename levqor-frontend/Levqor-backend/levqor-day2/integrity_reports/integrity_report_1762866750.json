@@ -1,0 +1,97 @@
+{
+  "test_run_id": "integrity_1762866750",
+  "timestamp": "2025-11-11T13:12:28.418101",
+  "duration_seconds": 1.99,
+  "summary": {
+    "total": 10,
+    "passed": 8,
+    "failed": 0,
+    "warnings": 2,
+    "skipped": 0,
+    "success_rate": 80.0
+  },
+  "results": [
+    {
+      "test": "Backend: Main Health",
+      "category": "backend_health",
+      "status": "passed",
+      "latency_ms": 145,
+      "status_code": 200,
+      "timestamp": "2025-11-11T13:12:28.564758"
+    },
+    {
+      "test": "Backend: Public Metrics",
+      "category": "backend_health",
+      "status": "passed",
+      "latency_ms": 76,
+      "status_code": 200,
+      "timestamp": "2025-11-11T13:12:28.641009"
+    },
+    {
+      "test": "Backend: Ops Uptime",
+      "category": "backend_health",
+      "status": "passed",
+      "latency_ms": 91,
+      "status_code": 200,
+      "timestamp": "2025-11-11T13:12:28.732491"
+    },
+    {
+      "test": "Backend: Queue Health",
+      "category": "backend_health",
+      "status": "passed",
+      "latency_ms": 109,
+      "status_code": 200,
+      "timestamp": "2025-11-11T13:12:28.842287"
+    },
+    {
+      "test": "Backend: Billing Health",
+      "category": "backend_health",
+      "status": "passed",
+      "latency_ms": 126,
+      "status_code": 200,
+      "timestamp": "2025-11-11T13:12:28.969315"
+    },
+    {
+      "test": "External API: Stripe",
+      "category": "external_api",
+      "status": "passed",
+      "timestamp": "2025-11-11T13:12:29.150396"
+    },
+    {
+      "test": "Workflow: APScheduler Status",
+      "category": "workflow",
+      "status": "passed",
+      "job_count": 11,
+      "timestamp": "2025-11-11T13:12:29.610209"
+    },
+    {
+      "test": "Security: HSTS",
+      "category": "security",
+      "status": "passed",
+      "header": "Strict-Transport-Security",
+      "value": "max-age=63072000",
+      "timestamp": "2025-11-11T13:12:30.406588"
+    },
+    {
+      "test": "Security: Content Type Protection",
+      "category": "security",
+      "status": "warning",
+      "header": "X-Content-Type-Options",
+      "reason": "Header not present",
+      "timestamp": "2025-11-11T13:12:30.406651"
+    },
+    {
+      "test": "Security: Clickjacking Protection",
+      "category": "security",
+      "status": "warning",
+      "header": "X-Frame-Options",
+      "reason": "Header not present",
+      "timestamp": "2025-11-11T13:12:30.406728"
+    }
+  ],
+  "platform": {
+    "backend": "api.levqor.ai",
+    "frontend": "levqor.ai",
+    "database": "PostgreSQL/SQLite"
+  }
+}

@@ -1,0 +1,242 @@
+You are Replit AI Agent for Levqor.
+
+GOAL (C-6):
+Add AUTOMATED DSAR EXPORT RETENTION + CLEANUP:
+- Delete old DSAR ZIP files after N days (e.g. 30)
+- Keep DSARRequest DB rows for audit
+- Make download endpoint return “expired” instead of 500 when file is gone
+- No UI changes yet
+
+STACK:
+- Flask + SQLAlchemy backend
+- DSARRequest model exists
+- DSAR exporter + /api/dsar/download/<reference_id> already implemented in C-4/C-5
+
+RETENTION RULE:
+- Default: 30 days after DSAR completed
+- Only delete:
+  - status == "completed" (or STATUS_COMPLETED)
+  - user-owned DSARs
+  - file exists on disk
+- Keep DB row; just delete ZIP file
+
+TASKS:
+
+1) ADD CONFIG HELPERS (OPTIONAL, LIGHTWEIGHT)
+File: backend/config.py (or equivalent central config module, if present)
+- If no config module, SKIP this and inline 30 days in cleanup logic later.
+
+Example snippet to add:
+
+import os
+
+GDPR_DSAR_EXPORT_RETENTION_DAYS = int(os.getenv("GDPR_DSAR_EXPORT_RETENTION_DAYS", "30"))
+
+Make sure this is importable from CLI + routes:
+from backend.config import GDPR_DSAR_EXPORT_RETENTION_DAYS
+
+2) EXTEND DSAR CLI WITH CLEANUP COMMAND
+
+File: backend/cli/dsar_commands.py  (create if missing; if C-4 already created it, extend it)
+
+If file doesn’t exist yet, create minimal CLI module:
+
+import os
+import click
+from datetime import datetime, timedelta, timezone
+
+from backend.app import create_app, db
+from backend.models.dsar_request import DSARRequest
+from backend.config import GDPR_DSAR_EXPORT_RETENTION_DAYS
+
+
+@click.group()
+def dsar():
+    """DSAR utilities (export, cleanup, etc.)."""
+    pass
+
+
+@dsar.command("cleanup")
+def cleanup():
+    """
+    Delete old DSAR export ZIPs that are older than retention window.
+    Keeps DB rows for audit, only deletes files.
+    """
+    app = create_app()
+    with app.app_context():
+        retention_days = GDPR_DSAR_EXPORT_RETENTION_DAYS
+        cutoff = datetime.now(timezone.utc) - timedelta(days=retention_days)
+
+        status_completed = getattr(DSARRequest, "STATUS_COMPLETED", "completed")
+
+        q = DSARRequest.query.filter(
+            DSARRequest.status == status_completed
+        )
+
+        removed = 0
+        checked = 0
+
+        for req in q:
+            checked += 1
+
+            # Pick best timestamp available to compute age
+            ts = getattr(req, "completed_at", None) \
+                 or getattr(req, "updated_at", None) \
+                 or getattr(req, "created_at", None)
+
+            if not ts or ts > cutoff:
+                continue
+
+            file_path = getattr(req, "export_storage_path", None)
+            if file_path and os.path.isfile(file_path):
+                try:
+                    os.remove(file_path)
+                    removed += 1
+                except OSError:
+                    # Log but don’t crash
+                    app.logger.warning("Failed to delete DSAR file %s", file_path)
+
+                # Optionally clear reference so we don’t try again:
+                setattr(req, "export_storage_path", None)
+
+        if removed:
+            db.session.commit()
+
+        print(f"DSAR cleanup: checked={checked}, files_deleted={removed}, retention_days={retention_days}")
+
+
+def main():
+    dsar()
+
+
+if __name__ == "__main__":
+    main()
+
+If the file already exists with other commands (e.g. export), MERGE:
+- Keep existing @dsar.group, add the @dsar.command("cleanup") only.
+- Ensure main() still calls dsar().
+
+3) WIRE CLI ENTRY POINT (IF NOT YET WIRED)
+
+File: backend/cli/__init__.py or setup module (if such exists)
+
+If there is a CLI runner (e.g. python -m backend.cli.dsar_commands), ensure it still works.
+If not, no extra wiring needed beyond having the __main__ guard above.
+
+4) PATCH DOWNLOAD ENDPOINT TO HANDLE “EXPIRED” CLEANLY
+
+File: backend/routes/dsar.py
+
+Update download_dsar() from C-5 to gracefully handle missing file:
+
+- Import retention config + datetime:
+
+from datetime import datetime, timedelta, timezone
+from backend.config import GDPR_DSAR_EXPORT_RETENTION_DAYS
+
+- Modify the “file missing” block
+
+Replace:
+
+    if not file_path or not os.path.isfile(file_path):
+        return jsonify({"ok": False, "error": "File missing"}), 500
+
+With:
+
+    if not file_path or not os.path.isfile(file_path):
+        # If the request is older than retention window, treat as expired
+        retention_days = GDPR_DSAR_EXPORT_RETENTION_DAYS
+        cutoff = datetime.now(timezone.utc) - timedelta(days=retention_days)
+
+        ts = getattr(req, "completed_at", None) \
+             or getattr(req, "updated_at", None) \
+             or getattr(req, "created_at", None)
+
+        if ts and ts < cutoff:
+            return jsonify({
+                "ok": False,
+                "error": "Export expired",
+                "retention_days": retention_days
+            }), 410  # Gone
+
+        # Otherwise something is wrong (file lost before retention)
+        return jsonify({"ok": False, "error": "File not available"}), 500
+
+This ensures:
+- Old DSARs after cleanup return 410 Gone (expired) instead of 500.
+- Recent DSARs with missing files still report an internal problem.
+
+5) SCHEDULER / CRON INTEGRATION (MINIMAL)
+
+Do NOT over-engineer. Just ensure there is a way to run cleanup daily.
+
+If you have a worker/scheduler process, add a daily job that runs:
+
+python -m backend.cli.dsar_commands cleanup
+
+Examples:
+
+a) If you have a Python-based scheduler module (e.g. backend/scheduler/jobs.py), add:
+
+from apscheduler.schedulers.background import BackgroundScheduler
+from backend.cli import dsar_commands
+
+def start_scheduler():
+    scheduler = BackgroundScheduler()
+    # Other jobs...
+    scheduler.add_job(
+        func=dsar_commands.cleanup,
+        trigger="cron",
+        hour=3, minute=0  # 03:00 UTC daily
+    )
+    scheduler.start()
+
+Adjust to existing scheduler style. If no scheduler exists yet, SKIP and just document manual usage.
+
+b) At minimum, document manual command in a comment at top of dsar_commands.py:
+
+# Run daily (cron / scheduler):
+#   python -m backend.cli.dsar_commands cleanup
+
+6) QUICK LOCAL TESTS (DEV)
+
+In Replit shell:
+
+a) Simulate at least one completed DSAR older than retention:
+- Either:
+  - Temporarily set GDPR_DSAR_EXPORT_RETENTION_DAYS=0 in env and restart backend,
+  OR
+  - Manually adjust a DSARRequest.completed_at in DB to be 40 days ago.
+
+b) Make sure export file exists on disk for that DSAR (run exporter first if needed).
+
+c) Run cleanup:
+
+python -m backend.cli.dsar_commands cleanup
+
+Expect:
+- Output like: “DSAR cleanup: checked=1, files_deleted=1, retention_days=30”
+- ZIP file removed
+- export_storage_path nulled (if you set it)
+
+d) Call download endpoint as that user:
+
+curl -H "Authorization: Bearer <token>" \
+     https://localhost:5000/api/dsar/download/GDPR-TEST-REF \
+     -i
+
+Expect:
+- HTTP 410
+- JSON: {"ok": false, "error": "Export expired", "retention_days": 30}
+
+e) For a fresh DSAR with existing file:
+- Download should still work (HTTP 200 with ZIP).
+
+RULES / SAFETY:
+- Do NOT delete DSARRequest rows.
+- Do NOT touch any non-DSAR files.
+- Only delete files for completed DSARs older than retention window.
+- Handle all error cases with JSON, no plain text.
+
+END.
+```0

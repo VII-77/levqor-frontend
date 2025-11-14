@@ -1,0 +1,446 @@
+You are Replit AI Agent working in my Levqor monorepo.
+
+You are NOT here to experiment. You are here to EXECUTE a precise upgrade:
+
+GOALS (MANDATORY)
+1. Keep Levqor fully working in production.
+2. Upgrade pricing so we support BOTH:
+   - One-time “Done-For-You” (DFY) pricing
+   - Monthly & Yearly subscriptions
+3. Make prices and plan contents coherent, competitive, and consistent:
+   - DFY: £99 / £249 / £599
+   - Subscription (monthly): £29 / £79 / £149 / £299
+   - Subscription (yearly): 20% discount (approx: £290 / £790 / £1,490 / £2,990)
+4. Wire ALL pricing buttons correctly to Stripe Checkout where possible.
+5. Enhance sign-in page and legal / policy pages for compliance (UK/EU aware) and link them correctly.
+6. Fix/remove any broken links in the UI.
+7. Verify everything end-to-end: local + production-ready build.
+
+You MUST:
+- Work in the existing structure (Next.js 14 App Router in `levqor-site`, Flask backend).
+- Preserve existing working flows unless explicitly replaced.
+- Add robust checks and fail loudly if required env vars are missing.
+- At every major change, VERIFY:
+  - TypeScript builds
+  - Routes respond 200 locally
+  - HTML/CSS is present where expected.
+
+=====================================================================
+PHASE 0 – PROJECT DISCOVERY & SAFETY CHECKS
+=====================================================================
+
+1. Move to project root and confirm layout:
+
+   - Run:
+     - `pwd`
+     - `ls`
+   - Confirm you see `levqor-site/` and backend files (`run.py`, etc.).
+
+2. Move into frontend project:
+
+   - `cd levqor-site`
+   - Run:
+     - `ls`
+     - `cat package.json`
+
+   Confirm:
+   - Next.js 14+ (App Router)
+   - Tailwind v3 is installed
+   - `src/app` exists.
+
+3. Sanity check for key files:
+
+   - `find src/app -maxdepth 3 -type f -name "page.tsx" | sort`
+   - Ensure (or note absence of):
+     - `src/app/page.tsx` (homepage)
+     - `src/app/pricing/page.tsx`
+     - `src/app/signin/page.tsx`
+     - `src/app/api/checkout/route.ts`
+     - Any existing terms/privacy pages (e.g. `src/app/(legal)/terms/page.tsx`, `src/app/legal/privacy/page.tsx`, `src/app/terms/page.tsx`, `src/app/privacy/page.tsx`).
+
+Do NOT proceed if `npm run build` is currently failing for unrelated reasons; if so, fix them first.
+
+=====================================================================
+PHASE 1 – STRIPE CONFIG DISCOVERY & ENV MAPPING (READ-ONLY)
+=====================================================================
+
+1. Search for Stripe usage in the frontend:
+
+   - `grep -R "STRIPE" src -n | head -40`
+   - `grep -R "checkout" src/app/api -n || true`
+
+2. Open and inspect the existing checkout API:
+
+   - `sed -n '1,220p' src/app/api/checkout/route.ts`
+
+   Understand:
+   - What parameters it expects (e.g. `plan`, `term`, etc.)
+   - Current `mode` in Stripe (`subscription` vs `payment`)
+   - How success and cancel URLs are set.
+
+3. Check env examples / docs:
+
+   - `cd ..` (project root)
+   - `grep -R "STRIPE_" -n . | head -40 || true`
+   - `cat .env.example 2>/dev/null || echo ".env.example missing"`
+
+   Note all **existing** Stripe env vars, especially:
+   - `STRIPE_SECRET_KEY`
+   - `STRIPE_PRICE_STARTER`, `STRIPE_PRICE_PRO`, `STRIPE_PRICE_BUSINESS`
+   - Yearly variants if present: `STRIPE_PRICE_STARTER_YEAR`, etc.
+   - Any existing DFY/one-time price IDs (record if found).
+
+DO NOT write to env or secrets. Only read and map.
+
+=====================================================================
+PHASE 2 – DEFINE PRICING MODEL IN CODE (NO UI YET)
+=====================================================================
+
+We are establishing the **logical model** of plans before wiring UI.
+
+Implement the following plan model in a new shared config file for the frontend:
+
+1. Create a new config file:
+
+   - `cd levqor-site`
+   - Create file `src/config/pricing.ts` with:
+
+   - An exported `dfyPlans` array and `subscriptionPlans` array that encode:
+
+     DFY (ONE-TIME / PAYMENT):
+     - starter_dfy
+       - priceGBP: 99
+       - workflows: 1
+       - delivery: "48 hours"
+       - support: "7-day support, testing included"
+     - professional_dfy
+       - priceGBP: 249
+       - workflows: 3
+       - delivery: "3–4 days"
+       - support: "30-day support, monitoring included"
+     - enterprise_dfy
+       - priceGBP: 599
+       - workflows: 7
+       - delivery: "7 days"
+       - support: "30-day support, monitoring dashboard"
+
+     Subscription (MONTHLY + YEARLY):
+     - starter_sub
+       - monthlyGBP: 29
+       - yearlyGBP: 290
+       - workflowsPerMonth: 1
+       - monitoring: "Basic monitoring"
+       - support: "Email support"
+     - growth_sub
+       - monthlyGBP: 79
+       - yearlyGBP: 790
+       - workflowsPerMonth: 3
+       - monitoring: "Advanced monitoring"
+       - support: "Priority support"
+     - pro_sub
+       - monthlyGBP: 149
+       - yearlyGBP: 1490
+       - workflowsPerMonth: 7
+       - monitoring: "Pro monitoring dashboard"
+       - support: "Priority + tuning"
+     - business_sub
+       - monthlyGBP: 299
+       - yearlyGBP: 2990
+       - workflowsPerMonth: "Unlimited (fair use)"
+       - monitoring: "Full monitoring dashboard"
+       - support: "Dedicated success manager"
+
+   - Also export a mapping interface for Stripe price IDs:
+
+     - `export const STRIPE_SUB_PRICE_IDS = { starter: { monthlyEnv: "STRIPE_PRICE_STARTER_MONTHLY" or fallback to existing env }, ... }`
+     - `export const STRIPE_DFY_PRICE_IDS = { starter: "STRIPE_PRICE_DFY_STARTER", professional: "STRIPE_PRICE_DFY_PROFESSIONAL", enterprise: "STRIPE_PRICE_DFY_ENTERPRISE" }`
+
+   The point: we centralise names & plan metadata in one place.
+
+2. Ensure types are correct (TypeScript), no `any` if possible.
+
+=====================================================================
+PHASE 3 – UPGRADE /api/checkout TO SUPPORT DFY + SUBSCRIPTION
+=====================================================================
+
+1. Open `src/app/api/checkout/route.ts` and refactor it to:
+
+   - Import the pricing config:
+     - `import { STRIPE_SUB_PRICE_IDS, STRIPE_DFY_PRICE_IDS } from "@/config/pricing";` (fix path as needed).
+
+   - Accept JSON payload of shape:
+     - `{ mode: "dfy" | "subscription", plan: string, term?: "monthly" | "yearly" }`
+
+2. Implement logic:
+
+   - Validate body. If missing/invalid, return 400 with JSON error message.
+
+   - For `mode: "subscription"`:
+     - Map `plan` (starter|growth|pro|business) and `term` (monthly|yearly) to the correct env var name from `STRIPE_SUB_PRICE_IDS`.
+     - Use `process.env[...]` to get the actual price ID.
+     - If missing, return 500 with JSON `{ error: "Stripe price ID not configured for this plan/term" }`.
+
+     - Use Stripe Checkout with:
+       - `mode: "subscription"`
+       - `line_items: [{ price: priceId, quantity: 1 }]`
+       - `success_url: https://www.levqor.ai/success?session_id={CHECKOUT_SESSION_ID}`
+       - `cancel_url: https://www.levqor.ai/cancel?plan=<plan>&term=<term>`
+
+   - For `mode: "dfy"`:
+     - Map `plan` (starter|professional|enterprise) to `STRIPE_DFY_PRICE_IDS`.
+     - Read env var; if missing, return 500 with JSON error.
+     - Use Stripe Checkout with:
+       - `mode: "payment"`
+       - `line_items: [{ price: priceId, quantity: 1 }]`
+       - Same success/cancel URLs (can include `type=dfy` query param for clarity).
+
+3. Add basic logging to server logs (NOT secrets), e.g.:
+
+   - Which plan, mode, term requested
+   - Which env key used
+   - Whether ID was missing or not
+
+4. Re-run type check for this file:
+
+   - `npm run lint -- --max-warnings=0 || true`
+   - Ensure there are no TypeScript compilation errors around this route.
+
+=====================================================================
+PHASE 4 – UPGRADE PRICING UI (DFY + SUBSCRIPTION + YEARLY)
+=====================================================================
+
+We now align the UI with the plan model.
+
+1. Edit `src/app/pricing/page.tsx`:
+
+   - Convert it to a **client component** if it’s not already (add `"use client";` if needed) because we will handle onClick checkout calls.
+
+   - Import the pricing config:
+     - `import { dfyPlans, subscriptionPlans } from "@/config/pricing";`
+
+   - Create UI sections:
+
+     A. **"Done-for-you builds"** (one-time)
+        - Show 3 cards for DFY:
+          - Starter – £99 – 1 workflow – delivered in 48h – 7-day support
+          - Professional – £249 – 3 workflows – 3–4 days – 30-day support + monitoring
+          - Enterprise – £599 – 7 workflows – 7 days – monitoring dashboard + 30-day support
+        - Each with a “Get [Plan] done-for-you” button.
+        - Buttons call `handleCheckout({ mode: "dfy", plan: "starter" | "professional" | "enterprise" })`.
+
+     B. **"Ongoing automation plans"** (subscription)
+        - Add a toggle or pill switch for Monthly / Yearly.
+        - Use `useState<"monthly" | "yearly">`.
+        - Show 4 cards:
+          - Starter – £29/mo or £290/yr
+          - Growth – £79/mo or £790/yr
+          - Pro – £149/mo or £1,490/yr
+          - Business – £299/mo or £2,990/yr
+        - Add bullet points matching their monitoring / support / workflows per month.
+        - Buttons call `handleCheckout({ mode: "subscription", plan: "<plan>", term: currentTerm })`.
+
+     C. Highlight the most popular tiers:
+        - Professional DFY: “Most popular for founders”
+        - Pro Subscription: “Best value for teams”
+
+   - Implement `handleCheckout`:
+
+     - Uses `fetch("/api/checkout", { method: "POST", body: JSON.stringify({mode, plan, term}), headers: {"Content-Type": "application/json"} })`.
+     - Shows a simple loading state on the button while the request is running.
+     - If response returns `{ url }`, redirect: `window.location.href = url`.
+     - If response returns error (non-2xx), show an inline error message (e.g. `setError("Sorry, payment is not configured for this plan yet.")`).
+
+2. Ensure **CTAs no longer link to `/signin`**:
+   - Remove any old `<Link href="/signin">` buttons from the pricing cards.
+   - If there is a “Still have questions?” section, that can link to `/contact` or `mailto:`.
+
+3. If existing DFY text or older tiers exist, reconcile them to match the new plan details. Avoid contradictions.
+
+4. Run local TypeScript + build sanity:
+
+   - `npm run build` (with timeout if needed: `timeout 180 npm run build || echo "BUILD FAILED"`).
+   - Fix any TS/JSX issues in `pricing/page.tsx` until build passes.
+
+=====================================================================
+PHASE 5 – SUCCESS & CANCEL PAGES (CONFIRM & TIGHTEN)
+=====================================================================
+
+1. Confirm existence of:
+
+   - `src/app/success/page.tsx`
+   - `src/app/cancel/page.tsx`
+
+   If missing, create them.
+
+2. Success page requirements:
+
+   - Friendly message: “Payment successful – welcome to Levqor”
+   - Explain next steps:
+     - For DFY: “We’ll contact you within 24 hours to start your build”
+     - For subscription: “Your workspace will be set up and we’ll onboard you within 24 hours”
+   - Show a small note: “If you don’t receive an email within 24 hours, contact support@levqor.ai”
+   - Buttons:
+     - “Back to homepage” → `/`
+     - “Sign in to dashboard” → `/signin`
+   - If `session_id` present in search params, display a small reference line: “Stripe session ref: ****”.
+
+3. Cancel page requirements:
+
+   - Clear heading: “Payment cancelled”
+   - Reassuring text: “No charges were made. You can safely close this tab or pick a different plan.”
+   - Buttons:
+     - “Back to homepage” → `/`
+     - “View pricing again” → `/pricing`
+
+4. Ensure no console/TypeScript errors for these pages.
+
+=====================================================================
+PHASE 6 – SIGN-IN PAGE & LEGAL / POLICY PAGES
+=====================================================================
+
+1. SIGN-IN PAGE
+
+   - Edit `src/app/signin/page.tsx`:
+
+     - Ensure design matches Genesis v8 dark theme.
+     - Add explanatory text about security and data usage, e.g.:
+
+       - “We use Google and Microsoft only to authenticate you. We do not read your emails or files without explicit workflow setup.”
+       - “By signing in, you agree to our Terms of Service and Privacy Policy.”
+
+     - Add links (below the buttons) to the legal pages:
+       - Terms of Service → `/legal/terms` or `/terms`
+       - Privacy Policy → `/legal/privacy` or `/privacy`
+
+       Pick a route scheme and use it consistently. Preferred: `/legal/terms`, `/legal/privacy`.
+
+2. LEGAL PAGES
+
+   - Create directories if missing:
+     - `src/app/legal/terms/page.tsx`
+     - `src/app/legal/privacy/page.tsx`
+
+   - TERMS page content (simple, business-safe boilerplate, UK/EU aware):
+     - Sections:
+       - Introduction
+       - Services (automation setup, monitoring, advisory)
+       - No guarantee of specific business results
+       - Payments (Stripe, refunds subject to policy)
+       - Subscriptions (renewal and cancellation rules)
+       - Data processing and third parties (Stripe, logging, monitoring tooling)
+       - Acceptable use
+       - Limitation of liability
+       - Governing law: England & Wales
+       - “This is not legal advice; customise with your lawyer.”
+
+   - PRIVACY page content:
+     - Sections:
+       - Data we collect (account info, usage logs, workflow metadata, no unnecessary PII)
+       - Cookies and analytics
+       - How we use data (to operate the service, improve reliability)
+       - Data processors (Stripe, hosting provider(s), error monitoring)
+       - International transfers
+       - Data subject rights (access, deletion, rectification)
+       - Contact email for privacy: e.g. `privacy@levqor.ai`
+       - Note: “This policy is informational. For full legal compliance, consult a legal professional.”
+
+   - Keep content in simple, readable English. Avoid promising anything we don’t actually do technically.
+
+3. FOOTER / NAV LINKS
+
+   - Find the main layout/footer component(s):
+     - `grep -R "<footer" src/app -n`
+     - `grep -R "Terms" src -n || true`
+   - Ensure footer or navigation includes working links to:
+     - `/pricing`
+     - `/signin`
+     - `/legal/terms`
+     - `/legal/privacy`
+     - Possibly `/contact` or `mailto:hello@levqor.ai`
+
+   - Remove or correct any dead links (href to pages that don’t exist).
+
+=====================================================================
+PHASE 7 – BROKEN LINK & ROUTE HEALTH SWEEP
+=====================================================================
+
+1. Run a link sweep over src:
+
+   - `grep -R "href=\"" src/app -n | sed 's/.*href="//; s/".*//' | sort | uniq`
+
+   - For each internal link (starting with `/`), verify:
+     - There is a corresponding `src/app/<path>/page.tsx`
+       OR
+     - It intentionally points to an external URL.
+
+   - If you find:
+     - `/docs`, `/dashboard`, `/workflow` or others that 404 in the current state,
+       either:
+       - Implement a simple placeholder page for them (if they’re important nav destinations),
+       or
+       - Remove them from nav/footer if not ready.
+
+2. For key routes, verify they return HTTP 200 locally:
+
+   - Start dev server if not running (`npm run dev` via Replit workflow is already configured).
+   - In a separate shell, run:
+
+     - `curl -sI http://localhost:5000/ | head -5`
+     - `curl -sI http://localhost:5000/pricing | head -5`
+     - `curl -sI http://localhost:5000/signin | head -5`
+     - `curl -sI http://localhost:5000/legal/terms | head -5`
+     - `curl -sI http://localhost:5000/legal/privacy | head -5`
+     - `curl -sI http://localhost:5000/success | head -5`
+     - `curl -sI http://localhost:5000/cancel | head -5`
+
+   - All should return HTTP 200. If not, fix the corresponding page.
+
+=====================================================================
+PHASE 8 – BUILD, PRODUCTION-READY CHECK & SUMMARY
+=====================================================================
+
+1. Run a clean build:
+
+   - From `levqor-site/`:
+
+     - `rm -rf .next`
+     - `timeout 240 npm run build || echo "BUILD FAILED"`
+
+   - The build MUST succeed. If it fails, fix issues in the changed files (pricing, checkout API, legal pages, signin) until it passes.
+
+2. OPTIONAL: If your environment allows, run `npm run lint` to catch any obvious issues.
+
+3. When build passes, produce a **FINAL SUMMARY** in the console output with:
+
+   - Files created:
+     - `src/config/pricing.ts`
+     - `src/app/legal/terms/page.tsx`
+     - `src/app/legal/privacy/page.tsx`
+     - (only include if they were created)
+   - Files modified:
+     - `src/app/api/checkout/route.ts`
+     - `src/app/pricing/page.tsx`
+     - `src/app/signin/page.tsx`
+     - Any layout/footer files changed
+   - Plans & pricing now implemented:
+     - DFY: £99 / £249 / £599 (with workflows & delivery times)
+     - Subscription: £29 / £79 / £149 / £299 monthly
+     - Yearly prices: with ~20% discount
+   - Stripe mapping summary:
+     - Which envs are expected for:
+       - DFY: `STRIPE_PRICE_DFY_STARTER`, `STRIPE_PRICE_DFY_PROFESSIONAL`, `STRIPE_PRICE_DFY_ENTERPRISE`
+       - Subscription monthly/yearly: list all envs you referenced
+     - Make it clear that DFY checkout will only work once the DFY env vars are populated.
+   - Legal & compliance:
+     - Confirm `/legal/terms` and `/legal/privacy` exist and are linked from:
+       - `/signin`
+       - footer
+   - Broken links:
+     - Confirm all previously found internal hrefs now have a corresponding page or have been removed.
+
+4. DO NOT touch deployment from here; I will handle deployment via Vercel app.  
+   Your job is to leave the repo in a **clean, buildable, production-ready state** with all the above changes implemented and verified.
+
+If at any point you cannot complete a step (e.g. missing envs for DFY prices), you MUST:
+- Implement the code paths with clear error responses.
+- Document in the final summary exactly what is missing for full activation.

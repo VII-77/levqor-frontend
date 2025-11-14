@@ -1,0 +1,727 @@
+You are Replit AI Agent working on the Levqor project.
+
+GOAL  
+Implement the remaining compliance-critical systems (front + back) for Levqor WITHOUT touching deployment. All work must be fully local, type-safe, reversible, and compatible with the existing Next.js 14 (levqor-site) + Flask backend architecture.
+
+STACK CONTEXT (DO NOT CHANGE)  
+- Frontend: `levqor-site` (Next.js 14, App Router, TS, Tailwind).  
+- Backend: Flask app at repo root (`run.py` + `app/`), PostgreSQL 16.  
+- Auth: NextAuth v4 (Google + Microsoft OAuth), `/signin`, `/workflow`.  
+- Legal / Policy pages: ~37 pages already exist (terms, privacy, cookies, dpa, fair-use, acceptable-use, sla, refunds, etc.).  
+- Pricing: Dual model (DFY one-time + subscriptions), Stripe Checkout already wired.  
+- Environment: This work is LOCAL ONLY; DO NOT deploy, DO NOT clear Vercel cache.
+
+HIGH-LEVEL OBJECTIVE  
+Implement these 10 systems cleanly:
+
+1) Cookie consent banner (functional, PECR/GDPR-compliant).  
+2) Terms-of-Service (ToS) acceptance tracking & enforcement.  
+3) Marketing consent (double opt-in) and unsubscribe.  
+4) High-risk data disclaimers wired into the UI (and docs where needed).  
+5) DSAR (Data Subject Access Request) export initiation & plumbing (no heavy jobs yet).  
+6) Payment failure dunning hooks (lightweight, Stripe webhooks + queue stubs).  
+7) Automated data retention / deletion scaffolding (respecting existing policy text).  
+8) Status page skeleton + SLA credit request flow.  
+9) Dispute resolution workflow + emergency contact exposure.  
+10) Minimal logging & admin surface for the above (no full admin UI, but structured).
+
+Work in phases. Keep changes coherent, small, and well-commented.
+
+----------------------------------------------------------------------
+PHASE 0 — SAFETY, DISCOVERY, BRANCH
+----------------------------------------------------------------------
+
+1. Move to project root and confirm layout:
+
+   ```bash
+   cd ~/workspace
+   ls
+   ls levqor-site
+
+2. Confirm key paths exist:
+
+levqor-site/src/app/layout.tsx
+
+levqor-site/src/app/page.tsx
+
+levqor-site/src/app/signin/page.tsx
+
+levqor-site/src/app/pricing/page.tsx
+
+levqor-site/src/app/(legal) or equivalent directory where existing legal/policy pages live.
+
+Backend: run.py, app/__init__.py, config, models.
+
+
+
+3. Ensure git is clean:
+
+cd ~/workspace
+git status
+
+If not clean, STOP and show diff; do NOT auto-commit.
+
+
+
+
+---
+
+PHASE 1 — COOKIE CONSENT BANNER (FRONTEND ONLY)
+
+GOAL
+Implement a real cookie consent banner with ACCEPT / REJECT (and “Learn more” linking to /cookies), storing consent and preventing non-essential scripts from loading until accepted.
+
+1. Create a small cookie consent helper in frontend:
+
+File: levqor-site/src/lib/cookiesConsent.ts
+
+
+Contents:
+
+Types: type CookieConsentChoice = 'accepted' | 'rejected' | 'pending'.
+
+getConsent() reading from localStorage (guard for typeof window !== 'undefined').
+
+setConsent(choice: CookieConsentChoice) writing to localStorage and optionally to a small cookie (document.cookie = "levqor_cookie_consent=accepted;path=/;max-age=31536000").
+
+NOTE: No external libs.
+
+
+
+2. Create a reusable banner component:
+
+File: levqor-site/src/components/CookieBanner.tsx
+
+
+Component requirements:
+
+Client component ('use client';).
+
+Renders only if consent is pending (no prior decision).
+
+Fixed bottom bar on desktop, full-width panel on mobile.
+
+Text:
+
+“We use cookies to run Levqor and to improve your experience.”
+
+Link to /cookies (“Learn more”).
+
+
+Buttons:
+
+“Accept all” → setConsent('accepted').
+
+“Reject non-essential” → setConsent('rejected').
+
+
+On click, hide banner.
+
+
+
+3. Integrate into global layout:
+
+File: levqor-site/src/app/layout.tsx
+
+Import CookieBanner and render it once within <body> (e.g. just before footer).
+
+Ensure it doesn’t interfere with existing dark theme styling.
+
+
+
+4. Stub “non-essential scripts” guard:
+
+Add a simple utility that other components can call:
+
+File: levqor-site/src/lib/nonEssentialAllowed.ts
+
+Export a function that returns true only if consent is 'accepted'.
+
+This is future-facing (for analytics), but use it in at least one place where analytics would be (e.g. a comment near a hypothetical script tag or an existing analytics hook).
+
+
+
+
+5. Run npm run lint and npm run build inside levqor-site to confirm no TS/JSX errors.
+
+
+
+
+---
+
+PHASE 2 — TOS ACCEPTANCE FLOW (FRONTEND + BACKEND)
+
+GOAL
+User must explicitly accept Terms and Privacy before using the app. Store acceptance with timestamp + ToS version.
+
+A) BACKEND — DATA MODEL
+
+1. Create a new table for ToS acceptance:
+
+If there is an existing models module (app/models.py or similar), extend it.
+
+Add a model TermsAcceptance with fields:
+
+id (PK)
+
+user_id (UUID or string matching how users are identified)
+
+accepted_at (timestamp, default now)
+
+ip_address (string, nullable)
+
+tos_version (string, e.g. 'v1.0')
+
+
+Ensure indexing on user_id.
+
+
+
+2. Add a migration script if the backend uses migrations (Alembic, etc.). If no migration system exists, create a one-off SQL script file named sql/2025_levqor_terms_acceptance.sql with a CREATE TABLE statement, and leave a comment in README pointing to it.
+
+
+
+B) BACKEND — API ENDPOINT
+
+3. Add backend endpoint:
+
+Route: POST /api/legal/accept-tos
+
+JSON body: { "user_id": "<id|string>", "tos_version": "v1.0" }
+
+Reads request IP from request.remote_addr.
+
+Upserts a TermsAcceptance row (if user_id already has acceptance for that version, just update accepted_at).
+
+Returns:
+
+200 { "ok": true } on success.
+
+400 if user_id missing.
+
+500 on unexpected error, with log entry.
+
+
+
+
+4. Add a helper in backend to check whether a user has accepted ToS for the current version (this will be used later in DSAR and other flows).
+
+
+
+C) FRONTEND — SIGN IN + GATE
+
+5. On /signin page:
+
+Add a small legal block under buttons:
+
+Checkbox: “I agree to the Terms of Service and Privacy Policy”.
+
+Links: /terms and /privacy (already exist).
+
+
+Store checkbox state in local component state.
+
+Disable Google/Microsoft sign-in buttons unless the checkbox is checked.
+
+On click of sign-in:
+
+Proceed with existing NextAuth OAuth flow as usual.
+
+
+After successful OAuth, call a new frontend function that posts to /api/legal/accept-tos through the backend with:
+
+user’s internal ID (use whatever identifier the app already uses; if not available, send email address).
+
+tos_version set to a constant (e.g. '2025-Genesis-v1').
+
+
+
+
+6. Ensure this call is resilient but non-blocking:
+
+If acceptance logging fails, show a console warning but do not block login.
+
+The important part is recording for compliant users; not locking them out on infra hiccups.
+
+
+
+
+
+---
+
+PHASE 3 — MARKETING CONSENT (DOUBLE OPT-IN) + UNSUBSCRIBE
+
+GOAL
+Implement minimal but real marketing consent logging (not just sign-in) with double opt-in.
+
+A) BACKEND — MODEL & ENDPOINTS
+
+1. Create a MarketingConsent model/table:
+
+Fields:
+
+id (PK)
+
+email (unique)
+
+status ('pending' | 'subscribed' | 'unsubscribed')
+
+created_at, updated_at
+
+confirmed_at (nullable)
+
+token (random string for double opt-in)
+
+
+Index on email and token.
+
+
+
+2. Endpoints:
+
+POST /api/marketing/subscribe:
+
+Body: { "email": "user@example.com" }
+
+Normalize email.
+
+Create or update row to pending with new token.
+
+Trigger sending of a confirmation email (call existing email/Resend helper if available; otherwise log a TODO and store token).
+
+Return { "ok": true }.
+
+
+GET /api/marketing/confirm?token=...:
+
+Look up by token.
+
+If found and status != 'unsubscribed', set status = 'subscribed', confirmed_at = now().
+
+Redirect to a simple /marketing/confirmed page.
+
+
+POST /api/marketing/unsubscribe:
+
+Body: { "email": "user@example.com" }
+
+Set status to 'unsubscribed'.
+
+Return { "ok": true }.
+
+
+
+
+
+B) FRONTEND — SIMPLE SUBSCRIBE FORM
+
+3. Create page: levqor-site/src/app/marketing/subscribe/page.tsx:
+
+Simple form with email field and “Join newsletter” button.
+
+On submit, POST to backend /api/marketing/subscribe.
+
+Show “Check your email to confirm your subscription.”
+
+
+
+4. Create page: levqor-site/src/app/marketing/confirmed/page.tsx:
+
+Simple confirmation text and link back to homepage.
+
+
+
+5. Footer update:
+
+Add “Join newsletter” link to /marketing/subscribe.
+
+Add “Unsubscribe” info pointing to /marketing/unsubscribe or email footer (we’ll do email templates later; just expose a mailto: for now).
+
+
+
+
+
+---
+
+PHASE 4 — HIGH-RISK DATA DISCLAIMERS (UI + DOCS)
+
+GOAL
+Ensure users clearly see we do NOT automate medical, financial, or legal decision-making.
+
+1. Update /risk-disclosure page text to explicitly include:
+
+“Levqor does not support workflows for:
+
+Medical diagnosis or treatment decisions
+
+Financial advice, credit scoring, lending approvals
+
+Legal advice or decisions that can materially affect legal rights
+
+Any decisions that significantly impact life, liberty, or livelihood without a human in the loop.”
+
+
+
+
+2. Add a lightweight warning banner component:
+
+File: levqor-site/src/components/HighRiskWarning.tsx
+
+Short text + link to /risk-disclosure.
+
+
+
+3. Integrate into:
+
+/workflow page (or equivalent): render the banner near the top of the workflow builder/dashboard.
+
+Any workflow creation UI or “New automation” flows.
+
+
+
+4. Ensure banner is visually noticeable but not blocking; no state, always visible for now.
+
+
+
+
+---
+
+PHASE 5 — DSAR EXPORT INITIATION (LIGHT VERSION, NO HEAVY JOBS)
+
+GOAL
+Implement a minimal DSAR export request pipeline (user-friendly, GDPR-aligned), but keep it light: just initiate request + log; full export can be implemented later.
+
+A) BACKEND — MODEL & ENDPOINT
+
+1. Create DsarRequest model/table:
+
+Fields:
+
+id (PK)
+
+user_id
+
+email
+
+status ('pending' | 'in_progress' | 'completed' | 'rejected')
+
+requested_at
+
+completed_at (nullable)
+
+notes (nullable, e.g. reason if rejected)
+
+
+Index on user_id, email.
+
+
+
+2. Endpoint: POST /api/privacy/dsar-request
+
+Auth: require logged-in user or at least verify email matches signed-in user.
+
+Body: { "reason": string | null }
+
+Logic:
+
+Check last request within 30 days; if too recent, respond with a friendly message.
+
+Create a new DsarRequest with status 'pending'.
+
+Log an internal event (e.g. print/log to file).
+
+If an email helper exists, send an internal notification to privacy@levqor.ai.
+
+
+Response: { "ok": true, "message": "We’ve received your request. We will respond within 30 days." }.
+
+
+
+
+B) FRONTEND — SIMPLE UI
+
+3. Create page: levqor-site/src/app/privacy/dsar/page.tsx:
+
+Explain user rights (mirror text from /data-requests but make this action-focused).
+
+Provide a form:
+
+Optional textarea “Anything specific you’d like us to know?”.
+
+Submit -> call backend /api/privacy/dsar-request.
+
+
+Show success message with 30-day SLA.
+
+
+
+4. Add link from /data-requests to /privacy/dsar.
+
+
+
+
+---
+
+PHASE 6 — PAYMENT FAILURE DUNNING (HOOKS ONLY)
+
+GOAL
+Add basic dunning scaffolding: record failures and mark subscriptions as “at risk”. No email automation yet, just logging and data model.
+
+1. Backend model PaymentDunning (or extend an existing billing model):
+
+Fields:
+
+id
+
+customer_id (Stripe customer id)
+
+subscription_id
+
+last_failed_at
+
+failure_count
+
+status ('ok' | 'at_risk' | 'suspended')
+
+
+
+
+2. Stripe webhook handler (if not present, add one):
+
+Endpoint: POST /stripe/webhook (or extend existing).
+
+On invoice.payment_failed:
+
+Increment failure_count for that subscription.
+
+If failure_count == 1, status: 'at_risk'.
+
+If failure_count >= 3, status: 'suspended' (no auto suspension logic yet, just marking).
+
+
+
+
+3. Add a simple admin-only CLI script or management function to list “at_risk” and “suspended” subscriptions so they can be handled manually later.
+
+
+
+
+---
+
+PHASE 7 — AUTOMATED DATA RETENTION / DELETION (SCHEMA + SCRIPT)
+
+GOAL
+Create retention logic that aligns with written policy (backups/operational logs already described in docs), but in a safe, non-destructive, opt-in script.
+
+1. Add a config mapping in backend:
+
+A dictionary like:
+
+DATA_RETENTION_DAYS = {
+    "logs": 90,
+    "audit": 365,
+    "sessions": 30,
+    # etc.
+}
+
+
+
+2. Create a maintenance script:
+
+File: scripts/run_retention_cleanup.py
+
+Reads from DB tables such as:
+
+workflow_logs
+
+audit_logs
+
+sessions / tokens
+
+
+For each table with a timestamp column, delete or anonymize records older than configured days.
+
+DRY: one helper that accepts table name + days.
+
+
+
+3. Do NOT auto-schedule; just make the script runnable manually for now (e.g. python scripts/run_retention_cleanup.py).
+
+
+4. Add a short README section summarizing the script and mapping it to the documented policy.
+
+
+
+
+---
+
+PHASE 8 — STATUS PAGE + SLA CREDITS REQUEST FLOW
+
+GOAL
+Expose a minimal status page and a form for SLA credits (no automation).
+
+1. FRONTEND: Status page
+
+Create levqor-site/src/app/status/page.tsx:
+
+Simple, dark-themed page with:
+
+Overall status “All systems operational” or “Minor incidents”.
+
+List of components: Frontend, API, Database, Stripe, Auth, etc.
+
+Placeholder for incident history (static for now).
+
+
+
+
+
+2. BACKEND / DATA:
+
+Optional: stub an endpoint like GET /api/status/public returning a static JSON, and have the page fetch it. Keep static if too heavy.
+
+
+
+3. SLA Credits Request:
+
+Page: levqor-site/src/app/sla-credits/page.tsx:
+
+Form:
+
+Name
+
+Email
+
+Plan
+
+Incident date/time
+
+Description
+
+
+POST to POST /api/support/sla-credit-request.
+
+Backend: store in SlaCreditRequest table with status field ('pending'|'granted'|'rejected').
+
+For now, no auto-credits; manual review only.
+
+
+
+
+
+
+---
+
+PHASE 9 — DISPUTE RESOLUTION + EMERGENCY CONTACT
+
+GOAL
+Make dispute path and emergency contact explicit and backed by simple storage.
+
+1. Disputes:
+
+Page already exists as policy text (/refunds, etc.). Create or update a dedicated page if not present: levqor-site/src/app/disputes/page.tsx summarizing:
+
+Step 1: Contact support.
+
+Step 2: Escalation if unresolved.
+
+Step 3: Mediation/arbitration (as per /terms).
+
+
+Backend endpoint POST /api/support/dispute:
+
+Accepts user details + description.
+
+Stores in Dispute table (id, user_id or email, description, created_at, status).
+
+
+
+
+2. Emergency contact:
+
+Page: levqor-site/src/app/emergency/page.tsx:
+
+states usage only for Severity 1 incidents (system-wide outages, data breach suspicion).
+
+Provide emergency@levqor.ai as contact (do not implement email sending now).
+
+Link from /incident-response.
+
+
+
+
+
+
+---
+
+PHASE 10 — LOGGING, VERIFY, NO DEPLOY
+
+1. Add minimal logging:
+
+For each new backend endpoint, log:
+
+route name
+
+user/email or ip
+
+status (ok or error message)
+
+
+Use existing logger if present, otherwise Python logging.
+
+
+
+2. Run full checks:
+
+cd ~/workspace/levqor-site
+npm run lint
+npm run build
+
+cd ~/workspace
+# if backend has tests:
+pytest || echo "No backend tests, skip"
+
+
+3. Start frontend and backend locally (if not already) and hit these URLs in Replit webview:
+
+/
+
+/signin (check ToS checkbox + links)
+
+/cookies + see banner
+
+/risk-disclosure + high-risk warning integrated on /workflow
+
+/privacy/dsar
+
+/marketing/subscribe
+
+/status
+
+/sla-credits
+
+/disputes
+
+/emergency
+
+
+Confirm they render without 500/TS errors.
+
+
+4. FINAL:
+
+DO NOT deploy.
+
+Show:
+
+git status
+
+git diff --stat
+
+
+Summarize files changed, any TODOs left (e.g. “wire email sending here later”, “hook retention script to cron later”).
+
+
+
+
+STOP after all steps, and present a concise summary of what was implemented and any remaining manual configuration points (e.g. real email wiring, cron scheduling).

@@ -1,0 +1,181 @@
+Perfect.
+Here is your next directive, kept tight, simple, and fully boss-mode aligned.
+
+
+---
+
+NEXT OPERATION BLOCK: “PUBLIC-FACING LEGAL COMPLETION”
+
+These are the last remaining public-facing compliance items before we switch back to backend/data-deletion work.
+
+Do them exactly in this order.
+
+
+---
+
+1) ADD: “HIGH-RISK DATA PROHIBITION” PAGE
+
+Route: /high-risk-data
+
+Content (keep it simple & strict):
+
+“Levqor does NOT automate workflows involving:
+
+Medical data or healthcare decisions
+
+Financial advice or creditworthiness decisions
+
+Legal advice or legal case workflows
+
+Criminal data or policing workflows
+
+Biometric or genetic data
+
+Anything regulated as high-risk under GDPR Article 9”
+
+
+“Attempting to automate these categories violates our Terms and will result in suspension.”
+
+
+Add to footer under Compliance.
+
+
+---
+
+2) ADD: NEW WARNING BLOCK TO THE WORKFLOW CREATION UI
+
+Find the UI where a customer starts a workflow or DFY build (the card/button/page—whatever exists).
+
+Add a small red warning box:
+
+> “You must NOT upload or automate medical, financial, legal, criminal, or biometric data. Doing so violates our Terms and may result in immediate suspension.”
+
+
+
+No logic changes — just static UI.
+
+
+---
+
+3) UPGRADE EXISTING /risk-disclosure PAGE
+
+Append one final section:
+
+“Prohibited Workflow Categories (Non-Negotiable)”
+Bullet list of the 6 categories above.
+Short paragraph: “These cannot be automated under any circumstances.”
+
+
+---
+
+4) ADD: “MARKETING CONSENT” PAGE
+
+Route: /marketing-consent
+
+Sections:
+
+When we collect consent
+
+Double-opt-in required
+
+How to withdraw
+
+Links to /privacy and /data-requests
+
+
+Add to footer under Legal.
+
+
+---
+
+5) ADD: “EMAIL UNSUBSCRIBE POLICY” PAGE
+
+Route: /email-unsubscribe
+
+Sections:
+
+Unsubscribe link required on all marketing emails
+
+Processing time: < 48 hours
+
+Cannot unsubscribe from transactional emails
+
+Add link to /privacy
+
+
+Footer link → Legal.
+
+
+---
+
+6) UPDATE SIGN-UP OR SIGN-IN PAGE
+
+Insert small passive text:
+
+> “By continuing, you confirm that you have read and agree to our Terms and Privacy Policy.”
+
+
+
+Link both.
+
+No checkbox yet — checkbox will come in internal backend stage.
+
+
+---
+
+7) PERFORM FOOTER CONSOLIDATION
+
+Group links as:
+
+LEGAL
+/terms
+/privacy
+/cookies
+/dpa
+/gdpr
+/marketing-consent
+/email-unsubscribe
+
+POLICIES
+/risk-disclosure
+/fair-use
+/acceptable-use
+/sla
+/support-policy
+/cancellation
+/onboarding
+/delivery
+/revisions
+
+COMPLIANCE
+/subprocessors
+/incident-response
+/security
+/business-continuity
+/high-risk-data
+
+OPERATIONS
+/status
+/sla-credits
+/disputes
+/emergency-contacts
+
+
+---
+
+8) FINAL CHECK
+
+After creating all new pages:
+
+Run:
+
+npm run build
+
+Fix any TS errors.
+
+
+---
+
+If you're ready for the next block after this, say:
+
+“Boss — next batch.”

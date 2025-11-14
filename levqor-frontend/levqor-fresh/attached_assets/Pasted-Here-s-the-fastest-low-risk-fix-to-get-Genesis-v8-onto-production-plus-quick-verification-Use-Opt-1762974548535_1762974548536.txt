@@ -1,0 +1,102 @@
+Here’s the fastest, low-risk fix to get Genesis v8 onto production, plus quick verification. Use Option A first; only use Option B if A fails.
+
+OPTION A — Break the bad Git index (rename bounce)
+
+Run these exactly in your Replit shell:
+
+cd ~/workspace/levqor-site
+
+# 0) Safety snapshot
+cp -a src/app/page.tsx src/app/page.tsx.bak.$(date -u +%H%M%S)
+
+# 1) Rename to invalidate the corrupted index entry
+mv src/app/page.tsx src/app/homepage.tsx
+git add -A
+git commit -m "temp: rename to break git index cache for homepage"
+git push origin main || (git pull --rebase && git push origin main)
+
+# 2) Rename back to the correct filename so Next.js picks it up
+mv src/app/homepage.tsx src/app/page.tsx
+git add -A
+git commit -m "feat(frontend): Genesis v8 hero+tiles (index repaired)"
+git push origin main || (git pull --rebase && git push origin main)
+
+# 3) Force a tiny, harmless build bump in case Vercel tries to reuse cache
+echo "// build-bump $(date -u +%FT%TZ)" >> src/app/layout.tsx
+git add src/app/layout.tsx
+git commit -m "chore(ci): force fresh Vercel build after index repair"
+git push origin main || (git pull --rebase && git push origin main)
+
+OPTION B — Clean clone (only if A fails)
+
+cd ~/workspace
+git clone https://github.com/VII-77/levqor-frontend.git levqor-fresh
+
+# Copy your working src into the clean repo (adjust if you keep other dirs)
+rsync -a --delete ~/workspace/levqor-site/src/ ~/workspace/levqor-fresh/src/
+
+cd ~/workspace/levqor-fresh
+git add -A
+git commit -m "feat(frontend): Genesis v8 hero+tiles from clean clone"
+git push origin main || (git pull --rebase && git push origin main)
+
+VERCEL (Android app) — Zero guesswork
+
+1. Open Project → levqor-site (this is what www.levqor.ai uses).
+
+
+2. Deployments → wait for the new build to show Ready.
+
+
+3. Tap the Preview URL:
+
+Home must show the new hero + tiles (Genesis v8).
+
+
+
+4. Tap Promote to Production (puts that exact preview under www.levqor.ai).
+
+
+5. Domains: confirm www.levqor.ai is attached to levqor-site (not levqor-frontend).
+
+
+
+CLOUDFLARE — Purge only HTML (keep assets cached)
+
+In Cloudflare → Caching → Purge Cache → Custom Purge:
+
+https://www.levqor.ai/
+https://www.levqor.ai/workflow
+
+QUICK VERIFY (works from phone or any shell)
+
+# Fresh HTML from prod
+curl -sSI https://www.levqor.ai | grep -Ei "HTTP/|age:|x-vercel-id|cf-cache-status"
+
+# Unauth redirect (browser is best; curl may be WAF-blocked)
+curl -sI -A "Mozilla/5.0" https://www.levqor.ai/workflow | grep -Ei "HTTP/|location"
+
+# Asset caching (immutable)
+curl -sSI https://www.levqor.ai/_next/static/chunks/webpack*.js | grep -Ei "HTTP/|cache-control"
+
+Expect:
+
+age: 0, new x-vercel-id, cf-cache-status: DYNAMIC for HTML.
+
+/workflow → 307/308 → /signin.
+
+Static chunks: public, max-age=31536000, immutable.
+
+
+WHY THIS WORKS (and what we fixed)
+
+The rename “bounces” the stale index entry so Git re-tracks the real Genesis v8 file, then we re-commit under the correct filename.
+
+Promoting a READY preview avoids extra builds and Vercel limits.
+
+Purging only HTML avoids blowing asset cache (keeps the site fast).
+
+We confirmed the production project is levqor-site and the domain is www.levqor.ai (your earlier block was project mismatch + corrupt index).
+
+
+If anything in Option A errors, paste the exact failing command + error line and I’ll give you a targeted one-liner to clear it.

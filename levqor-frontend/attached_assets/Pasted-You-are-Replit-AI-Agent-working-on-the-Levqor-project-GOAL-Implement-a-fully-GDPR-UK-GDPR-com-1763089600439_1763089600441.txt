@@ -1,0 +1,311 @@
+You are Replit AI Agent working on the Levqor project.
+
+GOAL: Implement a **fully GDPR / UK-GDPR compliant DSAR (Data Subject Access Request) export system via email** – no public download links – wired into the existing Levqor backend + Next.js frontend. Keep changes minimal, clean, and production-grade.
+
+CONSTRAINTS:
+- Don’t break existing auth, pricing, checkout, or policy pages.
+- Follow existing project structure:
+  - Frontend: `levqor-site` (Next.js 14 App Router, TypeScript, Tailwind).
+  - Backend: Python/Flask app at repo root (`run.py` + existing modules) with PostgreSQL.
+- No unnecessary libraries. Re-use existing email / DB helpers if present.
+- Keep all naming simple & explicit: `dsar_*` for anything DSAR-related.
+
+HIGH-LEVEL DSAR FLOW:
+1. Signed-in user (or email form user) clicks “Request my data export”.
+2. Frontend calls backend DSAR endpoint.
+3. Backend:
+   - Logs DSAR request in DB.
+   - Collects all personal data we store about that user.
+   - Builds a zipped export with:
+     - JSON master file.
+     - CSVs for key tables.
+   - Sends the zip as an email attachment to the user.
+   - Marks DSAR as completed in DB.
+4. User sees confirmation + basic status in UI.
+5. We keep an internal log for GDPR audit.
+
+PHASE 1 – QUICK REPO SCAN
+1. From repo root:
+   - Show structure:
+     - `ls`
+     - `ls levqor-site`
+   - Find backend app + DB access layer:
+     - `grep -R "Flask" -n . | head`
+     - `grep -R "SQLAlchemy" -n . | head`
+     - Or `grep -R "psycopg" -n . | head`
+   - Find existing email sender:
+     - `grep -R "Resend" -n . | head`
+     - `grep -R "send_email" -n . | head`
+   - Find where user model / user_id is defined:
+     - `grep -R "User(" -n . | head`
+     - `grep -R "user_id" -n . | head`
+
+2. Summarise (in your own head) which files to hook into:
+   - Backend entry (likely `run.py` or `app.py`).
+   - DB session / models module.
+   - Email sending helper (if any).
+
+PHASE 2 – DB LAYER: DSAR REQUESTS TABLE
+Goal: Minimal table to track DSAR lifecycle.
+
+1. Add a new DB model (SQLAlchemy or whichever ORM is used) for DSAR requests in the backend, e.g. `models/dsar.py` or same models file:
+
+   - Table name: `dsar_requests`
+   - Columns:
+     - `id` (PK)
+     - `user_id` (nullable if we only have email – but normally NOT NULL)
+     - `email` (text, NOT NULL)
+     - `status` (text; one of `"pending"`, `"processing"`, `"completed"`, `"failed"`)
+     - `requested_at` (timestamp, default now)
+     - `completed_at` (timestamp, nullable)
+     - `last_error` (text, nullable)
+     - `export_filename` (text, nullable)
+     - `export_bytes_size` (bigint, nullable)
+     - `request_source` (text; `"account"` or `"email_form"`)
+     - `request_ip` (text, nullable)
+   - Optional: `gdpr_reference_id` (short public token we can show to user).
+
+2. Add a migration or, if this project uses simple `CREATE TABLE IF NOT EXISTS`, ensure the table is created on startup using the existing pattern.
+
+3. Wire the model into whatever `db.session` / `Base` is used so we can query `dsar_requests` later.
+
+PHASE 3 – BACKEND: DSAR EXPORT SERVICE
+Goal: A backend service that can:
+- Accept a DSAR request object.
+- Gather user data from DB.
+- Build a zipped archive (JSON + CSVs).
+- Send it via email.
+- Update DSAR status.
+
+1. Add a module `dsar_service.py` (or similar) in backend (e.g. `services/dsar_service.py`):
+
+   - Implement `build_user_dsar_export(user_id: int, email: str) -> Tuple[bytes, str, int]`:
+     - Query key tables using existing models (best effort, at minimum):
+       - Users table: core profile.
+       - Workflows (owned by user).
+       - Workflow runs / jobs / logs referencing user_id or tenant + user.
+       - Billing / subscriptions table (if present).
+       - Audit logs table referencing this user.
+     - Create a Python dict `export` with fields:
+       - `"meta"`: export timestamp, system version, user_id, email.
+       - `"user"`: single object.
+       - `"workflows"`: list.
+       - `"workflow_runs"` / `"jobs"`: list.
+       - `"billing"`: list or dict.
+       - `"audit_logs"`: list.
+     - Serialise this to pretty JSON string `user_data.json`.
+
+     - For any sizable list (e.g. workflows, runs, jobs), also produce CSVs:
+       - `workflows.csv`, `workflow_runs.csv`, `jobs.csv`, `billing.csv`, `audit_logs.csv`.
+       - Use Python `csv` module – header row + rows based on key fields only (don’t overcomplicate).
+
+     - Package everything into a zip (using `io.BytesIO` + `zipfile`):
+       - File names:
+         - `user_data.json`
+         - `workflows.csv` (if non-empty)
+         - `workflow_runs.csv` (if non-empty)
+         - `jobs.csv` (if non-empty)
+         - `billing.csv` (if non-empty)
+         - `audit_logs.csv` (if non-empty)
+       - Return:
+         - `zip_bytes`
+         - `filename` like `levqor-dsar-user-{user_id}-{YYYYMMDD}.zip`
+         - `len(zip_bytes)` as `size`.
+
+   - Implement `process_dsar_request(dsar: DsARRequestModel) -> None`:
+     - Update status → `"processing"` and commit.
+     - Call `build_user_dsar_export(...)`.
+     - Use existing email helper (Resend or SMTP) to send an email:
+       - To: `dsar.email`
+       - Subject: `"Your Levqor data export (GDPR/UK-GDPR)"`.
+       - Body (plain text):
+         - Explain this is their DSAR export.
+         - Reference `gdpr_reference_id` if available.
+         - Mention that the file should be stored securely & not shared.
+       - Attach the zip file (correct MIME).
+     - On success:
+       - Set `status = "completed"`, `completed_at = now`, `export_filename`, `export_bytes_size`.
+       - Clear `last_error`.
+     - On failure:
+       - Set `status = "failed"`, `last_error` short message.
+       - Don’t crash the whole app.
+     - Commit at the end.
+
+2. To avoid background jobs complexity:
+   - For now, run export synchronously inside the HTTP request but add a TODO comment:
+     - `# TODO: move DSAR processing to background worker / queue when traffic grows`.
+
+PHASE 4 – BACKEND: DSAR API ENDPOINTS
+Add DSAR endpoints to backend (Flask):
+
+1. In `run.py` (or main app file), register a blueprint or plain routes under `/api/dsar`.
+
+2. Implement:
+
+   (a) `POST /api/dsar/request`
+   - Auth:
+     - If you already have a session/token, use `current_user.id` and `current_user.email`.
+     - If no auth, require `email` in body and treat as email-based request.
+   - Validations:
+     - Require email.
+     - Optionally ensure it matches logged-in user’s email if authenticated.
+   - Behaviour:
+     - Create a `dsar_requests` row with:
+       - `status="pending"`, `email`, `user_id` if available, `request_source`, `request_ip`.
+     - Immediately call `process_dsar_request(dsar)` synchronously.
+     - Return JSON:
+       - On success:
+         ```json
+         {
+           "ok": true,
+           "status": "completed",
+           "reference": "<gdpr_ref_or_id>"
+         }
+         ```
+       - On failure:
+         ```json
+         {
+           "ok": false,
+           "status": "failed",
+           "error": "<short message>",
+           "reference": "<id if created>"
+         }
+         ```
+
+   (b) `GET /api/dsar/status`
+   - Auth: same as above.
+   - Query the most recent DSAR for this user/email.
+   - Return JSON:
+     ```json
+     {
+       "ok": true,
+       "latest": {
+         "status": "pending|processing|completed|failed",
+         "requested_at": "...",
+         "completed_at": "...",
+         "last_error": "...",
+         "reference": "<id or ref>"
+       }
+     }
+     ```
+   - If none:
+     ```json
+     {
+       "ok": true,
+       "latest": null
+     }
+     ```
+
+3. Add **basic logging**:
+   - Log every DSAR request:
+     - user/email, IP, status, bytes size, error (if any).
+   - Make sure logs **do not dump full data content**, only metadata.
+
+PHASE 5 – FRONTEND: DSAR PAGE & WIRING
+Goal: Public page where users can trigger DSAR export and see basic status.
+
+1. In `levqor-site/src/app` create a new page:
+
+   - File: `levqor-site/src/app/data-requests/page.tsx` OR `/privacy/dsar/page.tsx`
+     - Use whichever path fits existing structure – but ensure:
+       - Linked from `/privacy` and footer (“Data requests / export”).
+
+2. Page content:
+
+   - Heading: `"Data requests & exports (GDPR / UK-GDPR)"`
+   - Short explanation:
+     - You can request a copy of your data.
+     - We’ll email you a secure export within 30 days (but usually much faster).
+   - If you already have auth context (if there’s a hook like `useSession()`):
+     - Pre-fill email and **hide** the email input (display as read-only text).
+   - If not logged in:
+     - Show email input field.
+
+   - Add a React client component form with:
+     - Email input (when needed).
+     - Button “Request my data export”.
+     - A small note: “We will send your export to this email address if it matches our records.”
+
+   - On submit:
+     - Call `/api/dsar/request` (backend, not the Next.js app/api).
+       - If backend is proxied under `/api`, use the existing pattern used for other backend calls.
+     - Show loading state on button.
+     - If `ok: true`, show:
+       - “Request received. We’ll email your data export shortly. Reference: XYZ”.
+     - If `ok: false`, show error message.
+
+   - Add a small “Last request status” widget:
+     - On mount (or after request), call `/api/dsar/status`.
+     - Show:
+       - Status chip (Pending / Processing / Completed / Failed).
+       - Requested time.
+       - Completed time (if present).
+       - Reference ID.
+
+3. Tailwind styling:
+   - Keep it consistent with current Genesis v8 dark theme.
+   - Card layout similar to `/signin`:
+     - `bg-slate-900/70`, `border border-slate-800`, `rounded-2xl`, `p-6 md:p-8`.
+   - Use subtle accent color: emerald for success, amber for pending, rose for failed.
+
+4. Wire navigation:
+   - Add link to DSAR page from:
+     - `/privacy` page (in the rights section: “Request a copy of your data”).
+     - Footer legal section: “Data requests (GDPR)”.
+
+PHASE 6 – BASIC TESTS (MANUAL, BUT SCRIPTED)
+1. Backend tests (from repo root, via curl or httpie):
+
+   - Unauthenticated with email:
+     - `curl -X POST http://localhost:<backend_port>/api/dsar/request -H "Content-Type: application/json" -d '{"email":"test@example.com"}'`
+   - If auth cookie-based in browser, test via frontend, but also try:
+     - `GET /api/dsar/status?email=test@example.com`
+
+   - Confirm:
+     - DSAR row created in DB.
+     - Status transitions to `completed` (for small dataset).
+     - No stack traces or 500 errors.
+
+2. Email tests:
+   - Ensure the email sender is called.
+   - If possible, log a line like:
+     - `"[DSAR] Export email sent to X, size Y bytes, ref Z"`.
+   - If no outbound email environment is configured locally, still ensure code paths don’t crash: catch and mark DSAR as failed.
+
+3. Frontend tests:
+   - Visit DSAR page.
+   - Submit request with valid email.
+   - See success message and status.
+   - Ensure error states are handled gracefully (show error text from JSON).
+
+PHASE 7 – FINAL CLEANUP & COMMENTS
+1. Add **short, professional comments** only where needed:
+   - At top of DSAR service module:
+     - `# DSAR (Data Subject Access Request) export builder for GDPR / UK-GDPR compliance.`
+   - Above DSAR routes:
+     - `# DSAR endpoints: request and status. Exports sent via email only.`
+
+2. Verify `git diff`:
+   - No unrelated files touched.
+   - New files:
+     - `dsar_service.py` (or similar)
+     - New page under `levqor-site/src/app/.../page.tsx`
+   - Existing files:
+     - Minimal edits to register routes and add model.
+
+3. Do **NOT** change:
+   - Auth logic.
+   - Pricing logic.
+   - Existing legal texts that are already signed off.
+
+OUTPUT:
+- Implement all changes directly.
+- At the end, print:
+  - `git status`
+  - `git diff --stat`
+  - A short summary of:
+    - DSAR model file.
+    - DSAR service file.
+    - DSAR routes.
+    - DSAR page path.
+```0

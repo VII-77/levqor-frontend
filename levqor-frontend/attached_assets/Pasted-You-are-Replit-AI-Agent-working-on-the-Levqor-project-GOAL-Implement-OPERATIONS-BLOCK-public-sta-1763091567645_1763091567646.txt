@@ -1,0 +1,318 @@
+You are Replit AI Agent working on the Levqor project.
+
+GOAL: Implement OPERATIONS BLOCK: public status page, SLA credit request, dispute resolution, and emergency contact runbook — all wired into the existing Next.js app without touching pricing, checkout, or auth.
+
+
+---
+
+0. CONTEXT
+
+Frontend: levqor-site (Next.js App Router, Genesis v8 dark theme, Tailwind v3).
+
+Backend: separate; do not modify.
+
+Existing legal/policy pages already live (terms, privacy, fair-use, sla, incident-response, etc.).
+
+You must:
+
+Add 4 new pages and link them in footer.
+
+Keep everything consistent with current design.
+
+Avoid breaking routes or Typescript.
+
+
+
+Work in:
+cd ~/workspace/levqor-site
+
+
+---
+
+1) STATUS PAGE /status
+
+1. Find existing layout/footer components to re-use:
+
+Search: src/app/layout.tsx, src/components/Footer.tsx, src/components/*Nav*.
+
+
+
+2. Create page: src/app/status/page.tsx
+
+Server component.
+
+Dark theme, use same outer shell as existing pages (max-w-4xl mx-auto px-4 py-10 etc.).
+
+Sections:
+
+Status header:
+
+Title: “System status”
+
+Sub: “Live view of Levqor uptime and incidents.”
+
+
+Current status card:
+
+Show static “Operational” badge for now.
+
+Text: “All core services are running normally.”
+
+Placeholder field for “Last updated: generated at build time”.
+
+
+Service list (static for now):
+
+“Dashboard & UI (levqor.ai)” → Operational.
+
+“API & workflows (api.levqor.ai)” → Operational.
+
+“Background jobs & schedulers” → Operational.
+
+Use colored pills (green for operational).
+
+
+Incident history stub:
+
+Short list of 3 example incidents (all “Resolved”), with date, duration, impact summary.
+
+Make clear this is example/historical, not live.
+
+
+
+Do not call any external APIs; static content only.
+
+
+
+3. Ensure page exports default React component and no TS errors.
+
+
+
+
+---
+
+2) SLA CREDITS REQUEST PAGE /sla-credits
+
+1. Create: src/app/sla-credits/page.tsx
+
+
+2. Content:
+
+Title: “SLA credits & downtime claims”.
+
+Short explainer that credits are available according to /sla.
+
+Add bullet list:
+
+Who can request (account owner, billing contact).
+
+Time window to submit (e.g., within 30 days of incident).
+
+Proof needed (timestamps, logs, screenshots).
+
+
+Add form UI (client component section):
+
+Fields:
+
+Full name
+
+Work email
+
+Account / company name
+
+Plan (Starter / Growth / Pro / Business)
+
+Incident date/time (text input for now)
+
+Description (textarea)
+
+
+Under the hood:
+
+Do not wire to real backend.
+
+On submit, prevent default and show success toast/text:
+
+“We’ve received your SLA credit request. We’ll review within 5–7 business days.”
+
+
+
+For now, just log to console (console.log("SLA request", formData)).
+
+
+
+
+
+
+---
+
+3) DISPUTE RESOLUTION PAGE /disputes
+
+1. Create: src/app/disputes/page.tsx
+
+
+2. Content:
+
+Title: “Dispute resolution & complaints”.
+
+Clear, calm wording; align with /terms and /refunds.
+
+Sections:
+
+Step 1 – Contact support first
+
+Email support@levqor.ai (static text).
+
+Response SLA (e.g., 1–3 business days).
+
+
+Step 2 – Escalation
+
+When a ticket is escalated.
+
+Mention /support-escalation if it exists, or include a brief summary inline.
+
+
+Step 3 – Formal complaint
+
+For unresolved matters, users can:
+
+Email a dedicated address like complaints@levqor.ai (static).
+
+Include account details, timeline, screenshots.
+
+
+
+Step 4 – External avenues
+
+Short note: for UK/EU users, refer to relevant regulators if unresolved (without naming specific bodies).
+
+
+
+Include short note:
+
+“Chargebacks should be a last resort. We’re happy to work with you on a fair resolution first.”
+
+
+
+
+
+
+---
+
+4) EMERGENCY CONTACTS PAGE /emergency-contacts
+
+1. Create: src/app/emergency-contacts/page.tsx
+
+
+2. Content:
+
+Title: “Emergency contacts & incident procedures”.
+
+Explain this is for Severity 1 issues only (full outage, major data incident, etc.).
+
+Sections:
+
+When to use emergency contacts
+
+List 3–4 examples (complete outage, data breach suspicion, major billing incident).
+
+
+Contact channels (static placeholders):
+
+Primary: support@levqor.ai
+
+Emergency tag in subject line: “[SEV1] …”
+
+Optional: “In future, a dedicated emergency hotline may be provided to enterprise customers.”
+
+
+What to include
+
+Account, impact, timestamps, any logs or screenshots.
+
+
+What happens next
+
+Acknowledgment within 1 hour.
+
+Status updates until resolution.
+
+
+
+Make clear this is not for routine support requests.
+
+
+
+
+
+---
+
+5) FOOTER / NAV LINKS
+
+1. Locate footer component (likely src/components/Footer.tsx).
+
+
+2. Add new links in a sensible section (e.g., “Status & policies”):
+
+Status → /status
+
+SLA credits → /sla-credits
+
+Disputes → /disputes
+
+Emergency contacts → /emergency-contacts
+
+
+
+3. Keep styling consistent with existing links (same Tailwind classes).
+
+
+
+
+---
+
+6) SANITY CHECKS
+
+From levqor-site root:
+
+1. Type check / build:
+
+npm run build
+
+Fix any TS/ESLint errors from the new files.
+
+
+
+2. Dev sanity (if used in this environment):
+
+npm run dev (or ensure existing dev workflow still starts cleanly).
+
+
+
+3. Verify routes respond (if curl to localhost:5000 is wired in this env):
+
+/status
+
+/sla-credits
+
+/disputes
+
+/emergency-contacts
+
+
+
+
+
+---
+
+7) WHAT TO REPORT BACK
+
+When done, provide a short summary (no essays):
+
+Confirm files created/edited (paths).
+
+Confirm npm run build passes.
+
+Confirm all 4 routes load without errors in the dev environment.

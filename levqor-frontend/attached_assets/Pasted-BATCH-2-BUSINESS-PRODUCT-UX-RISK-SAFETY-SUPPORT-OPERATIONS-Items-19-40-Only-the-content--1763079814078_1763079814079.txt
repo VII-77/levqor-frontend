@@ -1,0 +1,248 @@
+BATCH 2 — BUSINESS, PRODUCT, UX, RISK, SAFETY, SUPPORT, OPERATIONS (Items 19–40)
+(Only the content. No explanations. No extras.)
+
+
+---
+
+19. CUSTOMER ONBOARDING POLICY
+
+Step 1 — Payment received  
+Step 2 — Automatic email confirmation  
+Step 3 — Kickoff form (requirements + access)  
+Step 4 — Workflow build begins  
+Step 5 — Delivery + revision cycle  
+Step 6 — Handover + support window
+
+
+---
+
+20. SUPPORT POLICY
+
+Starter: 24–48h  
+Growth: 12–24h  
+Pro: <12h  
+Business: priority queue, same-day
+
+Support channels:
+- Email (primary)
+- Dashboard chat (when activated)
+
+
+---
+
+21. SERVICE DELIVERY POLICY
+
+DFY Starter: 48 hours  
+DFY Professional: 3–4 days  
+DFY Enterprise: 7 days  
+
+Subscriptions:  
+Workflow creation = based on tier  
+Fixes = included  
+Optimisations = included (Pro+)
+
+
+---
+
+22. REVISION POLICY
+
+DFY:  
+- Starter: 1 revision  
+- Professional: 2 revisions  
+- Enterprise: 3 revisions  
+
+Subscriptions:  
+Within tier limits (Fair Use)
+
+
+---
+
+23. CANCELLATION POLICY
+
+Subscriptions cancel anytime.  
+Access remains until the billing cycle ends.  
+We do not offer refunds for used periods.
+
+
+---
+
+24. ACCOUNT DELETION POLICY
+
+Send request to: privacy@levqor.ai  
+Identity verification required.  
+Data deleted within 30 days except legal records.
+
+
+---
+
+25. SECURITY FAQ (CUSTOMER-FACING)
+
+Q: Is my data encrypted?  
+A: Yes, in transit (TLS) and at rest.
+
+Q: Who has access to my workflows?  
+A: Only authorised engineers, and only when necessary.
+
+Q: What about OpenAI?  
+A: Your data is processed securely and not used to train public models.
+
+
+---
+
+26. RISK DISCLOSURE (CUSTOMER-FACING)
+
+Automation can fail due to API outages, human error, external system changes, or rate-limits.  
+We provide monitoring and fixes but cannot fully eliminate third-party risks.
+
+
+---
+
+27. INCIDENT RESPONSE POLICY
+
+Severity 1 (Outage): respond <1 hour  
+Severity 2 (Major failures): <6 hours  
+Severity 3 (Minor issues): <24 hours  
+
+Stages: Detect → Contain → Fix → Report (for major incidents)
+
+
+---
+
+28. BACKUP & RECOVERY POLICY
+
+Daily backups  
+14–30 day retention  
+Point-in-time recovery where feasible  
+Critical configs version-controlled
+
+
+---
+
+29. MONITORING POLICY
+
+Workflow uptime monitored  
+Error rate tracked  
+Alerts triggered on failures  
+Manual weekend checks
+
+
+---
+
+30. PLATFORM STATUS PAGE (PLANNED COPY)
+
+Current Status: Operational  
+No incidents reported.  
+Next Maintenance Window: Announced via dashboard.
+
+
+---
+
+31. PERFORMANCE POLICY
+
+We target:  
+- <300 ms API response time  
+- <2s initial page load  
+- 99% uptime target
+
+
+---
+
+32. SLA DISCLAIMERS
+
+Not applicable to:  
+- User errors  
+- Third-party API failures  
+- Force majeure  
+- Abuse or misuse
+
+
+---
+
+33. WORKFLOW LIMITS PER TIER
+
+DFY  
+Starter: 1  
+Professional: 3  
+Enterprise: 7
+
+Subscription  
+Starter: 1/mo  
+Growth: 3/mo  
+Pro: 7/mo  
+Business: unlimited (fair use)
+
+
+---
+
+34. SUPPORT LIMITS PER TIER
+
+Starter: Email only  
+Growth: Email + limited priority  
+Pro: Priority response + optimisation  
+Business: Dedicated manager
+
+
+---
+
+35. CUSTOMER RESPONSIBILITIES
+
+Provide accurate access  
+Follow security best practices  
+Test workflows on their side  
+Avoid misuse or illegal automations
+
+
+---
+
+36. PROVIDER RESPONSIBILITIES
+
+Deliver as promised  
+Maintain secure systems  
+Inform about major outages  
+Respect data privacy  
+Follow SLAs
+
+
+---
+
+37. CHANGE MANAGEMENT POLICY
+
+Major changes → customer notified  
+Minor changes → deployed silently  
+Breaking changes → scheduled maintenance
+
+
+---
+
+38. VERSIONING POLICY
+
+Semantic versioning:  
+- Major = breaking  
+- Minor = new features  
+- Patch = fixes
+
+Release notes provided for all major versions.
+
+
+---
+
+39. INTERNAL ACCESS POLICY
+
+Least-privilege principle  
+No engineer has full access by default  
+Privileged access requires approval  
+Sessions logged
+
+
+---
+
+40. DATA MINIMISATION POLICY
+
+We collect the minimum data necessary for service delivery.  
+No unnecessary storage of user content or secrets.
+
+
+---
+
+Batch 2 complete.
+Ask for Batch 3.

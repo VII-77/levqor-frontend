@@ -1,0 +1,77 @@
+# 21 — DSAR EXPORT (EMAIL ZIP OF USER DATA)
+
+Backend:
+- POST /api/dsar/export → auth user; enqueue job; return {ok:true, job_id}.
+- Table dsar_exports(id,user_id,status,requested_at,completed_at,download_url,error).
+- Worker job:
+    - Query: user, workflows, runs, logs (non-sensitive), subscriptions, invoices meta only.
+    - Build JSON: user.json, workflows.json, runs.json, logs.json, billing.json.
+    - Zip → store in S3/bucket; sign URL 7 days.
+    - Update dsar_exports.status + download_url.
+
+Frontend:
+- /data-requests:
+    - Show DSAR info + “Request my data” button.
+    - On click: POST /api/dsar/export; show toast “We’ll email you a download link”.
+- Email:
+    - Template: “Your Levqor data export is ready” + button to signed URL.
+
+Security:
+- Max 1 DSAR export / 30 days per user.
+- Log all actions to audit_log.
+
+# 22 — DSAR HISTORY & ADMIN VIEW
+
+Backend:
+- GET /api/dsar/exports (auth user) → list own exports (status, requested_at).
+- GET /api/admin/dsar/exports (admin) → filter by email/date/status.
+
+Frontend:
+- /data-requests:
+    - Section “Your past data exports” → table (date, status, link if ready).
+- /admin/dsar:
+    - Admin-only grid:
+        - Filters: date-from/to, status, email.
+        - Columns: user email, status, requested_at, completed_at, link.
+        - Buttons: “Resend email”, “Invalidate link”.
+
+Logging:
+- Every admin view/action → audit_log with actor_id, action, target_user_id.
+
+# 23 — PUBLIC STATUS PAGE
+
+Backend:
+- status_snapshots table: ts, overall_status, api_status, frontend_status, db_status, stripe_status, notes.
+- Cron job every 5 min:
+    - Health-check: API, DB, Stripe, Vercel edge.
+    - Record snapshot (up/degraded/down).
+
+Frontend:
+- /status:
+    - Big overall “All systems operational / Degraded / Outage”.
+    - Components: API, Frontend, Database, Stripe, Workflows.
+    - History chart: last 24h/7d snapshots.
+
+Incident Integration:
+- When incident created/resolved (existing incident table): show banners on /status + /signin + /pricing.
+
+# 24 — SLA CREDITS & DISPUTE WORKFLOW
+
+Backend:
+- Table sla_credit_requests(id,user_id,plan,period_start,period_end,claimed_downtime_minutes,status,decision,credit_amount,currency,notes).
+- POST /api/support/sla-credit:
+    - Auth user; validate eligibility (active subscription); store request; return ticket id.
+- Admin endpoints:
+    - GET /api/admin/sla-credit?status=...
+    - POST /api/admin/sla-credit/{id}/decision {status:"approved"|"rejected",credit_amount,notes}.
+
+Frontend:
+- /sla-credits:
+    - Explain SLA + when credits apply.
+    - Form: select subscription, period, describe outage, attach logs (optional).
+- /admin/sla-credits:
+    - Table of requests; filters; decision form.
+
+Stripe:
+- On approved: create Stripe coupon or invoice credit note manually (for now) and log reference in sla_credit_requests.stripe_ref.
+```0

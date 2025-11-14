@@ -1,0 +1,102 @@
+{
+  "validation_id": "finalizer_1762866750",
+  "timestamp": "2025-11-11T13:12:30.705045",
+  "summary": {
+    "total": 12,
+    "passed": 11,
+    "failed": 0,
+    "warnings": 1,
+    "success_rate": 91.67,
+    "deployment_ready": true
+  },
+  "validations": [
+    {
+      "check": "Secret: JWT_SECRET",
+      "category": "environment",
+      "status": "passed",
+      "purpose": "Authentication",
+      "timestamp": "2025-11-11T13:12:30.409955"
+    },
+    {
+      "check": "Secret: SESSION_SECRET",
+      "category": "environment",
+      "status": "passed",
+      "purpose": "Session Management",
+      "timestamp": "2025-11-11T13:12:30.410004"
+    },
+    {
+      "check": "Secret: STRIPE_SECRET_KEY",
+      "category": "environment",
+      "status": "passed",
+      "purpose": "Payment Processing",
+      "timestamp": "2025-11-11T13:12:30.410078"
+    },
+    {
+      "check": "Secret: STRIPE_WEBHOOK_SECRET",
+      "category": "environment",
+      "status": "passed",
+      "purpose": "Stripe Webhooks",
+      "timestamp": "2025-11-11T13:12:30.410128"
+    },
+    {
+      "check": "Secret: RESEND_API_KEY",
+      "category": "environment",
+      "status": "passed",
+      "purpose": "Email Service",
+      "timestamp": "2025-11-11T13:12:30.410180"
+    },
+    {
+      "check": "Secret: SENTRY_DSN",
+      "category": "environment",
+      "status": "passed",
+      "purpose": "Error Tracking",
+      "optional": true,
+      "timestamp": "2025-11-11T13:12:30.410225"
+    },
+    {
+      "check": "Secret: SLACK_WEBHOOK_URL",
+      "category": "environment",
+      "status": "passed",
+      "purpose": "Slack Notifications",
+      "optional": true,
+      "timestamp": "2025-11-11T13:12:30.410278"
+    },
+    {
+      "check": "Secret: TELEGRAM_BOT_TOKEN",
+      "category": "environment",
+      "status": "passed",
+      "purpose": "Telegram Notifications",
+      "optional": true,
+      "timestamp": "2025-11-11T13:12:30.410326"
+    },
+    {
+      "check": "Webhook: Stripe Secret Format",
+      "category": "webhooks",
+      "status": "passed",
+      "timestamp": "2025-11-11T13:12:30.410550"
+    },
+    {
+      "check": "Webhook: Endpoint Accessibility",
+      "category": "webhooks",
+      "status": "warning",
+      "status_code": 500,
+      "timestamp": "2025-11-11T13:12:30.510645"
+    },
+    {
+      "check": "Deployment: levqor.ai",
+      "category": "deployment",
+      "status": "passed",
+      "purpose": "Frontend",
+      "status_code": 200,
+      "timestamp": "2025-11-11T13:12:30.632290"
+    },
+    {
+      "check": "Deployment: api.levqor.ai",
+      "category": "deployment",
+      "status": "passed",
+      "purpose": "Backend API",
+      "status_code": 200,
+      "timestamp": "2025-11-11T13:12:30.704701"
+    }
+  ]
+}

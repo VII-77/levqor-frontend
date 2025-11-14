@@ -1,0 +1,78 @@
+You’re pasting JS into the shell. Those edits must go into files. Do this exactly in the frontend repo.
+
+1) Make the page dynamic and load global CSS
+
+Edit: src/app/layout.tsx
+
+// at top
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+import "./globals.css";   // make sure this line exists
+
+Check: src/app/globals.css exists. If not, create it:
+
+/* src/app/globals.css */
+:root { color-scheme: light dark; }
+html,body { margin:0; padding:0; }
+* { box-sizing: border-box; }
+
+/* Tailwind? keep these if you use it */
+/* @tailwind base; */
+/* @tailwind components; */
+/* @tailwind utilities; */
+
+2) Remove build-time fetches or move them client-side
+
+Find any server fetch to your API with no-store.
+
+grep -RIn "api.levqor.ai" src/app | cat
+
+For each match in a Server Component (page.tsx, layout.tsx, etc.), either:
+
+Remove it, or
+
+Move to client with an effect:
+
+
+// in a Client Component (add "use client" at top)
+"use client";
+import { useEffect } from "react";
+useEffect(() => {
+  fetch("https://api.levqor.ai/api/intelligence/status").catch(() => {});
+}, []);
+
+3) Rebuild and deploy
+
+rm -rf .next
+npm ci
+npm run build
+vercel --prod
+
+4) Verify CSS/JS are served
+
+Get the stylesheet URL from HTML, then hit it.
+
+HTML=$(curl -s https://levqor.ai)
+echo "$HTML" | grep -oE '/_next/static/[^"]+\.css' | head -1
+CSS_PATH=$(echo "$HTML" | grep -oE '/_next/static/[^"]+\.css' | head -1)
+curl -I "https://levqor.ai$CSS_PATH"
+
+echo "$HTML" | grep -oE '/_next/static/[^"]+\.js' | head -1
+JS_PATH=$(echo "$HTML" | grep -oE '/_next/static/[^"]+\.js' | head -1)
+curl -I "https://levqor.ai$JS_PATH"
+
+Expected: HTTP/2 200 and long cache-control for both.
+
+5) If still unstyled
+
+DevTools → Network → filter *.css → tell me any 404/403 URL it requests.
+
+Ensure Cloudflare does not block _next: you can remove the “bypass rule” you typed into the shell; that belongs in Cloudflare → Caching → Rules → Create rule with condition URL path starts with /._next/ (optional).
+
+
+Send me:
+
+Output of the grep -RIn "api.levqor.ai" command.
+
+One CSS URL from step 4 and its curl -I headers.

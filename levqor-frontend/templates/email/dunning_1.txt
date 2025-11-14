@@ -1,0 +1,32 @@
+# Subject: Action required – Levqor could not process your payment
+
+Hello,
+
+We attempted to process your payment for your Levqor subscription but were unable to complete the transaction.
+
+Plan: {plan_name}
+Amount: {amount}
+
+This can happen for several reasons:
+- Insufficient funds
+- Expired or invalid payment method
+- Card issuer declined the transaction
+
+What happens next:
+We'll automatically retry your payment within the next 24 hours. If successful, no further action is needed.
+
+If the payment fails again, please update your payment method to avoid service interruption.
+
+→ Manage your billing: https://www.levqor.ai/billing
+
+Your service remains fully active while we work to resolve this.
+
+Need help?
+Contact us at support@levqor.ai - we're here to assist.
+
+Best regards,
+The Levqor Team
+
+---
+This is an automated notification. Please do not reply to this email.
+For billing support: support@levqor.ai

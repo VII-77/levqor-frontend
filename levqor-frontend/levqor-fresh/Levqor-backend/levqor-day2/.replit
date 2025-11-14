@@ -1,0 +1,59 @@
+modules = ["nodejs-20", "python-3.11", "postgresql-16"]
+[agent]
+expertMode = true
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[[ports]]
+localPort = 35043
+externalPort = 3000
+
+[[ports]]
+localPort = 35481
+externalPort = 3003
+
+[[ports]]
+localPort = 37843
+externalPort = 3002
+
+[[ports]]
+localPort = 39271
+externalPort = 3001
+
+[[ports]]
+localPort = 43661
+externalPort = 4200
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "levqor-backend"
+
+[[workflows.workflow]]
+name = "levqor-backend"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "gunicorn --workers ${GUNICORN_WORKERS:-2} --threads ${GUNICORN_THREADS:-4} --timeout ${GUNICORN_TIMEOUT:-30} --graceful-timeout 20 --bind 0.0.0.0:5000 --reuse-port --log-level info run:app"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[deployment]
+deploymentTarget = "autoscale"
+run = ["gunicorn", "--workers", "2", "--threads", "4", "--timeout", "30", "--graceful-timeout", "20", "--bind", "0.0.0.0:5000", "--reuse-port", "--log-level", "info", "run:app"]
+
+[nix]
+channel = "stable-25_05"
+packages = ["freetype", "glibcLocales"]

@@ -1,0 +1,314 @@
+You are Replit AI Agent working on the Levqor project.
+
+CONTEXT
+- This workspace hosts Levqor, a B2B automation platform.
+- Frontend: `levqor-site` (Next.js 14, App Router) – production at https://www.levqor.ai
+- Backend: Flask API at https://api.levqor.ai with Stripe integration and monitoring.
+- Auth: NextAuth (Google + Microsoft).
+- Styling: Tailwind CSS v3, dark Genesis v8 theme already implemented.
+- Pricing model currently shown: 3 paid plans (Starter, Professional, Enterprise).
+- Goal: Make Levqor “READY TO TAKE MONEY” in a compliant, trustworthy, production-grade way, and double-check everything like a paranoid boss.
+
+YOUR HIGH-LEVEL OBJECTIVES
+1) Re-verify the COMPLETE revenue path end-to-end (homepage → pricing → checkout → success).
+2) Wire all pricing CTAs correctly into Stripe Checkout (using the existing subscription-based checkout flow).
+3) Create or harden legal/compliance pages (Terms, Privacy, Cookies) for a UK-based SaaS business.
+4) Fix/verify any broken or misleading links across the frontend.
+5) Run a final, serious audit (no hand-waving) and write a clear report of what’s working, what you changed, and what still needs a human/legal review.
+
+IMPORTANT RULES
+- Treat this like production. Do not break anything that already works.
+- Prefer minimal, focused changes over rewrites.
+- Never hard-code secrets. Only use env vars already in the project.
+- If something is ambiguous, choose the safest, most conservative option and EXPLAIN it in the final report.
+- Run actual checks (curl, grep, npm run build). Never assume.
+
+----------------------------------------------------------------------
+PHASE 0 — DISCOVERY & QUICK STATUS
+----------------------------------------------------------------------
+
+1. Go to project root:
+   - Confirm structure:
+     - `levqor-site/` (frontend Next.js App Router).
+     - Backend files (Flask) at root (you DO NOT need to modify backend for this task).
+
+2. In `levqor-site`:
+   - Open:
+     - `src/app/page.tsx`        (homepage)
+     - `src/app/pricing/page.tsx` (pricing)
+     - `src/app/signin/page.tsx`  (sign-in)
+     - `src/app/api/checkout/route.ts` (Stripe checkout API)
+     - `src/app/success/page.tsx` (if exists)
+     - `src/app/cancel/page.tsx`  (if exists)
+     - `src/components/Footer.tsx` or equivalent footer component (if it exists)
+   - Summarise (in the console/logs) what you find:
+     - Where CTAs go from homepage.
+     - What the pricing buttons currently do.
+     - How `/api/checkout` is wired (subscription vs one-time).
+     - Whether `/success` and `/cancel` pages exist and what they say.
+
+3. Print a short “CURRENT STATE” summary to the log before making any changes.
+
+----------------------------------------------------------------------
+PHASE 1 — REVENUE PATH: HOMEPAGE → PRICING → STRIPE CHECKOUT → SUCCESS
+----------------------------------------------------------------------
+
+Goal: A visitor can go from homepage to Stripe checkout, pay, and land on a proper success page.
+
+1. Homepage CTAs
+   - File: `src/app/page.tsx`.
+   - Verify:
+     - “Start free trial” (hero, header) goes to `/pricing`.
+   - If any primary CTA still goes to `/signin` or is a dead/no-op button:
+     - Adjust so the funnel is consistently:
+       - Homepage CTAs → `/pricing` (not `/signin`).
+     - EXCEPTION: “Sign in” in navbar can still go to `/signin`.
+
+2. Pricing CTAs → /api/checkout
+   - File: `src/app/pricing/page.tsx`.
+   - Confirm:
+     - There are 3 plans (Starter, Professional, Enterprise).
+     - Each has a button that calls `/api/checkout` (not just `<Link href="/signin">`).
+   - If any plan still redirects to `/signin` or is not wired to checkout:
+     - Implement a client-side handler something like:
+       - `handleCheckout(plan: "starter" | "pro" | "business")` that:
+         - Calls `POST /api/checkout` with JSON body `{ plan, term: "monthly" }`.
+         - On success, redirects `window.location.href = session.url` returned by the backend.
+         - Shows a loading state while the request is in flight.
+   - Keep it simple and robust:
+     - Handle error states (e.g. alert or small error text if the API call fails).
+     - No fancy wizard – just clear, direct.
+
+3. Checkout API (do NOT change pricing logic)
+   - File: `src/app/api/checkout/route.ts`.
+   - Inspect how it works:
+     - Should create a Stripe Checkout session with `mode: "subscription"`.
+     - It likely uses env vars like:
+       - `STRIPE_PRICE_STARTER`, `STRIPE_PRICE_PRO`, `STRIPE_PRICE_BUSINESS`.
+   - DO NOT:
+     - Change mode from `"subscription"` to `"payment"`.
+     - Change which price IDs are used.
+   - You MAY:
+     - Add basic validation on the incoming `plan` field and return a safe 400 if invalid.
+     - Add small inline comments documenting the mapping (plan -> env var).
+
+4. Success & Cancel pages
+   - Paths: `src/app/success/page.tsx` and `src/app/cancel/page.tsx`.
+   - If missing, create them.
+   - Requirements for `/success`:
+     - Clear headline: “Payment successful” / “You’re in”.
+     - 3-step “What happens next” (e.g. kickoff, build, support), consistent with Levqor’s 48h/7d delivery story.
+     - A note that a confirmation email will be sent (but do NOT claim features you can’t see in code).
+     - Buttons:
+       - “Go to homepage” (`/`)
+       - “Sign in to your dashboard” (`/signin`)
+     - It’s fine to read `session_id` from query params and display a generic “Your payment is confirmed.”, but do NOT leak sensitive info.
+   - Requirements for `/cancel`:
+     - Clear message that payment was cancelled or not completed.
+     - Reassurance (you have not been charged).
+     - CTA:
+       - “Back to pricing” (`/pricing`)
+       - “Back to homepage” (`/`)
+
+5. Local verification
+   - With frontend dev server running (if applicable):
+     - `curl -sI http://localhost:5000/pricing | head -5`
+     - `curl -sI http://localhost:5000/success | head -5`
+     - `curl -sI http://localhost:5000/cancel | head -5`
+   - Ensure all three return `200` and not 404.
+
+6. Production verification (BEST EFFORT)
+   - Run:
+     - `curl -sI https://www.levqor.ai/pricing | head -10`
+     - `curl -sI https://www.levqor.ai/success | head -10`
+     - `curl -sI https://www.levqor.ai/api/checkout | head -10`
+   - IMPORTANT:
+     - If Cloudflare blocks `curl` with a 403/1015 or a “blocked” message, just LOG that clearly and move on.
+     - Do not treat Cloudflare blocking Replit IPs as an application bug.
+
+----------------------------------------------------------------------
+PHASE 2 — LEGAL & COMPLIANCE PAGES (TERMS, PRIVACY, COOKIES)
+----------------------------------------------------------------------
+
+Goal: Provide solid, non-insane defaults for a UK-based SaaS, clearly labeled as templates (not legal advice).
+
+Assumptions:
+- Business jurisdiction: UK (London).
+- Product: B2B workflow automation / AI-assisted operations.
+- Data: email, name, usage logs, error logs, payment data via Stripe, auth via Google/Microsoft, hosting via Vercel, DB Neon/Postgres, email via Resend (if present).
+- Audience: mostly businesses (but keep language simple).
+
+1. Create/Update routes
+   - Create these pages if they don’t exist:
+     - `src/app/terms/page.tsx`
+     - `src/app/privacy/page.tsx`
+     - `src/app/cookies/page.tsx`
+   - They should be **server components** (no client-side JS needed).
+   - Use the existing dark Genesis theme spacing/typography (Tailwind) for readability.
+
+2. Terms of Service (UK SaaS template)
+   - In `src/app/terms/page.tsx`:
+     - Sections (at minimum):
+       - “Who we are” – Levqor, online SaaS platform.
+       - “What we provide” – automation, monitoring, self-healing workflows, no guaranteed outcome beyond reasonable care.
+       - “Accounts & access” – users must keep credentials secure, acceptable use, no abuse.
+       - “Fees & billing” – subscription plans via Stripe, renewals, non-refundable periods (keep conservative).
+       - “Fair use / Prohibited use” – no illegal activities, spam, abuse.
+       - “Availability & changes” – best efforts, no 100% uptime guarantee, we may update/modify the service.
+       - “Liability” – cap liability to fees paid in last X months, exclude indirect damages, as far as law allows.
+       - “Governing law” – England & Wales.
+       - “Contact” – contact email like `support@levqor.ai`.
+     - Include a small disclaimer: “This page is a template generated by AI and must be reviewed by a qualified lawyer before relying on it.”
+
+3. Privacy Policy (UK + UK GDPR aware)
+   - In `src/app/privacy/page.tsx`:
+     - Sections:
+       - “Who we are and how to contact us” – Levqor, contact `privacy@levqor.ai` or `support@levqor.ai`.
+       - “What data we collect”:
+         - Account data (name, email).
+         - Usage and logs.
+         - Payment info handled by Stripe (we do NOT store full card details).
+         - Third-party auth data (Google/Microsoft basic profile).
+       - “How we use your data”:
+         - Provide and secure the service.
+         - Billing and account management.
+         - Analytics and product improvement.
+         - Communication (transactional emails, optional updates).
+       - “Lawful basis”:
+         - Contract (to provide the service).
+         - Legitimate interests (security, fraud prevention, analytics with safeguards).
+         - Consent (for optional marketing if used).
+       - “Data sharing”:
+         - Stripe, Vercel, Neon/Postgres, Resend, logging/monitoring providers.
+       - “International transfers”:
+         - Some providers may process data outside the UK/EU; mention safeguards (standard contractual clauses, etc. in generic language).
+       - “Retention”:
+         - Keep data while you have an account + defined period afterwards (e.g. 6 years for records).
+       - “Your rights”:
+         - Access, rectification, erasure, restriction, portability, objection, and complaint to ICO.
+       - “Cookies & tracking”:
+         - Reference the Cookies Policy page.
+       - “Changes to this policy”:
+         - State that you’ll update the page with a “last updated” date.
+     - Add the same AI/legal disclaimer at the top or bottom.
+
+4. Cookies Policy
+   - In `src/app/cookies/page.tsx`:
+     - Sections:
+       - What cookies are.
+       - Types used:
+         - Strictly necessary (for auth/session).
+         - Analytics (if any – keep generic if you don’t see specific tools).
+       - How users can control cookies (browser settings, etc.).
+       - Note that for now you are using only essential cookies and basic analytics (if that matches what you see in the code).
+     - Link back to Privacy Policy for more info.
+
+5. Footer integration
+   - Locate the footer component (`src/components/Footer.tsx` or equivalent).
+   - Ensure it has links to:
+     - `/terms`
+     - `/privacy`
+     - `/cookies`
+   - Use clear link text: “Terms”, “Privacy”, “Cookies”.
+   - Verify that these links render correctly on the homepage and pricing page.
+
+----------------------------------------------------------------------
+PHASE 3 — LINK & UX INTEGRITY CHECK
+----------------------------------------------------------------------
+
+Goal: No dead links, and critical flows behave like a real product.
+
+1. Search for internal links and buttons
+   - In `levqor-site`:
+     - Search for `<Link` and `href="` and `onClick={() => router.push(` patterns under `src/app` and `src/components`.
+   - For each of these:
+     - Check that the target route actually exists.
+     - If a link points to a non-existent page (e.g. `/docs` or `/contact` with no implementation), either:
+       - Create a simple placeholder page with “Coming soon” and a way back home, OR
+       - If truly not needed yet, change the link to an existing page (e.g. `/pricing` or `/signin`) and clearly label it.
+
+2. “View demo” button
+   - On the homepage hero, if “View demo” is just a button with no action:
+     - EITHER:
+       - Wire it to `/signin` or `/pricing` (whatever makes most sense right now),
+       - Or to a simple `/demo` page that explains “Book a demo” with a mailto link.
+   - Choose the smallest, safest option and explain it in your final report.
+
+3. Sign-in and post-purchase UX
+   - Confirm that:
+     - `/signin` loads without error.
+     - The sign-in page looks consistent with the Genesis v8 dark theme.
+   - You do NOT need to fully exercise OAuth (you can’t easily from here), but:
+     - Ensure that the sign-in page does not show obviously broken links or missing text.
+
+4. 404 behaviour
+   - Hit a clearly invalid route like `/this-should-not-exist`:
+     - `curl -sI http://localhost:5000/this-should-not-exist | head -5`
+   - Make sure users see a reasonable 404 page (Next.js default or custom one), not a crash.
+
+----------------------------------------------------------------------
+PHASE 4 — BUILD, LINT & SAFETY CHECKS
+----------------------------------------------------------------------
+
+1. Build
+   - From `levqor-site` run:
+     - `npm run build`
+   - If it fails:
+     - Fix the smallest amount of code required.
+     - Re-run until build passes.
+     - DO NOT leave the project in a failing state.
+
+2. (Optional, if configured) Lint
+   - If `npm run lint` is available and not extremely slow, run it and fix any obvious, low-risk issues you introduce.
+
+3. Git hygiene
+   - Show `git diff` for all modified/created files.
+   - Ensure no secrets, logs, or test keys were added to source.
+   - You MAY stage and commit with a clear message, but DO NOT push to remote. The human will handle pushing.
+
+   Suggested commit message:
+   - `chore: revenue path & legal pages – checkout wiring + terms/privacy/cookies`
+
+----------------------------------------------------------------------
+PHASE 5 — FINAL REPORT (WRITE THIS CLEARLY IN THE CONSOLE)
+----------------------------------------------------------------------
+
+At the end, print a clear, structured report. Use this structure:
+
+1) REVENUE PATH STATUS
+- Homepage → Pricing: [OK / needs attention] + explanation.
+- Pricing → Stripe checkout: [OK / needs attention] + explanation.
+- Success/Cancel pages: [OK / created / updated] + explanation.
+- Any limits (e.g. Cloudflare blocking curl to production): note them.
+
+2) LEGAL & COMPLIANCE PAGES
+- `/terms`: [created/updated] + 3–4 bullet points describing what’s covered.
+- `/privacy`: [created/updated] + 3–4 bullet points describing what’s covered.
+- `/cookies`: [created/updated] + high-level description.
+- Call out explicitly that these are AI-generated templates and MUST be reviewed by a lawyer.
+
+3) LINKS & UX
+- List any links you fixed or rewired (e.g. “View demo now goes to /pricing”).
+- Note any remaining “Coming soon” or placeholder pages.
+
+4) TECHNICAL CHECKS
+- `npm run build`: [PASS/FAIL] + notes.
+- Any TypeScript/Next.js warnings or important logs.
+- Any production curl checks you ran and their key results (or whether Cloudflare blocked you).
+
+5) OPEN RISKS / TODO (FOR HUMAN)
+- Subscription vs one-time pricing mismatch:
+  - Explain current behaviour (subscriptions) vs the DFY copy.
+  - Suggest whether to keep as-is or adjust Stripe + copy later.
+- Any legal/compliance items that absolutely require a lawyer’s review (e.g. data protection details, liability clauses).
+- Any other risk you spotted, even if minor.
+
+Be explicit. No “should be fine” language. If you aren’t 100% sure, say “UNCERTAIN” and explain why.
+
+----------------------------------------------------------------------
+FINAL REMINDERS
+- Do NOT change backend billing logic or Stripe mode; keep the existing subscription approach and just wire the frontend properly.
+- Do NOT fabricate legal claims, guarantees, or certifications that you cannot see in the code/config.
+- Always favour safer, more conservative wording in legal pages.
+- Leave the repository in a buildable, working state.
+```0

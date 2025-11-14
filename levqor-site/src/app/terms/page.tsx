@@ -107,7 +107,17 @@ export default function TermsPage() {
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-bold text-white">12. Contact</h2>
+          <h2 className="text-2xl font-bold text-white">12. DMCA</h2>
+          <p className="text-slate-300 leading-relaxed">
+            DMCA Agent: <a href="mailto:legal@levqor.ai" className="text-emerald-400 hover:underline">legal@levqor.ai</a>
+          </p>
+          <p className="text-slate-300 leading-relaxed">
+            Claims must include signature, URLs, evidence.
+          </p>
+        </section>
+
+        <section className="space-y-4">
+          <h2 className="text-2xl font-bold text-white">13. Contact</h2>
           <p className="text-slate-300 leading-relaxed">
             Email: <a href="mailto:legal@levqor.ai" className="text-emerald-400 hover:underline">legal@levqor.ai</a>
           </p>

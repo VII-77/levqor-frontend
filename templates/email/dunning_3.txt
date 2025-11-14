@@ -1,0 +1,37 @@
+# Subject: Final notice: Service will be paused – Levqor
+
+Hello,
+
+This is our final notice regarding your outstanding Levqor subscription payment.
+
+Plan: {plan_name}
+Amount: {amount}
+Days overdue: 14
+
+After 14 days of unsuccessful payment attempts, we must pause your service to comply with our billing policy.
+
+Your account will be paused after today.
+
+What "paused" means:
+- Workflows and automations will stop running
+- API access will be disabled
+- Your data will be retained for 30 days
+- Billing portal remains accessible
+
+How to restore service:
+1. Visit: https://www.levqor.ai/billing
+2. Update your payment method
+3. Service will resume immediately upon successful payment
+
+Alternative: Cancel subscription
+If you no longer wish to use Levqor, you can cancel your subscription at any time via the billing portal. There are no cancellation fees.
+
+We understand payment issues happen. If you need more time or wish to discuss your account, please contact us at support@levqor.ai before the end of today.
+
+Best regards,
+The Levqor Team
+
+---
+Final payment notice - 14 days overdue
+For urgent billing support: support@levqor.ai
+Billing portal: https://www.levqor.ai/billing

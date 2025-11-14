@@ -6,12 +6,40 @@ import Link from "next/link";
 export default function SignIn() {
   const { data: session } = useSession();
   const [marketingConsent, setMarketingConsent] = useState(false);
+  const [tosAccepted, setTosAccepted] = useState(false);
 
   useEffect(() => {
     if (session?.user?.email && marketingConsent) {
       handleMarketingConsent();
     }
   }, [session]);
+
+  const logTosAcceptance = async (provider: string) => {
+    try {
+      await fetch('/api/consent/accept', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tosVersion: '2024-11-01',
+          privacyVersion: '2024-11-01',
+          marketingConsent,
+          provider,
+        }),
+      });
+    } catch (error) {
+      console.error('TOS acceptance logging failed:', error);
+    }
+  };
+
+  const handleSignIn = async (provider: "google" | "azure-ad") => {
+    if (!tosAccepted) {
+      alert('Please accept the Terms of Service and Privacy Policy to continue.');
+      return;
+    }
+    
+    await logTosAcceptance(provider);
+    signIn(provider, { callbackUrl: "/workflow" });
+  };
 
   const handleMarketingConsent = async () => {
     if (!session?.user?.email) return;
@@ -56,11 +84,38 @@ export default function SignIn() {
 
         {/* Sign-in Card */}
         <div className="bg-slate-900/80 backdrop-blur border border-slate-800 rounded-2xl p-8 shadow-2xl">
+          {/* TOS Acceptance Required */}
+          <div className="mb-6 p-4 bg-emerald-950/20 border border-emerald-900/30 rounded-lg">
+            <label className="flex items-start gap-3 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={tosAccepted}
+                onChange={(e) => setTosAccepted(e.target.checked)}
+                className="mt-0.5 h-5 w-5 rounded border-slate-600 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-slate-900 transition"
+              />
+              <span className="text-sm text-slate-300 group-hover:text-white transition">
+                I agree to the{" "}
+                <Link href="/terms" target="_blank" className="text-emerald-400 hover:underline font-semibold">
+                  Terms of Service
+                </Link>
+                {" "}and{" "}
+                <Link href="/privacy" target="_blank" className="text-emerald-400 hover:underline font-semibold">
+                  Privacy Policy
+                </Link>
+              </span>
+            </label>
+          </div>
+
           <div className="space-y-4">
             {/* Google Sign-in */}
             <button 
-              onClick={() => signIn("google", { callbackUrl: "/workflow" })} 
-              className="w-full flex items-center justify-center gap-3 rounded-xl border-2 border-slate-700 bg-slate-800/50 text-white py-3 px-4 hover:bg-slate-800 hover:border-emerald-500/50 transition-all font-medium shadow-lg hover:shadow-emerald-500/20"
+              onClick={() => handleSignIn("google")} 
+              disabled={!tosAccepted}
+              className={`w-full flex items-center justify-center gap-3 rounded-xl border-2 py-3 px-4 font-medium shadow-lg transition-all ${
+                tosAccepted 
+                  ? "border-slate-700 bg-slate-800/50 text-white hover:bg-slate-800 hover:border-emerald-500/50 hover:shadow-emerald-500/20" 
+                  : "border-slate-800 bg-slate-900/50 text-slate-600 cursor-not-allowed"
+              }`}
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -73,8 +128,13 @@ export default function SignIn() {
 
             {/* Microsoft Sign-in */}
             <button 
-              onClick={() => signIn("azure-ad", { callbackUrl: "/workflow" })} 
-              className="w-full flex items-center justify-center gap-3 rounded-xl border-2 border-slate-700 bg-slate-800/50 text-white py-3 px-4 hover:bg-slate-800 hover:border-blue-500/50 transition-all font-medium shadow-lg hover:shadow-blue-500/20"
+              onClick={() => handleSignIn("azure-ad")} 
+              disabled={!tosAccepted}
+              className={`w-full flex items-center justify-center gap-3 rounded-xl border-2 py-3 px-4 font-medium shadow-lg transition-all ${
+                tosAccepted 
+                  ? "border-slate-700 bg-slate-800/50 text-white hover:bg-slate-800 hover:border-blue-500/50 hover:shadow-blue-500/20" 
+                  : "border-slate-800 bg-slate-900/50 text-slate-600 cursor-not-allowed"
+              }`}
             >
               <svg className="w-5 h-5" viewBox="0 0 23 23">
                 <path fill="#f35325" d="M0 0h11v11H0z"/>

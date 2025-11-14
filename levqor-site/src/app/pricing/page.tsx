@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { dfyPlans, subscriptionPlans } from "@/config/pricing";
+import HighRiskWarning from "@/components/HighRiskWarning";
 
 type Plan = "starter" | "professional" | "enterprise" | "growth" | "pro" | "business";
 type Mode = "dfy" | "subscription";
@@ -70,6 +71,11 @@ export default function Pricing() {
             {error}
           </div>
         )}
+
+        {/* High-Risk Warning */}
+        <div className="max-w-4xl mx-auto mb-8">
+          <HighRiskWarning />
+        </div>
 
         {/* Page Header */}
         <div className="text-center mb-16">

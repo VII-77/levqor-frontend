@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import JsonLd from "@/components/JsonLd";
 import Logo from "@/components/Logo";
 import Footer from "@/components/Footer";
+import HighRiskWarning from "@/components/HighRiskWarning";
 
 function StatusPill() {
   const [status, setStatus] = useState<{ ok: boolean; message: string } | null>(null);
@@ -112,6 +113,11 @@ export default function Home() {
             <div className="inline-flex items-center gap-2">
               <StatusPill />
             </div>
+          </div>
+
+          {/* High-Risk Warning */}
+          <div className="max-w-3xl mx-auto mt-12">
+            <HighRiskWarning />
           </div>
         </section>
 

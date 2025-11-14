@@ -1,0 +1,151 @@
+Got it. We now know exactly what changed and why things broke. Here’s what you need to do right now to get a green Vercel deploy and go live.
+
+
+---
+
+1. Confirm the code we need is actually in GitHub
+
+On GitHub (VII-77/levqor-frontend):
+
+1. Open the repo → branch main.
+
+
+2. Check these things exist in the latest commit:
+
+levqor-site/src/hooks/useCookieConsent.ts
+
+levqor-site/src/lib/cookies.ts
+
+levqor-site/src/components/cookies/LoadAnalytics.tsx
+
+
+
+3. Make sure there is NO vercel.json in the repo root (top level next to levqor-site/).
+
+It is fine to have config inside levqor-site if we added that, but root-level vercel.json must be gone.
+
+
+
+
+If any of those are missing or vercel.json is still there → commit & push the fixed state from Replit again.
+
+
+---
+
+2. Fix Vercel project settings (the part that can still be wrong)
+
+In the Vercel project levqor-site:
+
+1. Go to Settings → General → Project Settings.
+
+
+2. Under Root Directory:
+
+Set it to: levqor-site
+
+Save.
+
+
+
+3. Go to Settings → Build & Development Settings:
+
+Framework preset: Next.js
+
+Install Command: leave as default (npm install) or blank.
+
+Build Command: npm run build
+
+Output Directory: .next
+
+Make sure there is no custom build command that already does cd levqor-site – we’ve moved that logic into the Root Directory instead.
+
+
+
+4. Still under Build settings, scroll to Ignored Build Step:
+
+Set Behavior = Automatic.
+
+Don’t put any custom command there.
+
+
+
+
+Save.
+
+
+---
+
+3. Trigger a fresh deploy (no cache tricks, just a clean build)
+
+On Vercel:
+
+1. Go to Deployments tab.
+
+
+2. Click the latest failed deployment.
+
+
+3. Use the “Redeploy” → “Redeploy with existing build settings” option.
+
+Do not change anything else.
+
+
+
+
+Watch the logs:
+
+It should show:
+
+Detected Next.js version: 14.2.33
+
+Running "npm run build"
+
+It should NOT show any Module not found: Can't resolve '@/lib/cookies'.
+
+It should NOT complain about missing build script.
+
+
+
+If it still fails, read the very first red error line in the “Build Logs” and send me just that line next time. That’s the current truth; everything else we’ve already cleaned up.
+
+
+---
+
+4. Quick sanity check locally (only if needed)
+
+If Replit is still open:
+
+cd levqor-site
+npm run build
+
+If this passes locally, then any Vercel error is purely config / environment, not code.
+
+If this fails locally, copy the first red error line; we fix that first.
+
+
+
+---
+
+5. Where we stand right now
+
+From the agent’s audit:
+
+✅ @/lib/cookies file now exists and local build passes.
+
+✅ Cookie consent system + legal pages are all in.
+
+✅ Root vercel.json that was messing up the build has been removed.
+
+❓ Vercel may still be using old settings or old cache.
+
+
+The steps above force Vercel to:
+
+Build from the correct directory (levqor-site).
+
+Use the standard Next.js build command.
+
+Use the latest commit with the cookies fix.
+
+
+Do those 3 blocks (GitHub check → Vercel settings → Redeploy) and the deployment should go green.

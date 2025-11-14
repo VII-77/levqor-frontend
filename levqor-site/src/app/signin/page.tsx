@@ -1,8 +1,47 @@
 "use client";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
 export default function SignIn() {
+  const { data: session } = useSession();
+  const [marketingConsent, setMarketingConsent] = useState(false);
+
+  useEffect(() => {
+    if (session?.user?.email && marketingConsent) {
+      handleMarketingConsent();
+    }
+  }, [session]);
+
+  const handleMarketingConsent = async () => {
+    if (!session?.user?.email) return;
+
+    try {
+      const backendApi = process.env.NEXT_PUBLIC_API_URL || 'https://api.levqor.ai';
+      
+      const userResponse = await fetch(`${backendApi}/api/v1/users/upsert`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: session.user.email,
+          name: session.user.name || '',
+        }),
+      });
+
+      if (userResponse.ok) {
+        const userData = await userResponse.json();
+        
+        await fetch('/api/marketing/consent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ consent: true }),
+        });
+      }
+    } catch (error) {
+      console.error('Marketing consent error:', error);
+    }
+  };
+
   return (
     <main className="min-h-screen bg-slate-950 flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
@@ -45,6 +84,24 @@ export default function SignIn() {
               </svg>
               Sign in with Microsoft
             </button>
+
+            {/* Marketing Consent Checkbox */}
+            <div className="pt-3 pb-2">
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={marketingConsent}
+                  onChange={(e) => setMarketingConsent(e.target.checked)}
+                  className="mt-0.5 h-5 w-5 rounded border-slate-600 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-slate-900 transition"
+                />
+                <span className="text-sm text-slate-300 group-hover:text-white transition">
+                  I agree to receive product updates, automation tips, and exclusive offers via email (optional)
+                </span>
+              </label>
+              <p className="mt-2 ml-8 text-xs text-slate-500">
+                You'll receive a confirmation email to verify your subscription. Unsubscribe anytime.
+              </p>
+            </div>
 
             {/* Divider */}
             <div className="relative my-6">

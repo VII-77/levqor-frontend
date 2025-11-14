@@ -27,7 +27,8 @@ The frontend is built with Next.js 14 and TypeScript, featuring a clear authenti
         - Cookie consent banner with granular controls (necessary, functional, analytics, marketing).
         - TOS acceptance enforcement with database tracking (version, timestamp, IP).
         - Middleware protection requiring TOS acceptance for all protected routes.
-        - User data schema includes terms_accepted_at, terms_version, terms_accepted_ip.
+        - Marketing consent system with double opt-in verification.
+        - User data schema includes terms_accepted_at, terms_version, terms_accepted_ip, marketing_consent, marketing_double_opt_in, marketing_double_opt_in_token.
 - **Health & Monitoring**:
     - Dedicated endpoints for system status (`/health`, `/public/metrics`, etc.).
     - Sentry integration for telemetry and error tracking.
@@ -68,6 +69,8 @@ The frontend is built with Next.js 14 and TypeScript, featuring a clear authenti
 - **Legal Compliance**:
     - Cookie consent system (PECR/GDPR compliant) with localStorage persistence.
     - TOS acceptance system with interstitial page, database tracking, and middleware enforcement.
+    - Marketing consent system with double opt-in confirmation via email.
+    - Unsubscribe mechanism with audit trail logging.
     - Protected routes: /workflow, /dashboard, /account, /settings, /developer, /api/workflows.
 
 ## External Dependencies

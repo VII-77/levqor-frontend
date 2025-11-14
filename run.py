@@ -9,6 +9,7 @@ import os
 import logging
 import sys
 import jwt
+import secrets
 from datetime import datetime, timedelta
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
@@ -82,7 +83,13 @@ def get_db():
             updated_at REAL,
             terms_accepted_at REAL,
             terms_version TEXT,
-            terms_accepted_ip TEXT
+            terms_accepted_ip TEXT,
+            marketing_consent INTEGER DEFAULT 0,
+            marketing_consent_at REAL,
+            marketing_consent_ip TEXT,
+            marketing_double_opt_in INTEGER DEFAULT 0,
+            marketing_double_opt_in_at REAL,
+            marketing_double_opt_in_token TEXT UNIQUE
           )
         """)
         _db_connection.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email)")
@@ -481,7 +488,8 @@ def bad_request(message, details=None):
 def row_to_user(row):
     if not row:
         return None
-    (id_, email, name, locale, currency, meta, created_at, updated_at, terms_accepted_at, terms_version, terms_accepted_ip) = row
+    (id_, email, name, locale, currency, meta, created_at, updated_at, terms_accepted_at, terms_version, terms_accepted_ip, 
+     marketing_consent, marketing_consent_at, marketing_consent_ip, marketing_double_opt_in, marketing_double_opt_in_at, marketing_double_opt_in_token) = row
     return {
         "id": id_,
         "email": email,
@@ -493,15 +501,25 @@ def row_to_user(row):
         "updated_at": updated_at,
         "terms_accepted_at": terms_accepted_at,
         "terms_version": terms_version,
-        "terms_accepted_ip": terms_accepted_ip
+        "terms_accepted_ip": terms_accepted_ip,
+        "marketing_consent": bool(marketing_consent),
+        "marketing_consent_at": marketing_consent_at,
+        "marketing_consent_ip": marketing_consent_ip,
+        "marketing_double_opt_in": bool(marketing_double_opt_in),
+        "marketing_double_opt_in_at": marketing_double_opt_in_at,
+        "marketing_double_opt_in_token": marketing_double_opt_in_token
     }
 
 def fetch_user_by_email(email):
-    cur = get_db().execute("SELECT id,email,name,locale,currency,meta,created_at,updated_at,terms_accepted_at,terms_version,terms_accepted_ip FROM users WHERE email = ?", (email,))
+    cur = get_db().execute("SELECT id,email,name,locale,currency,meta,created_at,updated_at,terms_accepted_at,terms_version,terms_accepted_ip,marketing_consent,marketing_consent_at,marketing_consent_ip,marketing_double_opt_in,marketing_double_opt_in_at,marketing_double_opt_in_token FROM users WHERE email = ?", (email,))
     return row_to_user(cur.fetchone())
 
 def fetch_user_by_id(uid):
-    cur = get_db().execute("SELECT id,email,name,locale,currency,meta,created_at,updated_at,terms_accepted_at,terms_version,terms_accepted_ip FROM users WHERE id = ?", (uid,))
+    cur = get_db().execute("SELECT id,email,name,locale,currency,meta,created_at,updated_at,terms_accepted_at,terms_version,terms_accepted_ip,marketing_consent,marketing_consent_at,marketing_consent_ip,marketing_double_opt_in,marketing_double_opt_in_at,marketing_double_opt_in_token FROM users WHERE id = ?", (uid,))
+    return row_to_user(cur.fetchone())
+
+def fetch_user_by_marketing_token(token):
+    cur = get_db().execute("SELECT id,email,name,locale,currency,meta,created_at,updated_at,terms_accepted_at,terms_version,terms_accepted_ip,marketing_consent,marketing_consent_at,marketing_consent_ip,marketing_double_opt_in,marketing_double_opt_in_at,marketing_double_opt_in_token FROM users WHERE marketing_double_opt_in_token = ?", (token,))
     return row_to_user(cur.fetchone())
 
 @app.post("/api/v1/intake")
@@ -693,6 +711,160 @@ def accept_terms(user_id):
         "ok": True,
         "version": version,
         "at": datetime.fromtimestamp(now).isoformat()
+    }), 200
+
+@app.post("/api/v1/users/<user_id>/marketing-consent")
+def marketing_consent(user_id):
+    """Set marketing consent and generate double opt-in token"""
+    if not request.is_json:
+        return bad_request("Content-Type must be application/json")
+    
+    body = request.get_json(silent=True) or {}
+    consent = body.get("consent", False)
+    
+    u = fetch_user_by_id(user_id)
+    if not u:
+        return jsonify({"error": "not_found", "user_id": user_id}), 404
+    
+    x_forwarded_for = request.headers.get("X-Forwarded-For", "")
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(",")[0].strip()
+    else:
+        ip = request.remote_addr or "unknown"
+    
+    redacted_ip = ".".join(ip.split(".")[:3]) + ".xxx" if "." in ip else ip[:12] + "..."
+    now = time()
+    
+    if consent:
+        token = secrets.token_urlsafe(32)
+        get_db().execute(
+            """UPDATE users SET 
+               marketing_consent=1, 
+               marketing_consent_at=?, 
+               marketing_consent_ip=?, 
+               marketing_double_opt_in=0,
+               marketing_double_opt_in_at=NULL,
+               marketing_double_opt_in_token=?,
+               updated_at=? 
+               WHERE id=?""",
+            (now, ip, token, now, user_id)
+        )
+        get_db().commit()
+        
+        print(f"[MARKETING] User {user_id} ({u['email']}) opted in for marketing at {now} from {redacted_ip}")
+        print(f"[MARKETING] Action: opt_in | User: {user_id} | Email: {u['email']} | IP: {redacted_ip} | Timestamp: {now}")
+        
+        return jsonify({
+            "ok": True,
+            "consent": True,
+            "token": token,
+            "email": u["email"],
+            "name": u.get("name", "")
+        }), 200
+    else:
+        get_db().execute(
+            """UPDATE users SET 
+               marketing_consent=0,
+               marketing_consent_at=NULL,
+               marketing_consent_ip=NULL,
+               marketing_double_opt_in=0,
+               marketing_double_opt_in_at=NULL,
+               marketing_double_opt_in_token=NULL,
+               updated_at=? 
+               WHERE id=?""",
+            (now, user_id)
+        )
+        get_db().commit()
+        
+        print(f"[MARKETING] User {user_id} ({u['email']}) opted out of marketing at {now} from {redacted_ip}")
+        print(f"[MARKETING] Action: opt_out | User: {user_id} | Email: {u['email']} | IP: {redacted_ip} | Timestamp: {now}")
+        
+        return jsonify({
+            "ok": True,
+            "consent": False
+        }), 200
+
+@app.post("/api/v1/marketing/confirm")
+def marketing_confirm_token():
+    """Confirm marketing double opt-in via token"""
+    if not request.is_json:
+        return bad_request("Content-Type must be application/json")
+    
+    body = request.get_json(silent=True) or {}
+    token = body.get("token", "").strip()
+    
+    if not token:
+        return jsonify({"error": "token_required"}), 400
+    
+    u = fetch_user_by_marketing_token(token)
+    if not u:
+        return jsonify({"error": "invalid_token"}), 404
+    
+    x_forwarded_for = request.headers.get("X-Forwarded-For", "")
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(",")[0].strip()
+    else:
+        ip = request.remote_addr or "unknown"
+    
+    redacted_ip = ".".join(ip.split(".")[:3]) + ".xxx" if "." in ip else ip[:12] + "..."
+    now = time()
+    
+    get_db().execute(
+        """UPDATE users SET 
+           marketing_double_opt_in=1,
+           marketing_double_opt_in_at=?,
+           marketing_double_opt_in_token=NULL,
+           updated_at=? 
+           WHERE id=?""",
+        (now, now, u["id"])
+    )
+    get_db().commit()
+    
+    print(f"[MARKETING] User {u['id']} ({u['email']}) confirmed double opt-in at {now} from {redacted_ip}")
+    print(f"[MARKETING] Action: double_opt_in_confirmed | User: {u['id']} | Email: {u['email']} | IP: {redacted_ip} | Timestamp: {now}")
+    
+    return jsonify({
+        "ok": True,
+        "confirmed": True,
+        "email": u["email"]
+    }), 200
+
+@app.post("/api/v1/users/<user_id>/marketing-unsubscribe")
+def marketing_unsubscribe(user_id):
+    """Unsubscribe from marketing emails"""
+    u = fetch_user_by_id(user_id)
+    if not u:
+        return jsonify({"error": "not_found", "user_id": user_id}), 404
+    
+    x_forwarded_for = request.headers.get("X-Forwarded-For", "")
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(",")[0].strip()
+    else:
+        ip = request.remote_addr or "unknown"
+    
+    redacted_ip = ".".join(ip.split(".")[:3]) + ".xxx" if "." in ip else ip[:12] + "..."
+    now = time()
+    
+    get_db().execute(
+        """UPDATE users SET 
+           marketing_consent=0,
+           marketing_double_opt_in=0,
+           marketing_consent_at=NULL,
+           marketing_consent_ip=NULL,
+           marketing_double_opt_in_at=NULL,
+           marketing_double_opt_in_token=NULL,
+           updated_at=? 
+           WHERE id=?""",
+        (now, user_id)
+    )
+    get_db().commit()
+    
+    print(f"[MARKETING] User {user_id} ({u['email']}) unsubscribed at {now} from {redacted_ip}")
+    print(f"[MARKETING] Action: unsubscribe | User: {user_id} | Email: {u['email']} | IP: {redacted_ip} | Timestamp: {now}")
+    
+    return jsonify({
+        "ok": True,
+        "unsubscribed": True
     }), 200
 
 @app.post("/api/v1/referrals/track")

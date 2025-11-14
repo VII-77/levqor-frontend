@@ -57,6 +57,19 @@ The frontend is built with Next.js 14 and TypeScript, featuring a clear authenti
             - Instant rejection with clear error messages.
             - Frontend disclosure page at /risk-disclosure explaining policy.
             - Required for GDPR automated decision-making compliance and liability protection.
+        - **Payment Dunning System (Stripe Integration)**:
+            - billing_dunning_state table tracking payment failures with user_id, stripe_customer_id, subscription_id, status, next_action_at.
+            - billing_events table logging all Stripe webhook events (invoice.payment_failed, invoice.paid) with audit trail.
+            - Dunning states: none → day1_notice → day7_notice → day14_final → suspended.
+            - Automated email notifications: Day 1 (service active), Day 7 (warning), Day 14 (final notice), Suspension.
+            - Next.js webhook handler at /api/stripe/webhook forwarding to backend /api/internal/billing endpoints.
+            - Account suspension enforcement: is_account_suspended() blocks POST /api/v1/intake when status="suspended".
+            - Frontend billing banner (BillingWarningBanner) displays status-based warnings with Update Billing CTA.
+            - GET /api/billing/status endpoint for frontend status checks (polls every 5 minutes).
+            - APScheduler job every 6 hours processing dunning states and sending emails.
+            - Automatic reset to status="none" when invoice.paid event received.
+            - Email templates in billing/dunning_emails.py with Resend integration.
+            - /billing page documents dunning timeline and policy for customer transparency.
         - User data schema includes terms_accepted_at, terms_version, terms_accepted_ip, marketing_consent, marketing_double_opt_in, marketing_double_opt_in_token.
 - **Health & Monitoring**:
     - Dedicated endpoints for system status (`/health`, `/public/metrics`, etc.).

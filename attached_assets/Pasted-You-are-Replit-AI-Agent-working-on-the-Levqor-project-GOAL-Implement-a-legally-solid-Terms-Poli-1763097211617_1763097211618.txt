@@ -1,0 +1,226 @@
+You are Replit AI Agent working on the Levqor project.
+
+GOAL
+Implement a legally solid “Terms & Policies Acceptance” flow for Levqor so that:
+- Users MUST explicitly agree to Terms/Privacy/etc. before using the app.
+- Their acceptance is logged (timestamp + version + IP) in the backend.
+- OAuth sign-in (Google/Microsoft) is blocked unless consent is given.
+No deployment – code + local verification only.
+
+CONTEXT (DO NOT CHANGE)
+- Frontend: levqor-site (Next.js 14 App Router, TypeScript, Tailwind v3, Genesis v8 dark theme).
+- Auth: NextAuth v4 with Google + Microsoft providers. Custom sign-in page at /signin.
+- Backend: Flask app (run.py) with PostgreSQL, already managing user accounts.
+- Legal pages already live and must remain the source of truth:
+  - /terms, /privacy, /cookies, /fair-use, /acceptable-use, /gdpr, /refunds, /sla, etc.
+- Cookie consent banner + preferences are already implemented and working (do not touch that).
+
+HIGH-LEVEL REQUIREMENTS
+1) Add a mandatory “I agree to Terms & Policies” checkbox on /signin that:
+   - Links to /terms and /privacy (and optionally /cookies, /acceptable-use, /fair-use).
+   - Keeps Google/Microsoft buttons disabled until checked.
+   - Shows a small validation message if user tries to click without checking.
+2) Introduce a “legal version” constant (e.g. LEGAL_TERMS_VERSION = "2025-11-14") used when logging consent.
+3) Log acceptance in the backend with at least:
+   - user_id
+   - accepted_at (UTC timestamp)
+   - version (string)
+   - ip_address
+   - user_agent
+4) Ensure that for every successful sign-in (new or returning), if no consent is on record for the current version, it is created.
+5) No consent = no access: UX gating on the /signin page, plus backend safety checks.
+6) Keep everything consistent with existing dark Genesis v8 UI (Tailwind).
+
+PHASE 1 — DISCOVER AUTH & SIGN-IN FLOW
+1. Inspect frontend auth setup:
+   - levqor-site/src/app/signin/page.tsx
+   - levqor-site/src/app/api/auth/[...nextauth]/route.ts (or similar NextAuth route).
+2. Inspect backend user model & auth integration:
+   - run.py (Flask entry).
+   - Any user/tenant models (e.g. models/user.py, models/tenant_user.py, etc.).
+   - Any existing fields related to terms/policies.
+
+Do NOT change behaviour yet. Just understand how:
+- Users are created.
+- OAuth callbacks are processed.
+- Sessions/tokens are stored.
+
+PHASE 2 — DEFINE LEGAL VERSION CONSTANT
+1. Create a small config file for legal versions:
+   - levqor-site/src/config/legal.ts
+2. Export a constant:
+   - export const LEGAL_TERMS_VERSION = "2025-11-14";
+   - Optionally export an object for future use:
+     - export const LEGAL_VERSIONS = { terms: "2025-11-14", privacy: "2025-11-14" };
+3. This constant will be used:
+   - On the /signin page UI (shown in text like: “Last updated 14 Nov 2025”).
+   - In consent logging (backend and/or NextAuth callbacks).
+
+PHASE 3 — FRONTEND: SIGN-IN PAGE GATING
+Modify /signin so consent is mandatory before OAuth is allowed.
+
+1. In src/app/signin/page.tsx:
+   - Ensure it is a client component ("use client").
+   - Add local state:
+     - const [accepted, setAccepted] = useState(false);
+     - const [showError, setShowError] = useState(false);
+   - Add a checkbox with label:
+     - “I agree to the Terms of Service and Privacy Policy.”
+     - “Terms of Service” links to /terms (next/link).
+     - “Privacy Policy” links to /privacy.
+     - Optionally: “Cookie Policy” (/cookies), “Acceptable Use” (/acceptable-use), “Fair Use” (/fair-use).
+   - Under the checkbox, show a small “Last updated YYYY-MM-DD” line using LEGAL_TERMS_VERSION.
+
+2. Disable OAuth buttons until accepted:
+   - Google button: disabled={!accepted} with opacity-50 cursor-not-allowed when disabled.
+   - Microsoft button: same.
+   - When a disabled button is clicked (or user tries to click when accepted=false):
+     - setShowError(true).
+   - Show a red-500 small text like:
+     - “You must agree to the Terms and Privacy Policy to continue.”
+
+3. When user clicks a provider button and accepted=true:
+   - Optional: store the version in localStorage:
+     - localStorage.setItem("levqor_legal_accept", JSON.stringify({ version: LEGAL_TERMS_VERSION, at: new Date().toISOString() }));
+   - Then call signIn("google") or signIn("azure-ad") as currently done.
+
+Keep styling in line with existing dark card UI:
+- Text: text-slate-100
+- Borders: border-slate-700
+- Background: bg-slate-900 / bg-slate-950
+- Buttons: keep current styles, but add disabled state.
+
+PHASE 4 — BACKEND: CONSENT STORAGE
+We need a durable record for legal compliance.
+
+1. Add a consent model/table OR extend existing user table:
+   Option A (simpler and usually enough):
+   - Add fields to the user table (or equivalent):
+     - terms_accepted_at (TIMESTAMP WITH TIME ZONE, nullable)
+     - terms_accepted_version (TEXT, nullable)
+     - terms_accepted_ip (TEXT, nullable)
+     - terms_accepted_user_agent (TEXT, nullable)
+   Option B (richer):
+   - Create a separate table user_legal_acceptances with:
+     - id (PK)
+     - user_id (FK)
+     - version (TEXT)
+     - accepted_at (TIMESTAMP WITH TIME ZONE)
+     - ip_address (TEXT)
+     - user_agent (TEXT)
+
+2. Implement using the project’s existing migration/ORM pattern:
+   - Find where models are defined (e.g. models/user.py).
+   - Find migration tool (Alembic or custom).
+   - Add migration for either new columns (Option A) or new table (Option B).
+   - Apply migration (locally).
+
+3. In the Flask backend, implement a helper function:
+   - def record_legal_acceptance(user, version: str, ip: str, user_agent: str): ...
+   - For Option A:
+     - If user.terms_accepted_version != version:
+       - Update all four fields and commit.
+   - For Option B:
+     - Insert a new row if no existing row for (user_id, version).
+
+PHASE 5 — NEXTAUTH: LOG ACCEPTANCE ON SIGN-IN
+We must connect the frontend checkbox to backend logging.
+
+1. Inspect NextAuth config:
+   - src/app/api/auth/[...nextauth]/route.ts (or wherever NextAuth is).
+   - Look for callbacks: signIn, jwt, session.
+
+2. Implement this wiring:
+   - In the signIn callback (or a similar suitable callback that runs after provider auth but before redirect):
+     - Get the request object (NextRequest) and extract:
+       - ip: from request headers (“x-forwarded-for” or similar).
+       - user-agent: from headers (“user-agent”).
+     - Ensure the user is identified (via DB or adapter).
+   - Use an internal API call or a direct DB helper to call record_legal_acceptance with:
+       - user
+       - LEGAL_TERMS_VERSION
+       - ip
+       - user_agent
+
+You can choose one of these patterns:
+
+PATTERN 1 — Direct DB in NextAuth:
+- If NextAuth already has access to the same Postgres DB (via Prisma or adapter), you can update consent fields directly inside the NextAuth callback.
+- On first sign-in after the checkbox is ticked:
+  - If user.terms_accepted_version != LEGAL_TERMS_VERSION:
+    - Update terms_accepted_version + terms_accepted_at + ip + user_agent.
+
+PATTERN 2 — Call Flask API:
+- Create a new internal endpoint in Flask:
+  - POST /internal/legal/accept
+  - Body: { user_id, version }
+  - Authenticated with an internal secret or only allowed from internal network.
+- From NextAuth callback, do a fetch() to that endpoint.
+- Use headers.client IP and UA for logging.
+
+Choose the simplest, most robust pattern consistent with the existing codebase. If NextAuth already uses an adapter to talk to the same DB, prefer PATTERN 1.
+
+IMPORTANT:
+- Ensure that this logging happens only when the user actually has accepted on the frontend (checkbox gating).
+- Since the checkbox gating is enforced before calling signIn(), we can assume any auth attempt implies consent. To be safe:
+  - You can also check a cookie (e.g. levqor_legal_accept) set by the frontend to confirm version.
+
+PHASE 6 — SAFETY CHECK: NO CONSENT, NO ACCESS
+We already gate at the UI level. Add a lightweight server-side check:
+
+1. In NextAuth session callback:
+   - Fetch user record.
+   - If terms_accepted_version != LEGAL_TERMS_VERSION:
+     - Option A: Add a flag on session.user.elevate_warning = "legal_not_accepted".
+     - Option B: Optionally block session creation (but this may be too aggressive).
+2. For now, minimal requirement:
+   - Ensure there is at least one path: user cannot reasonably sign in without ticking the box, and successful sign-in always logs acceptance.
+
+PHASE 7 — TESTING (LOCAL)
+1. Backend:
+   - Run migrations (adding consent fields/table).
+   - Start backend (Flask) as usual.
+2. Frontend:
+   - npm run build (from levqor-site).
+   - npm run dev and open http://localhost:5000/signin in the Replit webview.
+
+Manual tests:
+- Test 1: No checkbox
+  - Load /signin.
+  - Try clicking Google/Microsoft with checkbox unticked:
+    - Buttons must be disabled or show an error message.
+    - No redirect occurs.
+- Test 2: Accept and sign in
+  - Tick checkbox.
+  - Click Google or Microsoft.
+  - OAuth flow completes.
+  - In DB, verify:
+    - terms_accepted_version == LEGAL_TERMS_VERSION
+    - terms_accepted_at is set (recent timestamp).
+    - IP and User-Agent are stored (if implemented).
+- Test 3: Repeat sign-in after version change (optional)
+  - Temporarily change LEGAL_TERMS_VERSION and repeat:
+    - On first sign-in after change, record is updated to the new version.
+
+PHASE 8 — GIT DIFF SUMMARY (NO DEPLOY)
+At the end, from repo root:
+
+- git diff --stat
+
+Output for me:
+- Files added.
+- Files modified.
+- Confirmation that:
+  - npm run build passed for levqor-site.
+  - You successfully completed a test sign-in with the checkbox flow.
+  - Consent fields are present in DB for that user.
+
+DO NOT
+- Do not change legal wording in /terms, /privacy, etc.
+- Do not remove or modify the cookie consent implementation.
+- Do not deploy to Vercel.
+- Do not add 3rd-party consent libraries.
+
+NOW EXECUTE
+Implement the TOS & legal acceptance flow (UI gating + backend logging), ensure build passes, verify sign-in flow locally, and then show a short summary + git diff --stat.
+```0

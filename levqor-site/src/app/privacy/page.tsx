@@ -11,8 +11,11 @@ export default function PrivacyPage() {
         </div>
 
         <h1 className="text-4xl font-bold text-white mb-2">Privacy Policy</h1>
-        <p className="text-slate-400 mb-12">
+        <p className="text-slate-400 mb-4">
           Last updated: {new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
+        </p>
+        <p className="text-slate-400 text-sm mb-12">
+          Version 1.0
         </p>
 
         <p className="text-slate-300 leading-relaxed">
@@ -112,6 +115,16 @@ export default function PrivacyPage() {
           <p className="text-slate-300 leading-relaxed">
             Email: <a href="mailto:privacy@levqor.ai" className="text-emerald-400 hover:underline">privacy@levqor.ai</a>
           </p>
+        </section>
+
+        <section className="space-y-4 mt-8">
+          <h2 className="text-2xl font-bold text-white">Version History</h2>
+          <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-4">
+            <p className="text-slate-300 text-sm">
+              <span className="font-semibold">Version 1.0</span> — {new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
+            </p>
+            <p className="text-slate-400 text-xs mt-1">Initial privacy policy</p>
+          </div>
         </section>
 
         <div className="mt-12 pt-8 border-t border-slate-800">

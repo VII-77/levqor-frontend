@@ -123,7 +123,40 @@ export default function TermsPage() {
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-bold text-white">13. Contact</h2>
+          <h2 className="text-2xl font-bold text-white">13. Appendix: Managed Automation Services (DFY)</h2>
+          
+          <h3 className="text-xl font-semibold text-emerald-400 mt-6">DFY Coverage</h3>
+          <p className="text-slate-300 leading-relaxed">
+            Done-For-You builds include workflow design, implementation, and testing.
+          </p>
+
+          <h3 className="text-xl font-semibold text-emerald-400 mt-6">Scope Boundaries</h3>
+          <ul className="list-disc list-inside space-y-2 text-slate-300 ml-4">
+            <li>Workflow automation within agreed specifications</li>
+            <li>Integration with accessible third-party APIs</li>
+            <li>Basic error handling and monitoring</li>
+          </ul>
+
+          <h3 className="text-xl font-semibold text-emerald-400 mt-6">Out-of-Scope Items</h3>
+          <ul className="list-disc list-inside space-y-2 text-slate-300 ml-4">
+            <li>Infrastructure hosting beyond initial setup</li>
+            <li>Third-party API costs</li>
+            <li>Custom enterprise integrations (requires separate agreement)</li>
+            <li>Ongoing maintenance (requires subscription plan)</li>
+          </ul>
+
+          <h3 className="text-xl font-semibold text-emerald-400 mt-6">Customer Responsibilities</h3>
+          <ul className="list-disc list-inside space-y-2 text-slate-300 ml-4">
+            <li>Provide required API keys and credentials</li>
+            <li>Grant access to platforms/tools</li>
+            <li>Respond to clarification requests within 48 hours</li>
+            <li>Review and test delivered workflows</li>
+            <li>Report issues within acceptance window (5 days)</li>
+          </ul>
+        </section>
+
+        <section className="space-y-4">
+          <h2 className="text-2xl font-bold text-white">14. Contact</h2>
           <p className="text-slate-300 leading-relaxed">
             Email: <a href="mailto:legal@levqor.ai" className="text-emerald-400 hover:underline">legal@levqor.ai</a>
           </p>

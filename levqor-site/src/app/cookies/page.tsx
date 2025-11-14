@@ -20,19 +20,39 @@ export default function CookiesPage() {
         </p>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-bold text-white">Types of Cookies</h2>
-          <ul className="list-disc list-inside space-y-2 text-slate-300 ml-4">
-            <li>Essential (authentication, security)</li>
-            <li>Analytics (usage metrics)</li>
-            <li>Preference (UI settings)</li>
-            <li>Marketing (where applicable)</li>
-          </ul>
+          <h2 className="text-2xl font-bold text-white">Strictly Necessary Cookies</h2>
+          <p className="text-slate-300 leading-relaxed">
+            Essential cookies required for authentication, security, and core functionality.
+          </p>
+          <p className="text-slate-300 leading-relaxed">
+            These cannot be disabled.
+          </p>
+        </section>
+
+        <section className="space-y-4">
+          <h2 className="text-2xl font-bold text-white">Analytics Cookies</h2>
+          <p className="text-slate-300 leading-relaxed">
+            Used to collect usage metrics and improve platform performance.
+          </p>
+          <p className="text-slate-300 leading-relaxed">
+            Require opt-in consent.
+          </p>
+        </section>
+
+        <section className="space-y-4">
+          <h2 className="text-2xl font-bold text-white">Consent Banner</h2>
+          <p className="text-slate-300 leading-relaxed">
+            UK/EU users will see a consent banner for non-essential cookies.
+          </p>
+          <p className="text-slate-300 leading-relaxed">
+            You can withdraw consent at any time.
+          </p>
         </section>
 
         <section className="space-y-4">
           <h2 className="text-2xl font-bold text-white">Managing Cookies</h2>
           <p className="text-slate-300 leading-relaxed">
-            You may manage cookies in browser settings.
+            You may manage cookies in browser settings or via our consent banner.
           </p>
         </section>
 

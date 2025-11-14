@@ -48,14 +48,51 @@ export default function DPAPage() {
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-bold text-white">4. Retention</h2>
+          <h2 className="text-2xl font-bold text-white">3.2 Security Measures</h2>
+          <ul className="list-disc list-inside space-y-2 text-slate-300 ml-4">
+            <li>TLS 1.2+ in transit</li>
+            <li>AES-256 at rest</li>
+            <li>API keys stored encrypted</li>
+            <li>Access logs monitored</li>
+            <li>Regular security audits</li>
+          </ul>
+        </section>
+
+        <section className="space-y-4">
+          <h2 className="text-2xl font-bold text-white">6. Retention</h2>
           <p className="text-slate-300 leading-relaxed">
+            Data retention schedule:
+          </p>
+          <ul className="list-disc list-inside space-y-2 text-slate-300 ml-4">
+            <li>Account data: retained while active</li>
+            <li>Backups: 14–30 days</li>
+            <li>Logs: 7–14 days</li>
+            <li>Billing records: 6 years (legal requirement)</li>
+            <li>AI output: not stored unless necessary for service</li>
+          </ul>
+          <p className="text-slate-300 leading-relaxed mt-3">
             Data deleted upon contract end or customer request.
           </p>
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-bold text-white">5. Contact</h2>
+          <h2 className="text-2xl font-bold text-white">10. Breach Notifications</h2>
+          <p className="text-slate-300 leading-relaxed">
+            Notify affected users within 72 hours.
+          </p>
+          <p className="text-slate-300 leading-relaxed">
+            Explain type, scope, and impact.
+          </p>
+          <p className="text-slate-300 leading-relaxed">
+            Provide mitigation steps.
+          </p>
+          <p className="text-slate-300 leading-relaxed">
+            Notify ICO if applicable.
+          </p>
+        </section>
+
+        <section className="space-y-4">
+          <h2 className="text-2xl font-bold text-white">11. Contact</h2>
           <p className="text-slate-300 leading-relaxed">
             Email: <a href="mailto:privacy@levqor.ai" className="text-emerald-400 hover:underline">privacy@levqor.ai</a>
           </p>

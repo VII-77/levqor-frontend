@@ -222,6 +222,11 @@ def get_db():
         
         _db_connection.execute("PRAGMA journal_mode=WAL")
         _db_connection.execute("PRAGMA synchronous=NORMAL")
+        
+        # Initialize DSAR tables
+        from dsar.models import init_dsar_tables
+        init_dsar_tables(_db_connection)
+        
         _db_connection.commit()
     return _db_connection
 
@@ -1196,6 +1201,182 @@ def auto_tune_endpoint():
     current_queue = request.args.get("current_queue", type=int, default=1)
     suggestions = suggest_tuning(current_p95, current_queue)
     return jsonify({"status": "ok", "suggestions": suggestions}), 200
+
+# ============================================================================
+# DSAR (Data Subject Access Request) Endpoints - GDPR Compliance
+# ============================================================================
+
+@app.post("/api/data-export/request")
+def dsar_request_export():
+    """Request a data export (GDPR Article 15 - Right of Access)"""
+    from dsar.exporter import generate_user_export
+    from dsar.security import create_download_token_and_otp
+    from dsar.email import send_export_ready_email
+    from dsar.audit import log_dsar_event
+    
+    # Get user from session (X-User-Email header set by frontend proxy)
+    user_email = request.headers.get("X-User-Email")
+    if not user_email:
+        return jsonify({"ok": False, "error": "UNAUTHORIZED"}), 401
+    
+    db = get_db()
+    cursor = db.cursor()
+    
+    # Get user
+    cursor.execute("SELECT id, email, name FROM users WHERE email = ?", (user_email,))
+    user_row = cursor.fetchone()
+    if not user_row:
+        return jsonify({"ok": False, "error": "USER_NOT_FOUND"}), 404
+    
+    user_id, email, name = user_row
+    ip_address = request.headers.get("X-Forwarded-For", request.remote_addr)
+    user_agent = request.headers.get("User-Agent", "")
+    
+    # Rate limiting: Check for recent requests
+    twenty_four_hours_ago = time() - (24 * 60 * 60)
+    cursor.execute("""
+        SELECT id FROM dsar_requests 
+        WHERE user_id = ? 
+        AND requested_at >= ? 
+        AND status IN ('pending', 'processing', 'ready', 'emailed')
+    """, (user_id, twenty_four_hours_ago))
+    
+    if cursor.fetchone():
+        log_dsar_event(db, user_id, email, "request_rate_limited", ip_address, user_agent)
+        return jsonify({
+            "ok": False,
+            "error": "RATE_LIMITED",
+            "message": "You already requested an export in the last 24 hours. Please wait before requesting again."
+        }), 429
+    
+    # Create DSAR request
+    request_id = str(uuid4())
+    now = time()
+    
+    cursor.execute("""
+        INSERT INTO dsar_requests (id, user_id, email, requested_at, status, type, ip_address)
+        VALUES (?, ?, ?, ?, 'processing', 'export', ?)
+    """, (request_id, user_id, email, now, ip_address))
+    db.commit()
+    
+    log_dsar_event(db, user_id, email, "request_created", ip_address, user_agent, request_id)
+    
+    try:
+        # Generate export
+        export_result = generate_user_export(db, user_id)
+        
+        # Create export record with tokens
+        export_id = str(uuid4())
+        created_at = time()
+        expires_at = created_at + (24 * 60 * 60)  # 24 hours
+        
+        download_token, otp, otp_hash = create_download_token_and_otp()
+        otp_expires_at = created_at + (15 * 60)  # 15 minutes
+        
+        cursor.execute("""
+            INSERT INTO dsar_exports 
+            (id, request_id, user_id, created_at, expires_at, storage_path, 
+             download_token, download_token_expires_at, otp_hash, otp_expires_at, data_categories)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (export_id, request_id, user_id, created_at, expires_at, 
+              export_result["storage_path"], download_token, expires_at, 
+              otp_hash, otp_expires_at, export_result["data_categories"]))
+        
+        # Update request status
+        cursor.execute("UPDATE dsar_requests SET status = 'ready' WHERE id = ?", (request_id,))
+        db.commit()
+        
+        log_dsar_event(db, user_id, email, "export_generated", ip_address, user_agent, request_id, export_id)
+        
+        # Send email
+        email_result = send_export_ready_email(email, name, download_token, otp)
+        
+        if email_result["ok"]:
+            cursor.execute("UPDATE dsar_requests SET status = 'emailed' WHERE id = ?", (request_id,))
+            db.commit()
+            log_dsar_event(db, user_id, email, "email_sent", ip_address, user_agent, request_id, export_id)
+            
+            return jsonify({
+                "ok": True,
+                "message": "If an export is available, you will receive an email shortly with download instructions."
+            }), 202
+        else:
+            log_dsar_event(db, user_id, email, "email_failed", ip_address, user_agent, request_id, export_id, json.dumps(email_result))
+            return jsonify({
+                "ok": True,
+                "message": "Export generated but email failed. Contact privacy@levqor.ai",
+                "warning": "EMAIL_FAILED"
+            }), 202
+    
+    except Exception as e:
+        cursor.execute("UPDATE dsar_requests SET status = 'failed', notes = ? WHERE id = ?", (str(e), request_id))
+        db.commit()
+        log_dsar_event(db, user_id, email, "export_failed", ip_address, user_agent, request_id, details=str(e))
+        log.error(f"DSAR export failed for user {user_id}: {e}", exc_info=True)
+        return jsonify({
+            "ok": False,
+            "error": "EXPORT_FAILED",
+            "message": "Export generation failed. Please try again later or contact privacy@levqor.ai"
+        }), 500
+
+
+@app.post("/api/data-export/download")
+def dsar_download():
+    """Download export with token + OTP verification"""
+    from dsar.security import verify_download_token_and_otp
+    from dsar.audit import log_dsar_event
+    import os
+    
+    data = request.get_json() or {}
+    token = data.get("token")
+    otp = data.get("otp")
+    
+    if not token or not otp:
+        return jsonify({"ok": False, "error": "MISSING_CREDENTIALS"}), 400
+    
+    db = get_db()
+    ip_address = request.headers.get("X-Forwarded-For", request.remote_addr)
+    user_agent = request.headers.get("User-Agent", "")
+    
+    # Verify token and OTP
+    export_data, error_reason = verify_download_token_and_otp(db, token, otp)
+    
+    if error_reason:
+        log_dsar_event(db, None, None, "download_failed", ip_address, user_agent, details=error_reason)
+        return jsonify({"ok": False, "error": error_reason}), 403
+    
+    # Get user info for logging
+    cursor = db.cursor()
+    cursor.execute("SELECT email FROM users WHERE id = ?", (export_data["user_id"],))
+    user_row = cursor.fetchone()
+    user_email = user_row[0] if user_row else "unknown"
+    
+    log_dsar_event(db, export_data["user_id"], user_email, "download_attempt", ip_address, user_agent, export_id=export_data["export_id"])
+    
+    # Check if file exists
+    storage_path = export_data["storage_path"]
+    if not os.path.exists(storage_path):
+        log_dsar_event(db, export_data["user_id"], user_email, "file_not_found", ip_address, user_agent, export_id=export_data["export_id"])
+        return jsonify({"ok": False, "error": "FILE_NOT_FOUND"}), 404
+    
+    # Update downloaded_at timestamp
+    cursor.execute("UPDATE dsar_exports SET downloaded_at = ? WHERE id = ?", (time(), export_data["export_id"]))
+    cursor.execute("UPDATE dsar_requests SET status = 'downloaded' WHERE id = (SELECT request_id FROM dsar_exports WHERE id = ?)", (export_data["export_id"],))
+    db.commit()
+    
+    log_dsar_event(db, export_data["user_id"], user_email, "download_success", ip_address, user_agent, export_id=export_data["export_id"])
+    
+    # Stream file
+    from datetime import datetime
+    filename = f"levqor-data-export-{datetime.utcnow().strftime('%Y%m%d')}.zip"
+    
+    return Response(
+        open(storage_path, 'rb').read(),
+        mimetype='application/zip',
+        headers={
+            'Content-Disposition': f'attachment; filename="{filename}"'
+        }
+    )
 
 from monitors.scheduler import init_scheduler
 init_scheduler()

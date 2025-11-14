@@ -29,6 +29,19 @@ The frontend is built with Next.js 14 and TypeScript, featuring a clear authenti
         - Middleware protection requiring TOS acceptance for all protected routes.
         - Marketing consent system with double opt-in verification.
         - High-risk data prohibition system blocking medical/legal/financial workflows.
+        - **DSAR (Data Subject Access Request) Export System**:
+            - Email-only delivery with OTP+token dual security (32-byte tokens, 6-digit OTP).
+            - SQLite backend with dsar_requests, dsar_exports, dsar_audit_log tables.
+            - Automatic data collection from users, referrals, API keys, partnerships, marketplace orders.
+            - ZIP export with metadata.json, data.json, README.txt.
+            - 24-hour download link expiry, 15-minute OTP expiry, one-time use security.
+            - Full audit trail for compliance (request, generation, email, download events).
+            - Rate limiting: One request per 24 hours per user.
+            - PBKDF2-HMAC-SHA256 OTP hashing with 100k iterations.
+            - Frontend pages: /privacy-tools (request UI), /data-export/download (OTP verification).
+            - Backend endpoints: POST /api/data-export/request, POST /api/data-export/download.
+            - Resend email integration with HTML/text templates.
+            - Exports stored in ./exports/ directory (gitignored).
         - User data schema includes terms_accepted_at, terms_version, terms_accepted_ip, marketing_consent, marketing_double_opt_in, marketing_double_opt_in_token.
 - **Health & Monitoring**:
     - Dedicated endpoints for system status (`/health`, `/public/metrics`, etc.).
@@ -72,6 +85,7 @@ The frontend is built with Next.js 14 and TypeScript, featuring a clear authenti
     - TOS acceptance system with interstitial page, database tracking, and middleware enforcement.
     - Marketing consent system with double opt-in confirmation via email.
     - High-risk data prohibition system with keyword scanning and automatic rejection.
+    - **DSAR system for GDPR Article 15 compliance** with automated data export, secure delivery, and comprehensive audit logging.
     - Unsubscribe mechanism with audit trail logging.
     - Protected routes: /workflow, /dashboard, /account, /settings, /developer, /api/workflows.
 

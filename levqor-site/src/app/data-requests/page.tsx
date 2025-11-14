@@ -28,23 +28,40 @@ export default function DataRequestsPage() {
           </ul>
         </section>
 
+        <section className="bg-emerald-950/30 border-2 border-emerald-900/50 rounded-lg p-6 mt-8">
+          <h2 className="text-2xl font-bold text-white mb-4">🔐 Self-Service Data Export</h2>
+          <p className="text-slate-300 leading-relaxed mb-4">
+            You can now request and download your personal data instantly using our Privacy Tools page. 
+            This is the fastest way to exercise your right of access under GDPR Article 15.
+          </p>
+          <Link 
+            href="/privacy-tools"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-semibold transition"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Go to Privacy Tools
+          </Link>
+        </section>
+
         <section className="space-y-4 mt-8">
-          <h2 className="text-2xl font-bold text-white">Request Procedure</h2>
+          <h2 className="text-2xl font-bold text-white">Other Data Subject Requests</h2>
           <p className="text-slate-300 leading-relaxed">
-            Submit via <a href="mailto:privacy@levqor.ai" className="text-emerald-400 hover:underline">privacy@levqor.ai</a>
+            For other rights (rectification, erasure, restriction, portability, objection), please contact:
           </p>
           <p className="text-slate-300 leading-relaxed">
-            Identity verification required.
+            <a href="mailto:privacy@levqor.ai" className="text-emerald-400 hover:underline font-semibold">privacy@levqor.ai</a>
           </p>
           <p className="text-slate-300 leading-relaxed">
-            Response within 30 days (extendable to 60)
+            Identity verification required for all requests. Response within 30 days (extendable to 60 days in complex cases).
           </p>
         </section>
 
         <section className="space-y-4 mt-8">
           <h2 className="text-2xl font-bold text-white">Data Deletion Workflow</h2>
           <p className="text-slate-300 leading-relaxed">
-            User can request deletion via privacy@levqor.ai
+            To request complete account and data deletion, contact privacy@levqor.ai
           </p>
           <p className="text-slate-300 leading-relaxed">
             30-day SLA for complete data removal
@@ -58,7 +75,8 @@ export default function DataRequestsPage() {
         </section>
 
         <div className="mt-12 pt-8 border-t border-slate-800">
-          <div className="flex gap-4 text-sm">
+          <div className="flex gap-4 text-sm flex-wrap">
+            <Link href="/privacy-tools" className="text-emerald-400 hover:underline font-semibold">Privacy Tools</Link>
             <Link href="/privacy" className="text-emerald-400 hover:underline">Privacy Policy</Link>
             <Link href="/gdpr" className="text-emerald-400 hover:underline">GDPR Compliance</Link>
             <Link href="/dpa" className="text-emerald-400 hover:underline">Data Processing Agreement</Link>

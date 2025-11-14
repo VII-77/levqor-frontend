@@ -56,3 +56,4 @@ levqor-backup.tar.gz
 *backup*.tar.gz
 **/.next/**
 node_modules/
+exports/

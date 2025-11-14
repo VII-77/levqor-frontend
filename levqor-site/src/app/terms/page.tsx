@@ -88,7 +88,13 @@ export default function TermsPage() {
         <section className="space-y-4">
           <h2 className="text-2xl font-bold text-white">9. Limitation of Liability</h2>
           <p className="text-slate-300 leading-relaxed">
-            Levqor is not liable for indirect, incidental, or consequential damages. Service is provided "as-is".
+            Service provided as-is.
+          </p>
+          <p className="text-slate-300 leading-relaxed">
+            We do not guarantee specific outcomes or financial results.
+          </p>
+          <p className="text-slate-300 leading-relaxed">
+            Levqor is not liable for indirect, incidental, or consequential damages.
           </p>
         </section>
 

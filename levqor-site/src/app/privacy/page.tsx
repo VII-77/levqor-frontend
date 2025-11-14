@@ -105,6 +105,50 @@ export default function PrivacyPage() {
           </p>
         </section>
 
+        <section className="bg-emerald-950/30 border-2 border-emerald-900/50 rounded-lg p-6 space-y-4">
+          <h2 className="text-2xl font-bold text-white">7A. Marketing Communications</h2>
+          <p className="text-slate-300 leading-relaxed">
+            We only send marketing emails with your explicit consent. Marketing communications are optional and separate from transactional emails (receipts, account notifications, security alerts).
+          </p>
+          
+          <h3 className="text-lg font-semibold text-white mt-4">Double Opt-In Process (PECR/GDPR Compliant)</h3>
+          <p className="text-slate-300 leading-relaxed">
+            When you opt in to marketing communications:
+          </p>
+          <ol className="list-decimal list-inside space-y-2 text-slate-300 ml-4">
+            <li>You provide consent via checkbox during signup or in settings</li>
+            <li>We send a confirmation email with a verification link</li>
+            <li>You must click the link to confirm your subscription</li>
+            <li>Only after confirmation will you receive marketing emails</li>
+          </ol>
+          
+          <h3 className="text-lg font-semibold text-white mt-4">What We Log</h3>
+          <p className="text-slate-300 leading-relaxed">
+            For each marketing consent, we record:
+          </p>
+          <ul className="list-disc list-inside space-y-2 text-slate-300 ml-4">
+            <li>Email address</li>
+            <li>Consent timestamp (when you opted in)</li>
+            <li>IP address (for audit purposes)</li>
+            <li>Source (where you opted in: signup form, settings page)</li>
+            <li>Confirmation timestamp (double opt-in verification)</li>
+          </ul>
+          
+          <h3 className="text-lg font-semibold text-white mt-4">Withdrawing Consent</h3>
+          <p className="text-slate-300 leading-relaxed">
+            You can unsubscribe at any time using:
+          </p>
+          <ul className="list-disc list-inside space-y-2 text-slate-300 ml-4">
+            <li>The unsubscribe link in any marketing email</li>
+            <li>Your <Link href="/settings/marketing" className="text-emerald-400 hover:underline">Marketing Preferences</Link> page</li>
+            <li>The <Link href="/unsubscribe" className="text-emerald-400 hover:underline">unsubscribe</Link> page (if you have the link)</li>
+          </ul>
+          
+          <p className="text-slate-300 leading-relaxed mt-4">
+            Unsubscribe requests are processed immediately. We retain a record of your withdrawal for 2 years as proof of consent management.
+          </p>
+        </section>
+
         <section className="space-y-4">
           <h2 className="text-2xl font-bold text-white">8. Your Rights</h2>
           <p className="text-slate-300 leading-relaxed">

@@ -16,24 +16,48 @@ export default function AccessibilityPage() {
         </p>
 
         <section className="space-y-4">
+          <h2 className="text-2xl font-bold text-white">WCAG 2.1 AA Compliance Intention</h2>
           <p className="text-slate-300 leading-relaxed">
-            We aim for WCAG 2.1 AA compliance.
+            We aim for WCAG 2.1 AA compliance across our platform.
           </p>
           <p className="text-slate-300 leading-relaxed">
-            Keyboard navigation supported.
-          </p>
-          <p className="text-slate-300 leading-relaxed">
-            Alt text required for all images.
-          </p>
-          <p className="text-slate-300 leading-relaxed">
-            Users may request accessible formats.
+            Continuous improvements made to meet accessibility standards.
           </p>
         </section>
 
         <section className="space-y-4 mt-8">
-          <h2 className="text-2xl font-bold text-white">Contact</h2>
+          <h2 className="text-2xl font-bold text-white">Keyboard Navigation</h2>
           <p className="text-slate-300 leading-relaxed">
-            For accessibility requests: <a href="mailto:support@levqor.ai" className="text-emerald-400 hover:underline">support@levqor.ai</a>
+            Full keyboard navigation supported across all pages.
+          </p>
+          <p className="text-slate-300 leading-relaxed">
+            Focus indicators visible for all interactive elements.
+          </p>
+          <p className="text-slate-300 leading-relaxed">
+            Tab order follows logical flow.
+          </p>
+        </section>
+
+        <section className="space-y-4 mt-8">
+          <h2 className="text-2xl font-bold text-white">Screen-Reader Support</h2>
+          <p className="text-slate-300 leading-relaxed">
+            Semantic HTML structure for proper screen-reader interpretation.
+          </p>
+          <p className="text-slate-300 leading-relaxed">
+            Alt text provided for all meaningful images.
+          </p>
+          <p className="text-slate-300 leading-relaxed">
+            ARIA labels used where necessary.
+          </p>
+        </section>
+
+        <section className="space-y-4 mt-8">
+          <h2 className="text-2xl font-bold text-white">Contact for Accessibility Issues</h2>
+          <p className="text-slate-300 leading-relaxed">
+            For accessibility requests or to report issues: <a href="mailto:support@levqor.ai" className="text-emerald-400 hover:underline">support@levqor.ai</a>
+          </p>
+          <p className="text-slate-300 leading-relaxed">
+            Users may request accessible formats for documentation.
           </p>
         </section>
 

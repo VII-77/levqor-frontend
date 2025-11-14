@@ -64,11 +64,29 @@ export default function SubprocessorsPage() {
         </section>
 
         <section className="space-y-4 mt-8">
+          <h2 className="text-2xl font-bold text-white">Data Sharing Boundaries</h2>
           <p className="text-slate-300 text-sm leading-relaxed">
             All subprocessors are selected for their strong data protection standards and compliance with UK GDPR. 
             We have appropriate data processing agreements in place with each provider.
           </p>
-          <p className="text-slate-300 text-sm leading-relaxed">
+          <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-4 mt-4">
+            <p className="text-slate-300 text-sm mb-2">
+              <span className="font-semibold">Stripe:</span> Payment data only (card details never stored by Levqor)
+            </p>
+            <p className="text-slate-300 text-sm mb-2">
+              <span className="font-semibold">Google/Microsoft:</span> Authentication tokens only
+            </p>
+            <p className="text-slate-300 text-sm mb-2">
+              <span className="font-semibold">OpenAI:</span> Workflow prompts and outputs (not used for training)
+            </p>
+            <p className="text-slate-300 text-sm mb-2">
+              <span className="font-semibold">Vercel/Replit:</span> Application hosting and compute
+            </p>
+            <p className="text-slate-300 text-sm">
+              <span className="font-semibold">Notion:</span> Internal documentation (customer data not shared)
+            </p>
+          </div>
+          <p className="text-slate-300 text-sm leading-relaxed mt-4">
             We will notify users 30 days before adding or removing sub-processors whenever legally required.
           </p>
         </section>

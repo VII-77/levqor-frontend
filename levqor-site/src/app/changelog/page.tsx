@@ -11,8 +11,11 @@ export default function ChangelogPage() {
         </div>
 
         <h1 className="text-4xl font-bold text-white mb-2">Changelog</h1>
-        <p className="text-slate-400 mb-12">
+        <p className="text-slate-400 mb-4">
           Product updates, fixes, and improvements
+        </p>
+        <p className="text-slate-400 text-sm mb-12">
+          We use semantic versioning (MAJOR.MINOR.PATCH) and maintain backward compatibility.
         </p>
 
         <section className="space-y-6">
@@ -40,6 +43,24 @@ export default function ChangelogPage() {
               </li>
             </ul>
           </div>
+        </section>
+
+        <section className="space-y-4 mt-8">
+          <h2 className="text-2xl font-bold text-white">Versioning Standards</h2>
+          <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-4">
+            <p className="text-slate-300 text-sm mb-2">
+              <span className="font-semibold text-emerald-400">MAJOR</span> - Breaking changes, API modifications
+            </p>
+            <p className="text-slate-300 text-sm mb-2">
+              <span className="font-semibold text-blue-400">MINOR</span> - New features, backward-compatible
+            </p>
+            <p className="text-slate-300 text-sm">
+              <span className="font-semibold text-slate-400">PATCH</span> - Bug fixes, minor improvements
+            </p>
+          </div>
+          <p className="text-slate-300 text-sm mt-4">
+            Release notes published with every deployment. Backward compatibility maintained across MINOR and PATCH versions.
+          </p>
         </section>
 
         <div className="mt-12 pt-8 border-t border-slate-800">

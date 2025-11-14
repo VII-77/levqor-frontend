@@ -30,9 +30,9 @@ export default function CookiesPage() {
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-bold text-white">Analytics Cookies</h2>
+          <h2 className="text-2xl font-bold text-white">Functional Cookies</h2>
           <p className="text-slate-300 leading-relaxed">
-            Used to collect usage metrics and improve platform performance.
+            Remember user preferences (language, theme, dashboard settings).
           </p>
           <p className="text-slate-300 leading-relaxed">
             Require opt-in consent.
@@ -40,12 +40,38 @@ export default function CookiesPage() {
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-bold text-white">Consent Banner</h2>
+          <h2 className="text-2xl font-bold text-white">Analytics Cookies</h2>
+          <p className="text-slate-300 leading-relaxed">
+            Used to collect usage metrics and improve platform performance.
+          </p>
+          <p className="text-slate-300 leading-relaxed">
+            Anonymized data only.
+          </p>
+          <p className="text-slate-300 leading-relaxed">
+            Require opt-in consent.
+          </p>
+        </section>
+
+        <section className="space-y-4">
+          <h2 className="text-2xl font-bold text-white">Marketing Cookies</h2>
+          <p className="text-slate-300 leading-relaxed">
+            Track effectiveness of marketing campaigns (where applicable).
+          </p>
+          <p className="text-slate-300 leading-relaxed">
+            Require explicit opt-in consent.
+          </p>
+        </section>
+
+        <section className="space-y-4">
+          <h2 className="text-2xl font-bold text-white">Consent Mechanism</h2>
           <p className="text-slate-300 leading-relaxed">
             UK/EU users will see a consent banner for non-essential cookies.
           </p>
           <p className="text-slate-300 leading-relaxed">
-            You can withdraw consent at any time.
+            Clear accept/reject options provided.
+          </p>
+          <p className="text-slate-300 leading-relaxed">
+            You can withdraw consent at any time via settings or browser.
           </p>
         </section>
 

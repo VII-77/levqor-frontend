@@ -41,6 +41,22 @@ export default function DataRequestsPage() {
           </p>
         </section>
 
+        <section className="space-y-4 mt-8">
+          <h2 className="text-2xl font-bold text-white">Data Deletion Workflow</h2>
+          <p className="text-slate-300 leading-relaxed">
+            User can request deletion via privacy@levqor.ai
+          </p>
+          <p className="text-slate-300 leading-relaxed">
+            30-day SLA for complete data removal
+          </p>
+          <p className="text-slate-300 leading-relaxed">
+            Email confirmation sent upon completion
+          </p>
+          <p className="text-slate-300 leading-relaxed">
+            Audit log entry created for all deletion requests
+          </p>
+        </section>
+
         <div className="mt-12 pt-8 border-t border-slate-800">
           <div className="flex gap-4 text-sm">
             <Link href="/privacy" className="text-emerald-400 hover:underline">Privacy Policy</Link>

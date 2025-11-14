@@ -1526,6 +1526,126 @@ def dsar_download():
     )
 
 
+@app.post("/api/privacy/delete-my-data")
+def delete_my_data():
+    """
+    Delete all user data (GDPR Article 17 - Right to Erasure)
+    
+    SAFETY: Preserves billing/financial records required by law
+    """
+    from dsar.audit import log_dsar_event
+    from uuid import uuid4
+    
+    # Get authenticated user (from session or API key)
+    user_email = request.args.get("email")  # TODO: Replace with actual session/auth
+    
+    if not user_email:
+        return jsonify({"ok": False, "error": "UNAUTHORIZED", "message": "Authentication required"}), 401
+    
+    db = get_db()
+    cursor = db.cursor()
+    
+    # Find user
+    cursor.execute("SELECT id, email FROM users WHERE email = ?", (user_email,))
+    user_row = cursor.fetchone()
+    
+    if not user_row:
+        return jsonify({"ok": False, "error": "USER_NOT_FOUND"}), 404
+    
+    user_id, email = user_row
+    
+    ip_address = request.headers.get("X-Forwarded-For", request.remote_addr)
+    user_agent = request.headers.get("User-Agent", "")
+    
+    # Log deletion request
+    log_dsar_event(db, user_id, email, "delete_my_data_requested", ip_address, user_agent, details="User requested full data deletion")
+    
+    deleted_counts = {}
+    
+    try:
+        # Delete API usage logs
+        cursor.execute("DELETE FROM api_usage_log WHERE user_id = ?", (user_id,))
+        deleted_counts["api_usage_log"] = cursor.rowcount
+        
+        # Delete risk blocks
+        cursor.execute("DELETE FROM risk_blocks WHERE user_id = ?", (user_id,))
+        deleted_counts["risk_blocks"] = cursor.rowcount
+        
+        # Delete referrals
+        cursor.execute("DELETE FROM referrals WHERE user_id = ?", (user_id,))
+        deleted_counts["referrals"] = cursor.rowcount
+        
+        # Delete developer keys
+        cursor.execute("DELETE FROM developer_keys WHERE user_id = ?", (user_id,))
+        deleted_counts["developer_keys"] = cursor.rowcount
+        
+        # Delete DSAR requests and exports (physical files too)
+        cursor.execute("SELECT storage_path FROM dsar_exports WHERE user_id = ?", (user_id,))
+        export_paths = [row[0] for row in cursor.fetchall()]
+        
+        for path in export_paths:
+            if path and os.path.exists(path):
+                try:
+                    os.remove(path)
+                except Exception as e:
+                    log.warning(f"Failed to delete export file {path}: {e}")
+        
+        cursor.execute("DELETE FROM dsar_exports WHERE user_id = ?", (user_id,))
+        deleted_counts["dsar_exports"] = cursor.rowcount
+        
+        cursor.execute("DELETE FROM dsar_requests WHERE user_id = ?", (user_id,))
+        deleted_counts["dsar_requests"] = cursor.rowcount
+        
+        # Delete marketing consent (anonymize if PECR requires keeping denials)
+        cursor.execute("UPDATE user_marketing_consent SET user_id = NULL, email = 'deleted@deleted.local' WHERE user_id = ?", (user_id,))
+        deleted_counts["marketing_consent_anonymized"] = cursor.rowcount
+        
+        # Delete marketplace orders (anonymize user_id, keep financial data)
+        cursor.execute("UPDATE marketplace_orders SET user_id = NULL WHERE user_id = ?", (user_id,))
+        deleted_counts["marketplace_orders_anonymized"] = cursor.rowcount
+        
+        # DO NOT DELETE:
+        # - billing_events (legal requirement)
+        # - billing_dunning_state (financial record)
+        # - users table (anonymized below)
+        
+        # Anonymize user record (keep for billing reference)
+        cursor.execute("""
+            UPDATE users 
+            SET email = ?, 
+                name = 'Deleted User',
+                locale = NULL,
+                currency = NULL,
+                meta = NULL,
+                updated_at = ?
+            WHERE id = ?
+        """, (f"deleted_{user_id}@deleted.local", time(), user_id))
+        
+        db.commit()
+        
+        log_dsar_event(db, user_id, email, "delete_my_data_completed", ip_address, user_agent, 
+                      details=f"Deleted {sum(deleted_counts.values())} records")
+        
+        log.info(f"[DELETE_MY_DATA] User {email} deleted their data: {deleted_counts}")
+        
+        return jsonify({
+            "ok": True,
+            "message": "Your data has been deleted. Billing records are retained as required by law.",
+            "deleted": deleted_counts
+        }), 200
+    
+    except Exception as e:
+        db.rollback()
+        log.error(f"[DELETE_MY_DATA] Error deleting data for {email}: {e}")
+        log_dsar_event(db, user_id, email, "delete_my_data_failed", ip_address, user_agent, details=str(e))
+        
+        return jsonify({
+            "ok": False,
+            "error": "DELETION_FAILED",
+            "message": "An error occurred while deleting your data. Please contact support."
+        }), 500
+
+
 @app.get("/api/dsar/exports")
 def get_user_dsar_exports():
     """Get user's DSAR export history"""

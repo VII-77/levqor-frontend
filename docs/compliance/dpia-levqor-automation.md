@@ -6,6 +6,11 @@
 **Review Date:** 14 November 2026  
 **Prepared By:** Levqor Data Protection Lead  
 **Approved By:** Founder / DPO  
+**Part of:** [Compliance Pack v1.0](./pack/overview.md)
+
+---
+
+**Note:** For a complete overview of Levqor's GDPR posture, risk classification, and subprocessor management, see **[Compliance Pack Overview](./pack/overview.md)**.
 
 ---
 

@@ -5,6 +5,11 @@
 **Assessment Date:** 14 November 2025  
 **Review Date:** 14 November 2026  
 **Prepared By:** Levqor Data Protection Lead  
+**Part of:** [Compliance Pack v1.0](./pack/overview.md)
+
+---
+
+**Note:** This document is part of Levqor's comprehensive compliance framework. For the complete document registry and review schedule, see **[Compliance Register](./pack/register.md)**.
 
 ---
 

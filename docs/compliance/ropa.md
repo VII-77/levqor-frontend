@@ -4,12 +4,15 @@
 **Date Created:** November 14, 2025  
 **Last Updated:** November 14, 2025  
 **Review Cycle:** Annually or upon major feature changes  
+**Part of:** [Compliance Pack v1.0](./pack/overview.md)
 
 ---
 
 ## Purpose
 
 This document records all data processing activities conducted by Levqor in compliance with UK GDPR Article 30 (Records of Processing Activities).
+
+For detailed technical and organizational controls referenced in this document, see **[Technical & Organizational Controls](./pack/controls.md)**.
 
 ---
 

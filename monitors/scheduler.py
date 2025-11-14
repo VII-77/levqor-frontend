@@ -265,76 +265,29 @@ def run_growth_retention():
         log.error(f"Growth retention error: {e}")
 
 def process_billing_dunning():
-    """Process billing dunning states (Day 1/7/14 notices)"""
-    import sqlite3
-    from time import time
-    
-    log.info("Processing billing dunning states...")
+    """Process billing dunning events (Day 1/7/14 email sequence)"""
+    from datetime import datetime
+    log.info("Processing billing dunning cycle...")
     
     try:
-        from billing.dunning_emails import send_day1_notice, send_day7_notice, send_day14_final_notice
+        # Use new dunning system from backend.billing.dunning
+        from backend.billing.dunning import run_dunning_cycle
+        from run import get_db
         
-        db = sqlite3.connect(os.getenv("DATABASE_PATH", "levqor.db"))
-        cursor = db.cursor()
-        now = time()
+        db = get_db()
+        now_utc = datetime.utcnow()
         
-        # Find dunning states ready for action
-        cursor.execute("""
-            SELECT d.id, d.user_id, d.stripe_customer_id, d.status, u.email, u.name
-            FROM billing_dunning_state d
-            LEFT JOIN users u ON d.user_id = u.id
-            WHERE d.next_action_at IS NOT NULL 
-            AND d.next_action_at <= ?
-            AND d.status IN ('day1_notice', 'day7_notice', 'day14_final')
-        """, (now,))
+        # Run the dunning cycle processor
+        stats = run_dunning_cycle(db, now_utc)
         
-        records = cursor.fetchall()
-        processed = 0
-        
-        for row in records:
-            dunning_id, user_id, customer_id, status, email, name = row
-            
-            if not email:
-                log.warning(f"[DUNNING] No email for user {user_id or customer_id} - skipping")
-                continue
-            
-            try:
-                # Send appropriate email
-                if status == 'day1_notice':
-                    send_day1_notice(email, name)
-                    new_status = 'day1_notice'
-                    next_action = now + (7 * 24 * 60 * 60)
-                elif status == 'day7_notice':
-                    send_day7_notice(email, name)
-                    new_status = 'day7_notice'
-                    next_action = now + (7 * 24 * 60 * 60)
-                elif status == 'day14_final':
-                    send_day14_final_notice(email, name)
-                    new_status = 'suspended'
-                    next_action = None
-                else:
-                    continue
-                
-                # Update dunning state
-                cursor.execute("""
-                    UPDATE billing_dunning_state 
-                    SET status = ?, next_action_at = ?, updated_at = ?
-                    WHERE id = ?
-                """, (new_status, next_action, now, dunning_id))
-                
-                log.info(f"[DUNNING] Processed {email} ({status} → {new_status})")
-                processed += 1
-                
-            except Exception as e:
-                log.error(f"[DUNNING] Error processing {email}: {e}")
-        
-        db.commit()
-        db.close()
-        
-        log.info(f"✅ Billing dunning complete: {processed} notices sent")
+        log.info(
+            f"✅ Billing dunning cycle complete: "
+            f"processed={stats['processed']} sent={stats['sent']} "
+            f"skipped={stats['skipped']} errors={stats['errors']}"
+        )
         
     except Exception as e:
-        log.error(f"Billing dunning error: {e}")
+        log.error(f"Billing dunning cycle error: {e}", exc_info=True)
 
 
 def run_governance_report():

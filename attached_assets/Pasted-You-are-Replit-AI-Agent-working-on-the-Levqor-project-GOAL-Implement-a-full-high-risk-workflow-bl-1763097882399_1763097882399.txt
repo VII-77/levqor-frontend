@@ -1,0 +1,110 @@
+You are Replit AI Agent working on the Levqor project.
+
+GOAL: Implement a full high-risk workflow-blocking system so Levqor cannot be used for medical, legal, financial, or dangerous automation. This is now REQUIRED by:
+- GDPR (special category data)
+- UK GDPR (health/biometric/criminal)
+- Stripe Acceptable Use
+- Levqor’s own Risk Disclosure
+
+This must be done at BOTH backend + frontend.
+
+PHASE 1 — CLASSIFICATION RULES (BACKEND)
+Create a file:
+  levqor-backend/security/workflow_classifier.py
+
+Add deterministic text-based classification:
+1. BLOCK if workflow name/description contains keywords (case-insensitive):
+   MEDICAL: diagnosis, cancer, diabetes, treatment, prescription, symptoms, medical record, nhs number
+   LEGAL: lawsuit, legal advice, immigration case, court filing, solicitor, barrister, GDPR request for others
+   FINANCIAL: investment advice, trading bot, forex, crypto signals, pension decisions, credit scoring
+   PERSONAL DATA: biometric, passport scan, driving licence scan, criminal record
+   EXTREME: hacking, penetration testing, spy, malware, deepfake, surveillance
+
+2. Function:
+   classify_workflow(name, description) -> {
+       "blocked": True/False,
+       "category": "medical" | "legal" | "financial" | "extreme" | None,
+       "reason": "Medical workflows are prohibited per Levqor Risk Policy"
+   }
+
+PHASE 2 — ENFORCEMENT (BACKEND)
+Modify workflow creation/update endpoints:
+  - If classify_workflow().blocked is True:
+       return 400 with JSON:
+       {
+         "ok": false,
+         "error": "blocked_high_risk",
+         "category": category,
+         "reason": reason
+       }
+
+Log this event:
+   EVENT: WORKFLOW_BLOCKED_HIGH_RISK
+   Fields: user_id, category, reason, timestamp
+
+PHASE 3 — FRONTEND UI ENFORCEMENT (levqor-site)
+In the workflow creation UI:
+1. When user submits:
+   - If response.error = "blocked_high_risk":
+       Show a modal:
+         Title: “This workflow is not allowed”
+         Body: reason (from API)
+         Button: “Okay”
+       Do NOT allow saving.
+
+2. Add a notice under the title:
+   “Levqor does not support medical, legal, financial advice, or other high-risk workflows.”
+
+Style:
+  - Small grey text
+  - Link to /risk-disclosure
+
+PHASE 4 — SANITISE EXISTING WORKFLOWS
+Add an admin script:
+   scripts/audit_high_risk_workflows.py
+
+Steps:
+  - Fetch all workflows
+  - Classify each one
+  - Print a report: allowed vs blocked
+  - DO NOT DELETE any workflow — just report
+
+Output example:
+   [BLOCKED] Workflow #93 — “Cancer treatment automation”
+   [OK] Workflow #11 — “CRM email sequencing”
+
+PHASE 5 — LOGGING & AUDITABILITY
+Add an internal audit event for every blocked attempt:
+   WORKFLOW_BLOCKED_HIGH_RISK
+
+Store:
+   - user_id
+   - workflow text
+   - category
+   - reason
+   - timestamp
+
+PHASE 6 — VERIFICATION
+1. Local test:
+   Send:
+     name: “Cancer diagnosis assistant”
+     description: “Help analyse symptoms”
+   Expect:
+      blocked_high_risk, category=medical
+
+2. Normal test:
+   name: “CRM follow-up automation”
+   description: “Send reminder emails”
+   Expect:
+      ok: true
+
+3. UI test:
+   - Try adding a blocked workflow
+   - Modal appears, workflow not saved
+
+4. Confirm Risk pages already exist:
+   - /risk-disclosure
+   - /ai-disclosure (already implemented)
+
+Stop after implementing. Do not modify unrelated systems.
+Output a brief “Changes Summary” at the end.

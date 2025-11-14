@@ -4,12 +4,30 @@
 Levqor is a Flask-based job orchestration backend API for AI automation. It provides robust validation, cost management, job intake, status tracking, and health monitoring. The platform aims to be a scalable solution for automated workflows, featuring a Next.js frontend and an autonomous self-optimization layer with AI-powered monitoring, anomaly detection, predictive analytics, and auto-scaling.
 
 ## Recent Changes (November 14, 2025)
-**Revenue-Focus Pack (PHASES 1-4 complete):**
+**Revenue-Focus Pack (PHASES 1-7 complete) + Sales Automation Engines (RFP 2-4) + Complete Revenue Engine (RFP 5-9):**
+
+**PHASES 1-4 (Website Enhancement):**
 - Enhanced landing page with value proposition, testimonials, DFY vs Subscription comparison
 - Upgraded pricing page with "Most Popular"/"Best Value" badges, micro-copy, comparison table
 - Created `/dfy` sales page with deliverables, process steps, testimonials, and CTAs
 - Created trust pages: `/guarantee` (14-day money-back) and `/why-trust-us` (security, compliance)
-- **Sales Automation:** Created `/api/sales/lead` and `/api/sales/dfy-kickoff` endpoints for lead capture and DFY kickoff forms with email notifications
+
+**RFP 2-4 (Sales Automation Engines):**
+- **Database Models:** Created 5 new tables (leads, lead_activity, dfy_orders, dfy_activity, upsell_log)
+- **ASE (Automated Sales Engine):** Lead magnet endpoint, rule-based lead scoring (0-100), sales page with FAQ/testimonials
+- **DFY Upsell Engine:** DFY upgrade page, post-purchase upsell sequence, upgrade flow with duplicate prevention
+- **Client Delivery Machine:** Delivery dashboard, revision workflow, file delivery system, QA checklist enforcement
+- **Frontend Pages:** Created `/lead-magnet`, `/sales-page`, `/dfy-upgrade`, `/call`, `/dashboard/delivery`
+- **Automation Scripts:** `ase-followup.mjs` (3-email sequence: 24h/48h/72h), `dfy-upsells.mjs` (welcome, 12h upsell, 36h last chance)
+- **Backend Routes:** 10 new API endpoints for lead capture, lead scoring, DFY orders, revisions, delivery, followup/upsell triggers
+- **Email Templates:** 8 email templates (lead magnet welcome, followups, upsell emails, delivery confirmation)
+
+**RFP 5-9 (Complete Revenue Engine Pack):**
+- **RFP-5 (Rapid Launch Assets):** DFY/subscription breakdowns, 3 hero copy versions, social proof templates, CTA variants, "Why Choose Levqor" positioning (5 value pillars vs agencies/freelancers/Zapier)
+- **RFP-6 (Traffic Engine):** Google/Meta ad copy (3 each), 3 audiences, 3 creative descriptions, 3 keyword clusters, 14-day organic posting calendar, 20 social captions, cold outreach sequences (LinkedIn/Instagram/email), referral system
+- **RFP-7 (Conversion Engine):** 90-second sales pitch, discovery call flow, 10-objection handling matrix, lead-to-customer funnel, pre-call questionnaire, post-call sequence, urgency/scarcity messaging, guarantee block
+- **RFP-8 (Retention & Expansion):** DFY/subscription onboarding systems, kickoff call script, checkpoint messages, 30-day retention sequence, tier progression upsells, DFY→subscription conversion scripts, monthly health reports, churn prevention emails
+- **RFP-9 (Scale Engine):** 5 automation opportunity lists (sales, leads, onboarding, delivery, monitoring), 4 SOPs (DFY build, subscriptions, support, escalation), VA delegation guides, "when to hire" thresholds, 90-day scale roadmap (Stabilise/Grow/Multiply)
 
 ## User Preferences
 None documented yet.

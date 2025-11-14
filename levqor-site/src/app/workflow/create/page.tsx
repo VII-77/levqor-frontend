@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import HighRiskWarning from '@/components/HighRiskWarning';
+import HighRiskBlockedModal from '@/components/HighRiskBlockedModal';
 
 export default function CreateWorkflowPage() {
   const { data: session, status } = useSession();
@@ -15,6 +16,9 @@ export default function CreateWorkflowPage() {
   const [steps, setSteps] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showBlockedModal, setShowBlockedModal] = useState(false);
+  const [blockedKeywords, setBlockedKeywords] = useState<string[]>([]);
+  const [blockErrorMessage, setBlockErrorMessage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,6 +35,15 @@ export default function CreateWorkflowPage() {
       const data = await response.json();
 
       if (!response.ok || !data.ok) {
+        // Check if it's a high-risk block
+        if (data.rejectedKeywords && data.rejectedKeywords.length > 0) {
+          setBlockedKeywords(data.rejectedKeywords);
+          setBlockErrorMessage(data.error || 'This workflow contains prohibited content');
+          setShowBlockedModal(true);
+          setLoading(false);
+          return;
+        }
+        
         throw new Error(data.error || 'Failed to create workflow');
       }
 
@@ -143,6 +156,14 @@ export default function CreateWorkflowPage() {
             </Link>
           </div>
         </form>
+
+        {/* High-Risk Blocked Modal */}
+        <HighRiskBlockedModal
+          isOpen={showBlockedModal}
+          onClose={() => setShowBlockedModal(false)}
+          matchedKeywords={blockedKeywords}
+          errorMessage={blockErrorMessage}
+        />
       </div>
     </main>
   );

@@ -1,0 +1,215 @@
+Understood.
+Here is ONE SINGLE CONSOLIDATED MASTER PROMPT containing ALL remaining critical blockers merged cleanly into one execution pack — Cookie Consent, TOS Acceptance, Marketing Consent, High-Risk Data Warnings, Automated Retention/Deletion, Payment Dunning, ROPA/DPIA/LIA internal files, and Security Upgrade.
+
+This is the safest, cleanest, production-ready merged prompt you can feed straight into Replit AI Agent.
+
+No fluff. No commentary. Just the boss-level master.
+
+
+---
+
+🚀 LEVQOR — CRITICAL COMPLIANCE BLOCKERS (FULL IMPLEMENTATION PACK)
+
+ONE MASTER PROMPT
+
+Paste this entire block into Replit AI Agent:
+
+You are Replit AI Agent for Levqor.
+Goal: Implement ALL remaining critical compliance blockers in one structured execution.
+Perform each phase in order. Do not skip. Stop after each phase with a summary.
+
+===================================
+PHASE 1 — COOKIE CONSENT SYSTEM (GDPR + PECR)
+===================================
+Implement required components:
+
+1) COMPONENT: CookieBanner.tsx  
+- Shows until user acts  
+- Buttons: Accept All / Reject All / Manage Options  
+- Text: "We use cookies to improve your experience. Choose your preferences."  
+- Links: /cookies  
+
+2) COMPONENT: CookiePreferencesModal.tsx  
+Checkboxes:
+- Strictly Necessary (locked ON)
+- Functional
+- Analytics
+- Marketing  
+Buttons: Save Preferences / Accept All / Reject All  
+
+3) utils/cookies.ts  
+Functions: getConsent(), saveConsent(), hasConsent()  
+Cookie: levqor_cookie_consent  
+Schema:
+{
+  necessary: true,
+  functional: boolean,
+  analytics: boolean,
+  marketing: boolean,
+  timestamp: ISO
+}
+
+4) Inject into layout.tsx  
+- If no consent → show banner  
+- Load analytics/marketing ONLY if consent = true  
+
+5) Route: /cookie-preferences  
+Embed modal.
+
+6) Block all non-essential scripts before consent.
+
+===================================
+PHASE 2 — TERMS ACCEPTANCE SYSTEM (LEGAL REQUIREMENT)
+===================================
+Implement:
+
+1) Backend: api/post-tos-accept
+- Input: userId OR anonymous fingerprint
+- Save: version, timestamp, masked IP, user agent
+
+2) Database table: tos_acceptance
+Columns:
+- id
+- user_id (nullable)
+- tos_version
+- accepted_at
+- ip_masked
+- user_agent
+
+3) Frontend:
+- On signup: checkbox “I agree to the Terms of Service”
+- Block signup if unchecked
+- Save acceptance via API after signup
+
+4) If user has no acceptance logged → redirect to /accept-terms  
+
+===================================
+PHASE 3 — MARKETING CONSENT SYSTEM (UK PECR)
+===================================
+Implement:
+
+1) DB table: marketing_consents  
+- id  
+- user_id or anon_id  
+- consent: { email: boolean, product_updates: boolean }  
+- timestamp  
+- ip_masked  
+
+2) UI component in signup:  
+Checkbox: “I agree to receive marketing emails (optional)”  
+
+3) Double opt-in email  
+Send email with confirmation link:
+- Route: /confirm-marketing  
+- After click: mark consent as verified  
+
+4) Unsubscribe link in footer of all emails  
+Route: /unsubscribe  
+
+===================================
+PHASE 4 — HIGH-RISK DATA WARNINGS (LEGAL)
+===================================
+1) Add banner to DFY + workflow creation UI:  
+"We do not automate medical, legal, financial, or health-related workflows."  
+
+2) Add warnings to:
+- /risk-disclosure  
+- /terms  
+- /onboarding  
+
+===================================
+PHASE 5 — DATA RETENTION + AUTO-DELETION
+===================================
+Implement:
+
+1) config/dataRetention.ts
+{
+  logs: 90,
+  workflows: 365,
+  audit: 365,
+  sessions: 30,
+  exports: 30
+}
+
+2) Script: scripts/auto-delete-data.ts
+- Runs cron daily  
+- Deletes expired items based on retention config  
+- Save audit for each deletion  
+
+3) Backend route: /api/delete-account
+- Deletes: workflows, logs, sessions, tokens, PII  
+- Logs deletion event  
+
+===================================
+PHASE 6 — PAYMENT FAILURE DUNNING (STRIPE)
+===================================
+Implement dunning logic:
+
+1) Webhook handler:
+- invoice.payment_failed  
+- customer.subscription.updated  
+
+2) DB table: dunning_events  
+Store: user_id, attempt_number, timestamp  
+
+3) Send emails:
+- Day 0 = failure  
+- Day 3 = reminder  
+- Day 7 = pre-suspension notice  
+- Day 14 = auto-suspension
+
+4) After 14 days → auto-pause workflows
+
+===================================
+PHASE 7 — INTERNAL COMPLIANCE FILES (NOT PUBLIC)
+===================================
+Generate internal documentation files:
+
+/docs/compliance/ROPA.md  
+/docs/compliance/DPIA.md  
+/docs/compliance/LIA.md  
+/docs/compliance/DataFlowMap.md  
+
+Populate with:
+- All data categories  
+- Storage locations  
+- Transfers  
+- Retention  
+- Risks & mitigations  
+
+===================================
+PHASE 8 — SECURITY HARDENING
+===================================
+Implement:
+
+1) Rotate API tokens by environment variable change  
+2) Add rate limits to all public endpoints  
+- 30/min per IP for auth routes  
+- 100/min per IP for workflow routes  
+3) Add IP throttling middleware  
+4) Add CSRF protections where needed  
+5) Add additional audit logging for admin actions  
+
+===================================
+PHASE 9 — FINAL VERIFICATION
+===================================
+Perform automated tests:
+
+1) Cookie consent does not load analytics before acceptance  
+2) TOS acceptance stored correctly  
+3) Marketing consent confirms via double opt-in  
+4) High-risk warnings visible  
+5) Retention script deletes expired data  
+6) Dunning flow triggers correct emails  
+7) All compliance docs accessible internally  
+
+Output summary:
+“ALL CRITICAL BLOCKERS COMPLETE”
+Stop.
+
+
+---
+
+✅ This single prompt safely handles 100% of remaining blockers.
+
+When done, say done boss and I’ll give you the NEXT PACK (Revenue-Focus Pack).

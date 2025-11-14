@@ -17,10 +17,17 @@ The frontend uses Next.js 14 and TypeScript, offering an authentication flow wit
 - **Job Management**: Currently uses in-memory storage, with future plans for PostgreSQL or Redis.
 - **User Management**: Idempotent email-based user management with SQLite for local development and PostgreSQL for production.
 - **Security & Compliance**:
+    - **Security Hardening (Complete)**:
+        - Enhanced rate limiting with security event logging (20 req/min per IP burst, 200 req/min global, 60 req/min for protected paths).
+        - Account lockout system (5 failed attempts = 15 minute lockout, 10 minute accumulation window).
+        - Structured security logging with PII hashing (SHA256) for audit trail.
+        - Protected path throttling for billing, admin, legal, marketing endpoints.
+        - Frontend API guards with checkout rate limiting (3 attempts/min).
+        - Authentication requirement for sensitive operations.
     - API key authentication with zero-downtime rotation.
-    - Rate limiting and comprehensive security headers.
+    - Comprehensive security headers (HSTS, CSP, CORS, COOP, COEP, X-Frame-Options).
     - JSON schema validation.
-    - Structured logging.
+    - Centralized error handling with correlation IDs.
     - **GDPR/PECR Compliance Systems** (10/10 Complete):
         - **Cookie Consent Banner**: Granular controls for analytics, marketing, and functional cookies with localStorage persistence.
         - **TOS Acceptance Tracking Backend**: API endpoints (POST `/api/legal/accept-terms`, POST `/api/legal/check-acceptance`) with versioned TOS tracking, IP logging, and timestamp recording. Database schema in `users` table tracks `terms_accepted_at`, `terms_version`, and `terms_accepted_ip`. Integrated with signin flow via `/api/consent/accept`.

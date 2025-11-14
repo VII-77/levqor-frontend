@@ -156,7 +156,22 @@ export default function TermsPage() {
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-bold text-white">14. Contact</h2>
+          <h2 className="text-2xl font-bold text-white">14. Compliance Footnotes</h2>
+          <div className="bg-amber-900/20 border border-amber-800 rounded-lg p-4">
+            <p className="text-slate-300 leading-relaxed font-semibold">
+              Important: Levqor is not liable for misuse of automated workflows.
+            </p>
+            <p className="text-slate-300 leading-relaxed mt-3">
+              Customers are solely responsible for ensuring their automations comply with all applicable laws, regulations, and third-party terms of service.
+            </p>
+            <p className="text-slate-300 leading-relaxed mt-3">
+              This includes but is not limited to: CAN-SPAM, GDPR, PECR, data protection laws, anti-fraud regulations, and platform-specific acceptable use policies.
+            </p>
+          </div>
+        </section>
+
+        <section className="space-y-4">
+          <h2 className="text-2xl font-bold text-white">15. Contact</h2>
           <p className="text-slate-300 leading-relaxed">
             Email: <a href="mailto:legal@levqor.ai" className="text-emerald-400 hover:underline">legal@levqor.ai</a>
           </p>

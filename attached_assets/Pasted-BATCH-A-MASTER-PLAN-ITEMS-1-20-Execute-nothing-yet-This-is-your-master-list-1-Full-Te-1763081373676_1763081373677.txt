@@ -1,0 +1,91 @@
+BATCH A — MASTER PLAN (ITEMS 1–20)
+
+Execute nothing yet. This is your master list.
+
+
+---
+
+1. Full Terms of Service Overhaul
+
+Contractual protection, liability limits, disclaimers, governing law, prohibited uses, warranties.
+
+2. Privacy Policy (GDPR-Compliant, UK-Focused)
+
+Legal basis, processing categories, retention periods, third parties, DPO contact.
+
+3. Cookie Policy + Consent Banner
+
+Cookie categories, opt-in consent, revoke options, tracking transparency.
+
+4. Data Processing Agreement (DPA)
+
+Controller/processor obligations, sub-processors, incident response, audit rights.
+
+5. Fair Use Policy (FUP)
+
+Workflows/month limits, automation limits, support boundaries, misuse prevention.
+
+6. Refund Policy
+
+Strict, transparent, scenario-based (DFY vs subscriptions), cooling-off details.
+
+7. SLA (Service Level Agreement)
+
+Uptime guarantees, response times, resolution windows, exclusions.
+
+8. Acceptable Use Policy (AUP)
+
+Prohibited data, illegal activities, scraping, spam, abuse, security restrictions.
+
+9. Master Support Policy
+
+Support channels, hours, escalation paths, response expectations per tier.
+
+10. Security Policy
+
+Encryption, data storage, backups, access controls, incident detection.
+
+11. Incident Response Plan
+
+Breach playbook: detect → contain → assess → notify → document.
+
+12. Backup & Recovery Policy
+
+Data redundancy, disaster recovery timelines, failover procedures.
+
+13. Billing Policy
+
+Payment terms, authorization, renewals, card failures, retries, cancellations.
+
+14. Subscription Cancellation Policy
+
+Grace periods, prorated refunds (if any), termination flow, access revocation.
+
+15. DFY Engagement Terms
+
+Scope of work, delivery guarantees, client responsibilities, out-of-scope rules.
+
+16. SLA for DFY Plans
+
+Delivery timelines, communication, file hand-off, revision limits.
+
+17. Anti-Abuse & Enforcement Policy
+
+Rate limits, automation misuse, API misuse, violation handling.
+
+18. Disclaimers Page (High-Risk Data)
+
+"We do not automate medical, financial advice, legal workflows, etc."
+
+19. Payment Failure & Recovery Sequence
+
+Dunning emails, retry logic (1–7–14 day), automatic pause flow.
+
+20. Account Suspension & Termination Policy
+
+Grounds, warnings, immediate bans, data retention after closure.
+
+
+---
+
+Say Next for Batch B (Items 21–40).

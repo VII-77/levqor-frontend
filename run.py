@@ -250,6 +250,21 @@ def get_db():
         """)
         _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_deletion_jobs_status ON deletion_jobs(status)")
         
+        # Status snapshots table for historical tracking
+        _db_connection.execute("""
+            CREATE TABLE IF NOT EXISTS status_snapshots(
+                id TEXT PRIMARY KEY,
+                timestamp REAL NOT NULL,
+                overall_status TEXT NOT NULL,
+                api_status TEXT NOT NULL,
+                frontend_status TEXT NOT NULL,
+                db_status TEXT NOT NULL,
+                stripe_status TEXT NOT NULL,
+                notes TEXT
+            )
+        """)
+        _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_status_snapshots_timestamp ON status_snapshots(timestamp)")
+        
         _db_connection.commit()
     return _db_connection
 
@@ -1401,6 +1416,116 @@ def dsar_download():
         }
     )
 
+
+@app.get("/api/dsar/exports")
+def get_user_dsar_exports():
+    """Get user's DSAR export history"""
+    user_email = request.headers.get("X-User-Email")
+    if not user_email:
+        return jsonify({"ok": False, "error": "UNAUTHORIZED"}), 401
+    
+    db = get_db()
+    cursor = db.cursor()
+    
+    cursor.execute("SELECT id FROM users WHERE email = ?", (user_email,))
+    user_row = cursor.fetchone()
+    if not user_row:
+        return jsonify({"ok": False, "error": "USER_NOT_FOUND"}), 404
+    
+    user_id = user_row[0]
+    
+    cursor.execute("""
+        SELECT r.id, r.requested_at, r.status, e.created_at, e.expires_at, e.downloaded_at
+        FROM dsar_requests r
+        LEFT JOIN dsar_exports e ON r.id = e.request_id
+        WHERE r.user_id = ?
+        ORDER BY r.requested_at DESC
+        LIMIT 50
+    """, (user_id,))
+    
+    exports = []
+    for row in cursor.fetchall():
+        exports.append({
+            "request_id": row[0],
+            "requested_at": row[1],
+            "status": row[2],
+            "created_at": row[3],
+            "expires_at": row[4],
+            "downloaded_at": row[5],
+            "is_available": row[2] in ['ready', 'emailed', 'downloaded'] and row[4] and row[4] > time()
+        })
+    
+    return jsonify({"ok": True, "exports": exports}), 200
+
+
+@app.get("/api/admin/dsar/exports")
+def admin_get_dsar_exports():
+    """Admin: View all DSAR exports with filters"""
+    auth_header = request.headers.get("Authorization", "")
+    token = auth_header.replace("Bearer ", "")
+    if token != ADMIN_TOKEN:
+        return jsonify({"error": "unauthorized"}), 401
+    
+    db = get_db()
+    cursor = db.cursor()
+    
+    # Get filters from query params
+    email_filter = request.args.get("email")
+    status_filter = request.args.get("status")
+    date_from = request.args.get("date_from")
+    date_to = request.args.get("date_to")
+    
+    query = """
+        SELECT r.id, u.email, u.name, r.requested_at, r.status, 
+               e.created_at, e.expires_at, e.downloaded_at, e.id as export_id
+        FROM dsar_requests r
+        JOIN users u ON r.user_id = u.id
+        LEFT JOIN dsar_exports e ON r.id = e.request_id
+        WHERE 1=1
+    """
+    params = []
+    
+    if email_filter:
+        query += " AND u.email LIKE ?"
+        params.append(f"%{email_filter}%")
+    
+    if status_filter:
+        query += " AND r.status = ?"
+        params.append(status_filter)
+    
+    if date_from:
+        from datetime import datetime
+        ts = datetime.fromisoformat(date_from).timestamp()
+        query += " AND r.requested_at >= ?"
+        params.append(ts)
+    
+    if date_to:
+        from datetime import datetime
+        ts = datetime.fromisoformat(date_to).timestamp()
+        query += " AND r.requested_at <= ?"
+        params.append(ts)
+    
+    query += " ORDER BY r.requested_at DESC LIMIT 500"
+    
+    cursor.execute(query, params)
+    
+    exports = []
+    for row in cursor.fetchall():
+        exports.append({
+            "request_id": row[0],
+            "email": row[1],
+            "name": row[2],
+            "requested_at": row[3],
+            "status": row[4],
+            "created_at": row[5],
+            "expires_at": row[6],
+            "downloaded_at": row[7],
+            "export_id": row[8]
+        })
+    
+    return jsonify({"ok": True, "exports": exports}), 200
+
+
 # ============================================================================
 # Compliance & Legal Endpoints
 # ============================================================================
@@ -1634,6 +1759,128 @@ def run_deletions():
             log.error(f"[DELETION] Failed to delete user {user_id}: {e}")
     
     return jsonify({"ok": True, "deleted": deleted_count}), 200
+
+
+@app.get("/api/admin/sla/requests")
+def admin_get_sla_requests():
+    """Admin: View all SLA credit requests"""
+    auth_header = request.headers.get("Authorization", "")
+    token = auth_header.replace("Bearer ", "")
+    if token != ADMIN_TOKEN:
+        return jsonify({"error": "unauthorized"}), 401
+    
+    db = get_db()
+    cursor = db.cursor()
+    
+    status_filter = request.args.get("status", "pending")
+    
+    cursor.execute("""
+        SELECT s.id, u.email, u.name, s.created_at, s.period_start, s.period_end, 
+               s.claimed_issue, s.status, s.decision_note, s.credited_amount_cents, 
+               s.decided_at, s.decided_by
+        FROM sla_credit_requests s
+        JOIN users u ON s.user_id = u.id
+        WHERE s.status = ? OR ? = 'all'
+        ORDER BY s.created_at DESC
+        LIMIT 500
+    """, (status_filter, status_filter))
+    
+    requests_list = []
+    for row in cursor.fetchall():
+        requests_list.append({
+            "id": row[0],
+            "email": row[1],
+            "name": row[2],
+            "created_at": row[3],
+            "period_start": row[4],
+            "period_end": row[5],
+            "claimed_issue": row[6],
+            "status": row[7],
+            "decision_note": row[8],
+            "credited_amount_cents": row[9],
+            "decided_at": row[10],
+            "decided_by": row[11]
+        })
+    
+    return jsonify({"ok": True, "requests": requests_list}), 200
+
+
+@app.post("/api/admin/sla/requests/<request_id>/decision")
+def admin_decide_sla_request(request_id):
+    """Admin: Approve or reject SLA credit request"""
+    auth_header = request.headers.get("Authorization", "")
+    token = auth_header.replace("Bearer ", "")
+    if token != ADMIN_TOKEN:
+        return jsonify({"error": "unauthorized"}), 401
+    
+    data = request.get_json() or {}
+    decision_status = data.get("status")  # approved or rejected
+    credit_amount_cents = data.get("credit_amount_cents", 0)
+    decision_note = data.get("decision_note", "")
+    decided_by = data.get("decided_by", "admin")
+    
+    if decision_status not in ["approved", "rejected"]:
+        return jsonify({"ok": False, "error": "Invalid status"}), 400
+    
+    db = get_db()
+    cursor = db.cursor()
+    
+    cursor.execute("""
+        UPDATE sla_credit_requests 
+        SET status = ?, decision_note = ?, credited_amount_cents = ?, 
+            decided_at = ?, decided_by = ?
+        WHERE id = ?
+    """, (decision_status, decision_note, credit_amount_cents, time(), decided_by, request_id))
+    
+    db.commit()
+    
+    log.info(f"[SLA] Request {request_id} {decision_status} by {decided_by} - credit: {credit_amount_cents/100:.2f}")
+    
+    return jsonify({"ok": True}), 200
+
+
+@app.get("/api/admin/disputes")
+def admin_get_disputes():
+    """Admin: View all disputes"""
+    auth_header = request.headers.get("Authorization", "")
+    token = auth_header.replace("Bearer ", "")
+    if token != ADMIN_TOKEN:
+        return jsonify({"error": "unauthorized"}), 401
+    
+    db = get_db()
+    cursor = db.cursor()
+    
+    status_filter = request.args.get("status", "pending")
+    
+    cursor.execute("""
+        SELECT d.id, u.email, u.name, d.created_at, d.subject, d.description, 
+               d.category, d.status, d.acknowledged_at, d.resolved_at, 
+               d.resolution_note, d.escalated
+        FROM disputes d
+        JOIN users u ON d.user_id = u.id
+        WHERE d.status = ? OR ? = 'all'
+        ORDER BY d.created_at DESC
+        LIMIT 500
+    """, (status_filter, status_filter))
+    
+    disputes = []
+    for row in cursor.fetchall():
+        disputes.append({
+            "id": row[0],
+            "email": row[1],
+            "name": row[2],
+            "created_at": row[3],
+            "subject": row[4],
+            "description": row[5],
+            "category": row[6],
+            "status": row[7],
+            "acknowledged_at": row[8],
+            "resolved_at": row[9],
+            "resolution_note": row[10],
+            "escalated": row[11]
+        })
+    
+    return jsonify({"ok": True, "disputes": disputes}), 200
 
 
 from monitors.scheduler import init_scheduler

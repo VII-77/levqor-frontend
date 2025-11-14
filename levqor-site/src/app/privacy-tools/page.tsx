@@ -96,9 +96,36 @@ export default function PrivacyToolsPage() {
         </div>
 
         <h1 className="text-4xl font-bold mb-2">Privacy Tools</h1>
-        <p className="text-slate-400 mb-12">
+        <p className="text-slate-400 mb-8">
           Manage your personal data and exercise your GDPR rights
         </p>
+
+        {/* Data Retention Policy */}
+        <div className="bg-blue-950/20 border-2 border-blue-900/50 rounded-lg p-6 mb-8">
+          <h2 className="text-xl font-bold text-blue-300 mb-4">📋 Data Retention Policy</h2>
+          <div className="grid md:grid-cols-2 gap-4 text-sm text-slate-300">
+            <div>
+              <p className="font-semibold text-white mb-2">Personal Data:</p>
+              <ul className="space-y-1">
+                <li>• Account data: Retained while active</li>
+                <li>• Workflow logs: 90 days</li>
+                <li>• Audit logs: 90 days</li>
+                <li>• DSAR exports: 24 hours</li>
+              </ul>
+            </div>
+            <div>
+              <p className="font-semibold text-white mb-2">Billing Data:</p>
+              <ul className="space-y-1">
+                <li>• Invoices: 7 years (legal requirement)</li>
+                <li>• Stripe IDs: 7 years</li>
+                <li>• Payment history: 7 years</li>
+              </ul>
+            </div>
+          </div>
+          <p className="text-xs text-slate-400 mt-4">
+            DSAR requests are processed within 30 days. Account deletion removes all personal data except legally required billing records.
+          </p>
+        </div>
 
         {/* Data Export Section */}
         <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-8 mb-6">

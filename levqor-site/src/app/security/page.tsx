@@ -31,6 +31,17 @@ export default function SecurityPage() {
         </section>
 
         <section className="space-y-4 mt-8">
+          <h2 className="text-2xl font-bold text-white">Breach Notification</h2>
+          <p className="text-slate-300 leading-relaxed">
+            Notify affected users within 72 hours.
+          </p>
+          <p className="text-slate-300 leading-relaxed">
+            Steps: contain → assess → notify → remediate.
+          </p>
+        </section>
+
+        <section className="space-y-4 mt-8">
+          <h2 className="text-2xl font-bold text-white">Contact</h2>
           <p className="text-slate-300 text-sm leading-relaxed">
             For security concerns or to report a vulnerability, contact{" "}
             <a href="mailto:security@levqor.ai" className="text-emerald-400 hover:underline">

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Providers } from "@/components/providers";
-import CookieBanner from "@/components/CookieBanner";
+import CookieBanner from "@/components/cookies/CookieBanner";
+import LoadAnalytics from "@/components/cookies/LoadAnalytics";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -19,6 +20,7 @@ export default function RootLayout({
       <body className="bg-slate-950 text-slate-50 antialiased tracking-tight">
         <Providers>{children}</Providers>
         <CookieBanner />
+        <LoadAnalytics />
       </body>
     </html>
   );

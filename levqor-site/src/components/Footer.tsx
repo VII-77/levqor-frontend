@@ -30,6 +30,7 @@ export default function Footer() {
               <li><Link href="/terms" className="text-slate-400 hover:text-white transition text-sm">Terms</Link></li>
               <li><Link href="/privacy" className="text-slate-400 hover:text-white transition text-sm">Privacy</Link></li>
               <li><Link href="/cookies" className="text-slate-400 hover:text-white transition text-sm">Cookies</Link></li>
+              <li><Link href="/cookie-settings" className="text-slate-400 hover:text-white transition text-sm">Cookie Settings</Link></li>
               <li><Link href="/refunds" className="text-slate-400 hover:text-white transition text-sm">Refunds</Link></li>
               <li><Link href="/legal/data-processing" className="text-slate-400 hover:text-white transition text-sm">DPA</Link></li>
             </ul>

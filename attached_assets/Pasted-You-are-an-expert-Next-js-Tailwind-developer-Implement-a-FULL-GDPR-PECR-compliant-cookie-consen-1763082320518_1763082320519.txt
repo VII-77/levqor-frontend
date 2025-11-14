@@ -1,0 +1,101 @@
+You are an expert Next.js + Tailwind developer. Implement a FULL GDPR + PECR compliant cookie consent system for Levqor.ai. Build it exactly as follows and apply it across the entire site.
+
+===========================
+FEATURE REQUIREMENTS
+===========================
+
+1) COOKIE BANNER (shows on first visit)
+- Full-width bottom banner
+- Text: “Levqor uses cookies to improve your experience. You can accept or reject non-essential cookies.”
+- Buttons:
+  • Accept All (primary)
+  • Reject All (secondary)
+  • Cookie Settings (opens modal)
+- Do NOT load analytics scripts before consent.
+
+2) COOKIE SETTINGS MODAL
+- Four sections with toggles:
+  • STRICTLY NECESSARY (always enabled, disabled toggle)
+  • FUNCTIONAL COOKIES
+  • ANALYTICS COOKIES
+  • MARKETING COOKIES
+- Buttons:
+  • Save Preferences
+  • Accept All
+  • Reject All
+
+3) STATE MANAGEMENT
+Store the following in localStorage:
+- consent: {
+    necessary: true,
+    functional: true/false,
+    analytics: true/false,
+    marketing: true/false,
+    timestamp: ISO string,
+    version: "1.0"
+}
+
+4) GLOBAL VISIBILITY LOGIC
+- Banner only shows when:
+  localStorage.consent does NOT exist OR version mismatch.
+- Modal opens from banner or footer link (“Cookie Settings”).
+
+5) SCRIPT LOADING RULES
+Only load analytics if:
+  consent.analytics === true
+
+Implement wrappers such as:
+• components/cookies/LoadAnalytics.tsx
+• components/cookies/CookieBanner.tsx
+• components/cookies/CookieModal.tsx
+
+6) FOOTER UPDATE
+Add “Cookie Settings” link → opens modal globally.
+
+7) FILE CREATION
+Create the following files:
+
+/src/components/cookies/CookieBanner.tsx  
+/src/components/cookies/CookieModal.tsx  
+/src/components/cookies/LoadAnalytics.tsx  
+/src/lib/cookies.ts  
+/src/hooks/useCookieConsent.ts  
+/src/app/cookie-settings/page.tsx (optional page version)  
+
+Modify:
+/src/app/layout.tsx → inject banner + modal provider  
+/src/components/Footer.tsx → add “Cookie Settings” link  
+
+8) STYLE REQUIREMENTS (Tailwind)
+Banner:
+  fixed bottom-0 w-full bg-slate-900 text-white p-4 border-t border-slate-700
+
+Buttons:
+  primary: bg-emerald-500 hover:bg-emerald-600 text-white
+  secondary: bg-slate-700 hover:bg-slate-600 text-white
+
+Modal:
+  centered, max-w-lg, bg-slate-800, p-6, rounded-xl, shadow-xl
+
+9) ACCESSIBILITY REQUIREMENTS
+- Focus trap
+- ESC closes modal
+- Tab navigation
+- ARIA labels on buttons
+- Screen-reader text for modal title
+
+10) TESTING REQUIREMENTS
+After implementation:
+- First load → banner appears
+- Accept All → analytics loads
+- Reject All → analytics blocked
+- Custom → only categories that are enabled load
+- Refresh page → banner does NOT reappear if consent stored
+- Delete localStorage → banner appears again
+
+===========================
+DO NOT REMOVE ANY EXISTING STYLES OR CODE.
+Implement, test, and output the full diff.
+===========================
+
+Begin now.

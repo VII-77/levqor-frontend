@@ -438,6 +438,13 @@ def require_key():
     return jsonify({"error": "forbidden"}), 403
 
 def throttle():
+    """
+    SECURITY NOTE: Global rate limiting for all endpoints.
+    Limits: 20 req/min per IP (burst), 200 req/min global.
+    Logs rate limit violations for abuse detection.
+    """
+    from backend.security import log_security_event
+    
     now = time()
     ip = request.headers.get("X-Forwarded-For", request.remote_addr) or "unknown"
     
@@ -448,7 +455,15 @@ def throttle():
         dq.popleft()
     
     if len(dq) >= RATE_BURST or len(_ALL_HITS) >= RATE_GLOBAL:
-        resp = jsonify({"error": "rate_limited"})
+        # Log rate limit violation
+        log_security_event(
+            "rate_limit",
+            ip=ip,
+            details={"endpoint": request.path, "method": request.method, "limit_type": "global"},
+            severity="warning"
+        )
+        
+        resp = jsonify({"ok": False, "error": "rate_limited", "retry_after": 60})
         resp.status_code = 429
         resp.headers["Retry-After"] = "60"
         resp.headers["X-RateLimit-Limit"] = str(RATE_BURST)
@@ -461,7 +476,14 @@ def throttle():
     return None
 
 def protected_path_throttle():
-    protected_prefixes = ['/billing/', '/api/partners/', '/api/admin/', '/api/user/', '/webhooks/']
+    """
+    SECURITY NOTE: Stricter rate limiting for sensitive endpoints.
+    Protected paths: billing, admin, partners, webhooks.
+    Limit: 60 req/min per IP. Logs violations.
+    """
+    from backend.security import log_security_event
+    
+    protected_prefixes = ['/billing/', '/api/partners/', '/api/admin/', '/api/user/', '/webhooks/', '/api/legal/', '/api/marketing/']
     if not any(request.path.startswith(prefix) for prefix in protected_prefixes):
         return None
     
@@ -474,7 +496,15 @@ def protected_path_throttle():
         dq.popleft()
     
     if len(dq) >= 60:
-        resp = jsonify({"error": "rate_limited"})
+        # Log protected path rate limit
+        log_security_event(
+            "rate_limit_protected",
+            ip=ip,
+            details={"endpoint": request.path, "method": request.method, "limit": "60/min"},
+            severity="warning"
+        )
+        
+        resp = jsonify({"ok": False, "error": "rate_limited", "retry_after": 60})
         resp.status_code = 429
         resp.headers["Retry-After"] = "60"
         return resp
@@ -570,6 +600,18 @@ def public_metrics():
 
 @app.post("/audit")
 def audit():
+    """
+    SECURITY NOTE: Audit logging endpoint with lockout detection.
+    Tracks signin events, records failed attempts, implements account lockout.
+    Called by NextAuth frontend after successful OAuth authentication.
+    """
+    from backend.security import (
+        log_security_event, 
+        record_failed_attempt,
+        record_successful_login,
+        is_locked_out
+    )
+    
     if not request.is_json:
         return bad_request("Content-Type must be application/json")
     
@@ -579,14 +621,48 @@ def audit():
     
     event = data.get("event", "unknown")
     email = data.get("email", "unknown")
-    ip = data.get("ip", "")
+    ip_address = data.get("ip") or request.headers.get("X-Forwarded-For", request.remote_addr) or "unknown"
     user_agent = data.get("user_agent", "")
     ts = data.get("ts", int(time() * 1000))
     
+    # Check if account is locked out (even for successful sign-ins)
+    if email != "unknown":
+        locked, remaining = is_locked_out(email)
+        if locked and event == "sign_in":
+            log_security_event(
+                "signin_blocked_lockout",
+                email=email,
+                ip=ip_address,
+                details={"remaining_seconds": remaining},
+                severity="warning"
+            )
+            return jsonify({
+                "ok": False,
+                "error": "account_temporarily_locked",
+                "retry_after": remaining
+            }), 429
+    
+    # Handle different event types
+    if event == "sign_in":
+        # Successful sign-in - clear lockout
+        if email != "unknown":
+            record_successful_login(email)
+        log_security_event("signin_success", email=email, ip=ip_address, severity="info")
+    
+    elif event == "sign_out":
+        log_security_event("signout", email=email, ip=ip_address, severity="info")
+    
+    elif event == "auth_failed":
+        # Failed authentication - record attempt
+        if email != "unknown":
+            record_failed_attempt(email)
+        log_security_event("auth_failed", email=email, ip=ip_address, severity="warning")
+    
+    # Log to file (legacy format for compatibility)
     audit_entry = json.dumps({
         "event": event,
         "email": email,
-        "ip": ip,
+        "ip": ip_address,
         "user_agent": user_agent,
         "ts": ts
     }, separators=(',', ':'))

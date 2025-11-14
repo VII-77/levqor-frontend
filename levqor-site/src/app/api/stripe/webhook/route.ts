@@ -21,7 +21,25 @@ export async function POST(req: NextRequest) {
       return new NextResponse(JSON.stringify({ error: 'Invalid signature', detail: e?.message }), { status: 400 });
     }
 
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    
     switch (event.type) {
+      case 'invoice.payment_failed':
+        await fetch(`${backendUrl}/api/internal/billing/payment-failed`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Internal-Secret': process.env.INTERNAL_API_SECRET || 'dev_secret' },
+          body: JSON.stringify({ event: event.data.object })
+        });
+        break;
+        
+      case 'invoice.paid':
+        await fetch(`${backendUrl}/api/internal/billing/payment-succeeded`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Internal-Secret': process.env.INTERNAL_API_SECRET || 'dev_secret' },
+          body: JSON.stringify({ event: event.data.object })
+        });
+        break;
+        
       case 'checkout.session.completed':
       case 'customer.subscription.created':
       case 'customer.subscription.updated':
@@ -31,6 +49,7 @@ export async function POST(req: NextRequest) {
     }
     return NextResponse.json({ ok: true });
   } catch (e: any) {
+    console.error('[Stripe Webhook Error]', e);
     return new NextResponse(JSON.stringify({ error: 'handler_failed', detail: e?.message }), { status: 500 });
   }
 }

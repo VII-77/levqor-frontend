@@ -266,6 +266,79 @@ def run_growth_retention():
     except Exception as e:
         log.error(f"Growth retention error: {e}")
 
+def process_billing_dunning():
+    """Process billing dunning states (Day 1/7/14 notices)"""
+    import sqlite3
+    from time import time
+    
+    log.info("Processing billing dunning states...")
+    
+    try:
+        from billing.dunning_emails import send_day1_notice, send_day7_notice, send_day14_final_notice
+        
+        db = sqlite3.connect(os.getenv("DATABASE_PATH", "levqor.db"))
+        cursor = db.cursor()
+        now = time()
+        
+        # Find dunning states ready for action
+        cursor.execute("""
+            SELECT d.id, d.user_id, d.stripe_customer_id, d.status, u.email, u.name
+            FROM billing_dunning_state d
+            LEFT JOIN users u ON d.user_id = u.id
+            WHERE d.next_action_at IS NOT NULL 
+            AND d.next_action_at <= ?
+            AND d.status IN ('day1_notice', 'day7_notice', 'day14_final')
+        """, (now,))
+        
+        records = cursor.fetchall()
+        processed = 0
+        
+        for row in records:
+            dunning_id, user_id, customer_id, status, email, name = row
+            
+            if not email:
+                log.warning(f"[DUNNING] No email for user {user_id or customer_id} - skipping")
+                continue
+            
+            try:
+                # Send appropriate email
+                if status == 'day1_notice':
+                    send_day1_notice(email, name)
+                    new_status = 'day1_notice'
+                    next_action = now + (7 * 24 * 60 * 60)
+                elif status == 'day7_notice':
+                    send_day7_notice(email, name)
+                    new_status = 'day7_notice'
+                    next_action = now + (7 * 24 * 60 * 60)
+                elif status == 'day14_final':
+                    send_day14_final_notice(email, name)
+                    new_status = 'suspended'
+                    next_action = None
+                else:
+                    continue
+                
+                # Update dunning state
+                cursor.execute("""
+                    UPDATE billing_dunning_state 
+                    SET status = ?, next_action_at = ?, updated_at = ?
+                    WHERE id = ?
+                """, (new_status, next_action, now, dunning_id))
+                
+                log.info(f"[DUNNING] Processed {email} ({status} → {new_status})")
+                processed += 1
+                
+            except Exception as e:
+                log.error(f"[DUNNING] Error processing {email}: {e}")
+        
+        db.commit()
+        db.close()
+        
+        log.info(f"✅ Billing dunning complete: {processed} notices sent")
+        
+    except Exception as e:
+        log.error(f"Billing dunning error: {e}")
+
+
 def run_governance_report():
     """Weekly governance report email"""
     log.info("Running weekly governance report...")
@@ -533,6 +606,15 @@ def init_scheduler():
             CronTrigger(day_of_week='sun', hour=10, minute=30, timezone='UTC'),
             id='weekly_intelligence',
             name='Weekly AI insights & trends',
+            replace_existing=True
+        )
+        
+        scheduler.add_job(
+            process_billing_dunning,
+            'interval',
+            hours=6,
+            id='billing_dunning',
+            name='Billing dunning processor',
             replace_existing=True
         )
         

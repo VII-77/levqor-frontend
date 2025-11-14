@@ -303,6 +303,42 @@ def get_db():
         _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_risk_blocks_user ON risk_blocks(user_id)")
         _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_risk_blocks_created ON risk_blocks(created_at)")
         
+        # Billing dunning state (Stripe payment failure tracking)
+        _db_connection.execute("""
+            CREATE TABLE IF NOT EXISTS billing_dunning_state(
+                id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                stripe_customer_id TEXT,
+                stripe_subscription_id TEXT,
+                status TEXT NOT NULL DEFAULT 'none',
+                last_event_at REAL,
+                next_action_at REAL,
+                created_at REAL NOT NULL,
+                updated_at REAL NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+        """)
+        _db_connection.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_dunning_user ON billing_dunning_state(user_id)")
+        _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_dunning_status ON billing_dunning_state(status)")
+        _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_dunning_next_action ON billing_dunning_state(next_action_at)")
+        
+        # Billing events (Stripe webhook audit log)
+        _db_connection.execute("""
+            CREATE TABLE IF NOT EXISTS billing_events(
+                id TEXT PRIMARY KEY,
+                user_id TEXT,
+                stripe_customer_id TEXT,
+                stripe_subscription_id TEXT,
+                event_type TEXT NOT NULL,
+                attempt_count INTEGER,
+                event_payload_snippet TEXT,
+                created_at REAL NOT NULL
+            )
+        """)
+        _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_billing_events_user ON billing_events(user_id)")
+        _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_billing_events_type ON billing_events(event_type)")
+        _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_billing_events_customer ON billing_events(stripe_customer_id)")
+        
         _db_connection.commit()
     return _db_connection
 
@@ -2123,6 +2159,190 @@ def marketing_unsubscribe_post():
     log.info(f"[MARKETING] Unsubscribed {email} ({rows_updated} consent records revoked)")
     
     return jsonify({"ok": True, "message": "Unsubscribed successfully"}), 200
+
+
+# ============================================================================
+# Billing & Dunning (Stripe Payment Failure Management)
+# ============================================================================
+
+def require_internal_secret():
+    """Verify internal API secret for backend-to-backend calls"""
+    secret = request.headers.get("X-Internal-Secret")
+    expected = os.environ.get("INTERNAL_API_SECRET", "dev_secret")
+    if secret != expected:
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
+    return None
+
+
+@app.post("/api/internal/billing/payment-failed")
+def billing_payment_failed():
+    """Handle Stripe invoice.payment_failed webhook"""
+    auth_check = require_internal_secret()
+    if auth_check:
+        return auth_check
+    
+    data = request.get_json() or {}
+    invoice_data = data.get("event", {})
+    
+    customer_id = invoice_data.get("customer")
+    subscription_id = invoice_data.get("subscription")
+    attempt_count = invoice_data.get("attempt_count", 0)
+    amount_due = invoice_data.get("amount_due", 0)
+    
+    if not customer_id:
+        return jsonify({"ok": False, "error": "missing_customer_id"}), 400
+    
+    db = get_db()
+    cursor = db.cursor()
+    now = time()
+    
+    # Log the billing event
+    event_id = str(uuid4())
+    cursor.execute("""
+        INSERT INTO billing_events 
+        (id, stripe_customer_id, stripe_subscription_id, event_type, attempt_count, event_payload_snippet, created_at)
+        VALUES (?, ?, ?, 'invoice.payment_failed', ?, ?, ?)
+    """, (event_id, customer_id, subscription_id, attempt_count, json.dumps(invoice_data)[:500], now))
+    
+    # Find or create dunning state
+    cursor.execute("""
+        SELECT id, user_id, status FROM billing_dunning_state 
+        WHERE stripe_customer_id = ?
+    """, (customer_id,))
+    
+    dunning_record = cursor.fetchone()
+    
+    if not dunning_record:
+        # Create new dunning state (no user_id mapping yet - would need customer lookup)
+        dunning_id = str(uuid4())
+        cursor.execute("""
+            INSERT INTO billing_dunning_state 
+            (id, user_id, stripe_customer_id, stripe_subscription_id, status, last_event_at, next_action_at, created_at, updated_at)
+            VALUES (?, ?, ?, ?, 'day1_notice', ?, ?, ?, ?)
+        """, (dunning_id, customer_id, customer_id, subscription_id, now, now + (7 * 24 * 60 * 60), now, now))
+        
+        log.warning(f"[BILLING] Payment failed for {customer_id} - Day 1 notice scheduled")
+    else:
+        dunning_id, user_id, current_status = dunning_record
+        
+        # Progress dunning state
+        if current_status == "none" or current_status == "":
+            new_status = "day1_notice"
+            next_action = now + (7 * 24 * 60 * 60)
+        elif current_status == "day1_notice":
+            new_status = "day7_notice"
+            next_action = now + (7 * 24 * 60 * 60)
+        elif current_status == "day7_notice":
+            new_status = "day14_final"
+            next_action = now + (3 * 24 * 60 * 60)
+        else:
+            new_status = current_status
+            next_action = None
+        
+        cursor.execute("""
+            UPDATE billing_dunning_state 
+            SET status = ?, last_event_at = ?, next_action_at = ?, updated_at = ?
+            WHERE id = ?
+        """, (new_status, now, next_action, now, dunning_id))
+        
+        log.warning(f"[BILLING] Payment failed for {customer_id} - status: {current_status} → {new_status}")
+    
+    db.commit()
+    
+    return jsonify({"ok": True, "customer_id": customer_id, "attempt": attempt_count}), 200
+
+
+@app.post("/api/internal/billing/payment-succeeded")
+def billing_payment_succeeded():
+    """Handle Stripe invoice.paid webhook"""
+    auth_check = require_internal_secret()
+    if auth_check:
+        return auth_check
+    
+    data = request.get_json() or {}
+    invoice_data = data.get("event", {})
+    
+    customer_id = invoice_data.get("customer")
+    subscription_id = invoice_data.get("subscription")
+    
+    if not customer_id:
+        return jsonify({"ok": False, "error": "missing_customer_id"}), 400
+    
+    db = get_db()
+    cursor = db.cursor()
+    now = time()
+    
+    # Log the billing event
+    event_id = str(uuid4())
+    cursor.execute("""
+        INSERT INTO billing_events 
+        (id, stripe_customer_id, stripe_subscription_id, event_type, attempt_count, event_payload_snippet, created_at)
+        VALUES (?, ?, ?, 'invoice.paid', ?, ?, ?)
+    """, (event_id, customer_id, subscription_id, 0, json.dumps(invoice_data)[:500], now))
+    
+    # Reset dunning state to 'none'
+    cursor.execute("""
+        UPDATE billing_dunning_state 
+        SET status = 'none', last_event_at = ?, next_action_at = NULL, updated_at = ?
+        WHERE stripe_customer_id = ?
+    """, (now, now, customer_id))
+    
+    rows_updated = cursor.rowcount
+    db.commit()
+    
+    if rows_updated > 0:
+        log.info(f"[BILLING] Payment succeeded for {customer_id} - dunning state reset")
+    
+    return jsonify({"ok": True, "customer_id": customer_id}), 200
+
+
+@app.get("/api/billing/status")
+def billing_status():
+    """Get billing/dunning status for current user"""
+    # TODO: Get user from session/auth
+    user_id = request.args.get("user_id")  # Temporary for testing
+    
+    if not user_id:
+        return jsonify({"ok": False, "error": "user_id_required"}), 400
+    
+    db = get_db()
+    cursor = db.cursor()
+    
+    cursor.execute("""
+        SELECT status, next_action_at FROM billing_dunning_state 
+        WHERE user_id = ? OR stripe_customer_id = ?
+    """, (user_id, user_id))
+    
+    record = cursor.fetchone()
+    
+    if not record:
+        return jsonify({"ok": True, "status": "ok", "next_action_at": None}), 200
+    
+    status, next_action_at = record
+    
+    return jsonify({
+        "ok": True,
+        "status": status or "ok",
+        "next_action_at": next_action_at
+    }), 200
+
+
+def is_account_suspended(user_id: str) -> bool:
+    """Check if account is suspended due to payment failure"""
+    db = get_db()
+    cursor = db.cursor()
+    
+    cursor.execute("""
+        SELECT status FROM billing_dunning_state 
+        WHERE user_id = ? OR stripe_customer_id = ?
+    """, (user_id, user_id))
+    
+    record = cursor.fetchone()
+    
+    if record and record[0] == "suspended":
+        return True
+    
+    return False
 
 
 from monitors.scheduler import init_scheduler

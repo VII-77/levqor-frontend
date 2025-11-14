@@ -1,0 +1,167 @@
+You are Replit AI Agent working on the Levqor project.
+
+GOAL (THIS TASK ONLY)
+Implement practical, production-grade SECURITY HARDENING for Levqor (backend + frontend) focusing on:
+1) Auth/session/token safety
+2) Rate limiting & abuse protection
+3) Basic anomaly detection & lockouts
+4) Logging for security events
+
+Do NOT touch pricing, UI design, legal pages, or deployment. Only security.
+
+PROJECT CONTEXT (DO NOT SKIP)
+- Frontend: Next.js app in `levqor-site/` (App Router, TypeScript, NextAuth, Stripe checkout)
+- Backend: Flask API at repo root (`run.py` / `app.py` style), already wired to DB and jobs
+- Environment: Replit, Node/TS + Python, Stripe + OAuth (Google/Microsoft), Postgres
+- Legal & policy pages already exist (SLA, AUP, Fair Use, etc.). Assume policy text is correct; we are now enforcing it technically.
+
+HIGH-LEVEL OBJECTIVES
+1) Protect ALL authenticated routes & sensitive endpoints against brute force and abuse.
+2) Implement sane rate limits for:
+   - Public APIs
+   - Auth endpoints (sign-in, OAuth callbacks)
+   - Stripe webhooks
+3) Implement account lockout & IP slow-down for obvious abuse patterns.
+4) Add structured security logs for later review (but no PII in logs).
+5) Keep everything simple, readable, and minimal but solid.
+
+-------------------------------------------------------------------------------
+PHASE 0 – DISCOVERY (READ ONLY, NO CHANGES)
+-------------------------------------------------------------------------------
+1. Inspect backend structure:
+   - List key files: `ls -R .` and specifically inspect:
+     - `run.py` / `app.py`
+     - any `auth`, `routes`, or `api` modules
+     - DB models for users/sessions/tokens
+2. Inspect frontend auth & API integration:
+   - `levqor-site/src/app/api/*/route.ts`
+   - `levqor-site/src/app/signin/page.tsx`
+   - `levqor-site/src/pages/api/auth/[...nextauth].ts` or equivalent if present
+3. Identify:
+   - Where authentication is done (JWT, sessions, NextAuth, custom?)
+   - Where sign-in / sign-up happens
+   - Where Stripe webhooks are handled
+   - Where public vs authenticated APIs live
+
+Report in comments at the top of EACH modified file:
+   // SECURITY NOTE: <1–2 line summary of how this file participates in security>
+
+-------------------------------------------------------------------------------
+PHASE 1 – BACKEND RATE LIMITING & BASIC ABUSE PROTECTION
+-------------------------------------------------------------------------------
+GOAL: Add simple, library-based rate-limiting to Flask API, with clear defaults.
+
+1. If not present, add a standard rate-limiting library (preferred: `flask-limiter`):
+   - Check `requirements.txt` or `pyproject.toml`.
+   - If missing, add `flask-limiter` (and `redis` or in-memory storage if needed).
+2. In the main Flask app initialization:
+   - Create a `Limiter` instance with:
+     - Default global limit, e.g. `1000 per hour` per IP.
+     - Separate, stricter limits for:
+       - Auth endpoints: e.g. `10 per minute` per IP (`/auth/*`, `/login`, `/signin`, `/api/auth/*`).
+       - Sensitive operations (e.g. `/api/admin/*`, `/api/billing/*`): e.g. `60 per hour`.
+       - Public utilities: moderate, e.g. `200 per minute`.
+   - Configure error handler for rate limit:
+     - Returns 429 JSON: `{ "ok": false, "error": "rate_limited", "retry_after": <seconds> }`
+     - Do NOT leak internal details.
+3. Apply decorators or blueprints to:
+   - All public API routes.
+   - Any login-like endpoint.
+   - Any endpoint that triggers workflow execution, automation, or high-cost operations.
+4. Add a small, central helper function:
+   - Example: `log_security_event(event_type, *, user_id=None, ip=None, details=None)`
+   - Writes to stdout in JSON-ish format (no PII like full email, just hashed or truncated):
+     - `event_type`
+     - `user_id` (if available)
+     - `ip`
+     - `details` (high level, no secrets)
+   - Call this on rate limit hits and suspicious patterns (e.g. repeated 401s).
+
+-------------------------------------------------------------------------------
+PHASE 2 – AUTH HARDENING & BASIC LOCKOUT LOGIC
+-------------------------------------------------------------------------------
+GOAL: Make it harder to brute-force accounts or abuse sign-in flows.
+
+1. Identify any password-based login or magic-link endpoints.
+   - If NO password login (OAuth only via Google/Microsoft), then:
+     - Ensure you rate-limit OAuth-related endpoints and note in comments that password brute-force is not applicable.
+   - If password/magic link exists:
+     - Implement basic lockout logic:
+       - Track failed attempts per account + IP (e.g. in DB or in-memory with a timestamp).
+       - After N failed attempts (e.g. 5 within 10 minutes):
+         - Temporarily lock account for 15–30 minutes OR require manual reset.
+       - Log lockouts with `log_security_event("account_locked", ...)`.
+2. For any JWT or token-based auth:
+   - Ensure verification uses strong algorithms (e.g. HS256/RS256) and correct secret.
+   - Check for token expiry enforcement.
+   - If refresh tokens exist:
+     - Ensure they are long, random, stored hashed in DB.
+     - Ensure rotation (on refresh, invalidate old refresh token).
+     - If refresh tokens do NOT exist, document in comment but do NOT invent new auth flows in this task.
+3. Ensure all auth-protected endpoints:
+   - Verify auth at the beginning of the handler.
+   - Return 401/403 cleanly for unauthorized access.
+   - Do NOT leak whether a specific email exists.
+
+-------------------------------------------------------------------------------
+PHASE 3 – FRONTEND / NEXT.JS RATE LIMITING & GUARDS
+-------------------------------------------------------------------------------
+GOAL: Prevent the frontend from being an easy abuse hose and align client behavior with backend rules.
+
+1. Locate Next.js API routes:
+   - `levqor-site/src/app/api/checkout/route.ts`
+   - Any other `src/app/api/*/route.ts`.
+2. For each:
+   - Add minimal server-side throttling where trivial (e.g. simple in-memory token bucket or counting requests per IP in a Map).
+   - At minimum, guard `POST` routes (like `/api/checkout`) to:
+     - Reject obviously invalid payloads early.
+     - Log abuse-like behavior via `console.warn` with a clear prefix, e.g. `[SECURITY]`.
+3. On client side:
+   - Ensure buttons that trigger heavy operations (like checkout) disable while request is in flight.
+   - Prevent spamming the API by double-clicking.
+   - Show a friendly error if the backend responds with 429.
+
+-------------------------------------------------------------------------------
+PHASE 4 – LOGGING, ANOMALY HINTS & NON-BREAKING SAFETY NET
+-------------------------------------------------------------------------------
+GOAL: Make future security debugging possible without over-engineering.
+
+1. Implement `log_security_event` (from Phase 1) in a single module in backend and reuse.
+2. Use it to log:
+   - Rate limit violations.
+   - Multiple consecutive 401s from same IP.
+   - Lockouts.
+   - Unexpected auth flows (e.g. missing claims, invalid tokens).
+3. Make logs:
+   - Compact and consistent.
+   - Not include secrets, full emails, or full tokens.
+   - Example message format (one-line JSON-like string).
+
+-------------------------------------------------------------------------------
+PHASE 5 – VALIDATION & REPORT
+-------------------------------------------------------------------------------
+After making code changes, you MUST:
+
+1. Run backend tests/build:
+   - `python -m compileall .` or existing test commands if present.
+   - Start backend and hit a few endpoints to ensure no crashes.
+2. Run frontend build:
+   - `cd levqor-site && npm run lint || true`
+   - `cd levqor-site && npm run build` (or at least ensure TypeScript compiles).
+3. Manually exercise:
+   - Trigger same endpoint > limit threshold and confirm 429.
+   - Hit auth endpoint with repeated bad inputs and confirm lockout behavior or at least rate limiting.
+4. At the END of your run, output a concise SECURITY SUMMARY including:
+   - Files changed.
+   - Exact rate limits applied (endpoint examples).
+   - Lockout behavior (if applicable).
+   - Any TODOs left for a future hardening pass (if found but not implemented).
+
+CONSTRAINTS
+- Do NOT change business logic, pricing, or UI text.
+- Do NOT add new third-party services beyond what’s necessary (e.g. no new external APIs).
+- Prefer minimal dependency additions (only well-known security libs).
+- Keep changes focused, clear, and documented in code comments.
+
+Begin now and implement all of the above as completely as possible in this single session.
+```0

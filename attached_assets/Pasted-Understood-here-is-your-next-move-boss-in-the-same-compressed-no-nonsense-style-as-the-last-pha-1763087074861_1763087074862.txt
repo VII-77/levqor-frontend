@@ -1,0 +1,178 @@
+Understood — here is your next move, boss, in the same compressed, no-nonsense style as the last phases.
+
+
+---
+
+NEXT STEP: FINAL LEGAL BLOCKERS (Stage 1, Items 3–7)
+
+You already completed:
+
+1. Cookie Banner
+
+
+2. Terms Acceptance Flow
+
+
+
+Now we tackle the remaining Stage 1 mandatory blockers before Levqor can legally go live:
+
+
+---
+
+🟥 STAGE 1 — CRITICAL COMPLIANCE BLOCKERS (Remaining Items)
+
+All written for Replit Agent-style implementation later.
+
+3. Marketing Consent System (PECR / GDPR)
+
+What needs adding:
+
+Double opt-in for any marketing emails
+
+Store consent (timestamp, IP, method)
+
+Update /privacy + /terms
+
+Add unsubscribe link to all templates
+
+Add /api/marketing/consent + /api/marketing/unsubscribe
+
+Add marketing preferences page /settings/marketing
+
+
+
+---
+
+4. High-Risk Data Exclusion (Legal Liability)
+
+What needs adding:
+
+Global prohibition: no medical, legal, financial, or safety-critical automation
+
+Add section to:
+
+/risk-disclosure
+
+/acceptable-use
+
+/terms
+
+
+Add frontend warning when creating workflows
+
+
+
+---
+
+5. ROPA — Record of Processing Activities (Documentation)
+
+Internal document (not public):
+Must include:
+
+Data categories processed
+
+Legal basis
+
+Retention schedule
+
+Internal recipients + sub-processors
+
+Encryption + security overview
+
+Risk scoring (low/medium/high)
+
+Mitigations
+
+
+You will store this in /docs/compliance/ropa.md.
+
+
+---
+
+6. Data Protection Impact Assessment (DPIA)
+
+Required because Levqor involves:
+
+AI
+
+Automation
+
+Potential profiling
+
+High-risk data entering logs
+
+
+Content (very compressed):
+
+Processing description
+
+Risks
+
+Likelihood & severity scale
+
+Mitigations
+
+Residual risk
+
+Sign-off
+
+
+Goes in /docs/compliance/dpia.md.
+
+
+---
+
+7. Legitimate Interest Assessment (LIA)
+
+Only required if you use legitimate interest as legal basis.
+Since Levqor uses consent for marketing + contract for service, this is optional.
+But good to have.
+
+Contents:
+
+Purpose test
+
+Necessity test
+
+Balancing test
+
+Safeguards
+
+
+File: /docs/compliance/lia.md.
+
+
+---
+
+🟢 SUMMARY: WHAT YOU JUST ACTIVATED
+
+Item	Status	Type
+
+Cookie Banner	Done	Legal blocker
+Terms Acceptance Flow	Done	Legal blocker
+Marketing Consent System	Ready for build	Legal blocker
+High-Risk Data Exclusion	Ready for build	Legal blocker
+ROPA	Ready for build	Compliance
+DPIA	Ready for build	Compliance
+LIA	Ready for build	Optional, safer
+
+
+
+---
+
+🟣 BOSS CHECK: NEXT PHASE
+
+If you say Next, I will generate:
+
+THE COMPRESSED MASTER PROMPT FOR STAGE 1 (Items 3–7)
+
+All combined into one Replit AI Agent mega-prompt,
+fully optimized,
+with everything wired, tested, logged,
+and 100% deploy-safe.
+
+
+---
+
+Just tell me:
+Next

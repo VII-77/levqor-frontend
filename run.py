@@ -60,8 +60,10 @@ with app.app_context():
 
 from backend.routes.dsar import dsar_bp
 from backend.routes.dsar_admin import dsar_admin_bp
+from backend.routes.gdpr_optout import gdpr_optout_bp
 app.register_blueprint(dsar_bp)
 app.register_blueprint(dsar_admin_bp)
+app.register_blueprint(gdpr_optout_bp)
 
 _db_connection = None
 
@@ -103,7 +105,13 @@ def get_db():
             marketing_consent_ip TEXT,
             marketing_double_opt_in INTEGER DEFAULT 0,
             marketing_double_opt_in_at REAL,
-            marketing_double_opt_in_token TEXT UNIQUE
+            marketing_double_opt_in_token TEXT UNIQUE,
+            gdpr_opt_out_marketing INTEGER DEFAULT 0,
+            gdpr_opt_out_profiling INTEGER DEFAULT 0,
+            gdpr_opt_out_automation INTEGER DEFAULT 0,
+            gdpr_opt_out_analytics INTEGER DEFAULT 0,
+            gdpr_opt_out_all INTEGER DEFAULT 0,
+            gdpr_opt_out_at REAL
           )
         """)
         _db_connection.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email)")
@@ -317,6 +325,22 @@ def get_db():
         _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_risk_blocks_user ON risk_blocks(user_id)")
         _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_risk_blocks_created ON risk_blocks(created_at)")
         
+        # GDPR objection log (Right to Object audit trail)
+        _db_connection.execute("""
+            CREATE TABLE IF NOT EXISTS gdpr_objection_log(
+                id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                scope TEXT NOT NULL,
+                ip_address TEXT,
+                user_agent TEXT,
+                created_at REAL NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+        """)
+        _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_gdpr_objection_user ON gdpr_objection_log(user_id)")
+        _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_gdpr_objection_scope ON gdpr_objection_log(scope)")
+        _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_gdpr_objection_created ON gdpr_objection_log(created_at)")
+        
         # Billing dunning state (Stripe payment failure tracking)
         _db_connection.execute("""
             CREATE TABLE IF NOT EXISTS billing_dunning_state(
@@ -378,6 +402,27 @@ def get_db():
         _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_dunning_events_invoice ON billing_dunning_events(invoice_id)")
         _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_dunning_events_status ON billing_dunning_events(status)")
         _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_dunning_events_scheduled ON billing_dunning_events(scheduled_for, status)")
+        
+        # Migration: Add GDPR opt-out columns if they don't exist
+        try:
+            cursor = _db_connection.cursor()
+            cursor.execute("PRAGMA table_info(users)")
+            columns = [col[1] for col in cursor.fetchall()]
+            
+            if 'gdpr_opt_out_marketing' not in columns:
+                _db_connection.execute("ALTER TABLE users ADD COLUMN gdpr_opt_out_marketing INTEGER DEFAULT 0")
+            if 'gdpr_opt_out_profiling' not in columns:
+                _db_connection.execute("ALTER TABLE users ADD COLUMN gdpr_opt_out_profiling INTEGER DEFAULT 0")
+            if 'gdpr_opt_out_automation' not in columns:
+                _db_connection.execute("ALTER TABLE users ADD COLUMN gdpr_opt_out_automation INTEGER DEFAULT 0")
+            if 'gdpr_opt_out_analytics' not in columns:
+                _db_connection.execute("ALTER TABLE users ADD COLUMN gdpr_opt_out_analytics INTEGER DEFAULT 0")
+            if 'gdpr_opt_out_all' not in columns:
+                _db_connection.execute("ALTER TABLE users ADD COLUMN gdpr_opt_out_all INTEGER DEFAULT 0")
+            if 'gdpr_opt_out_at' not in columns:
+                _db_connection.execute("ALTER TABLE users ADD COLUMN gdpr_opt_out_at REAL")
+        except Exception as e:
+            log.warning(f"GDPR opt-out migration warning: {e}")
         
         _db_connection.commit()
     return _db_connection

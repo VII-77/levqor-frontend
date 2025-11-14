@@ -169,14 +169,15 @@ def run_retention_cleanup():
         cursor.execute("DELETE FROM status_snapshots WHERE timestamp < ?", (thirty_days_ago,))
         snapshots_deleted = cursor.rowcount
         
-        # Clean up orphaned deletion jobs
+        # Clean up orphaned deletion jobs (keep 90 days)
+        ninety_days_ago = now - (90 * 24 * 60 * 60)
         cursor.execute("DELETE FROM deletion_jobs WHERE status = 'completed' AND deleted_at < ?", (ninety_days_ago,))
         deletion_jobs_cleaned = cursor.rowcount
         
         db.commit()
         db.close()
         
-        log.info(f"✅ Retention cleanup complete: {logs_deleted} logs, {exports_deleted} exports, {snapshots_deleted} snapshots, {deletion_jobs_cleaned} jobs")
+        log.info(f"✅ Additional cleanup: {exports_deleted} DSAR exports, {snapshots_deleted} snapshots, {deletion_jobs_cleaned} jobs")
         
     except Exception as e:
         log.error(f"Retention cleanup error: {e}")

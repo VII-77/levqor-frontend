@@ -148,6 +148,9 @@ export default function Pricing() {
                 >
                   {loading === `dfy-${plan.id}-` ? "Loading..." : `Get ${plan.name} DFY`}
                 </button>
+                <p className="text-center text-xs text-slate-500 mt-2">
+                  Instant Stripe Checkout — secure payment
+                </p>
               </div>
             ))}
           </div>
@@ -192,9 +195,16 @@ export default function Pricing() {
               <div
                 key={plan.id}
                 className={`rounded-2xl bg-slate-900/50 border p-6 hover:border-emerald-400/50 transition-all ${
-                  idx === 2 ? "border-2 border-emerald-500/50 relative" : "border-slate-800"
+                  idx === 1 || idx === 2 ? "border-2 border-emerald-500/50 relative" : "border-slate-800"
                 }`}
               >
+                {idx === 1 && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-bold uppercase">
+                      Most Popular
+                    </span>
+                  </div>
+                )}
                 {idx === 2 && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                     <span className="bg-emerald-500 text-slate-900 px-3 py-1 rounded-full text-xs font-bold uppercase">
@@ -240,8 +250,69 @@ export default function Pricing() {
                     ? "Loading..." 
                     : `Get ${plan.name}`}
                 </button>
+                <p className="text-center text-xs text-slate-500 mt-2">
+                  Instant Stripe Checkout — secure payment
+                </p>
               </div>
             ))}
+          </div>
+        </section>
+
+        {/* Comparison Table */}
+        <section className="mt-16 mb-20">
+          <div className="max-w-5xl mx-auto">
+            <h2 className="text-2xl font-bold text-white mb-6 text-center">Quick comparison</h2>
+            
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-800">
+                    <th className="text-left py-4 px-4 text-sm font-semibold text-slate-400">Feature</th>
+                    <th className="text-center py-4 px-4 text-sm font-semibold text-white">DFY Starter</th>
+                    <th className="text-center py-4 px-4 text-sm font-semibold text-white">DFY Pro</th>
+                    <th className="text-center py-4 px-4 text-sm font-semibold text-white">Growth Sub</th>
+                    <th className="text-center py-4 px-4 text-sm font-semibold text-white">Pro Sub</th>
+                  </tr>
+                </thead>
+                <tbody className="text-sm">
+                  <tr className="border-b border-slate-800/50">
+                    <td className="py-4 px-4 text-slate-300">Setup Time</td>
+                    <td className="text-center py-4 px-4 text-slate-400">48 hours</td>
+                    <td className="text-center py-4 px-4 text-slate-400">3-4 days</td>
+                    <td className="text-center py-4 px-4 text-slate-400">24-48 hours</td>
+                    <td className="text-center py-4 px-4 text-slate-400">24-48 hours</td>
+                  </tr>
+                  <tr className="border-b border-slate-800/50">
+                    <td className="py-4 px-4 text-slate-300">Support Level</td>
+                    <td className="text-center py-4 px-4 text-slate-400">7 days email</td>
+                    <td className="text-center py-4 px-4 text-slate-400">30 days priority</td>
+                    <td className="text-center py-4 px-4 text-slate-400">Priority (12-24h)</td>
+                    <td className="text-center py-4 px-4 text-slate-400">Priority + calls</td>
+                  </tr>
+                  <tr className="border-b border-slate-800/50">
+                    <td className="py-4 px-4 text-slate-300">Workflow Limit</td>
+                    <td className="text-center py-4 px-4 text-slate-400">1 workflow</td>
+                    <td className="text-center py-4 px-4 text-slate-400">3 workflows</td>
+                    <td className="text-center py-4 px-4 text-slate-400">3/month</td>
+                    <td className="text-center py-4 px-4 text-slate-400">7/month</td>
+                  </tr>
+                  <tr className="border-b border-slate-800/50">
+                    <td className="py-4 px-4 text-slate-300">DFY Included?</td>
+                    <td className="text-center py-4 px-4 text-emerald-400">✓</td>
+                    <td className="text-center py-4 px-4 text-emerald-400">✓</td>
+                    <td className="text-center py-4 px-4 text-slate-600">—</td>
+                    <td className="text-center py-4 px-4 text-slate-600">—</td>
+                  </tr>
+                  <tr className="border-b border-slate-800/50">
+                    <td className="py-4 px-4 text-slate-300">Revisions</td>
+                    <td className="text-center py-4 px-4 text-slate-400">1 round</td>
+                    <td className="text-center py-4 px-4 text-slate-400">2 rounds</td>
+                    <td className="text-center py-4 px-4 text-slate-400">Ongoing</td>
+                    <td className="text-center py-4 px-4 text-slate-400">Unlimited</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </section>
 

@@ -49,6 +49,18 @@ app = Flask(__name__,
 app.config["MAX_CONTENT_LENGTH"] = int(os.environ.get("MAX_CONTENT_LENGTH", 512 * 1024))
 
 DB_PATH = os.environ.get("SQLITE_PATH", os.path.join(os.getcwd(), "levqor.db"))
+
+from app import db
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', f'sqlite:///{DB_PATH}')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db.init_app(app)
+
+with app.app_context():
+    db.create_all()
+
+from backend.routes.dsar import dsar_bp
+app.register_blueprint(dsar_bp)
+
 _db_connection = None
 
 API_KEYS = set((os.environ.get("API_KEYS") or "").split(",")) - {""}

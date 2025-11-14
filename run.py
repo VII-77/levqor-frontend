@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, Response
+from flask import Flask, request, jsonify, Response, redirect
 from jsonschema import validate, ValidationError, FormatChecker
 from time import time
 from uuid import uuid4

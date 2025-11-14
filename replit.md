@@ -42,6 +42,14 @@ The frontend is built with Next.js 14 and TypeScript, featuring a clear authenti
             - Backend endpoints: POST /api/data-export/request, POST /api/data-export/download.
             - Resend email integration with HTML/text templates.
             - Exports stored in ./exports/ directory (gitignored).
+        - **Marketing Consent System (PECR/GDPR Double Opt-In)**:
+            - user_marketing_consent table tracking all consent records with status, scope, source.
+            - Three consent statuses: pending_double_opt_in, granted, revoked.
+            - Double opt-in flow: POST /api/marketing/consent/start → email → GET /api/marketing/consent/confirm.
+            - One-click unsubscribe: GET /api/marketing/unsubscribe?token=XYZ.
+            - Frontend pages: /marketing/confirmed, /marketing/unsubscribed.
+            - Email footer requirements documented in EMAIL_FOOTER_REQUIREMENTS.md.
+            - System rule: Marketing emails ONLY to status="granted", transactional emails allowed without consent.
         - User data schema includes terms_accepted_at, terms_version, terms_accepted_ip, marketing_consent, marketing_double_opt_in, marketing_double_opt_in_token.
 - **Health & Monitoring**:
     - Dedicated endpoints for system status (`/health`, `/public/metrics`, etc.).

@@ -1,6 +1,70 @@
+"use client";
 import Link from "next/link";
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 
 export default function DataRequestsPage() {
+  const { data: session } = useSession();
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  useEffect(() => {
+    if (session?.user?.email) {
+      setEmail(session.user.email);
+    }
+  }, [session]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email) {
+      setMessage({ type: "error", text: "Please enter your email address" });
+      return;
+    }
+
+    setLoading(true);
+    setMessage(null);
+
+    try {
+      const backendApi = process.env.NEXT_PUBLIC_API_URL || "https://api.levqor.ai";
+      const response = await fetch(`${backendApi}/api/dsar/request`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (data.ok || response.status === 202) {
+        setMessage({
+          type: "success",
+          text: data.message || "Request received. If an account exists, you'll receive your data export via email shortly.",
+        });
+        if (data.reference) {
+          setMessage({
+            type: "success",
+            text: `${data.message} Reference: ${data.reference}`,
+          });
+        }
+      } else {
+        setMessage({
+          type: "error",
+          text: data.message || data.error || "Request failed. Please try again.",
+        });
+      }
+    } catch (error) {
+      setMessage({
+        type: "error",
+        text: "Network error. Please try again later.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <main className="min-h-screen bg-slate-950 text-slate-50">
       <div className="max-w-3xl mx-auto px-4 py-12 space-y-6">
@@ -29,20 +93,74 @@ export default function DataRequestsPage() {
         </section>
 
         <section className="bg-emerald-950/30 border-2 border-emerald-900/50 rounded-lg p-6 mt-8">
-          <h2 className="text-2xl font-bold text-white mb-4">🔐 Self-Service Data Export</h2>
-          <p className="text-slate-300 leading-relaxed mb-4">
-            You can now request and download your personal data instantly using our Privacy Tools page. 
-            This is the fastest way to exercise your right of access under GDPR Article 15.
+          <h2 className="text-2xl font-bold text-white mb-4">🔐 Request Your Data Export</h2>
+          <p className="text-slate-300 leading-relaxed mb-6">
+            Request a complete copy of your personal data sent directly to your email.
+            This exercises your right of access under GDPR Article 15.
           </p>
-          <Link 
-            href="/privacy-tools"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-semibold transition"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            Go to Privacy Tools
-          </Link>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2">
+                Email Address
+              </label>
+              {session?.user?.email ? (
+                <div className="w-full rounded-lg border-2 border-slate-700 bg-slate-800/50 py-3 px-4 text-slate-300">
+                  {session.user.email}
+                </div>
+              ) : (
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@company.com"
+                  required
+                  className="w-full rounded-lg border-2 border-slate-700 bg-slate-800/50 py-3 px-4 text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none transition"
+                />
+              )}
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className={`w-full py-3 px-6 rounded-lg font-semibold transition ${
+                loading
+                  ? "bg-slate-700 text-slate-400 cursor-not-allowed"
+                  : "bg-emerald-500 hover:bg-emerald-400 text-slate-900"
+              }`}
+            >
+              {loading ? "Processing..." : "Request My Data Export"}
+            </button>
+          </form>
+
+          {message && (
+            <div
+              className={`mt-4 p-4 rounded-lg ${
+                message.type === "success"
+                  ? "bg-emerald-500/10 border border-emerald-500/30 text-emerald-400"
+                  : "bg-red-500/10 border border-red-500/30 text-red-400"
+              }`}
+            >
+              <p className="text-sm">{message.text}</p>
+            </div>
+          )}
+
+          <div className="mt-6 bg-slate-800/50 border border-slate-700 rounded-lg p-4">
+            <h3 className="text-sm font-semibold text-emerald-400 mb-2">What's included in your export:</h3>
+            <ul className="space-y-1 text-sm text-slate-300 ml-4">
+              <li>• User profile and account information</li>
+              <li>• Workflows and automation history</li>
+              <li>• API keys (prefixes only, for security)</li>
+              <li>• Partnerships and referrals</li>
+              <li>• Audit logs and activity records</li>
+            </ul>
+          </div>
+
+          <p className="text-xs text-slate-400 mt-4">
+            Your export will be sent as a ZIP attachment to your email if it matches our records.
+            We typically process requests within minutes, but may take up to 30 days as required by law.
+          </p>
         </section>
 
         <section className="space-y-4 mt-8">

@@ -227,6 +227,29 @@ def get_db():
         from dsar.models import init_dsar_tables
         init_dsar_tables(_db_connection)
         
+        # Initialize compliance tables (SLA, disputes, incidents)
+        from compliance.models import init_compliance_tables
+        init_compliance_tables(_db_connection)
+        
+        # Initialize dunning tables
+        from dunning.models import init_dunning_tables
+        init_dunning_tables(_db_connection)
+        
+        # Deletion jobs table
+        _db_connection.execute("""
+            CREATE TABLE IF NOT EXISTS deletion_jobs(
+                id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                email TEXT NOT NULL,
+                requested_at REAL NOT NULL,
+                status TEXT NOT NULL DEFAULT 'pending',
+                deleted_at REAL,
+                error TEXT,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+        """)
+        _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_deletion_jobs_status ON deletion_jobs(status)")
+        
         _db_connection.commit()
     return _db_connection
 
@@ -1377,6 +1400,241 @@ def dsar_download():
             'Content-Disposition': f'attachment; filename="{filename}"'
         }
     )
+
+# ============================================================================
+# Compliance & Legal Endpoints
+# ============================================================================
+
+@app.post("/api/sla/claim")
+def sla_claim():
+    """Submit SLA credit request"""
+    user_email = request.headers.get("X-User-Email")
+    if not user_email:
+        return jsonify({"ok": False, "error": "UNAUTHORIZED"}), 401
+    
+    db = get_db()
+    cursor = db.cursor()
+    
+    cursor.execute("SELECT id FROM users WHERE email = ?", (user_email,))
+    user_row = cursor.fetchone()
+    if not user_row:
+        return jsonify({"ok": False, "error": "USER_NOT_FOUND"}), 404
+    
+    user_id = user_row[0]
+    data = request.get_json() or {}
+    
+    request_id = str(uuid4())
+    now = time()
+    
+    cursor.execute("""
+        INSERT INTO sla_credit_requests 
+        (id, user_id, created_at, period_start, period_end, claimed_issue, status)
+        VALUES (?, ?, ?, ?, ?, ?, 'pending')
+    """, (request_id, user_id, now, data.get("periodStart"), data.get("periodEnd"), data.get("claimedIssue")))
+    
+    db.commit()
+    
+    log.info(f"[SLA] Credit request {request_id} from user {user_id}")
+    
+    return jsonify({"ok": True, "request_id": request_id}), 201
+
+
+@app.post("/api/disputes")
+def create_dispute():
+    """Submit customer dispute"""
+    user_email = request.headers.get("X-User-Email")
+    if not user_email:
+        return jsonify({"ok": False, "error": "UNAUTHORIZED"}), 401
+    
+    db = get_db()
+    cursor = db.cursor()
+    
+    cursor.execute("SELECT id FROM users WHERE email = ?", (user_email,))
+    user_row = cursor.fetchone()
+    if not user_row:
+        return jsonify({"ok": False, "error": "USER_NOT_FOUND"}), 404
+    
+    user_id = user_row[0]
+    data = request.get_json() or {}
+    
+    dispute_id = str(uuid4())
+    now = time()
+    
+    cursor.execute("""
+        INSERT INTO disputes 
+        (id, user_id, created_at, subject, description, category, status)
+        VALUES (?, ?, ?, ?, ?, ?, 'pending')
+    """, (dispute_id, user_id, now, data.get("subject"), data.get("description"), data.get("category", "other")))
+    
+    db.commit()
+    
+    log.info(f"[DISPUTE] New dispute {dispute_id} from user {user_id}: {data.get('subject')}")
+    
+    return jsonify({"ok": True, "dispute_id": dispute_id}), 201
+
+
+@app.post("/api/emergency/report")
+def emergency_report():
+    """Report severity-1 incident"""
+    user_email = request.headers.get("X-User-Email")
+    if not user_email:
+        return jsonify({"ok": False, "error": "UNAUTHORIZED"}), 401
+    
+    db = get_db()
+    cursor = db.cursor()
+    
+    cursor.execute("SELECT id FROM users WHERE email = ?", (user_email,))
+    user_row = cursor.fetchone()
+    if not user_row:
+        return jsonify({"ok": False, "error": "USER_NOT_FOUND"}), 404
+    
+    user_id = user_row[0]
+    data = request.get_json() or {}
+    
+    incident_id = str(uuid4())
+    now = time()
+    
+    cursor.execute("""
+        INSERT INTO incidents 
+        (id, started_at, title, description, severity, status, user_reported, reported_by_user_id)
+        VALUES (?, ?, ?, ?, 1, 'investigating', 1, ?)
+    """, (incident_id, now, data.get("summary"), data.get("impact"), user_id))
+    
+    db.commit()
+    
+    log.error(f"[EMERGENCY] SEV-1 report {incident_id} from user {user_id}: {data.get('summary')}")
+    
+    # TODO: Alert on-call engineer
+    
+    return jsonify({"ok": True, "incident_id": incident_id}), 201
+
+
+@app.get("/api/status")
+def public_status():
+    """Public system status endpoint"""
+    db = get_db()
+    cursor = db.cursor()
+    
+    # Get last 10 incidents
+    cursor.execute("""
+        SELECT id, started_at, resolved_at, title, description, severity, status
+        FROM incidents 
+        ORDER BY started_at DESC 
+        LIMIT 10
+    """)
+    
+    incidents = []
+    for row in cursor.fetchall():
+        incidents.append({
+            "id": row[0],
+            "started_at": row[1],
+            "resolved_at": row[2],
+            "title": row[3],
+            "description": row[4],
+            "severity": row[5],
+            "status": row[6]
+        })
+    
+    # Determine overall status
+    cursor.execute("SELECT COUNT(*) FROM incidents WHERE status != 'resolved' AND severity = 1")
+    sev1_count = cursor.fetchone()[0]
+    
+    cursor.execute("SELECT COUNT(*) FROM incidents WHERE status != 'resolved' AND severity = 2")
+    sev2_count = cursor.fetchone()[0]
+    
+    if sev1_count > 0:
+        overall_status = "major_outage"
+    elif sev2_count > 0:
+        overall_status = "partial_outage"
+    else:
+        overall_status = "operational"
+    
+    return jsonify({
+        "status": overall_status,
+        "incidents": incidents,
+        "last_updated": time()
+    }), 200
+
+
+@app.post("/api/account/delete")
+def delete_account():
+    """Request account deletion (GDPR Right to Erasure)"""
+    user_email = request.headers.get("X-User-Email")
+    if not user_email:
+        return jsonify({"ok": False, "error": "UNAUTHORIZED"}), 401
+    
+    db = get_db()
+    cursor = db.cursor()
+    
+    cursor.execute("SELECT id FROM users WHERE email = ?", (user_email,))
+    user_row = cursor.fetchone()
+    if not user_row:
+        return jsonify({"ok": False, "error": "USER_NOT_FOUND"}), 404
+    
+    user_id = user_row[0]
+    
+    # Create deletion job
+    deletion_id = str(uuid4())
+    now = time()
+    
+    cursor.execute("""
+        INSERT INTO deletion_jobs (id, user_id, email, requested_at, status)
+        VALUES (?, ?, ?, ?, 'pending')
+    """, (deletion_id, user_id, user_email, now))
+    
+    db.commit()
+    
+    log.warning(f"[DELETION] Account deletion requested for user {user_id} ({user_email})")
+    
+    # TODO: Queue background job to actually delete data
+    
+    return jsonify({"ok": True, "deletion_id": deletion_id}), 202
+
+
+@app.post("/api/internal/run-deletions")
+def run_deletions():
+    """Background worker to execute pending deletions (internal only)"""
+    # Verify admin token
+    auth_header = request.headers.get("Authorization", "")
+    token = auth_header.replace("Bearer ", "")
+    if token != ADMIN_TOKEN:
+        return jsonify({"error": "unauthorized"}), 401
+    
+    db = get_db()
+    cursor = db.cursor()
+    
+    cursor.execute("SELECT id, user_id, email FROM deletion_jobs WHERE status = 'pending' LIMIT 10")
+    jobs = cursor.fetchall()
+    
+    deleted_count = 0
+    
+    for job_id, user_id, email in jobs:
+        try:
+            # Delete user data
+            cursor.execute("DELETE FROM dsar_requests WHERE user_id = ?", (user_id,))
+            cursor.execute("DELETE FROM dsar_exports WHERE user_id = ?", (user_id,))
+            cursor.execute("DELETE FROM developer_keys WHERE user_id = ?", (user_id,))
+            cursor.execute("DELETE FROM referrals WHERE user_id = ?", (user_id,))
+            cursor.execute("DELETE FROM sla_credit_requests WHERE user_id = ?", (user_id,))
+            cursor.execute("DELETE FROM disputes WHERE user_id = ?", (user_id,))
+            cursor.execute("DELETE FROM payment_failures WHERE user_id = ?", (user_id,))
+            cursor.execute("DELETE FROM dunning_emails WHERE user_id = ?", (user_id,))
+            cursor.execute("DELETE FROM users WHERE id = ?", (user_id,))
+            
+            # Mark job complete
+            cursor.execute("UPDATE deletion_jobs SET status = 'completed', deleted_at = ? WHERE id = ?", (time(), job_id))
+            db.commit()
+            
+            deleted_count += 1
+            log.info(f"[DELETION] Successfully deleted user {user_id} ({email})")
+            
+        except Exception as e:
+            cursor.execute("UPDATE deletion_jobs SET status = 'failed', error = ? WHERE id = ?", (str(e), job_id))
+            db.commit()
+            log.error(f"[DELETION] Failed to delete user {user_id}: {e}")
+    
+    return jsonify({"ok": True, "deleted": deleted_count}), 200
+
 
 from monitors.scheduler import init_scheduler
 init_scheduler()

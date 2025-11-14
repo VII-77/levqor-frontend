@@ -27,6 +27,7 @@ The frontend uses Next.js 14 and TypeScript, offering an authentication flow wit
         - Marketing consent system with double opt-in verification.
         - High-risk data prohibition system blocking medical/legal/financial workflows via keyword detection.
         - **DSAR (Data Subject Access Request) Export System v2.0**: Email-based data exports sent as ZIP attachments (max 5MB) with no download links or tokens. Includes rate limiting (1 request per 24h), in-memory ZIP generation, and comprehensive audit logging. Frontend at `/data-requests`.
+        - **GDPR Right to Object / Opt-out System**: Full end-to-end implementation allowing users to object to marketing, profiling, automation, and analytics processing. Includes API endpoints (GET/POST `/api/gdpr/opt-out`), enforcement helpers, audit logging, confirmation emails, and frontend UI at `/privacy-tools/opt-out`. Opt-out preferences are enforced across email, automation, profiling, and analytics, and included in DSAR exports.
         - Payment Dunning System (Stripe integration) for managing failed payments with scheduled email notifications and account suspension logic.
         - Data Retention & Deletion System with configurable retention policies and automated cleanup, including a user-initiated "Delete My Data" feature.
     - **Compliance Documentation**: Internal compliance pack, ROPA, DPIA, and LIA documents.

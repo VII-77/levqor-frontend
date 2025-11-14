@@ -43,12 +43,22 @@ export default function SubprocessorsPage() {
 
             <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-4">
               <h3 className="text-lg font-semibold text-white mb-1">Google</h3>
-              <p className="text-slate-400 text-sm">OAuth</p>
+              <p className="text-slate-400 text-sm">Auth</p>
+            </div>
+
+            <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-white mb-1">Microsoft</h3>
+              <p className="text-slate-400 text-sm">Auth</p>
             </div>
 
             <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-4">
               <h3 className="text-lg font-semibold text-white mb-1">Cloudflare</h3>
-              <p className="text-slate-400 text-sm">DNS</p>
+              <p className="text-slate-400 text-sm">CDN</p>
+            </div>
+
+            <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-white mb-1">Notion</h3>
+              <p className="text-slate-400 text-sm">Internal documentation</p>
             </div>
           </div>
         </section>
@@ -57,6 +67,9 @@ export default function SubprocessorsPage() {
           <p className="text-slate-300 text-sm leading-relaxed">
             All subprocessors are selected for their strong data protection standards and compliance with UK GDPR. 
             We have appropriate data processing agreements in place with each provider.
+          </p>
+          <p className="text-slate-300 text-sm leading-relaxed">
+            We will notify users 30 days before adding or removing sub-processors whenever legally required.
           </p>
         </section>
 

@@ -20,14 +20,16 @@ export default function AcceptableUsePage() {
         </p>
 
         <section className="space-y-4">
+          <h2 className="text-2xl font-bold text-white">Prohibited Use</h2>
           <ul className="list-disc list-inside space-y-3 text-slate-300 ml-4">
-            <li>Break laws</li>
-            <li>Harm systems or networks</li>
-            <li>Automate fraudulent behaviour</li>
-            <li>Create harmful, illegal, or deceptive workflows</li>
-            <li>Scrape excessively</li>
-            <li>Attack infrastructure</li>
-            <li>Harass employees or support agents</li>
+            <li>Spam</li>
+            <li>Fraud</li>
+            <li>Harassment</li>
+            <li>Scraping protected content</li>
+            <li>Bypassing security</li>
+            <li>Illegal data processing</li>
+            <li>Automating harmful behaviour</li>
+            <li>Deepfakes of real individuals</li>
           </ul>
         </section>
 

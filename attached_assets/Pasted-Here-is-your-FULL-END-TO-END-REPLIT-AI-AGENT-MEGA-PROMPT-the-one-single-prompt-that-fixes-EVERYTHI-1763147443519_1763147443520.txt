@@ -1,0 +1,213 @@
+Here is your FULL END-TO-END REPLIT AI AGENT MEGA-PROMPT — the one single prompt that fixes EVERYTHING:
+
+Git repo path
+
+Wrong folder problem
+
+Missing workflows
+
+CI setup
+
+Build verification
+
+Vercel mismatch
+
+Cloudflare DNS check
+
+Domain routing
+
+Final deployment check
+
+
+It follows ALL your rules:
+
+No assumptions
+
+Explicit file checks
+
+Use grep, ls, sed, curl, diffs
+
+Real verification after every action
+
+Never trust output without checking
+
+One unified plan
+
+
+Copy/paste this EXACT block into Replit AI:
+
+You are the Replit AI Agent responsible for fixing the full Levqor frontend deployment pipeline. 
+DO NOT assume success. VERIFY everything with ls, cat, grep, sed, curl, and diffs. 
+Follow all instructions exactly and confirm each step with real file checks.
+
+====================================================
+STEP 1 — VERIFY WE ARE IN THE CORRECT REPO FOLDER
+====================================================
+1. Show current directory:
+   pwd
+   ls -la
+
+2. If the folder is NOT named "levqor-frontend", locate it:
+   find . -maxdepth 4 -type d -name "levqor-frontend"
+
+3. cd into the folder:
+   cd levqor-frontend
+
+4. Re-verify:
+   pwd
+   ls -la
+
+====================================================
+STEP 2 — VERIFY GIT REMOTE + BRANCH
+====================================================
+1. Check remote + branch:
+   git remote -v
+   git branch
+   git status
+
+2. Ensure remote is:
+   https://github.com/VII-77/levqor-frontend.git
+
+   If not:
+   git remote set-url origin https://github.com/VII-77/levqor-frontend.git
+
+3. Ensure we are on main branch:
+   git checkout main
+
+====================================================
+STEP 3 — VERIFY .GITHUB WORKFLOWS CONFIGURATION
+====================================================
+1. Check for .github folder:
+   ls -la .github || echo "NO .github FOLDER"
+
+2. If missing:
+   mkdir -p .github/workflows
+
+3. Show workflows:
+   ls -la .github/workflows
+
+4. If ci.yml missing, create it:
+   cat > .github/workflows/ci.yml << 'EOF'
+   name: Levqor CI
+   on:
+     push:
+       branches: [ "main" ]
+     pull_request:
+       branches: [ "main" ]
+   jobs:
+     build:
+       runs-on: ubuntu-latest
+       steps:
+         - uses: actions/checkout@v4
+         - uses: actions/setup-node@v4
+           with:
+             node-version: 20
+         - run: npm install
+         - run: npm run build
+   EOF
+
+5. VERIFY ci.yml EXACTLY:
+   sed -n '1,200p' .github/workflows/ci.yml
+
+====================================================
+STEP 4 — VERIFY NEXT.JS SETUP
+====================================================
+1. Verify package.json:
+   sed -n '1,200p' package.json
+
+2. Confirm build script:
+   grep -R "\"build\"" -n package.json || echo "NO BUILD SCRIPT FOUND"
+
+3. Check project structure:
+   ls -la src
+   ls -la app
+   ls -la public
+
+====================================================
+STEP 5 — LOCAL BUILD VERIFICATION
+====================================================
+1. Run local build:
+   npm install
+   npm run build
+
+2. If any error occurs:
+   - Search missing modules:
+       grep -R "module not found" -n .
+   - Search missing files:
+       grep -R "Cannot find module" -n .
+   - Show offending import line:
+       grep -R "<missing-file-name>" -n src app
+
+3. FIX ONLY WHEN FILE EXISTS.
+   Always verify with:
+       ls -la <path>
+
+====================================================
+STEP 6 — FINAL GIT COMMIT + VERIFY
+====================================================
+1. Check status:
+   git status
+
+2. Stage all:
+   git add -A
+
+3. Commit:
+   git commit -m "fix: verified Levqor frontend build, CI, and paths"
+
+4. VERIFY staged changes before push:
+   git diff --staged
+
+====================================================
+STEP 7 — PUSH TO MAIN (WORKFLOW-SAFE)
+====================================================
+git push origin main
+
+====================================================
+STEP 8 — VERIFY PUSH SUCCEEDED
+====================================================
+git fetch --all
+git status
+git log -1
+
+====================================================
+STEP 9 — VERCEL + DOMAIN CONFIG CHECK (READ-ONLY)
+====================================================
+READ Vercel config:
+   grep -R "vercel" -n .
+
+Verify vercel.json (if exists):
+   cat vercel.json || echo "NO vercel.json"
+
+OUTPUT WARNING:
+   "Ensure levqor.ai and www.levqor.ai are mapped to the Vercel PROJECT: levqor-frontend (NOT levqor-site)."
+
+====================================================
+STEP 10 — PRODUCTION VALIDATION
+====================================================
+Using curl, verify homepage HTML loads correctly:
+
+curl -I https://levqor.ai || echo "DNS/Domain not pointing to correct Vercel project"
+
+curl -I https://www.levqor.ai || echo "DNS/Domain not pointing to correct Vercel project"
+
+====================================================
+
+END OF TASK. 
+DO NOT assume any step passed. 
+Confirm everything by printing real file contents, diffs, and verification outputs.
+
+
+---
+
+If you want:
+
+A version for Vercel AI Assist
+
+A version for Cloudflare Workers AI
+
+A version for GitHub Copilot CLI
+
+Or a combined “Replit → GitHub → Vercel → Cloudflare” pipeline
+
+
+Say: “Give me the global chain prompt.”

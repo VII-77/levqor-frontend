@@ -1,0 +1,7 @@
+{
+  "buildCommand": "cd levqor-site && npm install && npm run build",
+  "devCommand": "cd levqor-site && npm run dev",
+  "installCommand": "cd levqor-site && npm install",
+  "framework": null,
+  "outputDirectory": "levqor-site/.next"
+}

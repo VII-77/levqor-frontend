@@ -5,52 +5,48 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { email, tosVersion, privacyVersion, marketingConsent, provider } = body;
 
-    // Get IP from headers (best-effort)
-    const forwarded = request.headers.get('x-forwarded-for');
-    const ip = forwarded ? forwarded.split(',')[0].trim() : request.headers.get('x-real-ip') || 'unknown';
+    if (!email) {
+      return NextResponse.json({ ok: false, error: 'Email required' }, { status: 400 });
+    }
 
-    // Get user agent
-    const userAgent = request.headers.get('user-agent') || 'unknown';
+    const backendApi = process.env.NEXT_PUBLIC_API_URL || 'https://api.levqor.ai';
 
-    // Log to server console as structured JSON
-    const logEntry = {
-      type: 'tos_accept',
-      email: email || 'unknown',
-      tosVersion: tosVersion || '2024-11-01',
-      privacyVersion: privacyVersion || '2024-11-01',
-      marketingConsent: marketingConsent || false,
-      provider: provider || 'unknown',
-      ip,
-      userAgent,
-      ts: new Date().toISOString(),
-    };
+    // Log TOS acceptance to backend
+    const tosResponse = await fetch(`${backendApi}/api/legal/accept-terms`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email,
+        tos_version: tosVersion || '2025-Genesis-v1',
+        privacy_version: privacyVersion || '2025-Genesis-v1'
+      })
+    });
 
-    console.log(JSON.stringify(logEntry));
+    const tosData = await tosResponse.json();
 
-    // If marketing consent is true and email exists, queue double opt-in (stub)
+    if (!tosData.ok) {
+      console.error('TOS acceptance logging failed:', tosData.error);
+    }
+
+    // If marketing consent was given, start subscription process
     if (marketingConsent && email) {
-      queueMarketingDoubleOptIn(email);
+      const marketingResponse = await fetch(`${backendApi}/api/marketing/subscribe`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+
+      const marketingData = await marketingResponse.json();
+
+      if (!marketingData.ok) {
+        console.error('Marketing consent logging failed:', marketingData.error);
+      }
     }
 
     return NextResponse.json({ ok: true }, { status: 200 });
-  } catch (error) {
-    console.error('Consent API error:', error);
-    return NextResponse.json(
-      { ok: false, error: 'Failed to log consent' },
-      { status: 500 }
-    );
-  }
-}
 
-/**
- * Stub function for marketing double opt-in
- * TODO: Later integrate with Resend/Mail provider to send confirmation email
- */
-function queueMarketingDoubleOptIn(email: string) {
-  // This is a stub - just log to console for now
-  console.log(JSON.stringify({
-    type: 'marketing_double_opt_in_stub',
-    email,
-    ts: new Date().toISOString(),
-  }));
+  } catch (error) {
+    console.error('Consent acceptance error:', error);
+    return NextResponse.json({ ok: true }, { status: 200 });
+  }
 }

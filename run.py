@@ -61,9 +61,13 @@ with app.app_context():
 from backend.routes.dsar import dsar_bp
 from backend.routes.dsar_admin import dsar_admin_bp
 from backend.routes.gdpr_optout import gdpr_optout_bp
+from backend.routes.legal import legal_bp
+from backend.routes.marketing import marketing_bp
 app.register_blueprint(dsar_bp)
 app.register_blueprint(dsar_admin_bp)
 app.register_blueprint(gdpr_optout_bp)
+app.register_blueprint(legal_bp)
+app.register_blueprint(marketing_bp)
 
 _db_connection = None
 

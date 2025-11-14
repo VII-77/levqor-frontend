@@ -50,6 +50,13 @@ The frontend is built with Next.js 14 and TypeScript, featuring a clear authenti
             - Frontend pages: /marketing/confirmed, /marketing/unsubscribed.
             - Email footer requirements documented in EMAIL_FOOTER_REQUIREMENTS.md.
             - System rule: Marketing emails ONLY to status="granted", transactional emails allowed without consent.
+        - **High-Risk Data Firewall (GDPR/ICO Compliance)**:
+            - Automatic blocking of medical, legal, and financial workflows at API level.
+            - Keyword detection for prohibited content in all workflow fields.
+            - risk_blocks audit table logging all blocked attempts with terms, IP, timestamp.
+            - Instant rejection with clear error messages.
+            - Frontend disclosure page at /risk-disclosure explaining policy.
+            - Required for GDPR automated decision-making compliance and liability protection.
         - User data schema includes terms_accepted_at, terms_version, terms_accepted_ip, marketing_consent, marketing_double_opt_in, marketing_double_opt_in_token.
 - **Health & Monitoring**:
     - Dedicated endpoints for system status (`/health`, `/public/metrics`, etc.).

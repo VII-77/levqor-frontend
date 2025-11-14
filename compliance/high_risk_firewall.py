@@ -63,6 +63,8 @@ def validate_workflow_content(data: Dict) -> Tuple[bool, str, List[str]]:
     fields_to_check = []
     
     # Common workflow fields
+    if "workflow" in data:
+        fields_to_check.append(data["workflow"])
     if "description" in data:
         fields_to_check.append(data["description"])
     if "name" in data:
@@ -77,6 +79,8 @@ def validate_workflow_content(data: Dict) -> Tuple[bool, str, List[str]]:
         fields_to_check.append(data["prompt"])
     if "task_description" in data:
         fields_to_check.append(data["task_description"])
+    if "payload" in data:
+        fields_to_check.append(str(data["payload"]))
     
     # Check all fields
     all_blocked_terms = []

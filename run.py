@@ -648,6 +648,22 @@ def intake():
     if rate_check:
         return rate_check
     
+    # Check for account suspension (billing dunning)
+    api_key = request.headers.get("X-Api-Key")
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute("SELECT user_id FROM api_keys WHERE key_hash = ?", (hashlib.sha256(api_key.encode()).hexdigest(),))
+    key_record = cursor.fetchone()
+    
+    if key_record and key_record[0]:
+        user_id = key_record[0]
+        if is_account_suspended(user_id):
+            return jsonify({
+                "ok": False,
+                "error": "ACCOUNT_SUSPENDED",
+                "message": "Account access suspended due to payment failure. Please update your billing details to restore service."
+            }), 403
+    
     if not request.is_json:
         return bad_request("Content-Type must be application/json")
     data = request.get_json(silent=True)

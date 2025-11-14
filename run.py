@@ -1672,6 +1672,191 @@ def delete_my_data():
         }), 500
 
 
+# ============================================================================
+# DSAR (via Email Attachment) - Simplified endpoint for GDPR/UK-GDPR compliance
+# ============================================================================
+
+@app.post("/api/dsar/request")
+def dsar_request_via_email():
+    """
+    Request data export sent directly via email attachment (no download links)
+    GDPR/UK-GDPR Article 15 - Right of Access
+    """
+    from dsar.exporter import generate_user_export_bytes
+    from dsar.email import send_export_as_attachment
+    from dsar.audit import log_dsar_event
+    
+    # Get user from session or request body
+    user_email = request.headers.get("X-User-Email")
+    
+    # Allow email-only requests (for users not signed in)
+    if not user_email:
+        data = request.get_json() or {}
+        user_email = data.get("email")
+    
+    if not user_email:
+        return jsonify({"ok": False, "error": "Email required"}), 400
+    
+    db = get_db()
+    cursor = db.cursor()
+    
+    # Get user
+    cursor.execute("SELECT id, email, name FROM users WHERE email = ?", (user_email,))
+    user_row = cursor.fetchone()
+    
+    if not user_row:
+        # For privacy, don't reveal if user exists - just say request received
+        return jsonify({
+            "ok": True,
+            "status": "processing",
+            "message": "If an account exists with this email, you'll receive your data export shortly."
+        }), 202
+    
+    user_id, email, name = user_row
+    ip_address = request.headers.get("X-Forwarded-For", request.remote_addr)
+    user_agent = request.headers.get("User-Agent", "")
+    
+    # Rate limiting: Check for recent requests (24 hours)
+    twenty_four_hours_ago = time() - (24 * 60 * 60)
+    cursor.execute("""
+        SELECT id FROM dsar_requests 
+        WHERE user_id = ? 
+        AND requested_at >= ? 
+        AND status IN ('pending', 'processing', 'completed')
+    """, (user_id, twenty_four_hours_ago))
+    
+    if cursor.fetchone():
+        log_dsar_event(db, user_id, email, "request_rate_limited", ip_address, user_agent)
+        return jsonify({
+            "ok": False,
+            "error": "RATE_LIMITED",
+            "message": "You already requested an export in the last 24 hours. Please wait before requesting again."
+        }), 429
+    
+    # Create DSAR request record
+    request_id = str(uuid4())
+    now = time()
+    
+    cursor.execute("""
+        INSERT INTO dsar_requests (id, user_id, email, requested_at, status, type, ip_address)
+        VALUES (?, ?, ?, ?, 'processing', 'email_export', ?)
+    """, (request_id, user_id, email, now, ip_address))
+    db.commit()
+    
+    log_dsar_event(db, user_id, email, "request_created", ip_address, user_agent, request_id)
+    
+    # Generate export and send via email (synchronous for now)
+    # TODO: Move to background worker for production at scale
+    try:
+        # Generate ZIP in memory
+        zip_bytes, filename, size_bytes, data_categories = generate_user_export_bytes(db, user_id)
+        
+        # Send via email as attachment
+        email_result = send_export_as_attachment(email, name, zip_bytes, filename, request_id[:8])
+        
+        if email_result["ok"]:
+            cursor.execute("""
+                UPDATE dsar_requests 
+                SET status = 'completed', notes = ? 
+                WHERE id = ?
+            """, (f"Email sent successfully. Size: {size_bytes} bytes", request_id))
+            db.commit()
+            
+            log_dsar_event(db, user_id, email, "email_export_sent", ip_address, user_agent, request_id, 
+                          details=f"size={size_bytes}, filename={filename}")
+            log.info(f"[DSAR] Export email sent to {email}, size {size_bytes} bytes, ref {request_id[:8]}")
+            
+            return jsonify({
+                "ok": True,
+                "status": "completed",
+                "reference": request_id[:8],
+                "message": "Your data export has been sent to your email address."
+            }), 200
+        else:
+            cursor.execute("""
+                UPDATE dsar_requests 
+                SET status = 'failed', notes = ? 
+                WHERE id = ?
+            """, (f"Email send failed: {email_result.get('error')}", request_id))
+            db.commit()
+            
+            log_dsar_event(db, user_id, email, "email_export_failed", ip_address, user_agent, request_id,
+                          details=email_result.get('error'))
+            log.error(f"[DSAR] Email send failed for {email}: {email_result.get('error')}")
+            
+            return jsonify({
+                "ok": False,
+                "status": "failed",
+                "error": "EMAIL_SEND_FAILED",
+                "message": "Export generated but email delivery failed. Contact privacy@levqor.ai",
+                "reference": request_id[:8]
+            }), 500
+    
+    except Exception as e:
+        cursor.execute("UPDATE dsar_requests SET status = 'failed', notes = ? WHERE id = ?", 
+                      (str(e), request_id))
+        db.commit()
+        log_dsar_event(db, user_id, email, "export_failed", ip_address, user_agent, request_id, details=str(e))
+        log.error(f"[DSAR] Export failed for user {user_id}: {e}", exc_info=True)
+        
+        return jsonify({
+            "ok": False,
+            "status": "failed",
+            "error": "EXPORT_FAILED",
+            "message": "Export generation failed. Please try again later or contact privacy@levqor.ai",
+            "reference": request_id[:8]
+        }), 500
+
+
+@app.get("/api/dsar/status")
+def dsar_status():
+    """Get status of most recent DSAR request for current user"""
+    user_email = request.headers.get("X-User-Email")
+    
+    # Allow status check via email query param
+    if not user_email:
+        user_email = request.args.get("email")
+    
+    if not user_email:
+        return jsonify({"ok": False, "error": "Email required"}), 400
+    
+    db = get_db()
+    cursor = db.cursor()
+    
+    # Get user
+    cursor.execute("SELECT id FROM users WHERE email = ?", (user_email,))
+    user_row = cursor.fetchone()
+    
+    if not user_row:
+        return jsonify({"ok": True, "latest": None}), 200
+    
+    user_id = user_row[0]
+    
+    # Get most recent DSAR request
+    cursor.execute("""
+        SELECT id, status, requested_at, notes
+        FROM dsar_requests
+        WHERE user_id = ?
+        ORDER BY requested_at DESC
+        LIMIT 1
+    """, (user_id,))
+    
+    row = cursor.fetchone()
+    
+    if not row:
+        return jsonify({"ok": True, "latest": None}), 200
+    
+    return jsonify({
+        "ok": True,
+        "latest": {
+            "reference": row[0][:8],
+            "status": row[1],
+            "requested_at": datetime.fromtimestamp(row[2]).isoformat() if row[2] else None,
+            "notes": row[3]
+        }
+    }), 200
+
+
 @app.get("/api/dsar/exports")
 def get_user_dsar_exports():
     """Get user's DSAR export history"""

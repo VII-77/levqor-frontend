@@ -1,0 +1,262 @@
+You are Replit AI Agent working on the Levqor project.
+GOAL: Implement a Stripe payment failure dunning system (Day 1 / 7 / 14), pause access on persistent failure, and keep everything compliant with existing Billing / Cancellation / Fair Use policies.
+TECH STACK:
+
+Backend: Python (Flask run.py at repo root, Stripe already used for checkout).
+
+Frontend: Next.js 14 (levqor-site), App Router.
+
+Stripe: Standard Checkout sessions already working (DFY + subscriptions), env vars present.
+
+
+TASKS (DO ALL, IN ORDER)
+
+1. DISCOVERY
+
+
+
+Find all existing Stripe-related code in backend (e.g. run.py, stripe_webhooks.py, payments.py etc.).
+
+Find any existing Stripe webhook endpoint(s) (e.g. /stripe/webhook or similar).
+
+Find database models for customers/subscriptions/tenants (anything like customers, subscriptions, tenant_users, billing_events).
+
+Summarise what already exists (in comments only) – DO NOT PRINT to user.
+
+
+2. STRIPE WEBHOOK SETUP (BACKEND)
+
+
+
+If a Stripe webhook endpoint already exists: extend it.
+
+If it does NOT exist: create /stripe/webhook in Flask with standard Stripe signature verification using STRIPE_WEBHOOK_SECRET (assume env var; if missing, code must fail loudly with clear error).
+
+Handle at minimum these events:
+
+invoice.payment_failed
+
+customer.subscription.updated
+
+customer.subscription.deleted
+
+customer.subscription.trial_will_end (if present in future)
+
+
+For invoice.payment_failed:
+
+Extract customer, subscription, amount_due, attempt_count, next_payment_attempt, invoice_url.
+
+Write a billing_events or similar table row (create table if needed) logging: user_id/tenant_id, stripe_customer_id, stripe_subscription_id, event_type, attempt_count, event_payload_snippet, created_at.
+
+
+Make sure webhook handler:
+
+Returns 200 quickly on success.
+
+Returns non-2xx and logs error on signature failure or unexpected payload.
+
+
+
+3. DUNNING STATE MODEL (DB)
+
+
+
+Add a small, explicit dunning model (new table) if one doesn’t already exist, e.g. billing_dunning_state:
+
+id
+
+user_id or tenant_id (whichever existing model uses for ownership)
+
+stripe_customer_id
+
+stripe_subscription_id
+
+status ENUM: none, day1_notice, day7_notice, day14_final, suspended
+
+last_event_at
+
+next_action_at
+
+
+On invoice.payment_failed:
+
+If status is none → set to day1_notice, next_action_at = now + 7 days.
+
+If status is day1_notice → set to day7_notice, next_action_at = now + 7 days.
+
+If status is day7_notice → set to day14_final, next_action_at = now + 3 days.
+
+If status is already day14_final or suspended keep it but still log the event.
+
+
+On successful payment (invoice.paid / customer.subscription.updated with active status):
+
+Reset status to none and clear next_action_at.
+
+
+
+4. EMAIL TEMPLATES (BACKEND LOGIC ONLY)
+
+
+
+Implement three plain-text email templates (server-side, no HTML needed now):
+
+DAY 1 – Subject like: Levqor: We couldn’t process your payment
+
+Explain: payment failed, service still active, we will retry, ask user to update card.
+
+
+DAY 7 – Subject like: Levqor: Service at risk due to payment issue
+
+Explain: second failure, service may be paused soon, mention date.
+
+
+DAY 14 – Subject like: Levqor: Your service will be paused
+
+Explain: final notice, service will be paused unless payment succeeds, mention that automation will stop.
+
+
+
+Do NOT wire to any real email provider directly if there is already a mail util in project; instead:
+
+If existing email util (Resend etc.) exists, reuse its helper function.
+
+If none exists, create a thin wrapper send_billing_email(to, subject, body) that currently just logs or prints; keep all integration points clearly marked for future wiring.
+
+
+Ensure all emails include:
+
+Customer’s name (if available),
+
+A link to billing portal or account page (use existing route if present; otherwise /billing placeholder in text),
+
+A clear “this email is about your Levqor subscription” line.
+
+
+
+5. SCHEDULER / CRON TASK FOR DUNNING
+
+
+
+Add a periodic job (use whatever scheduler system Levqor already uses – do not reinvent) that runs at least once per day (better every few hours):
+
+Query billing_dunning_state where next_action_at <= now and status in (day1_notice, day7_notice, day14_final).
+
+For each:
+
+Send the corresponding email template (Day 1, Day 7, Day 14).
+
+Update status and next_action_at as described above.
+
+
+
+After sending DAY 14 notice, set status = 'suspended', next_action_at = NULL.
+
+
+6. ACCESS SUSPENSION LOGIC
+
+
+
+Introduce a central helper in backend like is_account_suspended(user_or_tenant) that checks billing_dunning_state.status == 'suspended'.
+
+Use that helper in:
+
+Workflow execution path
+
+New workflow creation path
+
+Any high-value API endpoints that cost money
+
+
+If suspended:
+
+Return 402 or 403 with JSON:
+
+{ ok: false, error: "billing_suspended", message: "Your account is paused due to repeated payment failures. Please update your billing details." }
+
+
+
+Do NOT block login; only block usage that costs money (workflows, jobs, etc).
+
+
+7. FRONTEND: BILLING STATUS + BANNER (Next.js)
+
+
+
+On dashboard / workflows UI, fetch a lightweight status endpoint (implement it if missing) like GET /api/billing/status that returns:
+
+{
+  "ok": true,
+  "status": "ok|day1_notice|day7_notice|day14_final|suspended",
+  "next_action_at": "ISO8601 or null"
+}
+
+Render a top warning banner when status ≠ ok:
+
+DAY 1: “We couldn’t process your last payment. Please update your billing details to avoid interruption.”
+
+DAY 7: “Your Levqor service is at risk. Update your payment method to prevent pause of your automation.”
+
+DAY 14 / suspended: “Your account is paused due to repeated payment failures. Update billing to resume workflows.”
+
+
+Add a clear “Manage billing” button linking to existing Stripe billing portal route or /billing placeholder.
+
+
+8. LEGAL TEXT ALIGNMENT (NO HEAVY EDITS)
+
+
+
+Check /billing, /refunds, /cancellation, /fair-use, /sla pages exist.
+
+In /billing (or equivalent) add a short 2–3 sentence section describing:
+
+“If a payment fails, we will attempt to contact you and retry your payment. If payment is still not received after repeated attempts, your account may be paused and access to workflows may be limited.”
+
+
+Ensure this text matches the actual behaviour you just implemented.
+
+
+9. LOGGING & AUDIT TRAIL
+
+
+
+Ensure every dunning action logs an event row:
+
+user_id/tenant_id, old_status, new_status, trigger (webhook, scheduler), timestamp.
+
+
+Make sure these logs store no card data, only identifiers and statuses.
+
+
+10. VERIFICATION (MUST DO)
+
+
+
+Add a small internal-only script or test route to simulate events (no UI exposure):
+
+Simulate invoice.payment_failed with different attempt counts.
+
+Simulate invoice.paid to reset state.
+
+
+In comments or a short dunning.md file, document:
+
+The lifecycle: OK → Day1 → Day7 → Day14 → Suspended → (back to OK on successful payment).
+
+Where webhook lives.
+
+Where scheduler logic lives.
+
+Which pages mention dunning behaviour.
+
+
+
+At the end, ensure:
+
+No new endpoints are publicly exposed without auth.
+
+NO card or sensitive data is stored in our DB.
+
+All new env var usage is guarded (fail loudly if missing).

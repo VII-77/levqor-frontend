@@ -288,6 +288,21 @@ def get_db():
         _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_marketing_consent_status ON user_marketing_consent(status)")
         _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_marketing_consent_token ON user_marketing_consent(token)")
         
+        # High-risk data blocks audit table (GDPR/ICO compliance)
+        _db_connection.execute("""
+            CREATE TABLE IF NOT EXISTS risk_blocks(
+                id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                blocked_terms TEXT NOT NULL,
+                payload_snippet TEXT,
+                ip_address TEXT,
+                created_at REAL NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+        """)
+        _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_risk_blocks_user ON risk_blocks(user_id)")
+        _db_connection.execute("CREATE INDEX IF NOT EXISTS idx_risk_blocks_created ON risk_blocks(created_at)")
+        
         _db_connection.commit()
     return _db_connection
 
@@ -614,6 +629,25 @@ def intake():
         url = data["callback_url"]
         if not url.startswith(("http://", "https://")):
             return bad_request("callback_url must be a valid HTTP(S) URL")
+    
+    # High-risk data firewall (GDPR/ICO compliance)
+    from compliance.high_risk_firewall import validate_workflow_content, log_high_risk_block
+    is_valid, error_msg, blocked_terms = validate_workflow_content(data)
+    
+    if not is_valid:
+        # Log the block attempt
+        api_key = request.headers.get("X-Api-Key", "")
+        user_id = api_key[:8] if api_key else "anonymous"
+        ip_address = request.headers.get("X-Forwarded-For", request.remote_addr)
+        payload_snippet = json.dumps(data)[:200]
+        
+        log_high_risk_block(get_db(), user_id, blocked_terms, payload_snippet, ip_address)
+        
+        return jsonify({
+            "ok": False,
+            "category": "high_risk_data",
+            "error": error_msg
+        }), 400
 
     job_id = uuid4().hex
     JOBS[job_id] = {

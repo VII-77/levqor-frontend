@@ -1,0 +1,144 @@
+You are Replit AI Agent working on the Levqor project.
+
+GOAL: Implement a full payment-failure dunning + suspension system so Levqor doesn’t lose money or break terms when cards fail.
+
+CONTEXT:
+- Frontend: levqor-site (Next.js 14, App Router)
+- Backend: Flask API (run.py)
+- Billing: Stripe already integrated, subscriptions live
+- Legal pages: /billing, /refunds, /cancellation, /account-suspension already exist and describe dunning/suspension – now we must make the system actually do it.
+
+PHASE 1 — DATA MODEL
+1) Find the users / subscriptions tables in the backend (Postgres).
+2) Add or confirm fields (in the relevant model/table):
+   - billing_status: TEXT, enum-like: "active" | "past_due" | "suspended" | "canceled"
+   - last_payment_failure_at: TIMESTAMP NULL
+   - dunning_stage: SMALLINT DEFAULT 0  -- 0=none, 1=day1, 2=day7, 3=day14
+   - stripe_customer_id: TEXT (if not already present)
+   - stripe_subscription_id: TEXT (if not already present)
+3) Apply migration safely:
+   - Create migration file
+   - Run migration
+   - Verify columns exist.
+
+PHASE 2 — STRIPE WEBHOOKS (BACKEND)
+1) Locate existing Stripe webhook endpoint or create:
+   - POST /webhooks/stripe
+2) Handle events:
+   - invoice.payment_failed
+   - customer.subscription.updated
+   - customer.subscription.deleted
+   - invoice.payment_succeeded
+3) On invoice.payment_failed:
+   - Look up user by stripe_customer_id
+   - If billing_status != "suspended":
+       - Set billing_status = "past_due"
+       - Set last_payment_failure_at = now()
+       - If dunning_stage = 0 → set to 1 and trigger Day 1 email
+       - If dunning_stage = 1 and failure >= 7 days after last_payment_failure_at → set to 2 and trigger Day 7 email
+       - If dunning_stage = 2 and failure >= 14 days after first failure → set to 3, billing_status="suspended", trigger Day 14/final email
+4) On invoice.payment_succeeded:
+   - Reset billing_status = "active"
+   - dunning_stage = 0
+   - last_payment_failure_at = NULL
+5) On customer.subscription.deleted:
+   - Set billing_status = "canceled"
+
+PHASE 3 — EMAIL TEMPLATES (USE EXISTING EMAIL SYSTEM)
+Create 3 transactional email templates (code, not just text):
+
+A) Day 1 — Soft Reminder
+Subject: “We couldn’t process your Levqor payment”
+Body (plain + HTML):
+- Explain card failed
+- Link: “Update billing details” → https://www.levqor.ai/billing
+- Tone: helpful, non-threatening
+- Include unsubscribe for marketing, but NOT for transactional (these are mandatory)
+
+B) Day 7 — Stronger Reminder
+Subject: “Action needed: Levqor subscription at risk”
+Body:
+- Explain second failure / still unpaid
+- Warn that service may be paused
+- Same link to update billing
+- Reference billing policy page: /billing
+
+C) Day 14 — Final Notice + Suspension
+Subject: “Your Levqor subscription has been suspended”
+Body:
+- Explain repeated failures
+- State billing_status is now “suspended”
+- Explain what features are limited
+- Explain how to restore access by updating payment
+- Link again to /billing
+- Reference /account-suspension and /cancellation
+
+Wire these emails to a helper:
+- send_billing_email(user, template, extra_context)
+
+PHASE 4 — ACCESS CONTROL (ENFORCEMENT)
+In backend auth / middleware layer (where API requests are authenticated):
+
+1) For critical app endpoints (e.g. creating workflows, running automations, accessing premium dashboards):
+   - If billing_status = "suspended":
+       - Return 402 or 403 with JSON:
+         { "ok": false, "error": "billing_suspended" }
+
+2) For “past_due”:
+   - Allow access but add a warning flag in responses:
+     { ..., "billing_warning": "payment_past_due" }
+
+3) Do NOT block:
+   - Sign in
+   - Billing page
+   - Support/contact routes
+   - DSAR/privacy-related endpoints
+
+PHASE 5 — FRONTEND UX (levqor-site)
+1) Add a small banner component used globally (e.g. in layout or dashboard shell):
+   - If billing_warning = "payment_past_due":
+       - Show yellow banner: “Your payment method needs attention. Update your billing details to avoid suspension.”
+   - If error "billing_suspended" returned:
+       - Show red banner: “Your account is suspended due to failed payments. Update your billing details to restore access.”
+       - Provide CTA button to /billing
+
+2) On the main dashboard/workflow pages:
+   - If request returns billing_suspended:
+       - Instead of crashing, show a “Suspended” screen with:
+         - Reason
+         - Button “Update billing”
+
+PHASE 6 — LOGGING & ADMIN VIEW
+1) Add internal log entries on each dunning step:
+   - Event types: BILLING_DUNNING_STAGE_1/2/3, BILLING_RESUMED
+   - Include user_id, stripe_subscription_id, timestamp
+2) Create a simple admin endpoint:
+   - GET /api/admin/billing/dunning
+   - Returns last N dunning events for admin review
+
+PHASE 7 — VERIFICATION
+1) Add a small script or instructions to simulate:
+   - For a test Stripe customer:
+     - Trigger invoice.payment_failed via Stripe Dashboard
+   - Confirm:
+     - DB fields update (billing_status, dunning_stage)
+     - Correct email template sent
+2) Trigger invoice.payment_succeeded and confirm:
+   - billing_status returns to "active"
+   - dunning_stage resets to 0
+
+3) Run:
+   - Backend tests if present
+   - npm run build on frontend
+   - Smoke test key flows:
+     - Normal active user → full access
+     - past_due user → warning but access
+     - suspended user → blocked from premium, can access billing + support
+
+DON’Ts:
+- Don’t change pricing logic or checkout.
+- Don’t touch legal text on pages (billing/refund/suspension text already written).
+- Don’t require manual admin steps for the standard flow.
+
+When everything is implemented and verified locally, stop and summarize what you changed in a short bullet list, so the human can review in Git.
+```0

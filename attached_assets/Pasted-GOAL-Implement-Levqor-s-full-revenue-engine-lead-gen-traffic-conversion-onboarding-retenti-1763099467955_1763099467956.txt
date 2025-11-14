@@ -1,0 +1,151 @@
+GOAL:
+Implement Levqor’s full revenue engine: lead gen → traffic → conversion → onboarding → retention → scaling. 
+All outputs must be simple, fast to execute, and optimized for closing customers within 7 days.
+
+CONTEXT:
+- levqor.ai public website & dual pricing active
+- DFY + subscriptions
+- Compliance framework already implemented
+- Need immediate revenue traction
+- Tone: direct, practical, confident, simple English
+- Device: Mobile (Samsung Fold)
+
+DELIVER ALL OF THE FOLLOWING:
+
+==========================================================
+RFP-5 — RAPID LAUNCH ASSETS (FINISHING TOUCHES)
+==========================================================
+1. DFY productized service breakdowns:
+   - Starter DFY (1 workflow, £99)
+   - Professional DFY (3 workflows, £249)
+   - Enterprise DFY (7 workflows, £599)
+
+   Include:
+   • Deliverables checklist
+   • What’s included / not included
+   • Timelines
+   • Client obligations
+
+2. Subscription offer breakdowns:
+   - Starter, Growth, Pro, Business
+   - Workflow allowances + support levels
+   - Monthly + Yearly benefits
+
+3. Add micro-copy for:
+   • Homepage hero section (3 versions)
+   • Social proof section placeholders
+   • CTA button variants
+
+4. Create “Why Choose Levqor” block:
+   - 5 value pillars
+   - Competitive edge vs agencies, freelancers, Zapier, Make.com
+
+==========================================================
+RFP-6 — TRAFFIC ENGINE (ADS + ORGANIC + OUTREACH)
+==========================================================
+Deliver a full **traffic system** with:
+1. Paid Ads Set (Google + Meta):
+   • 3 ad copies per platform  
+   • 3 audiences  
+   • 3 creatives descriptions  
+   • 3 keyword clusters  
+
+2. Organic Posting System:
+   • 14-day posting calendar  
+   • Scripts for short-form videos  
+   • 20 swipe-worthy captions (TikTok, IG, YT Shorts)
+
+3. Cold Outreach:
+   • LinkedIn DM sequence (3 steps)
+   • Instagram DM sequence (3 steps)
+   • Cold email sequence (3 emails)
+   • Lead qualification criteria
+   • Offer pitch in one sentence
+
+4. Referral Loop:
+   • Referral CTA
+   • Reward structure
+   • Share message template
+
+==========================================================
+RFP-7 — CONVERSION ENGINE (CLOSE THE SALE)
+==========================================================
+Produce:
+1. Levqor’s Master Sales Script:
+   • 90-second pitch
+   • Discovery call flow
+   • Objection-handling matrix (10 objections)
+   • DFY pitch, subscription pitch, hybrid pitch
+
+2. Lead-to-Customer funnel:
+   • Landing page structure
+   • Pre-call questionnaire
+   • Post-call follow-up sequence
+   • “You’re In” confirmation page copy
+
+3. High-conversion assets:
+   • Pricing page micro-copy
+   • Urgency triggers
+   • Scarcity messaging
+   • Guarantee block
+
+==========================================================
+RFP-8 — RETENTION & EXPANSION ENGINE
+==========================================================
+Deliver:
+1. Onboarding System (DFY + Subscriptions):
+   • Welcome email  
+   • Kickoff call script  
+   • Checkpoint messages  
+   • Access requests  
+   • What clients must provide
+
+2. Renewal & Upsell System:
+   • 30-day retention sequence  
+   • Upgrade prompts (Starter→Growth→Pro→Business)  
+   • DFY → Subscription conversion scripts  
+
+3. Monthly Review:
+   • Automation health checklist  
+   • Reporting template  
+   • “Wins summary” message  
+
+==========================================================
+RFP-9 — SCALE ENGINE (SYSTEMISE EVERYTHING)
+==========================================================
+Deliver:
+1. Automation Opportunities List:
+   • Sales automation  
+   • Lead qualification  
+   • Client onboarding  
+   • Workflow delivery  
+   • Monitoring + alerts  
+
+2. SOP pack:
+   • DFY build SOP  
+   • Subscription workflow SOP  
+   • Support SOP  
+   • Escalation SOP  
+
+3. Delegation preparation:
+   • VA handover guide  
+   • What to automate next  
+   • “When to hire” thresholds  
+
+4. 90-day Scale Roadmap:
+   • Phase 1: Stabilise  
+   • Phase 2: Grow  
+   • Phase 3: Multiply  
+
+==========================================================
+OUTPUT RULES
+==========================================================
+- Use clear sections and bullet points.  
+- No jargon.  
+- Everything must be actionable immediately.  
+- Optimise for speed + revenue.  
+- Make it usable from mobile.  
+- Ensure all content fully synchronises with Levqor’s positioning.  
+- Produce everything in a single consolidated response.
+
+END.

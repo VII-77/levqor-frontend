@@ -55,6 +55,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', f'sqlite:///{D
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 
+from backend.models.sales_models import Lead, LeadActivity, DFYOrder, DFYActivity, UpsellLog
+
 with app.app_context():
     db.create_all()
 
@@ -68,6 +70,9 @@ from backend.routes.marketing_enhanced import marketing_enhanced_bp
 from backend.routes.compliance_dashboard import compliance_dashboard_bp
 from backend.routes.billing_webhooks import billing_webhooks_bp
 from backend.routes.sales import sales_bp
+from backend.routes.ase import ase_bp
+from backend.routes.dfy_engine import dfy_engine_bp
+from backend.routes.followup_endpoints import followup_bp
 app.register_blueprint(dsar_bp)
 app.register_blueprint(dsar_admin_bp)
 app.register_blueprint(gdpr_optout_bp)
@@ -78,6 +83,9 @@ app.register_blueprint(marketing_enhanced_bp)
 app.register_blueprint(compliance_dashboard_bp)
 app.register_blueprint(billing_webhooks_bp)
 app.register_blueprint(sales_bp)
+app.register_blueprint(ase_bp)
+app.register_blueprint(dfy_engine_bp)
+app.register_blueprint(followup_bp)
 
 _db_connection = None
 

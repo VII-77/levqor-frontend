@@ -1,0 +1,255 @@
+You are Replit AI Agent working on the Levqor project.
+
+GOAL:
+Add a backend DSAR ZIP export generator that:
+- Uses the existing DSAR collectors
+- Produces a single ZIP (JSON files inside)
+- Stores it on disk
+- Updates DSARRequest metadata (size, timestamps, errors)
+No email sending here. Just export + persistence.
+
+STACK ASSUMPTIONS:
+- Flask + SQLAlchemy backend
+- DSARRequest model already exists with fields:
+  - id, user_id, gdpr_reference_id, status
+  - requested_at, completed_at, export_bytes_size, last_error
+- DSAR collectors from previous step live at:
+  backend/services/dsar_collectors.py
+  and expose: collect_all_user_data(user_id, reference_id)
+
+TASKS:
+
+1) CREATE FILE:
+backend/services/dsar_exporter.py
+
+CONTENTS:
+
+import io
+import json
+import os
+import zipfile
+from datetime import datetime, timezone
+
+from app import db
+from backend.models.dsar_request import DSARRequest
+from backend.services.dsar_collectors import collect_all_user_data
+
+
+EXPORT_ROOT = os.path.join(os.path.dirname(os.path.dirname(__file__)), "exports", "dsar")
+
+
+def _ensure_export_dir():
+    os.makedirs(EXPORT_ROOT, exist_ok=True)
+
+
+def _safe_iso(dt):
+    if not dt:
+        return None
+    try:
+        return dt.astimezone(timezone.utc).isoformat()
+    except Exception:
+        return dt.isoformat()
+
+
+def build_dsar_zip_bytes(user_id: int, reference_id: str) -> tuple[bytes, dict]:
+    """
+    Collects user data via DSAR collectors and builds an in-memory ZIP.
+    Returns (zip_bytes, meta_dict).
+    Does not touch the database.
+    """
+    collected = collect_all_user_data(user_id, reference_id)
+
+    now = datetime.now(timezone.utc)
+    timestamp_str = now.strftime("%Y%m%d-%H%M%S")
+    root_folder = f"levqor-dsar-{reference_id or user_id}-{timestamp_str}"
+
+    meta = {
+        "schema_version": "2025-11-DSAR-01",
+        "generated_at": _safe_iso(now),
+        "reference_id": reference_id,
+        "user_id": user_id,
+        "sections": list(collected.keys()),
+        "notes": [
+            "This export is provided under GDPR / UK GDPR data access rights.",
+            "Fields may be redacted or omitted where legally required.",
+        ],
+    }
+
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
+        # meta.json
+        zf.writestr(
+            f"{root_folder}/meta.json",
+            json.dumps(meta, indent=2, ensure_ascii=False),
+        )
+
+        # account.json
+        zf.writestr(
+            f"{root_folder}/account.json",
+            json.dumps(collected.get("account"), indent=2, ensure_ascii=False),
+        )
+
+        # workflows.json
+        zf.writestr(
+            f"{root_folder}/workflows.json",
+            json.dumps(collected.get("workflows"), indent=2, ensure_ascii=False),
+        )
+
+        # workflow_runs.json
+        zf.writestr(
+            f"{root_folder}/workflow_runs.json",
+            json.dumps(collected.get("workflow_runs"), indent=2, ensure_ascii=False),
+        )
+
+        # api_tokens.json
+        zf.writestr(
+            f"{root_folder}/api_tokens.json",
+            json.dumps(collected.get("api_tokens"), indent=2, ensure_ascii=False),
+        )
+
+        # audit_logs.json
+        zf.writestr(
+            f"{root_folder}/audit_logs.json",
+            json.dumps(collected.get("audit_logs"), indent=2, ensure_ascii=False),
+        )
+
+        # dsar_request.json
+        zf.writestr(
+            f"{root_folder}/dsar_request.json",
+            json.dumps(collected.get("dsar_request"), indent=2, ensure_ascii=False),
+        )
+
+    buf.seek(0)
+    data = buf.read()
+    size_bytes = len(data)
+
+    meta["zip_bytes"] = size_bytes
+
+    return data, meta
+
+
+def persist_dsar_export(reference_id: str) -> dict:
+    """
+    High-level helper used by workers / admin tasks.
+
+    - Looks up DSARRequest by gdpr_reference_id
+    - Builds ZIP with all user data
+    - Saves file to disk under exports/dsar
+    - Updates DSARRequest fields: completed_at, export_bytes_size, last_error
+    - Returns dict with status + file_path + meta
+    """
+    _ensure_export_dir()
+
+    req = DSARRequest.query.filter_by(gdpr_reference_id=reference_id).first()
+    if not req:
+        return {
+            "ok": False,
+            "error": f\"DSARRequest not found for reference_id={reference_id}\",
+        }
+
+    if not req.user_id:
+        return {
+            "ok": False,
+            "error": "DSARRequest has no associated user_id",
+        }
+
+    try:
+        zip_bytes, meta = build_dsar_zip_bytes(req.user_id, req.gdpr_reference_id)
+
+        filename = f"levqor-dsar-{req.gdpr_reference_id}.zip"
+        file_path = os.path.join(EXPORT_ROOT, filename)
+
+        with open(file_path, "wb") as f:
+            f.write(zip_bytes)
+
+        size_bytes = len(zip_bytes)
+        now = datetime.now(timezone.utc)
+
+        req.export_bytes_size = size_bytes
+        req.completed_at = now
+        req.last_error = None
+
+        # If model has a path field, store it
+        if hasattr(req, "export_storage_path"):
+            req.export_storage_path = file_path
+
+        # If model has a status field, move to "completed" (best-effort)
+        if hasattr(req, "status"):
+            # do not import any enums here; use plain string to avoid coupling
+            req.status = getattr(req, "STATUS_COMPLETED", "completed")
+
+        db.session.add(req)
+        db.session.commit()
+
+        return {
+            "ok": True,
+            "file_path": file_path,
+            "bytes": size_bytes,
+            "reference_id": req.gdpr_reference_id,
+            "meta": meta,
+        }
+
+    except Exception as e:
+        # best-effort error capture; do not re-raise
+        req.last_error = str(e)
+        if hasattr(req, "status"):
+            req.status = getattr(req, "STATUS_FAILED", "failed")
+        db.session.add(req)
+        db.session.commit()
+
+        return {
+            "ok": False,
+            "error": f\"DSAR export failed: {e}\",
+            "reference_id": reference_id,
+        }
+
+
+2) OPTIONAL: ADD SMALL ADMIN/WORKER ENTRYPOINT
+
+Create (if it does not exist) or extend:
+
+backend/cli/dsar_commands.py
+
+with:
+
+import click
+from app import create_app, db
+from backend.services.dsar_exporter import persist_dsar_export
+
+
+@click.group()
+def dsar():
+    """DSAR-related CLI commands."""
+    pass
+
+
+@dsar.command("export")
+@click.argument("reference_id")
+def export(reference_id):
+    """Generate DSAR ZIP for a given GDPR reference id."""
+    app = create_app()
+    with app.app_context():
+        result = persist_dsar_export(reference_id)
+        click.echo(result)
+
+
+# ensure this group is registered in your main cli entrypoint if one exists
+
+
+3) DO NOT:
+- Expose any new public HTTP endpoints in this step.
+- Stream ZIP directly to user.
+- Log full ZIP content or sensitive fields.
+
+4) QUICK DEV TEST (MANUAL):
+
+In Replit shell:
+
+python -m backend.cli.dsar_commands export GDPR-TEST-123
+
+Expected:
+- Folder backend/exports/dsar created
+- File like: backend/exports/dsar/levqor-dsar-GDPR-TEST-123.zip
+- CLI prints JSON-like dict with ok=True and file_path.
+
+END.

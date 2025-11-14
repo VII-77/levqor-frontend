@@ -1,0 +1,191 @@
+You are Replit AI Agent working on the Levqor project.
+
+GOAL
+Implement a fully functional, GDPR/UK-PECR compliant cookie consent system in the existing Next.js app (levqor-site), with a visible banner, preferences modal, and correct behaviour (no non-essential cookies before consent). No deployment – code + local build verification only.
+
+CONTEXT (DO NOT CHANGE)
+- Frontend: levqor-site (Next.js 14 App Router, TypeScript, Tailwind v3, Genesis v8 dark theme).
+- Legal pages already exist and must remain as primary references:
+  - /cookies (cookie policy page)
+  - /privacy, /terms, /gdpr, /fair-use, /acceptable-use, etc.
+- Currently: policy text exists but NO working consent banner or preferences UI.
+- You must NOT add any external deps (no cookie libraries, no headless UI libs, etc.).
+- You must NOT change deployment config or environment variables.
+
+HIGH-LEVEL REQUIREMENTS
+1) Add a global cookie consent banner that appears on first visit (per browser) until user chooses an option.
+2) Provide three choices:
+   - “Accept all”
+   - “Reject non-essential”
+   - “Manage preferences” (opens a small modal or panel).
+3) Store consent in localStorage (NOT cookies) under a single key, e.g. "levqor_cookie_consent".
+4) Implement category toggles in the preferences modal:
+   - Strictly necessary (always enabled, cannot be disabled).
+   - Analytics.
+   - Marketing.
+5) Make sure non-essential scripts or logic can be gated on consent (even if there are none today, you must implement the wiring points).
+6) Ensure everything uses Tailwind and matches the dark Genesis v8 look-and-feel.
+
+IMPLEMENTATION STEPS
+
+PHASE 1 — DISCOVER LAYOUT / ENTRY POINT
+1. Inspect the app layout:
+   - Check levqor-site/src/app/layout.tsx and any shared layout or wrapper components.
+   - Goal: find the best place to mount a global <CookieBanner /> component so that it appears on all pages, just above the footer.
+2. Confirm no existing cookie banner component is already in place. If something exists, reuse or extend it instead of duplicating.
+
+PHASE 2 — CREATE COOKIE CONSENT CONTEXT / HOOK
+Create a small client-side state layer so any component can ask “is analytics allowed?”, “is marketing allowed?” etc.
+
+1. Create a new file:
+   - levqor-site/src/components/cookies/CookieConsentProvider.tsx
+2. Implement as a client component:
+   - "use client" at top.
+   - React context that exposes:
+     - consent: {
+         necessary: true;
+         analytics: boolean;
+         marketing: boolean;
+         decided: boolean; // true if user has made any choice
+       }
+     - setConsent(partial) / updateConsent(...) function(s).
+   - On mount:
+     - Read localStorage key "levqor_cookie_consent".
+     - If present and valid JSON, hydrate state.
+     - If missing, set decided=false, analytics=false, marketing=false, necessary=true.
+   - When updating consent:
+     - Update state.
+     - Persist full object to localStorage.
+3. Export a useCookieConsent() hook that returns consent + update function.
+
+PHASE 3 — COOKIE BANNER COMPONENT
+Create the visible banner UI.
+
+1. Create:
+   - levqor-site/src/components/cookies/CookieBanner.tsx
+2. Requirements:
+   - "use client".
+   - Use useCookieConsent() to know if user has already decided.
+   - If consent.decided === true, render null.
+   - If false, render a bottom-fixed banner (or top but consistent) such as:
+     - Position: fixed bottom-0 inset-x-0, z-50.
+     - Container: max-w-4xl or max-w-5xl, mx-auto, rounded-xl, bg-slate-900/95, text-slate-50, border border-slate-700, shadow-lg, p-4/5.
+     - Content:
+       - Short title: “We use cookies”
+       - One sentence: “We use strictly necessary cookies to run Levqor, and optional analytics/marketing cookies to improve the product. You can change your choice at any time.”
+       - Links: “Cookie Policy” → /cookies, “Privacy Policy” → /privacy (using next/link).
+     - Buttons (Tailwind):
+       - Primary: “Accept all”
+       - Secondary: “Reject non-essential”
+       - Tertiary text button: “Manage preferences”
+3. Behaviour:
+   - “Accept all”:
+     - Set consent = { necessary: true, analytics: true, marketing: true, decided: true } and persist.
+     - Hide banner.
+   - “Reject non-essential”:
+     - Set consent = { necessary: true, analytics: false, marketing: false, decided: true }.
+     - Hide banner.
+   - “Manage preferences”:
+     - Open preferences modal (see PHASE 4).
+
+PHASE 4 — PREFERENCES MODAL / PANEL
+Create a simple preferences UI, consistent with dark theme.
+
+1. Decide simplest implementation: in the same CookieBanner component or a separate CookiePreferences component. Either is fine as long as it’s clean.
+2. UI spec:
+   - Centered panel overlay:
+     - Fixed inset-0 bg-black/60 (backdrop).
+     - Centered card: bg-slate-900, border border-slate-700, rounded-2xl, p-6, max-w-lg, mx-auto, my-10.
+   - Content:
+     - Title: “Cookie preferences”
+     - Short text explaining categories.
+     - Three rows, each with a label + description + toggle:
+       1) Strictly necessary (always ON, disabled toggle; description: “Required to run Levqor. Cannot be disabled.”).
+       2) Analytics (toggle – default OFF unless previously accepted).
+       3) Marketing (toggle – default OFF unless previously accepted).
+   - Footer buttons:
+     - “Save preferences” (primary).
+     - “Cancel” (secondary ghost).
+3. Behaviour:
+   - When opening, the toggles should reflect current consent state.
+   - Strictly necessary must always be true and its toggle disabled.
+   - On “Save preferences”:
+     - Update consent accordingly:
+       - necessary: true
+       - analytics: <toggle value>
+       - marketing: <toggle value>
+       - decided: true
+     - Persist to localStorage.
+     - Close modal.
+     - Hide banner (since decision is now made).
+   - On “Cancel”:
+     - Close modal but leave consent unchanged and keep banner visible.
+
+PHASE 5 — WIRING INTO LAYOUT
+1. Wrap app layout with CookieConsentProvider:
+   - In src/app/layout.tsx, inside <body>, wrap existing content with <CookieConsentProvider>…</CookieConsentProvider>.
+2. Render the banner once globally:
+   - Inside provider, but outside page content container (e.g. just before footer), render <CookieBanner />.
+   - Ensure it appears on all pages and does not break existing layout.
+
+PHASE 6 — HOOKS FOR FUTURE SCRIPTS (NO REAL SCRIPTS NOW)
+Even if there are no analytics/marketing scripts right now, implement clear “hooks”:
+
+1. Create a helper in CookieConsentProvider or a small util file:
+   - Example: export functions:
+     - isAnalyticsEnabled(consent)
+     - isMarketingEnabled(consent)
+2. In layout.tsx (or a small comments section near the end), add commented placeholders showing how to wrap analytics scripts, e.g.:
+
+   // Example future usage:
+   // const { consent } = useCookieConsent();
+   // useEffect(() => {
+   //   if (consent.analytics) {
+   //     // Load analytics script here
+   //   }
+   // }, [consent.analytics]);
+
+Do NOT actually load any new external scripts now. Just ensure the wiring is ready.
+
+PHASE 7 — TYPECHECK & BUILD
+From levqor-site root:
+
+1. Run:
+   - npm run lint || echo "lint failed"
+   - npm run build
+2. If build fails due to your new code, fix your changes until build passes.
+3. Do not “fix” unrelated pre-existing lint issues unless trivial.
+
+PHASE 8 — LOCAL VERIFICATION
+With dev server running (or start with npm run dev):
+
+1. Open http://localhost:5000/ in the Replit webview.
+   - Confirm banner appears on first load.
+2. Click:
+   - “Reject non-essential” → refresh → confirm banner does not re-appear and preferences are stored in localStorage.
+   - Clear localStorage key manually, refresh → banner returns.
+3. Test “Manage preferences”:
+   - Confirm modal opens, toggles behave correctly.
+   - Save preferences with analytics ON, marketing OFF.
+   - Refresh → consent is preserved, banner hidden.
+4. Confirm /cookies and /privacy links from the banner work (no 404).
+
+PHASE 9 — GIT DIFF SUMMARY (NO COMMIT)
+At the end, run:
+
+- git diff --stat
+
+Then output for me:
+- Files added.
+- Files modified.
+- Confirmation that npm run build passed.
+- One-sentence confirmation that the cookie consent banner is visible and functional locally.
+
+DO NOT
+- Do not modify legal text in /cookies or /privacy.
+- Do not add third-party scripts.
+- Do not modify /api routes.
+- Do not deploy to Vercel.
+
+NOW EXECUTE
+Implement the cookie consent provider + banner + preferences modal as described, wire it into the layout, ensure build passes, verify behaviour locally, and then show a short summary + git diff --stat.

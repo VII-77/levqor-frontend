@@ -1,0 +1,201 @@
+You are Replit AI Agent working on the Levqor project.
+
+GOAL
+Create a high-converting DFY PRO (£249) landing page at /dfy-pro in the existing Next.js app (levqor-site), aligned with the current Genesis v8 dark theme and legal/compliance structure. No deployment needed now, just code + local build verification.
+
+CONTEXT (DO NOT CHANGE)
+- Frontend: levqor-site (Next.js 14, App Router, TypeScript, Tailwind v3, dark theme with bg-slate-950).
+- Pricing already supports DFY and subscriptions via /api/checkout with:
+  - mode: "dfy" | "subscription"
+  - plan: "starter" | "professional" | "enterprise" | "starter" | "growth" | "pro" | "business"
+  - DFY Pro is the "professional" DFY plan and should cost £249 one-time.
+- Legal & compliance pages already exist and must remain untouched:
+  - /terms, /privacy, /cookies, /fair-use, /acceptable-use, /sla, /refunds, /gdpr, /subprocessors, /security, /incident-response, etc.
+- Global layout and navigation already exist; do NOT break them.
+- Do NOT change checkout logic in src/app/api/checkout/route.ts.
+- Do NOT trigger any deployment. Only run local build to verify.
+
+HIGH-LEVEL TASKS
+1) Add a new landing page route at /dfy-pro.
+2) Implement a DFY Pro one-page sales layout that matches the Genesis v8 dark theme.
+3) Implement a “Book DFY Pro – £249 one-time” button that calls /api/checkout with mode="dfy" and plan="professional".
+4) Add an optional nav link “DFY Pro” in the main header if a central nav component exists.
+5) Run npm run build to confirm everything compiles with zero TypeScript errors.
+6) Show me the git diff summary at the end.
+
+DESIGN & COPY SPEC – /dfy-pro
+
+Use the Genesis v8 dark visual style:
+- Page background: bg-slate-950 text-slate-50, max-w-4xl or max-w-5xl centered, generous spacing.
+- Accent colors aligned with existing palette: emerald, violet, cyan, amber gradients.
+- Use Tailwind only. No new CSS files.
+
+SECTION 1 – HERO
+Top of /dfy-pro
+- Title: “Done-For-You Automation Pro”
+- Sub-title: “We build your automation for you in 48–72 hours.”
+- Badge / chip: “£249 one-time · DFY Pro”
+- 2–3 bullet points:
+  - “You explain the workflow. We build it.”
+  - “48–72 hour delivery.”
+  - “7 days of support + one revision.”
+- Primary CTA button: “Book DFY Pro – £249 one-time”
+  - This button should trigger the DFY Pro Stripe checkout via /api/checkout (see “CHECKOUT BUTTON BEHAVIOUR” below).
+- Secondary CTA (ghost outline button): “Talk first – get a 2-minute plan”
+  - For now, make this a simple mailto link to support@levqor.ai.
+
+SECTION 2 – WHAT YOU GET
+Two-column or stacked layout (mobile-first).
+Content to hard-code:
+
+Headline: “What you get with DFY Pro (£249)”
+Bullets:
+- “1 fully-built end-to-end automation”
+- “Up to 2 custom triggers (email, webhook, API, or schedule)”
+- “Optimised for reliability and speed”
+- “One round of revisions”
+- “7 days of post-launch support”
+- “Full documentation in plain English”
+
+Below this, add a short paragraph:
+“DFY Pro is for founders and teams who don’t want to fight with tools. You tell us what you need automated. We design, build, and hand over a working system.”
+
+SECTION 3 – WHO IT’S FOR
+Simple 3- or 4-card grid:
+
+Title: “Who DFY Pro is perfect for”
+Cards (icon can be simple emoji or Tailwind circle):
+
+1) “Solo founders”
+   Text: “You’re doing everything yourself and need one big manual process removed.”
+2) “Small teams”
+   Text: “You have stable processes but no time to wire tools together.”
+3) “Creators & consultants”
+   Text: “You want leads, payments, or delivery automated without learning automation tools.”
+4) “Busy ops people”
+   Text: “You need less chaos and fewer manual steps, not more dashboards.”
+
+SECTION 4 – HOW IT WORKS (4 STEPS)
+Timeline / numbered steps layout:
+
+Title: “How DFY Pro works”
+Steps:
+1) “Step 1 – You book DFY Pro (£249)”
+   Text: “You answer a short intake form about your current workflow and tools.”
+2) “Step 2 – We design your automation”
+   Text: “We map the triggers, steps, and outputs in a simple diagram.”
+3) “Step 3 – We build & test”
+   Text: “We implement the workflow, test edge cases, and fix issues.”
+4) “Step 4 – Handover & support”
+   Text: “You get a walkthrough video, documentation, and 7 days of support.”
+
+SECTION 5 – PRICING & GUARANTEE BLOCK
+Include a clear guarantee and risk statement.
+
+Block content:
+
+Badge: “Simple pricing – no subscriptions”
+Heading: “£249 one-time · DFY Automation Pro”
+List:
+- “No monthly subscription”
+- “No hourly surprises”
+- “Clear scope and deliverables”
+Guarantee text:
+“If we cannot deliver the agreed automation, you get a full refund. No small print. We only take on projects we are confident we can complete.”
+
+Repeat the primary CTA button here:
+“Book DFY Pro – £249 one-time”
+
+SECTION 6 – MINI FAQ
+Add a small FAQ on the same page (no separate route):
+
+Title: “DFY Pro – common questions”
+
+Include at least these Q&A:
+
+Q1: “What tools can you work with?”
+A1: “We work with tools like Make, Zapier (if needed), Notion, Google Workspace, Stripe, email providers, and standard APIs. If your tool has an API or Zapier/Make connector, we can likely use it.”
+
+Q2: “What if my workflow is too big?”
+A2: “If your scope is larger than DFY Pro, we’ll tell you before payment or suggest breaking it into phases. We do not take on work we know we can’t complete under this package.”
+
+Q3: “What if I’m not happy with the first version?”
+A3: “DFY Pro includes one revision round. If after that we still can’t reach a working solution that matches the agreed scope, we refund you.”
+
+Q4: “Will I be locked into Levqor forever?”
+A4: “No. You own the automation we build. We document everything so you’re not dependent on us.”
+
+CHECKOUT BUTTON BEHAVIOUR (IMPORTANT)
+Implement a client-side handler inside /dfy-pro page to call the existing /api/checkout route using fetch.
+
+Behaviour:
+- Use "use client" + React hooks.
+- POST to /api/checkout with body:
+  {
+    mode: "dfy",
+    plan: "professional"
+  }
+- Expect JSON:
+  - On success: { ok: true, url: "https://checkout.stripe.com/..." }
+  - On error: { ok: false, error: "message" }
+- On success: window.location.href = url.
+- On error: show a small red error message under the button with a human message:
+  “Something went wrong starting checkout. Please try again or contact support@levqor.ai.”
+- Disable the button and show “Redirecting…” while request is in progress.
+
+NAVIGATION (OPTIONAL BUT PREFERRED)
+If the main header/nav is centralised (e.g. src/components/Header.tsx or similar):
+
+- Add a “DFY Pro” link that points to /dfy-pro.
+- Place it near “Pricing”.
+- Ensure the new link uses the same styling and active state convention.
+
+If there is no shared nav component, do NOT invent one. Leave nav unchanged.
+
+IMPLEMENTATION DETAILS
+
+1) CREATE THE PAGE FILE
+- Path: levqor-site/src/app/dfy-pro/page.tsx
+- ‘use client’ at top (for the checkout handler).
+- Use the existing Genesis v8 dark layout patterns (container, mx-auto, px-4 sm:px-6 lg:px-8, py-12 etc.).
+- Use semantic structure: <main> with sections.
+
+2) OPTIONAL NAV LINK
+- Search for the main header/nav component in levqor-site/src/components.
+- If found, add a <Link href="/dfy-pro">DFY Pro</Link> using same style.
+- If no shared nav exists, skip this step.
+
+3) TYPECHECK & BUILD
+Run:
+- cd ~/workspace/levqor-site
+- npm run lint || echo "lint failed"   # Do not fix existing unrelated lint issues if huge
+- npm run build
+
+If build fails due to your changes, fix your code until it passes.
+Do NOT ignore TypeScript errors introduced by this page.
+
+4) VALIDATE LOCALLY
+With dev server already running (or start with npm run dev):
+
+- curl -sI http://localhost:5000/dfy-pro  (expect 200 in dev)
+- curl -sS http://localhost:5000/dfy-pro | head -40 (ensure it returns HTML with the DFY Pro text)
+
+5) GIT DIFF SUMMARY (NO COMMIT)
+At the end, output:
+- git diff --stat
+- A short summary of:
+  - Files added/modified
+  - Confirmation that npm run build passed
+  - Confirmation of /dfy-pro reachable locally
+
+DO NOT:
+- Do not change /pricing, /success, /cancel semantics.
+- Do not touch src/app/api/checkout/route.ts other than reading.
+- Do not add new dependencies.
+- Do not change environment variables.
+- Do not deploy to Vercel.
+
+NOW EXECUTE
+Implement /dfy-pro exactly as specified, run npm run build, verify /dfy-pro locally, and then show:
+- A brief plain-English summary of what you changed.
+- The git diff --stat output.

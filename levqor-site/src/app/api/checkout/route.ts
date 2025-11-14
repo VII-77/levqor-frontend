@@ -226,9 +226,9 @@ export async function POST(req: Request) {
       );
     }
 
-    const session = await stripe.checkout.sessions.create(sessionConfig);
+    const checkoutSession = await stripe.checkout.sessions.create(sessionConfig);
 
-    if (!session.url) {
+    if (!checkoutSession.url) {
       console.error("[checkout] No session URL returned from Stripe");
       return NextResponse.json(
         { ok: false, error: "Failed to create checkout session" },
@@ -236,8 +236,8 @@ export async function POST(req: Request) {
       );
     }
 
-    console.log("[checkout] Success! Session created:", session.id);
-    return NextResponse.json({ ok: true, url: session.url });
+    console.log("[checkout] Success! Session created:", checkoutSession.id);
+    return NextResponse.json({ ok: true, url: checkoutSession.url });
 
   } catch (err: any) {
     console.error("[checkout] Error:", {

@@ -1,0 +1,195 @@
+You are the Replit AI Agent responsible for FULL end-to-end validation and repair of the Levqor deployment pipeline, covering:
+- Local repo structure
+- Git configuration
+- GitHub remote + CI
+- Vercel build + output correctness
+- Cloudflare DNS + domain routing
+- Final production checks (HTML, assets, CSS, JS)
+
+You MUST NOT assume success. 
+You MUST verify everything using ls, cat, grep, sed, curl, dig, and git commands.
+If something is missing, locate it using find, grep, or ls -R, NOT guessing.
+
+====================================================
+STEP 1 — VERIFY WE ARE IN THE CORRECT LOCAL REPO
+====================================================
+
+1. Print current directory:
+   pwd
+   ls -la
+
+2. Locate the correct folder explicitly:
+   find . -maxdepth 4 -type d -name "levqor-frontend"
+
+3. cd into the correct folder:
+   cd levqor-frontend
+
+4. Re-verify:
+   pwd
+   ls -la
+
+====================================================
+STEP 2 — VERIFY GIT REMOTE + MAIN BRANCH
+====================================================
+
+1. Show remote + branch:
+   git remote -v
+   git branch
+   git status
+
+2. Remote must be:
+   https://github.com/VII-77/levqor-frontend.git
+
+   If not:
+   git remote set-url origin https://github.com/VII-77/levqor-frontend.git
+
+3. Ensure active branch is main:
+   git checkout main
+
+====================================================
+STEP 3 — VERIFY .GITHUB WORKFLOWS (CI)
+====================================================
+
+1. Ensure structure exists:
+   ls -la .github || echo ".github missing"
+   mkdir -p .github/workflows
+
+2. Check workflows:
+   ls -la .github/workflows
+
+3. If missing, create CI workflow:
+   cat > .github/workflows/ci.yml << 'EOF'
+   name: Levqor CI
+
+   on:
+     push:
+       branches: [ "main" ]
+     pull_request:
+       branches: [ "main" ]
+
+   jobs:
+     build:
+       runs-on: ubuntu-latest
+       steps:
+         - uses: actions/checkout@v4
+         - uses: actions/setup-node@v4
+           with:
+             node-version: 20
+         - run: npm install
+         - run: npm run build
+   EOF
+
+4. VERIFY CI FILE EXACTLY:
+   sed -n '1,200p' .github/workflows/ci.yml
+
+====================================================
+STEP 4 — VERIFY NEXT.JS 14 PROJECT INTEGRITY
+====================================================
+
+1. Check package.json:
+   sed -n '1,200p' package.json
+
+2. Confirm build script:
+   grep -R "\"build\"" -n package.json || echo "NO BUILD SCRIPT FOUND"
+
+3. Verify key folders:
+   ls -la src || echo "src missing"
+   ls -la app || echo "app missing"
+   ls -la public || echo "public missing"
+
+====================================================
+STEP 5 — LOCAL BUILD VERIFICATION
+====================================================
+
+1. Install deps:
+   npm install
+
+2. Run build:
+   npm run build
+
+3. If ANY error appears:
+   - Identify missing modules:
+       grep -R "module not found" -n .
+       grep -R "Cannot find module" -n .
+   - Verify file existence:
+       ls -R src
+       ls -R app
+
+4. FIX ONLY after verifying actual files.
+
+====================================================
+STEP 6 — GIT COMMIT + VERIFY
+====================================================
+
+1. Status check:
+   git status
+
+2. Stage:
+   git add -A
+
+3. Commit:
+   git commit -m "fix: complete Levqor E2E pipeline (CI, build, routing, DNS)"
+
+4. Verify staged diff:
+   git diff --staged
+
+====================================================
+STEP 7 — PUSH TO MAIN (WORKFLOW-SAFE)
+====================================================
+
+git push origin main
+
+git fetch --all
+git status
+git log -1
+
+====================================================
+STEP 8 — VERCEL DEPLOYMENT VERIFICATION (READ-ONLY)
+====================================================
+
+1. Locate vercel.json:
+   ls -la vercel.json
+   cat vercel.json || echo "NO vercel.json found"
+
+2. Confirm production target is correct:
+   echo "PRODUCTION MUST BE PROJECT: levqor-frontend"
+
+====================================================
+STEP 9 — CLOUDFLARE DNS VERIFICATION (READ-ONLY)
+====================================================
+
+Check real DNS:
+   dig +noall +answer levqor.ai
+   dig +noall +answer www.levqor.ai
+
+Output must show Vercel ALIAS/CNAME targets.
+
+If not:
+   echo "WARNING: levqor.ai NOT pointing to levqor-frontend. Fix in Cloudflare dashboard."
+
+====================================================
+STEP 10 — PRODUCTION VERIFICATION (END-TO-END)
+====================================================
+
+1. Headers check:
+   curl -I https://levqor.ai || echo "Domain unreachable"
+   curl -I https://www.levqor.ai || echo "Domain unreachable"
+
+2. Full HTML:
+   curl -L https://levqor.ai | head -n 50
+   curl -L https://www.levqor.ai | head -n 50
+
+Confirm:
+- CSS is loading
+- JS bundles exist
+- Not raw HTML
+- Not old levqor-site project
+
+3. Asset check:
+   curl -I https://levqor.ai/_next/static/chunks/main.js || echo "Missing Next.js assets"
+
+====================================================
+
+END OF GLOBAL PIPELINE. 
+DO NOT assume success at ANY step. 
+Verify everything with real commands, real output, and real diffs.

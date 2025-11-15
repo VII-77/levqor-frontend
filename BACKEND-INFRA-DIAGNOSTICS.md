@@ -439,7 +439,69 @@ done
 
 ---
 
-## 14. CONCLUSION
+## 14. DNS & ROUTING DIAGNOSTICS
+
+### Network Connectivity Tests
+
+#### Traceroute & MTR
+**Status:** Tools not available in Replit environment
+```
+traceroute: command not found
+mtr: command not found
+ping: command not found
+```
+
+**Note:** Replit NixOS environment does not include standard network diagnostic tools.
+
+#### Alternative: Verbose cURL Connection Analysis
+
+**Test 1: api.levqor.ai**
+```
+* Host api.levqor.ai:443 was resolved.
+* IPv6: 2606:4700:3032::ac43:9ea4, 2606:4700:3030::6815:e69
+* IPv4: 104.21.14.105, 172.67.158.164
+* Connected to: 104.21.14.105:443
+* SSL connection using TLSv1.3 / TLS_AES_256_GCM_SHA384
+* Server certificate: CN=levqor.ai
+* subjectAltName: host "api.levqor.ai" matched cert's "*.levqor.ai"
+* SSL certificate verify ok.
+```
+
+**Test 2: www.levqor.ai**
+```
+* Host www.levqor.ai:443 was resolved.
+* IPv6: 2606:4700:3032::ac43:9ea4, 2606:4700:3030::6815:e69
+* IPv4: 172.67.158.164, 104.21.14.105
+* Connected to: 172.67.158.164:443
+* SSL connection using TLSv1.3 / TLS_AES_256_GCM_SHA384
+* Server certificate: CN=levqor.ai
+* subjectAltName: host "www.levqor.ai" matched cert's "*.levqor.ai"
+* SSL certificate verify ok.
+```
+
+### Routing Analysis
+
+**DNS Resolution:**
+- ✅ Both domains resolve to Cloudflare edge servers
+- ✅ Multiple IPv4 addresses (load balancing)
+- ✅ IPv6 support enabled (though not connecting from Replit)
+
+**SSL/TLS:**
+- ✅ TLSv1.3 negotiation successful
+- ✅ Certificate chain valid
+- ✅ Wildcard certificate covers both api.* and www.*
+- ✅ ALPN: HTTP/2 enabled
+
+**Connectivity:**
+- ✅ TCP connection established successfully
+- ✅ No network-level blocking
+- ✅ Cloudflare CDN responding
+
+**Conclusion:** Network routing is functioning correctly. The HTTP 404 responses indicate the backend application is not deployed, not a DNS/routing issue.
+
+---
+
+## 15. CONCLUSION
 
 **Current Status:** PRODUCTION API NOT ACCESSIBLE
 

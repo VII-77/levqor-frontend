@@ -1,0 +1,189 @@
+You are the senior architect and DevOps lead for the Levqor + EchoPilot system.
+
+CONTEXT (DO NOT IGNORE)
+- There is ONE Replit project: Levqor-backend. This is BOTH:
+  - The Levqor API backend
+  - The EchoPilot “brain” (schedulers, audits, monitoring, governance, reports)
+- There is NO separate frontend Replit app.
+- The frontend is deployed separately via Vercel at: https://www.levqor.ai
+- Backend autoscale deployment domain: https://levqor-backend.replit.app
+- Public API domain via Cloudflare CNAME: https://api.levqor.ai → levqor-backend.replit.app
+- Locally, http://localhost:8000/health returns {"ok": true, ...}.
+- From the internet, https://api.levqor.ai/health currently returns **"Not found"** (HTTP 404).
+- The owner is non-technical and wants MAX automation, MIN manual clicks.
+- You MUST use existing integrations and secret env vars automatically (Stripe, OpenAI, Notion, Gmail, Drive, Resend, Telegram, internal secrets, etc.).
+- You MUST verify results with real commands (curl, HTTP, scripts), not “should work”.
+
+GOAL
+1) Bring EchoPilotAI (the internal audit/brain) fully online and up to date.
+2) Make the backend deployment actually serve the same health + API routes in production as it does locally.
+3) Prove that:
+   - http://localhost:8000/health
+   - https://levqor-backend.replit.app/health   (or equivalent)
+   - https://api.levqor.ai/health
+   all return healthy, consistent results.
+4) Verify the frontend at https://www.levqor.ai can (in principle) talk to the backend API domain.
+
+OUTPUTS (REQUIRED)
+You must produce and update these files at the repo root:
+
+- ECHOPILOT-HEALTH-INVENTORY.md
+- ECHOPILOT-FINAL-HEALTH-REPORT.md
+- ECHOPILOT-FINAL-HEALTH-SUMMARY.md
+- BACKEND-DEPLOYMENT-STATUS.md
+- FRONTEND-API-CONNECTIVITY.md
+
+All summaries MUST be in simple, beginner-friendly English.
+
+====================================================================
+PHASE 1 — MAP ECHOPILOT + HEALTH SCRIPTS (INVENTORY)
+====================================================================
+
+1. From the project root, list:
+   - scripts/
+   - monitors/, ops/, governance/, integrity_reports/, retention/, billing/, automation-setup/ (if they exist)
+   - Any "*NUCLEAR-AUDIT*", "*PRODUCTION-REALITY*" or similar audit files.
+
+2. Create or overwrite ECHOPILOT-HEALTH-INVENTORY.md with:
+   - List of all existing health/audit scripts (paths, what they check, how to run, still relevant for Genesis v8.0 or not).
+   - Any cron/scheduler jobs you detect (e.g., via APScheduler config or scheduler modules).
+   - A clear bullet summary: “What EchoPilot currently monitors automatically” vs “What it does NOT monitor yet”.
+
+DO NOT delete any existing scripts. This is mapping only.
+
+====================================================================
+PHASE 2 — BUILD/REFINE A SINGLE ECHOPILOT FINAL HEALTHCHECK
+====================================================================
+
+3. Create or update: scripts/echopilot-final-healthcheck.sh
+   Requirements:
+   - Bash script, executable (chmod +x).
+   - Uses existing env vars automatically; do NOT hardcode secrets.
+   - Runs a SMALL, CHEAP set of key checks:
+     a) Local backend health:
+        - Try http://localhost:8000/health
+        - If 404, try http://localhost:8000/internal/health and note which is real.
+     b) Deployed backend health:
+        - curl -s -D- https://levqor-backend.replit.app/health
+        - If that 404s, try /internal/health and note.
+     c) Public API health:
+        - curl -s -D- https://api.levqor.ai/health
+        - If 404, test /internal/health.
+     d) Stripe connectivity:
+        - Use the LIGHTEST existing Stripe check (reuse any existing utility; do NOT invent full new flows).
+        - Example: ensure STRIPE_SECRET_KEY resolves and maybe call Stripe API once if there is already code for that.
+     e) Scheduler sanity:
+        - Confirm APScheduler is registered with at least one job (reuse existing introspection if present).
+     f) Database:
+        - Run the simplest possible DB connectivity test (like a “SELECT 1” equivalent via existing ORM/model).
+
+4. For each check, write a PASS/FAIL line plus reason into:
+   - ECHOPILOT-FINAL-HEALTH-REPORT.md
+
+5. Run the script:
+   - Ensure the backend is started the same way production does (python run.py or equivalent).
+   - Then run: ./scripts/echopilot-final-healthcheck.sh
+   - Capture exit code and full stdout/stderr into:
+     - integrity_reports/ECHOPILOT-FINAL-HEALTH-RAW.log (create folder if missing).
+
+6. Create/overwrite ECHOPILOT-FINAL-HEALTH-SUMMARY.md:
+   - Use plain, simple English.
+   - At the top: `OVERALL: PASS`, `OVERALL: WARNING`, or `OVERALL: FAIL`.
+   - Then bullets:
+     - “Backend local health check: PASS/FAIL + one sentence why”
+     - “Deployed backend health (levqor-backend.replit.app): PASS/FAIL + one sentence why”
+     - “Public API (api.levqor.ai): PASS/FAIL + one sentence why”
+     - “Stripe connectivity: PASS/FAIL”
+     - “Scheduler jobs running: PASS/FAIL”
+     - “Database: PASS/FAIL”
+   - For each FAIL/WARNING: one sentence “What the owner should do next” (practical, not technical).
+
+====================================================================
+PHASE 3 — FIX BACKEND DEPLOYMENT VS LOCAL BEHAVIOUR
+====================================================================
+
+Now focus on the BACKEND deployment mis-match. Locally /health works; api.levqor.ai/health = 404.
+
+7. Inspect the entrypoint and routes:
+   - Open run.py (and main app factory).
+   - Identify:
+     - The actual health endpoint(s) (e.g. `/health`, `/internal/health`).
+     - Which blueprint or router they belong to.
+   - Confirm which endpoint is considered the “canonical” health check for production.
+
+8. Ensure a stable /health endpoint exists in production:
+   - If /health already exists and is correct, leave it.
+   - If only /internal/health exists but /health does not:
+     - Add a simple /health alias route that returns the same JSON, using the existing app patterns.
+   - Do NOT break any existing internal/health semantics; just add a stable top-level health.
+
+9. Align Replit deployment behaviour:
+   - Inspect any Replit-specific config files (.replit, replit.nix, etc.).
+   - Confirm the deployment uses the same command as local dev:
+     - python run.py
+   - Confirm the app listens on the correct port that Replit expects (you saw “Running on http://0.0.0.0:5000”). Do NOT hardcode a different port unless absolutely required.
+   - If there is any discrepancy between autoscale config and local run, correct the config files/address only (no secrets changes).
+
+10. Verify the deployed app (inside Replit):
+   - From the shell, curl:
+     - https://levqor-backend.replit.app/health
+     - If 404, try /internal/health.
+   - Adjust routing or config as needed until at least ONE of these returns the same “ok” JSON as localhost.
+   - Document the final working path in BACKEND-DEPLOYMENT-STATUS.md.
+
+11. Verify public API domain:
+   - From this Replit shell, curl:
+     - https://api.levqor.ai/health
+     - If that still 404s but levqor-backend.replit.app/health is OK, note the difference (this might be pure Cloudflare cache/propagation, but assume it’s reachable unless logs prove otherwise).
+   - Include both responses (status + first line of body) in BACKEND-DEPLOYMENT-STATUS.md.
+
+BACKEND-DEPLOYMENT-STATUS.md MUST include:
+- Local health endpoint path and sample JSON.
+- Deployed levqor-backend.replit.app health endpoint path and sample JSON.
+- api.levqor.ai health response (status + body sample).
+- Start command used for deployment.
+- Any changes made.
+
+====================================================================
+PHASE 4 — FRONTEND + API CONNECTIVITY CHECK
+====================================================================
+
+12. Create or update FRONTEND-API-CONNECTIVITY.md with:
+   - Results of:
+     - curl -s -D- https://www.levqor.ai | head -n 20
+     - curl -s -I https://www.levqor.ai/pricing
+   - If there is a known public API endpoint (e.g. /api/support/health or /api/ping), try:
+     - curl -s -D- https://api.levqor.ai/api/support/health  (if it exists)
+     - If it 404s, just record that.
+
+13. In FRONTEND-API-CONNECTIVITY.md, explain in plain English:
+   - “The public website is reachable: yes/no (with HTTP code)”
+   - “The API domain api.levqor.ai responds: yes/no (with HTTP code)”
+   - “If backend health works but an API route is 404, it is likely a routing or path issue, not infra.”
+
+DO NOT modify any frontend code from this backend project. Only observe.
+
+====================================================================
+PHASE 5 — FINAL SUMMARY FOR THE OWNER
+====================================================================
+
+14. At the end, print a clear console summary AND ensure ECHOPILOT-FINAL-HEALTH-SUMMARY.md and BACKEND-DEPLOYMENT-STATUS.md are up to date.
+
+Console summary MUST include:
+
+- ECHOPILOT OVERALL STATUS: PASS/WARNING/FAIL
+- LOCAL BACKEND HEALTH (localhost:8000/health): HTTP code and brief result
+- DEPLOYED BACKEND HEALTH (levqor-backend.replit.app/health): HTTP code and brief result
+- PUBLIC API HEALTH (api.levqor.ai/health): HTTP code and brief result
+- ONE LINE: “WHAT THE OWNER SHOULD DO NEXT”
+
+IMPORTANT RULES
+- Do NOT delete or rename existing critical scripts, jobs, or database tables.
+- Do NOT touch Stripe pricing, products, or customer data.
+- Do NOT modify Cloudflare or Vercel directly; only observe via curl.
+- Use existing env vars and integrations; do NOT hardcode credentials.
+- Prefer minimal, safe changes to health routes and deployment config only where strictly needed.
+
+When finished, end your output with this exact line:
+
+"EchoPilot + Backend + API verification complete — open ECHOPILOT-FINAL-HEALTH-SUMMARY.md and BACKEND-DEPLOYMENT-STATUS.md for the real status."

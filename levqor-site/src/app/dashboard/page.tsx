@@ -3,6 +3,7 @@ import { authOptions } from "@/auth";
 import { redirect } from "next/navigation";
 import DashboardTiles from "@/components/DashboardTiles";
 import AnalyticsWidget from "@/components/AnalyticsWidget";
+import DashboardSupportChat from "@/components/support/DashboardSupportChat";
 
 export const dynamic = "force-dynamic";
 
@@ -83,6 +84,8 @@ export default async function Dashboard(){
             </pre>
           </div>
         )}
+        
+        <DashboardSupportChat email={session.user.email || undefined} />
       </div>
     </main>
   );

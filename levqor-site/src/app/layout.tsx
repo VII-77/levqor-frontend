@@ -3,6 +3,7 @@ import { Providers } from "@/components/providers";
 import CookieBanner from "@/components/cookies/CookieBanner";
 import LoadAnalytics from "@/components/cookies/LoadAnalytics";
 import { BillingWarningBanner } from "@/components/BillingWarningBanner";
+import PublicHelpWidget from "@/components/support/PublicHelpWidget";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -23,6 +24,7 @@ export default function RootLayout({
         <Providers>{children}</Providers>
         <CookieBanner />
         <LoadAnalytics />
+        <PublicHelpWidget />
       </body>
     </html>
   );

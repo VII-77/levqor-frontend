@@ -1,0 +1,119 @@
+You are the Replit AI Agent for the Levqor frontend.
+
+GOAL
+- Investigate the 3 non-critical build warnings reported in NUCLEAR-AUDIT-REPORT.md, especially those related to dynamic routes.
+- Explain EXACTLY what each warning is, why it happens, and whether it is safe to ignore or should be fixed.
+- Propose concrete, minimal fixes for each warning WITHOUT applying them automatically unless explicitly instructed at the end.
+
+RULES
+- Read first, DO NOT change any files until the “FIX PROPOSAL” step.
+- Do not delete or rename files.
+- Any suggested changes must be shown as diffs or code snippets, NOT applied directly.
+
+====================================================
+STEP 1 — FIND THE WARNINGS
+====================================================
+
+1. If NUCLEAR-AUDIT-REPORT.md exists, show only the warnings section:
+   sed -n '1,200p' NUCLEAR-AUDIT-REPORT.md | sed -n '/Warnings/,$p' || echo "No report or warnings section found."
+
+2. Re-run build to capture current warnings fresh:
+   npm install
+   npm run build 2>&1 | tee /tmp/build_warnings.log
+
+3. Extract ONLY warnings from the log:
+   grep -i "warn" /tmp/build_warnings.log | head -n 50 || echo "No warnings found."
+   tail -n 80 /tmp/build_warnings.log
+
+4. Summarise:
+   - List each UNIQUE warning message.
+   - For each, note the file(s) and route(s) mentioned.
+
+====================================================
+STEP 2 — CLASSIFY EACH WARNING
+====================================================
+
+For each warning found, classify:
+
+- Type: e.g. “dynamic route without generateStaticParams”, “large route segment”, “experimental feature”, etc.
+- Impact:
+  - BLOCKING (build fails) – should not be the case
+  - NON-BLOCKING BUT RISKY (may cause runtime bugs or 500s)
+  - NON-BLOCKING + ACCEPTABLE (e.g. normal Next.js warnings)
+
+Give a plain-English explanation for the impact:
+- “This can cause SEO issues.”
+- “This only affects performance in extreme cases.”
+- “This is harmless noise given your current usage.”
+
+====================================================
+STEP 3 — INSPECT AFFECTED ROUTES/FILES
+====================================================
+
+For each file/route mentioned in the warnings:
+
+1. Show the relevant file:
+   - If it is a page or route (e.g. app/.../page.tsx, pages/...):
+       sed -n '1,160p' <file_path>
+
+2. Look for:
+   - Dynamic segments: [id], [...slug], etc.
+   - getStaticProps / getServerSideProps / generateStaticParams usage.
+   - Any obvious anti-patterns flagged by Next.js docs.
+
+3. Summarise:
+   - What this route does.
+   - Whether it’s core to your app (e.g. pricing, checkout, auth) or a secondary page.
+
+====================================================
+STEP 4 — FIX PROPOSALS (READ-ONLY)
+====================================================
+
+For EACH warning, propose a minimal, concrete fix:
+
+- If the issue is “dynamic route without generateStaticParams”:
+  - Suggest either:
+    - Implementing generateStaticParams, OR
+    - Explicitly marking it as dynamic (dynamic = 'force-dynamic' or similar) depending on how the route is intended to behave.
+
+- If the issue is “too many dynamic segments” or similar:
+  - Suggest:
+    - Keeping as-is if it’s not impacting performance.
+    - Or restructuring the route if easy and clearly beneficial.
+
+- If it’s a minor Next.js warning that’s safe for your use case:
+  - State clearly: “Safe to ignore for now. Optional improvement only.”
+
+Produce:
+- A bullet list of suggested changes per file, with code snippets like:
+
+   File: app/example/[id]/page.tsx  
+   Current:  
+     (show the relevant part)  
+   Suggested change:  
+     (show modified function or config)
+
+Do NOT apply the changes automatically.
+
+====================================================
+STEP 5 — FINAL REPORT
+====================================================
+
+Provide a concise, harsh summary:
+
+1. STATUS:
+   - "DYNAMIC WARNINGS: SAFE" or
+   - "DYNAMIC WARNINGS: SHOULD FIX"
+
+2. For each warning:
+   - Short label (e.g. “Warning #1: dynamic route without generateStaticParams”)
+   - Impact (blocking / risky / harmless)
+   - Recommended action (fix now / fix later / ignore)
+
+3. GLOBAL RECOMMENDATION:
+   - If everything is non-critical and safe:
+     - Say: “From a production readiness standpoint, these warnings do NOT block launch and are minor improvements only.”
+   - If any warning is truly risky:
+     - Say: “Fix these N warnings before scaling traffic.”
+
+END OF INSTRUCTIONS.

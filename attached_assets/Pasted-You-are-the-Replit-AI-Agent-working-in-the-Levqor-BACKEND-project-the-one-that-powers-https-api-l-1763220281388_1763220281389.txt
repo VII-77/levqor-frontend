@@ -1,0 +1,137 @@
+You are the Replit AI Agent working in the Levqor BACKEND project (the one that powers https://api.levqor.ai).
+
+Your ONLY job in this run:
+- Enable the Python `openai` package so the Support AI uses real OpenAI replies instead of fallback.
+- Run the existing self-audit.
+- Confirm `/api/support/health` reports that OpenAI is configured.
+- Commit and push any dependency changes.
+
+Do NOT touch the frontend. Do NOT clone or edit levqor-site. Backend only.
+
+==================================================
+STEP 1 — GO TO BACKEND ROOT
+==================================================
+
+1. Show where you are:
+   - `pwd`
+   - `ls -la`
+
+2. If you see a `backend/` folder that contains `run.py`, go into it:
+   - `cd backend`
+   - `ls -la`
+
+We will treat this folder (the one with `run.py`, `routes/`, `services/`, `scripts/`) as the backend root.
+
+==================================================
+STEP 2 — CHECK IF openai IS INSTALLED
+==================================================
+
+1. Run:
+   `python -c "import openai; print(getattr(openai,'__version__','not-installed'))" || echo 'not-installed'`
+
+2. If that prints a real version (e.g. "1.2.3"), OpenAI is installed → skip to STEP 4.
+
+3. If it prints "not-installed" or errors → go to STEP 3.
+
+==================================================
+STEP 3 — INSTALL openai + UPDATE DEPENDENCIES
+==================================================
+
+1. Install:
+   `pip install "openai>=1.0.0,<2.0.0"`
+
+2. If there is a `requirements.txt` in this backend root:
+   - Show it: `cat requirements.txt`
+   - If it does NOT contain `openai`, append:
+     - `echo "openai>=1.0.0,<2.0.0" >> requirements.txt`
+
+3. Re-check import:
+   `python -c "import openai; print(openai.__version__)"`
+
+==================================================
+STEP 4 — ENSURE SUPPORT AI DETECTS OPENAI
+==================================================
+
+1. Open:
+   - `services/support_ai.py` (path is relative to backend root)
+
+2. Find where it decides whether OpenAI is configured (e.g. some `openai_configured` flag or health logic).
+
+3. Make sure the logic is:
+
+   - If `import openai` works AND `OPENAI_API_KEY` exists in environment:
+       - `openai_configured = True`
+   - Otherwise `False`.
+
+4. Do NOT change business behavior, only detection.
+
+==================================================
+STEP 5 — RUN SELF-AUDIT SCRIPT
+==================================================
+
+1. Check script exists:
+   - `ls scripts`
+   - `cat scripts/backend-self-audit.sh`
+
+2. Run:
+   - `./scripts/backend-self-audit.sh`
+
+3. Fix ONLY errors caused by OpenAI changes if any appear.
+4. Re-run until the audit passes like before.
+
+==================================================
+STEP 6 — CHECK /api/support/health LOCALLY
+==================================================
+
+1. Start backend (if needed) using the project’s normal dev command, e.g.:
+   - `python run.py`
+   (or whatever the repo already uses)
+
+2. In another shell tab/pane:
+   - `curl -s http://localhost:8000/api/support/health || curl -s http://127.0.0.1:8000/api/support/health`
+
+3. Confirm the JSON contains:
+   - `"status": "ok"`
+   - A field clearly indicating OpenAI is configured (for example `"openai_configured": true` if that’s how the file is written).
+
+4. If it still shows not configured:
+   - Fix detection logic in `services/support_ai.py`.
+   - Re-run curl until it shows that OpenAI is detected.
+
+==================================================
+STEP 7 — GIT COMMIT + PUSH (BACKEND ONLY)
+==================================================
+
+1. Show:
+   - `git status`
+   - `git diff`
+
+2. Stage ONLY these kinds of files:
+   - `requirements.txt` (or equivalent dependency file)
+   - `services/support_ai.py` (if you changed detection)
+   - Any backend report file you have been using (e.g. `BACKEND-AUTOMATION-REPORT.md`)
+
+3. Commit:
+   - `git commit -m "feat: enable OpenAI for Levqor Support AI backend"`
+
+4. Push:
+   - `git push origin main`
+
+Use the same GitHub integration/credentials that already work in this repl.
+
+==================================================
+STEP 8 — FINAL SUMMARY
+==================================================
+
+At the end, print a short summary:
+
+- openai version installed (or confirmed)
+- Whether self-audit passed
+- The JSON output from the last local `/api/support/health` call
+- Confirmation that `git push origin main` succeeded
+
+End with this EXACT line:
+
+"LEVQOR SUPPORT AI OPENAI ENABLED — backend now uses full OpenAI-powered replies."
+
+END OF INSTRUCTIONS.

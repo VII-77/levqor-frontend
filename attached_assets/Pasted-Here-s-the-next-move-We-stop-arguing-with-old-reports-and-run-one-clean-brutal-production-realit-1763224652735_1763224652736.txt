@@ -1,0 +1,314 @@
+Here’s the next move.
+
+We stop arguing with old reports and run one clean, brutal, production reality check on the system you actually have:
+single Replit workspace → backend + cloned frontend repo → GitHub → Vercel → Cloudflare.
+
+You paste this into the Replit AI Agent in your current backend repl. It:
+
+Checks backend health (local + production)
+
+Checks Support AI + OpenAI config
+
+Checks frontend repo build & CI setup
+
+Calls real production URLs (levqor.ai + api.levqor.ai)
+
+Writes one clear report file you and I can trust
+
+Does only safe code-level fixes, no DNS magic
+
+
+
+---
+
+REPLIT AI AGENT PROMPT — LEVQOR PRODUCTION REALITY CHECK (BACKEND + FRONTEND)
+
+You are the Replit AI Agent working in the **single Levqor workspace**.
+
+Reality:
+- This workspace is primarily the BACKEND.
+- It also contains a CLONED FRONTEND REPO folder (e.g. `levqor-site`), which is deployed via GitHub → Vercel.
+- The user is non-technical and wants maximum automation with minimal manual steps.
+- You MUST use existing integrations and secrets.
+
+Your job in THIS RUN:
+1) Verify what actually works in **backend**, **frontend repo**, and **production**.
+2) Fix ONLY safe code-level / config-level issues inside this workspace.
+3) Produce ONE human-readable report file summarising the REAL state.
+4) Do NOT attempt to change DNS/Cloudflare/Vercel dashboards (just detect & report).
+
+==================================================
+STEP 0 — WORKSPACE MAP
+==================================================
+
+1. Show base:
+   - `pwd`
+   - `ls -la`
+
+2. Find the frontend repo folder:
+   - `find . -maxdepth 3 -type d -iname "*levqor*"`
+   - Identify the folder that contains:
+       - `package.json`
+       - `src/app`
+       - `.github` (maybe)
+   - Call it **FRONTEND_DIR** (e.g. `levqor-site`).
+
+3. Confirm backend root:
+   - You should see:
+       - `backend/` OR a root with `run.py`, `routes/`, `services/`, `scripts/`
+   - Call that folder **BACKEND_DIR**.
+
+4. Create or open:
+   - `LEVQOR-PRODUCTION-REALITY-REPORT.md`
+   - Start with:
+     - Timestamp
+     - `BACKEND_DIR = ...`
+     - `FRONTEND_DIR = ...`
+     - Python version (`python --version`)
+     - Node version (`node -v` if available)
+
+==================================================
+STEP 1 — BACKEND HEALTH (LOCAL)
+==================================================
+
+1. `cd` into BACKEND_DIR.
+
+2. List structure:
+   - `ls -la`
+   - Confirm presence of:
+       - `run.py`
+       - `routes/`
+       - `services/`
+       - `scripts/`
+       - Support AI files (e.g. `routes/support_chat.py`, `services/support_ai.py`)
+
+3. Run self-audit script if it exists:
+   - `ls scripts`
+   - If `scripts/backend-self-audit.sh` present:
+       - `./scripts/backend-self-audit.sh || echo "self-audit-failed"`
+
+4. Note:
+   - PASS or FAIL
+   - Any new errors related to Support AI / OpenAI
+
+Append section “1. BACKEND LOCAL HEALTH” to LEVQOR-PRODUCTION-REALITY-REPORT.md with:
+- Self-audit result
+- Any key error messages.
+
+==================================================
+STEP 2 — SUPPORT AI + OPENAI CHECK
+==================================================
+
+1. From BACKEND_DIR, test OpenAI import:
+   - `python -c "import openai; print(getattr(openai,'__version__','not-installed'))" || echo 'openai-not-installed'`
+
+2. Inspect `services/support_ai.py` (adjust path if needed):
+   - Confirm there is logic to detect whether OpenAI is configured.
+   - NOTE only; do NOT change behavior here unless obviously broken.
+
+3. Start backend locally (if there is a dev command):
+   - Try:
+       - `python run.py &`  (run in background if needed)
+   - Wait a few seconds.
+
+4. Hit local health endpoints:
+   - `curl -s http://localhost:8000/health || curl -s http://127.0.0.1:8000/health || echo "no-root-health"`
+   - `curl -s http://localhost:8000/api/support/health || curl -s http://127.0.0.1:8000/api/support/health || echo "no-support-health"`
+
+5. Record:
+   - Status codes
+   - JSON fields (especially anything like `openai_configured` or similar)
+
+Append section “2. SUPPORT AI LOCAL HEALTH” with:
+- openai version (or “not installed”)
+- health endpoint responses.
+
+==================================================
+STEP 3 — PRODUCTION BACKEND CHECK (api.levqor.ai)
+==================================================
+
+From anywhere (preferably BACKEND_DIR):
+
+1. Try:
+   - `curl -s -D- https://api.levqor.ai/health || echo "health-not-reachable"`
+   - `curl -s -D- https://api.levqor.ai/api/support/health || echo "support-health-not-reachable"`
+
+2. Record:
+   - HTTP status codes
+   - Any JSON or text returned
+   - Any obvious 404/429/5xx
+
+Append section “3. PRODUCTION BACKEND (api.levqor.ai)” with exact outputs.
+
+==================================================
+STEP 4 — FRONTEND REPO HEALTH (LOCAL)
+==================================================
+
+1. `cd` into FRONTEND_DIR.
+
+2. Show:
+   - `ls -la`
+   - `cat package.json`
+
+3. Determine package manager:
+   - If `package-lock.json` exists → use `npm`.
+   - If `pnpm-lock.yaml` exists → use `pnpm`.
+   - If `yarn.lock` exists → use `yarn`.
+
+4. Install deps (but keep it minimal):
+   - For npm:
+       - `npm install`
+   - For pnpm:
+       - `pnpm install`
+   - For yarn:
+       - `yarn install`
+
+5. Run build:
+   - `npm run build || pnpm build || yarn build`
+
+6. Record:
+   - PASS / FAIL
+   - If FAIL: first error lines only (especially missing modules, import paths, etc.)
+
+Append section “4. FRONTEND LOCAL BUILD” with:
+- Build result
+- First error if any.
+
+==================================================
+STEP 5 — PRODUCTION FRONTEND CHECK (www.levqor.ai)
+==================================================
+
+1. From FRONTEND_DIR or anywhere:
+
+   - `curl -s -D- https://www.levqor.ai | head -n 30`
+
+2. Check:
+   - Status code (should be 200)
+   - Presence of `<!DOCTYPE html>` and `<title>` that matches Levqor.
+   - If possible, note if HTML references `_next/static` assets.
+
+3. Optionally, check one or two key routes:
+   - `curl -s -I https://www.levqor.ai/pricing`
+   - `curl -s -I https://www.levqor.ai/dashboard`
+
+Append section “5. PRODUCTION FRONTEND (www.levqor.ai)” with status codes and any obvious issues (e.g. 404, redirects, etc.).
+
+==================================================
+STEP 6 — CI / GITHUB ACTIONS SETUP CHECK
+==================================================
+
+Still in FRONTEND_DIR:
+
+1. Check workflows:
+   - `ls -la .github`
+   - `ls -la .github/workflows || echo "no-workflows"`
+
+2. If `ci.yml` or similar exists:
+   - `cat .github/workflows/ci.yml`
+
+3. Simulate CI locally:
+   - `npm run lint || pnpm lint || yarn lint || echo "no-lint-script"`
+   - `npm test || pnpm test || yarn test || echo "no-test-script"`
+
+4. Record:
+   - Which scripts exist
+   - Which fail
+
+Append section “6. CI / GITHUB STATE” with:
+- Existing workflows
+- Local CI command results.
+
+==================================================
+STEP 7 — CLASSIFY ISSUES (CODE vs INFRA)
+==================================================
+
+Based on all the above:
+
+1. In LEVQOR-PRODUCTION-REALITY-REPORT.md, add section:
+   - “7. SUMMARY — CODE vs INFRASTRUCTURE ISSUES”
+
+2. Under **CODE-LEVEL (FIXABLE HERE)** list:
+   - Build errors in frontend repo
+   - Missing deps
+   - Broken imports/tests
+   - Support AI OpenAI not installed (if that’s the case)
+
+3. Under **INFRASTRUCTURE (REQUIRES DASHBOARD / EXTERNAL)** list:
+   - `api.levqor.ai` unreachable or 404
+   - Any 429 rate limits from Cloudflare
+   - DNS or SSL problems
+   - Anything that clearly cannot be changed from this workspace
+
+3. Mark each item with severity:
+   - 🔴 BLOCKER
+   - 🟠 WARNING
+   - 🟢 OK
+
+End the report with:
+“LEVQOR PRODUCTION REALITY CHECK COMPLETE — see sections above for what works, what’s broken, and which side (code vs infra) it lives on.”
+
+==================================================
+STEP 8 — OPTIONAL SAFE FIXES (ONLY IF OBVIOUS)
+==================================================
+
+If you see any **simple, non-risky code-level fixes** that you can safely make **without touching infra**, you MAY:
+
+- Fix missing imports
+- Add `openai` to backend requirements if clearly missing
+- Fix obvious TypeScript/ESLint configuration mismatches
+
+If you make fixes:
+- Re-run the relevant build/self-audit commands.
+- Note changes in the report.
+
+Do NOT:
+- Change DNS
+- Change domains
+- Change Cloudflare/Vercel config
+- Add new external services
+
+==================================================
+STEP 9 — GIT STATUS (NO FORCED PUSH REQUIRED)
+==================================================
+
+1. `git status` from the workspace root and from FRONTEND_DIR.
+2. Stage ONLY the report file:
+   - `git add LEVQOR-PRODUCTION-REALITY-REPORT.md`
+3. Commit:
+   - `git commit -m "chore: Levqor production reality check report"` || echo "no-changes-or-commit-failed"
+4. `git push origin main || echo "push-failed-or-not-configured"`
+
+This push is optional; the user mainly needs the report content.
+
+==================================================
+STEP 10 — FINAL CONSOLE SUMMARY
+==================================================
+
+Print a short console summary:
+
+- Backend local health: OK / broken (with one-line reason)
+- Support AI + OpenAI: enabled / fallback / not installed
+- Production API (api.levqor.ai): status codes summary
+- Frontend local build: PASS/FAIL
+- Production frontend (www.levqor.ai): key URL status
+- CI scripts found and their local pass/fail
+- Location of report file: LEVQOR-PRODUCTION-REALITY-REPORT.md
+
+End with this exact line:
+
+"LEVQOR PRODUCTION REALITY CHECK COMPLETE — open LEVQOR-PRODUCTION-REALITY-REPORT.md for full details."
+
+END OF INSTRUCTIONS.
+
+
+---
+
+Run that in your current backend repl AI Agent.
+
+When it finishes, just paste back here the “7. SUMMARY — CODE vs INFRASTRUCTURE ISSUES” section from LEVQOR-PRODUCTION-REALITY-REPORT.md, and I’ll tell you exactly:
+
+Which bits we can auto-fix next
+
+Which bits are Cloudflare/Vercel/DNS you’ll need to click once for
+
+In what order to do them so we stop going in circles.

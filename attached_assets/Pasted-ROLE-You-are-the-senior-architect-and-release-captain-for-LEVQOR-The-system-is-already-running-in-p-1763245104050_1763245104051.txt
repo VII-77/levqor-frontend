@@ -1,0 +1,221 @@
+ROLE
+You are the senior architect and release captain for LEVQOR. The system is already running in production. Your job is to produce a SINGLE, HONEST GO / NO-GO decision for accepting real customers and money.
+
+CONTEXT (FACTS)
+- There is ONE active Replit project: Levqor-backend (backend + EchoPilot brain).
+- Frontend is deployed on Vercel at: https://www.levqor.ai
+- Backend autoscale domain: https://levqor-backend.replit.app
+- Public API domain (via Cloudflare): https://api.levqor.ai
+- /health and /api/stripe/check are already known to be working.
+- Stripe webhook integration has been tested and fixed with pool_pre_ping.
+- Database stability has been tested and is stable.
+- The owner is non-technical. Output MUST be clear, plain English.
+
+MANDATORY RULES
+- Use existing integrations and secret environment variables AUTOMATICALLY. Do NOT create new secrets. Do NOT hardcode secrets.
+- Do NOT change business logic, schema, or pricing.
+- Do NOT delete files or break any deployment config.
+- Your primary deliverable is a report, not new code.
+- Verify everything with REAL commands: curl, python checks, logs. Never assume.
+
+GOAL
+Produce a single file at repo root:
+
+  LEVQOR-LAUNCH-DECISION.md
+
+This file must contain, in simple English:
+
+- OVERALL: GO / NO-GO
+- A 1-paragraph summary any beginner can understand.
+- A table of checks (PASS / FAIL / WARNING) with short reasons.
+- Clear “What you can safely do now” and “What you should watch”.
+
+====================================================================
+PHASE 1 – COLLECT EXISTING EVIDENCE (READ-ONLY)
+====================================================================
+
+1. From repo root, look for these existing reports (if present):
+   - ECHOPILOT-FINAL-HEALTH-SUMMARY.md
+   - BACKEND-DEPLOYMENT-STATUS.md
+   - FRONTEND-API-CONNECTIVITY.md
+   - STRIPE-CHECK-ENDPOINT-REPORT.md
+   - STRIPE-WEBHOOK-FINAL-REPORT.md
+   - DB-STABILITY-REPORT.md
+   - DB-CONNECTION-OVERVIEW.md
+   - Any *PRODUCTION-REALITY* or *NUCLEAR-AUDIT* reports.
+
+2. DO NOT modify these files. Just read them and extract:
+   - Most recent verdicts for:
+     - Backend health
+     - Stripe check
+     - Webhook logic
+     - DB stability
+     - Scheduler jobs
+     - Support AI
+
+3. Create a small scratch summary in memory (not a file yet) with:
+   - “What is already proven working”
+   - “What was previously failing and has been fixed”
+
+====================================================================
+PHASE 2 – LIVE RUNTIME CHECKS (NO CODE CHANGES)
+====================================================================
+
+Run the following commands from the Replit shell. Capture outputs and status codes.
+
+HEALTH + STRIPE
+
+1) Backend health via public domain:
+   - curl -s -o- -w "\n%{http_code}\n" https://api.levqor.ai/health
+
+2) Stripe integration check:
+   - curl -s -o- -w "\n%{http_code}\n" https://api.levqor.ai/api/stripe/check
+
+SUPPORT AI
+
+3) Support AI health (if endpoint exists):
+   - First try: curl -s -o- -w "\n%{http_code}\n" https://api.levqor.ai/api/support/health
+   - If 404, note that and skip (do NOT treat as fatal).
+
+SCHEDULER / ECHOPILOT
+
+4) If there is an internal health/scheduler endpoint (e.g. /internal/health, /internal/scheduler/health, /api/intelligence/status):
+   - curl those endpoints similarly.
+   - Record status and JSON if any.
+
+FRONTEND CONNECTIVITY (OBSERVED FROM BACKEND)
+
+5) Check frontend availability:
+   - curl -s -I https://www.levqor.ai
+   - curl -s -I https://www.levqor.ai/pricing
+
+You are ONLY observing here; do not modify any frontend code.
+
+For EACH of these checks, note:
+- HTTP status code
+- Whether JSON/body content looks sane
+
+====================================================================
+PHASE 3 – MINIMAL LOG + DB SANITY
+====================================================================
+
+Without changing models or schema:
+
+1) Open a Python shell to test DB quickly using the existing models/session:
+   - Import the DB session and one key model, e.g. DFYOrder (or equivalent).
+   - Run:
+     - A simple “count orders” query (like .count() or len(query.all()) limited).
+   - Confirm:
+     - Query runs without errors.
+     - Connection does not throw SSL or OperationalError.
+
+2) If any error appears:
+   - Capture the error type and message.
+   - Do NOT attempt migrations or destructive operations.
+
+====================================================================
+PHASE 4 – SUPPORT AI + TICKETS (OPTIONAL BUT RELEVANT)
+====================================================================
+
+If support endpoints exist (as built earlier):
+
+1) Test public support AI (with a very small question):
+   - curl -s -o- -w "\n%{http_code}\n" \
+     -X POST \
+     -H "Content-Type: application/json" \
+     -d '{"message":"Test: can I get help?"}' \
+     https://api.levqor.ai/api/support/public
+
+2) If this returns 200 with JSON, mark Support AI as “reachable”.
+
+If any of these endpoints don’t exist (404), simply record that.
+Do NOT treat missing support AI as a hard NO-GO, only as a WARNING.
+
+====================================================================
+PHASE 5 – BUILD LEVQOR-LAUNCH-DECISION.md
+====================================================================
+
+Now create or overwrite:
+
+  LEVQOR-LAUNCH-DECISION.md
+
+Structure:
+
+1) TITLE + DATE
+   - “Levqor Launch Readiness Decision”
+   - Date/time in UTC
+
+2) OVERALL DECISION (TOP, BOLD)
+   - Either:
+     - OVERALL: GO – Safe to accept real customers and payments.
+     - OVERALL: GO WITH CAUTION – Safe for small, controlled live use (1–5 customers) with monitoring.
+     - OVERALL: NO-GO – Do NOT accept real customers yet.
+   - Choose ONE and justify in 2–3 clear sentences a beginner can understand.
+
+3) EXECUTIVE SUMMARY (BEGINNER-FRIENDLY)
+   - 4–6 bullet points in simple English:
+     - Example:
+       - “The backend is up and responding correctly.”
+       - “Stripe payments are configured and our own test order was saved in the database.”
+       - “The database is stable enough for real use.”
+       - “The support AI is available / not available.”
+       - “We should start with small traffic and watch logs.”
+
+4) CHECKLIST TABLE
+
+   A markdown table with columns:
+   - Area
+   - Status (PASS / WARNING / FAIL)
+   - Evidence (very short)
+   - Impact
+
+   Rows at least for:
+   - Backend health (api.levqor.ai/health)
+   - Stripe configuration (api/stripe/check)
+   - Stripe webhook end-to-end (from STRIPE-WEBHOOK-FINAL-REPORT + latest test)
+   - Database stability (from DB-STABILITY-REPORT + current DB sanity check)
+   - Scheduler / EchoPilot jobs
+   - Support AI (if reachable)
+   - Frontend reachability (www.levqor.ai/pricing)
+   - DNS / SSL (observation from curl)
+
+5) WHAT IS SAFE TO DO NOW
+   - A short section:
+     - If GO or GO WITH CAUTION:
+       - “You can safely take small real payments now (1–5 customers), starting with the cheapest plan.”
+       - “You should watch Stripe dashboard and Replit logs after each payment.”
+     - If NO-GO:
+       - “Do NOT take real payments yet.”
+       - “Fix the items marked as FAIL before proceeding.”
+
+6) REMAINING RISKS / WATCHLIST
+   - Bullet list of:
+     - Any WARNINGS you found (e.g. support AI 404, missing endpoint, minor logs).
+     - For each: what to watch and what to do if it becomes a problem.
+
+7) CLEAR OWNER ACTIONS
+   - Write a short, numbered list aimed at a non-technical owner:
+     - “1. Start with one real payment using the cheapest plan.”
+     - “2. After payment, check Stripe webhook log for 200 OK.”
+     - “3. Confirm a new order appears in the dashboard / DB.”
+     - “4. Confirm welcome and intake emails were received.”
+     - “5. If anything fails, pause and contact your technical helper.”
+
+====================================================================
+FINAL REQUIREMENTS
+====================================================================
+
+- DO NOT change any environment variables.
+- DO NOT change pricing, products, or tenants.
+- DO NOT touch Vercel, Cloudflare, or DNS configuration.
+- DO NOT modify webhook logic, order creation, or email templates.
+
+- You may create ONLY:
+  - LEVQOR-LAUNCH-DECISION.md
+  - Any small scratch file you want under archive/ if needed.
+
+- At the end, print to console:
+
+  "Levqor launch decision generated – open LEVQOR-LAUNCH-DECISION.md for the real status."
+
+Execute this plan now, exactly as written, with maximum caution and brutal honesty.

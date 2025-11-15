@@ -1,0 +1,428 @@
+You are the Replit AI Agent working on the **Levqor backend** (Python API for https://api.levqor.ai).
+
+Your job in this run:
+- Add the **Levqor Support AI** backend:
+  - Public mini-FAQ endpoint (for website visitors)
+  - Full account-aware support endpoint (for logged-in users)
+  - Ticket creation + listing
+  - Escalation to Telegram
+  - WhatsApp-ready helper (NO-OP until env vars exist)
+  - Knowledge-base loader (from markdown)
+- Reuse existing integrations and secrets:
+  - Stripe
+  - Resend (email)
+  - Telegram bot
+  - DB models
+- Run the existing backend self-audit and fix anything caused by your changes.
+- Commit and push safely.
+
+You MUST:
+- Work ONLY inside this backend repo.
+- Use the existing project structure (backend/routes, backend/services, backend/utils, scripts).
+- Do NOT touch frontend code because it is hosted elsewhere.
+- Do NOT introduce new paid services.
+- Do NOT modify or delete existing Stripe/webhook/email code.
+- Verify everything with real commands.
+
+==================================================
+STEP 0 — DISCOVER PROJECT LAYOUT (MANDATORY)
+==================================================
+
+1. From current directory:
+   - Run:
+       pwd
+       ls -la
+2. If you see a folder named `backend` (very likely), cd into it:
+   - cd backend
+   - ls -la
+3. Confirm:
+   - There is a `run.py` file
+   - There are directories like:
+       - routes/
+       - services/
+       - utils/
+       - scripts/
+4. Append a short note to BACKEND-AUTOMATION-REPORT.md:
+   - Current working directory
+   - Python version (python --version)
+   - List of top-level backend folders (routes, services, utils, etc.)
+
+==================================================
+STEP 1 — LOCATE EXISTING INTEGRATIONS
+==================================================
+
+You MUST reuse existing integrations.
+
+1. Search for existing helpers:
+   - grep -R "resend" -n .
+   - grep -R "telegram" -n .
+   - grep -R "stripe" -n .
+   - ls routes
+   - ls services
+   - ls utils
+
+2. Confirm the following (names may differ, but use what exists):
+   - Stripe checkout webhook route:
+       backend/routes/stripe_checkout_webhook.py
+   - Daily tasks route:
+       backend/routes/daily_tasks.py
+   - Onboarding/email automation:
+       backend/services/onboarding_automation.py
+   - Resend email helper:
+       backend/utils/resend_sender.py
+   - Telegram helper:
+       backend/utils/telegram_helper.py
+   - Self-audit script:
+       scripts/backend-self-audit.sh
+
+3. DO NOT create new Stripe/email/Telegram helpers if ones already exist.
+   REUSE them.
+
+4. Document findings in BACKEND-AUTOMATION-REPORT.md under a new section:
+   "Support AI Integration — Existing Components".
+
+==================================================
+STEP 2 — IMPLEMENT SUPPORT MODULES
+==================================================
+
+Create or update these files (paths relative to backend/):
+
+1) routes/support_chat.py  
+2) services/support_ai.py  
+3) services/support_tickets.py  
+4) services/support_faq_loader.py  
+5) utils/whatsapp_helper.py  
+6) utils/support_context.py  
+
+Follow these rules:
+
+- Use Python 3.11-compatible, clean code.
+- Use type hints where reasonable, but don’t overcomplicate.
+- Import models/DB/session from the existing DB setup (reuse patterns from onboarding_automation / stripe_checkout_webhook).
+- Never hardcode secrets; always read from env via os.environ.get.
+- All endpoints should return JSON.
+
+---------------------------------------------
+2.1 routes/support_chat.py
+---------------------------------------------
+
+Create a Blueprint, e.g.:
+
+    from flask import Blueprint, request, jsonify
+    support_chat_bp = Blueprint("support_chat", __name__)
+
+Implement endpoints:
+
+1) POST /api/support/public
+   - Input: { "message": string, "conversationId"?: string }
+   - Use PUBLIC MODE AI:
+       - Only FAQ + generic Levqor info (no account data).
+   - Call support_ai.run_public_chat(...)
+   - Return: { "reply": string, "escalationSuggested": bool }
+
+2) POST /api/support/private
+   - Input: { "message": string, "conversationId"?: string }
+   - You MUST:
+       - Identify the user (reuse existing auth/session mechanism if present).
+         Example patterns:
+             - from Flask session
+             - from a JWT in headers
+             - from a user_id resolved via existing middleware.
+       - If no auth is available, temporarily accept an `email` field and mark in the report that real auth wiring is needed later.
+   - Build support context via utils/support_context.get_user_context(user).
+   - Use PRIVATE MODE AI:
+       - Call support_ai.run_private_chat(...)
+   - Return: { "reply": string, "escalationSuggested": bool, "ticketId"?: string }
+
+3) POST /api/support/escalate
+   - Input: { "email": string, "message": string, "context"?: object }
+   - Call services/support_tickets.create_ticket(...)
+   - Call telegram_helper.send_message(...) to notify admins:
+       "[Levqor Support] New ticket from {email}: {short_summary}"
+   - Return: { "status": "ok", "ticketId": "<id>" }
+
+4) GET /api/support/tickets
+   - For now, treat this as internal/admin-only.
+   - Optionally, protect with an INTERNAL_API_SECRET header (reuse what daily_tasks uses).
+   - Return a list of tickets (recent first).
+
+---------------------------------------------
+2.2 services/support_ai.py
+---------------------------------------------
+
+This is the AI engine.
+
+- Import:
+    - openai or the existing OpenAI client used in this backend (if present).
+    - support_faq_loader
+    - support_context
+    - support_tickets (for ticket hints)
+- Load FAQ / policies content via support_faq_loader.
+
+Implement:
+
+- run_public_chat(message, conversation_id=None):
+    - Build prompt:
+        - System: "You are Levqor's public support assistant. Reply briefly, be clear. Use only the FAQ/website info. Do not access personal data."
+        - Context: top FAQ / pricing / policies.
+    - Call OpenAI in a cost-efficient way (e.g. short max_tokens).
+    - Determine if escalationSuggested:
+        - If user seems angry, blocked, or asks repeatedly "talk to human".
+
+- run_private_chat(user_context, message, conversation_id=None):
+    - user_context includes:
+        - email
+        - purchased plans
+        - DFY orders
+        - intake status
+        - last events
+    - System prompt:
+        - "You are Levqor's internal support assistant. You can use the given user_context JSON to solve problems about their account. Reply in simple language. If you cannot resolve, set escalationSuggested to true."
+    - Use moderated tokens (no huge responses).
+    - Return reply + escalationSuggested flag.
+
+Make sure:
+- If OpenAI API key/env is missing, return a graceful error message and mark in BACKEND-AUTOMATION-REPORT.md.
+
+---------------------------------------------
+2.3 services/support_tickets.py
+---------------------------------------------
+
+Implement:
+
+- create_ticket(email, message, context=None):
+    - If DB/ORM exists (e.g. SQLAlchemy, Prisma-like), reuse existing pattern from onboarding/Stripe.
+    - Fields:
+        - id (uuid or auto)
+        - email
+        - message (text)
+        - context (JSON)
+        - status ("open" by default)
+        - created_at
+        - updated_at
+    - If no DB, fallback to:
+        - JSON file in `data/support_tickets.json`
+        - Append-only pattern (read, append, write).
+    - Return ticket object or ID.
+
+- list_tickets(limit=50):
+    - Return recent tickets.
+
+- close_ticket(id):
+    - Optional; mark as closed.
+
+Document the storage method used in BACKEND-AUTOMATION-REPORT.md.
+
+---------------------------------------------
+2.4 services/support_faq_loader.py
+---------------------------------------------
+
+Implement:
+
+- A function `load_support_corpus()` that:
+    - Looks for:
+        - knowledge-base/faq.md
+        - knowledge-base/pricing.md
+        - knowledge-base/policies.md
+    - If files exist, read them.
+    - If missing, generate basic placeholders:
+        - "FAQ: Levqor automates workflows for small businesses..."
+        - "Pricing: Summaries of DFY and subscriptions..."
+        - "Policies: Key compliance points..."
+    - Return a dict with keys: faq, pricing, policies (strings).
+
+Create directory `knowledge-base/` if it does not exist and create these three markdown files with reasonable default content.
+
+---------------------------------------------
+2.5 utils/whatsapp_helper.py
+---------------------------------------------
+
+Goal: WhatsApp-ready, but OFF until env configured.
+
+Implement:
+
+- Function `send_whatsapp_message(phone: str, text: str) -> None`
+- Read env:
+    - WHATSAPP_API_URL
+    - WHATSAPP_ACCESS_TOKEN
+    - WHATSAPP_SENDER_ID
+- If any of these are missing:
+    - Log: "WhatsApp not configured; skipping send."
+    - Return without raising.
+- If present:
+    - Use requests.post (or existing HTTP client) to call the WhatsApp API.
+    - Keep timeout low.
+    - Handle errors safely (log but do not crash).
+
+Do NOT call this anywhere yet except via onboarding_automation or support flows optionally, with guard rails.
+
+---------------------------------------------
+2.6 utils/support_context.py
+---------------------------------------------
+
+Implement:
+
+- `get_user_context(email: str) -> dict`
+    - Query the DB or existing DFYOrder storage to get:
+        - Orders for this email
+        - Status (new, in progress, done)
+        - Latest timestamps
+    - Optionally, include:
+        - Number of tickets
+        - Last ticket status
+    - Return a JSON-serialisable dict.
+
+If DB not easily accessible, at least return:
+    {
+      "email": email,
+      "orders": [...],
+      "tickets": [...]
+    }
+
+==================================================
+STEP 3 — WIRE BLUEPRINT IN run.py
+==================================================
+
+In backend/run.py (or the main app entry):
+
+1. Import the blueprint:
+
+    from routes.support_chat import support_chat_bp
+
+2. Register it:
+
+    app.register_blueprint(support_chat_bp, url_prefix="/api/support")
+
+Make sure:
+- This does NOT conflict with existing routes.
+- Imports succeed.
+- No circular imports.
+
+Run a quick syntax check:
+
+    python -m py_compile run.py
+
+==================================================
+STEP 4 — OPTIONAL HOOKS (NO MAJOR CHANGES)
+==================================================
+
+If you can safely do so without breaking anything:
+
+- In the Stripe checkout webhook flow (backend/routes/stripe_checkout_webhook.py), after a successful DFY order creation:
+    - Optionally call:
+        - support_tickets.create_ticket(...) with a "welcome/support" note
+        - whatsapp_helper.send_whatsapp_message(...) IF AND ONLY IF WhatsApp env vars exist (guarded).
+
+If this looks risky due to missing models/envs, skip and document in BACKEND-AUTOMATION-REPORT.md as a TODO.
+
+==================================================
+STEP 5 — RUN SELF-AUDIT SCRIPT
+==================================================
+
+From backend root:
+
+1. Ensure script exists:
+   - ls scripts
+   - cat scripts/backend-self-audit.sh
+
+2. Run it:
+
+   ./scripts/backend-self-audit.sh
+
+If it fails due to your changes:
+- Fix all issues (imports, syntax, missing modules).
+- Re-run until it passes.
+
+Record results in BACKEND-AUTOMATION-REPORT.md under:
+"Support AI — Self-Audit Results".
+
+==================================================
+STEP 6 — MANUAL ENDPOINT TESTS
+==================================================
+
+With backend running (e.g. `python run.py` or whatever the project uses):
+
+1. Test public support:
+
+   curl -X POST http://localhost:8000/api/support/public \
+     -H "Content-Type: application/json" \
+     -d '{"message": "What does Levqor do?"}'
+
+- Expect 200 status.
+- Expect JSON with `reply`.
+
+2. Test private support (best-effort):
+
+   If you can simulate an authenticated context (e.g. internal testing email):
+
+   curl -X POST http://localhost:8000/api/support/private \
+     -H "Content-Type: application/json" \
+     -d '{"message": "What is the status of my project?", "email": "test@example.com"}'
+
+Even if user_context is empty, endpoint must respond gracefully.
+
+3. Test escalation:
+
+   curl -X POST http://localhost:8000/api/support/escalate \
+     -H "Content-Type: application/json" \
+     -d '{"email": "test@example.com", "message": "I need human help"}'
+
+- Expect 200 JSON with `ticketId`.
+- If TELEGRAM_CHAT_ID is configured, a Telegram alert should be sent.
+- If Telegram is not configured, handle gracefully and document.
+
+Append the curl commands and sample responses to BACKEND-AUTOMATION-REPORT.md.
+
+==================================================
+STEP 7 — GIT STATUS, COMMIT, PUSH
+==================================================
+
+1. Show status & diff:
+
+   git status
+   git diff
+
+2. Stage ONLY relevant files:
+
+   git add routes/support_chat.py
+   git add services/support_ai.py
+   git add services/support_tickets.py
+   git add services/support_faq_loader.py
+   git add utils/whatsapp_helper.py
+   git add utils/support_context.py
+   git add knowledge-base/*
+   git add BACKEND-AUTOMATION-REPORT.md
+   # And any small import changes in run.py or existing files
+
+3. Commit:
+
+   git commit -m "feat: add Levqor Support AI backend, tickets, and hybrid support endpoints"
+
+4. Push (using existing GitHub integration):
+
+   git push origin main
+
+If push fails due to auth, reuse the same method that worked earlier for this repo.
+
+==================================================
+STEP 8 — FINAL SUMMARY OUTPUT
+==================================================
+
+At the end, print a short human-readable summary to the console, including:
+
+- Which endpoints were added:
+  - /api/support/public
+  - /api/support/private
+  - /api/support/escalate
+  - /api/support/tickets
+- Where tickets are stored (DB or JSON file)
+- How to run the self-audit:
+  - ./scripts/backend-self-audit.sh
+- What’s needed to fully activate WhatsApp (env vars names)
+- What’s needed to fully wire real auth into /api/support/private
+
+Then finish with this exact line:
+
+"LEVQOR BACKEND SUPPORT AI COMPLETE — All endpoints added, self-audit passed, and changes pushed. See BACKEND-AUTOMATION-REPORT.md for details."
+
+END OF INSTRUCTIONS.

@@ -1,0 +1,141 @@
+Here’s the backend-project diagnostics prompt you ask for — it will help surface all the infrastructure issues for api.levqor.ai.
+Paste this into the Replit AI Agent for your backend.
+
+
+---
+
+You are the Replit AI Agent inside the Levqor BACKEND project (the one behind https://api.levqor.ai).  
+Your objective: run a full diagnostics audit of the production API infrastructure and report all issues.  
+Focus on DNS/resolution, health endpoint availability, routing, rate limits, and build/test integrity.
+
+==================================================
+STEP 1 — ENVIRONMENT CHECK
+==================================================
+1. Print working directory:  
+   `pwd`  
+   `ls -la`
+
+2. Note python version:  
+   `python --version`
+
+3. Check that this is the correct backend project (there should be folders like `routes`, `services`, `scripts`, and a file like `run.py`).
+
+Record these in BACKEND-INFRA-DIAGNOSTICS.md with timestamp.
+
+==================================================
+STEP 2 — HEALTH ENDPOINT CHECK (LOCAL vs PRODUCTION)
+==================================================
+1. Local check:  
+   `curl -s http://localhost:8000/api/support/health || curl -s http://127.0.0.1:8000/api/support/health`  
+   Record response JSON.
+
+2. Production DNS check:  
+   `curl -s -D- https://api.levqor.ai/api/support/health`  
+   Capture headers + response body.  
+   If “Not Found” or 404 or timeout, note issue.
+
+3. DNS resolution:  
+   `dig +short api.levqor.ai`  
+   `nslookup api.levqor.ai`  
+   Capture IPv4/IPv6 results.
+
+4. SSL check:  
+   `openssl s_client -connect api.levqor.ai:443 -servername api.levqor.ai < /dev/null 2>&1 | head -n 20`  
+   Record certificate validity.
+
+Record all findings in BACKEND-INFRA-DIAGNOSTICS.md under “Health Endpoint Results”.
+
+==================================================
+STEP 3 — RATE LIMIT / 429 TEST
+==================================================
+1. Rapid-fire check:  
+   ```bash
+   for i in {1..10}; do curl -s -o /dev/null -w "%{http_code}\n" https://api.levqor.ai/api/support/health; done
+
+Record if any responses are 429, 5xx, or consistent.
+
+2. If 429s appear:
+
+Note count & pattern.
+
+Record headers (e.g., Retry-After).
+
+
+
+
+Record under “Rate Limit Results”.
+
+================================================== STEP 4 — TEST BUILD/IMPORT ERRORS
+
+1. Run test suite (if exists):
+pytest --maxfail=1 --disable-warnings -q
+Or use whatever test command your project has.
+
+
+2. Capture first error message if tests fail: copy module import error lines.
+
+
+3. Record under “Test Suite Results”.
+
+
+
+================================================== STEP 5 — DNS & ROUTING DIAGNOSTICS
+
+1. Use traceroute to the API domain (if available):
+traceroute api.levqor.ai
+Record first hops & where if it fails.
+
+
+2. Use ping
+ping -c 4 api.levqor.ai
+Note whether reachable or timeouts.
+
+
+3. Use curl -v for root domain and API domain:
+curl -v https://api.levqor.ai
+curl -v https://www.levqor.ai
+Note status codes.
+
+
+
+Record under “DNS & Routing Results”.
+
+================================================== STEP 6 — SUMMARY & RECOMMENDATION
+
+Write a summary in BACKEND-INFRA-DIAGNOSTICS.md including:
+
+✅ What is working
+
+❌ What is broken (DNS/resolution, routing, health endpoint, rate limits, build/tests)
+
+Critical blockers (list)
+
+Suggested action items (by severity)
+
+Which issues you can fix (code/build) vs which require external infrastructure changes (DNS/CDN/hosting)
+
+
+End the summary with:
+“INFRASTRUCTURE DIAGNOSTICS COMPLETE — See details above.”
+
+================================================== STEP 7 — COMMIT & PUSH REPORT
+
+1. git status
+
+
+2. git add BACKEND-INFRA-DIAGNOSTICS.md
+
+
+3. git commit -m "chore: infrastructure diagnostics report for api.levqor.ai"
+
+
+4. git push origin main
+
+
+
+================================================== END OF INSTRUCTIONS.
+
+---
+
+Once you run this, bring me the **BACKEND-INFRA-DIAGNOSTICS.md** summary.  
+I will then identify where exactly you must act (DNS, hosting, routing) and we’ll fix the known blockers.0

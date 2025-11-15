@@ -1,0 +1,108 @@
+# REPLIT AI AGENT — STRIPE WEBHOOK LIVE TEST (LEVQOR BACKEND)
+# Objective:
+# Validate that Stripe → Webhook → Backend → DFYOrder creation works end-to-end
+# using the already-configured autoscale deployment and secrets.
+
+# RULES:
+# - Use all existing environment variables automatically (STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, etc.)
+# - DO NOT create new secrets or modify current ones.
+# - DO NOT overwrite working code.
+# - Only add the MINIMUM necessary test route + verification logs.
+# - After updates, verify results using curl, grep, and logs.
+# - Use the production deployment: https://api.levqor.ai
+
+#######################################################################
+# STEP 1 — VERIFY BACKEND WEBHOOK ENDPOINT EXISTS
+#######################################################################
+Check that the file:
+  backend/routes/stripe_checkout_webhook.py
+exists and contains a route:
+  @bp.route("/checkout-completed", methods=["POST"])
+
+If missing, STOP and report.
+
+#######################################################################
+# STEP 2 — ENABLE STRIPE TEST EVENT REPLAY ENDPOINT (TEMPORARY)
+#######################################################################
+Create a temporary test route ONLY:
+File: backend/routes/stripe_webhook_test.py
+
+Contents:
+-----------------------------------------------------------------------
+from flask import Blueprint, jsonify, request
+
+bp = Blueprint("stripe_webhook_test", __name__)
+
+@bp.route("/webhook-test", methods=["POST"])
+def webhook_test():
+    """
+    Temporary debug route to verify Stripe webhook payload reaches backend.
+    This MUST NOT alter any production logic.
+    """
+    data = request.json or {}
+    return jsonify({"received": True, "payload": data}), 200
+-----------------------------------------------------------------------
+
+Register this blueprint inside run.py:
+  from backend.routes.stripe_webhook_test import bp as stripe_webhook_test_bp
+  app.register_blueprint(stripe_webhook_test_bp, url_prefix="/api/stripe")
+
+#######################################################################
+# STEP 3 — REDEPLOY THE BACKEND
+#######################################################################
+Trigger a new production deployment using Replit’s built-in deployment workflow.
+Ensure no environment variables are touched.
+
+#######################################################################
+# STEP 4 — VERIFY DEPLOYMENT SUCCESS
+#######################################################################
+Run:
+  curl -s https://api.levqor.ai/api/stripe/webhook-test \
+      -X POST \
+      -H "Content-Type: application/json" \
+      -d '{"hello": "world"}'
+
+Expected:
+  {"received": true, "payload": {"hello": "world"}}
+
+If not, report error.
+
+#######################################################################
+# STEP 5 — TRIGGER A STRIPE TEST WEBHOOK EVENT
+#######################################################################
+Use Stripe CLI with existing STRIPE_WEBHOOK_SECRET:
+  stripe trigger checkout.session.completed
+
+(If CLI unavailable, tell me.)
+
+Verify backend logs show:
+  "Stripe signature verified"
+  "DFYOrder created"
+  or appropriate fallback.
+
+#######################################################################
+# STEP 6 — CONFIRM ORDER WAS CREATED
+#######################################################################
+Query backend DB via Python REPL:
+  from models import DFYOrder
+  print(DFYOrder.query.all())
+
+Look for the most recent entry.
+
+#######################################################################
+# STEP 7 — CLEAN UP TEMP ROUTE
+#######################################################################
+Once test passes:
+- Delete stripe_webhook_test.py
+- Remove registration line from run.py
+- Redeploy one final time
+
+#######################################################################
+# FINAL OUTPUT REQUIRED FROM AGENT
+#######################################################################
+Produce a report containing:
+1. Was webhook received?
+2. Was signature verified?
+3. Was DFYOrder created?
+4. Any errors in logs?
+5. Cleanup confirmation.

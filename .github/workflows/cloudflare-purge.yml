@@ -1,0 +1,49 @@
+name: Cloudflare Cache Purge
+
+on:
+  workflow_run:
+    workflows: ["Levqor CI"]
+    types:
+      - completed
+
+jobs:
+  purge-cache:
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Purge Cloudflare cache for levqor.ai
+        run: |
+          echo "🔥 Purging Cloudflare cache for levqor.ai..."
+          
+          RESPONSE=$(curl -X POST \
+            "https://api.cloudflare.com/client/v4/zones/${{ secrets.CF_ZONE_ID }}/purge_cache" \
+            -H "Authorization: Bearer ${{ secrets.CF_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}' \
+            --silent \
+            --write-out "\n%{http_code}")
+          
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | head -n-1)
+          
+          echo "Response: $BODY"
+          echo "HTTP Status: $HTTP_CODE"
+          
+          if [ "$HTTP_CODE" -eq 200 ]; then
+            echo "✅ Cloudflare cache purged successfully"
+          else
+            echo "❌ Failed to purge cache (HTTP $HTTP_CODE)"
+            exit 1
+          fi
+
+      - name: Verify deployment
+        run: |
+          echo "⏳ Waiting 10 seconds for cache purge to propagate..."
+          sleep 10
+          
+          echo "🌍 Testing www.levqor.ai..."
+          curl -I https://www.levqor.ai | grep -E "HTTP|server|cf-cache-status" || true
+          
+          echo ""
+          echo "✅ Deployment complete and cache purged!"

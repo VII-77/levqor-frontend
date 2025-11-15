@@ -1,0 +1,328 @@
+You are the Replit AI Agent working on the **Levqor frontend** (Next.js app) hosted on Vercel, with source on GitHub: VII-77/levqor-frontend.
+
+Your job:
+- Tighten the Levqor frontend around the already-automated backend.
+- Make sure legal pages, pricing, DFY services, and a minimal customer portal shell are present and working.
+- Reuse ALL existing integrations and secrets.
+- Do NOT break the current successful deployment.
+- Prove everything with real commands and outputs.
+
+==================================================
+GLOBAL RULES (MANDATORY)
+==================================================
+
+1) ALWAYS USE EXISTING INTEGRATIONS & SECRETS
+---------------------------------------------
+- Before adding any integration or changing config, inspect:
+  - Environment / config files:
+      - next.config.*, .env.*, Vercel env usage
+  - Existing code for:
+      - Stripe
+      - NextAuth/auth
+      - API routes
+      - Existing HTTP clients
+- Do NOT hardcode secrets.
+- Do NOT introduce new third-party paid services.
+- Reuse what exists: Stripe, NextAuth, Resend/email, CI, etc.
+
+2) VERIFY EVERYTHING – NO “SHOULD WORK”
+---------------------------------------
+For every major change:
+- Run from the frontend repo root:
+  - `git status`
+  - `git diff`
+  - `npm install` (or `pnpm/yarn` if clearly used)
+  - `npm run lint` (if defined)
+  - `npm run build`
+- After pushing, verify production:
+  - `curl -s -D- https://www.levqor.ai | head -n 40`
+    - Confirm HTTP 200
+    - Confirm `<title>` contains "Levqor"
+    - Confirm at least one `<link rel="stylesheet"` from Next.js
+  - `curl -s -D- https://www.levqor.ai/pricing | head -n 40`
+- Never end with “likely ok” – you must have real output.
+
+3) KEEP DEPLOYMENT STABLE
+-------------------------
+- Do NOT:
+  - Change build commands in package.json
+  - Change core Next config (unless absolutely necessary AND safe)
+  - Touch CI/CD workflows (.github/workflows) except to add non-breaking files
+  - Change domain, DNS, or Vercel project settings
+- Frontend changes must be backward compatible with the working production build.
+
+4) REPORT FILE
+--------------
+- Maintain a markdown report in repo root:
+  - `FRONTEND-AUTOMATION-REPORT.md`
+- Append sections as you go:
+  - What you inspected
+  - Files changed
+  - Commands run + outputs (summarised)
+  - Any TODOs requiring human action (e.g. real WhatsApp number later)
+
+==================================================
+STEP 0 – ENSURE YOU’RE IN THE FRONTEND REPO
+==================================================
+
+1. From current directory:
+   - `pwd`
+   - `ls -la`
+2. If you do NOT see a Next.js app (package.json with next, src/app, etc.), then:
+   - Look for a folder like `levqor-frontend` or `levqor-site`:
+       - `ls -la`
+       - If found: `cd levqor-frontend` or `cd levqor-site`
+3. If the repo is not present locally:
+   - Use the existing Replit GitHub integration to clone:
+     - `git clone https://github.com/VII-77/levqor-frontend.git`
+     - `cd levqor-frontend`
+4. Confirm:
+   - `cat package.json` shows Next.js
+   - `ls -la src/app` exists
+5. Start or append `FRONTEND-AUTOMATION-REPORT.md` with:
+   - Current path
+   - Git remote
+   - Branch
+
+==================================================
+STEP 1 – QUICK PROJECT SURVEY
+==================================================
+
+1. List structure:
+   - `ls -la src`
+   - `ls -la src/app`
+2. Note key pages:
+   - `src/app/page.tsx` (home)
+   - `src/app/pricing/page.tsx`
+   - Any `src/app/services/page.tsx` or `src/app/dfy/...`
+   - Any `src/app/legal/*`
+   - Any `src/app/portal/*`
+3. Search for:
+   - `rg "NextAuth" -n src || rg "next-auth" -n src || true`
+   - `rg "stripe" -n src || true`
+   - `rg "portal" -n src || true`
+4. Summarise findings in `FRONTEND-AUTOMATION-REPORT.md`.
+
+==================================================
+STEP 2 – LEGAL & POLICY PAGES
+==================================================
+
+Goal: Make sure the standard legal pages are present, reachable, and sane.
+
+1. Ensure directories:
+   - `src/app/legal/privacy`
+   - `src/app/legal/terms`
+   - `src/app/legal/cookies`
+   - `src/app/legal/refund`
+
+2. For each:
+   - If `page.tsx` exists, only adjust if obviously broken.
+   - If missing, create a simple server component page with:
+     - Faceless, corporate tone.
+     - Refers to “Levqor” (no personal name).
+     - Contains:
+       - What data is processed
+       - GDPR rights (access, deletion, rectification)
+       - Cookie usage basics
+       - Refund policy basics for DFY + subscriptions
+       - Contact emails as placeholders:
+         - `support@levqor.ai`
+         - `privacy@levqor.ai`
+         - `legal@levqor.ai`
+     - Use the existing layout and typography components (Container, Heading, etc.) if they exist.
+
+3. Footer links:
+   - Find Footer/Nav:
+     - `rg "Privacy" -n src || rg "Terms" -n src || rg "footer" -n src || true`
+   - In the main shared layout (e.g. `src/components/layout/Footer.tsx` or similar):
+     - Ensure there are links to:
+       - `/legal/privacy`
+       - `/legal/terms`
+       - `/legal/cookies`
+       - `/legal/refund`
+   - Keep visual style consistent.
+
+4. Document file paths changed in the report.
+
+==================================================
+STEP 3 – PRICING PAGE COPY (marketing/PRICING-COPY-LEVQOR.md)
+==================================================
+
+Goal: Use the better pricing copy that already exists, without breaking layout.
+
+1. Check marketing folder:
+   - `ls -la marketing || ls -la docs || true`
+   - Specifically:
+     - `ls -la marketing/PRICING-COPY-LEVQOR.md || true`
+2. If `PRICING-COPY-LEVQOR.md` exists:
+   - Inspect:
+     - `sed -n '1,120p' marketing/PRICING-COPY-LEVQOR.md`
+3. Open `src/app/pricing/page.tsx`:
+   - Identify where:
+     - Plan titles
+     - Subtitles
+     - Bullet points
+     - Comparisons (DFY vs subscription)
+     - FAQ sections
+   - Carefully replace the text with content from `PRICING-COPY-LEVQOR.md`:
+     - Focus on:
+       - Outcome-based language (“save 20+ hours/week”, “Week 1 results”)
+       - Clear “for who”
+       - DFY vs Subscription explanation
+   - Do NOT change the core components or data structure beyond what’s needed to swap copy.
+   - Keep TypeScript types valid.
+
+4. If `PRICING-COPY-LEVQOR.md` is missing:
+   - Leave pricing structure as-is.
+   - Add a note in `FRONTEND-AUTOMATION-REPORT.md` – “pricing copy file not found”.
+
+==================================================
+STEP 4 – DFY SERVICES PAGE (marketing/SERVICES-PAGE-DRAFT.md)
+==================================================
+
+Goal: Ensure there is a clean DFY services page.
+
+1. Check for draft:
+   - `ls -la marketing/SERVICES-PAGE-DRAFT.md || true`
+   - If exists:
+       - `sed -n '1,120p' marketing/SERVICES-PAGE-DRAFT.md`
+
+2. Check for services page:
+   - `ls -la src/app/services || true`
+   - `ls -la src/app/dfy || true`
+3. If a `/services` or `/dfy` page already exists:
+   - Keep existing layout.
+   - Update headings, subheadings, and sections with content from SERVICES-PAGE-DRAFT.md:
+     - 3-step DFY process
+     - FAQs
+     - “What you get”
+     - Ideal customer profiles
+
+4. If no services page exists:
+   - Create `src/app/services/page.tsx` as a server component using:
+     - The same layout components used on other pages.
+     - Clear explanation:
+       - What DFY is
+       - 3 steps: Pay → Intake → Delivery
+       - Link to /pricing and contact/support.
+   - Add a link in:
+       - Main nav (if not cluttered)
+       - Pricing page → “Learn more about our DFY services”
+
+5. Note all changes in the report.
+
+==================================================
+STEP 5 – BASIC CUSTOMER PORTAL SHELL
+==================================================
+
+Goal: Add a minimal `/portal` page that does NOT break auth, and is safe even if backend portal features are not ready.
+
+1. Search for auth usage:
+   - `rg "next-auth" -n src || rg "getServerSession" -n src || rg "auth" -n src || true`
+2. Behaviour:
+   - If NextAuth or a similar auth helper clearly exists:
+     - Create `src/app/portal/page.tsx`:
+       - Use server component.
+       - Fetch the session (if that’s the pattern).
+       - If NOT logged in:
+         - Show: “Please sign in to access your Levqor portal.”
+         - Provide a button/link to existing login route.
+       - If logged in:
+         - Show a simple dashboard placeholder:
+           - “Welcome back to the Levqor portal.”
+           - Sections for:
+             - “Your recent orders” (placeholder text)
+             - “Delivery & status” (placeholder)
+             - “Support & contact”
+         - Do NOT add complex data fetching from missing backend endpoints yet.
+   - If NO auth/session system is discovered:
+     - Create `src/app/portal/page.tsx` as:
+       - Public page explaining:
+         - “Portal coming soon”
+         - For now, customers receive updates via email.
+       - Link to support email.
+
+3. Ensure styling is consistent with the rest of the app.
+
+4. Add a subtle link to the portal from:
+   - Nav (if appropriate)
+   - Footer (e.g. “Client Portal”)
+
+==================================================
+STEP 6 – CTA CHECK (HOME & PRICING)
+==================================================
+
+Goal: Clarify the next action for visitors without wiring actual WhatsApp yet.
+
+1. Open:
+   - `src/app/page.tsx` (home)
+   - `src/app/pricing/page.tsx`
+2. Ensure each page has:
+   - Clear primary CTA:
+     - Buttons pointing to Stripe checkout or “Get Started”
+   - Optional secondary CTA:
+     - “Need help? Contact support@levqor.ai”
+   - Do NOT add a live WhatsApp link yet (no provider configured).
+     - If you add any WhatsApp mention, keep it neutral:
+       - e.g., “WhatsApp support coming soon.”
+
+3. Confirm there is no broken link to non-existent pages.
+
+==================================================
+STEP 7 – BUILD, TEST, GIT, PUSH
+==================================================
+
+1. From repo root:
+   - `git status`
+   - `git diff`
+2. Install & build:
+   - `npm install`  (or pnpm/yarn if project uses them – infer from package-lock/pnpm-lock/yarn.lock)
+   - If there is `"lint"` in scripts:
+       - `npm run lint`
+   - `npm run build`
+
+3. If build breaks due to your changes:
+   - Fix ONLY your changes (typings, imports, missing exports).
+   - Re-run `npm run build` until it passes.
+
+4. Once build passes:
+   - Append a BUILD section to `FRONTEND-AUTOMATION-REPORT.md` with:
+     - Commands run
+     - Success/failure summary
+
+5. Commit & push:
+   - Stage only relevant files:
+       - `src/app/legal/**`
+       - `src/app/pricing/page.tsx`
+       - `src/app/services/page.tsx` (if created/updated)
+       - `src/app/portal/page.tsx`
+       - Nav/Footer components (if edited)
+       - `FRONTEND-AUTOMATION-REPORT.md`
+   - Commit message:
+       - `feat: tighten levqor frontend with legal, services, and portal shell`
+   - Push using existing GitHub remote:
+       - `git push origin main`
+
+==================================================
+STEP 8 – PRODUCTION VERIFICATION (LEVQOR.AI)
+==================================================
+
+After push completes and Vercel deploys:
+
+1. Use curl to check production:
+   - `curl -s -D- https://www.levqor.ai | head -n 40`
+   - `curl -s -D- https://www.levqor.ai/pricing | head -n 40`
+   - If portal route is public:
+       - `curl -s -D- https://www.levqor.ai/portal | head -n 40`
+2. Confirm:
+   - HTTP 200
+   - HTML contains “Levqor”
+   - CSS link tags present
+3. Append a PRODUCTION CHECK section to `FRONTEND-AUTOMATION-REPORT.md`:
+   - Status for `/`, `/pricing`, `/services` (if created), `/portal`, and legal pages.
+
+4. Print to console at the end:
+
+   `LEVQOR FRONTEND AUTOMATION COMPLETE: pricing, services, legal, and portal shell verified. See FRONTEND-AUTOMATION-REPORT.md for details.`
+
+END OF INSTRUCTIONS.

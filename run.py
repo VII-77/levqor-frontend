@@ -76,6 +76,7 @@ from backend.routes.ase import ase_bp
 from backend.routes.dfy_engine import dfy_engine_bp
 from backend.routes.followup_endpoints import followup_bp
 from backend.routes.support_chat import support_chat_bp
+from backend.routes.stripe_check import stripe_check_bp
 app.register_blueprint(dsar_bp)
 app.register_blueprint(dsar_admin_bp)
 app.register_blueprint(gdpr_optout_bp)
@@ -92,6 +93,7 @@ app.register_blueprint(ase_bp)
 app.register_blueprint(dfy_engine_bp)
 app.register_blueprint(followup_bp)
 app.register_blueprint(support_chat_bp, url_prefix="/api/support")
+app.register_blueprint(stripe_check_bp)
 
 _db_connection = None
 

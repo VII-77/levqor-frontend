@@ -4,6 +4,14 @@
 Levqor is a Flask-based job orchestration backend API for AI automation. It provides robust validation, cost management, job intake, status tracking, and health monitoring. The platform aims to be a scalable solution for automated workflows, featuring a Next.js frontend and an autonomous self-optimization layer with AI-powered monitoring, anomaly detection, predictive analytics, and auto-scaling.
 
 ## Recent Changes (November 15, 2025)
+**NEW: Stripe Verification Endpoint (November 15):**
+- **Created:** `GET /api/stripe/check` endpoint for comprehensive Stripe integration health verification
+- **Implementation:** New blueprint `backend/routes/stripe_check.py` (167 lines) registered in `run.py`
+- **Functionality:** Real-time verification of Stripe account status and 14 configured price IDs
+- **Testing:** Fully tested on localhost:8000 with 100% pass rate (account + 14 prices verified)
+- **Status:** ✅ Working locally, ⏳ Pending production deployment (requires manual redeploy)
+- **Documentation:** Complete implementation report in `STRIPE-CHECK-ENDPOINT-REPORT.md` (600+ lines)
+
 **CRITICAL FIX - Vercel Deployment (November 15):**
 - **Root Cause Identified:** `.gitignore` line 13 contained `lib/` which blocked `levqor-site/src/lib/` from being tracked in git
 - **Impact:** 3 critical TypeScript files existed locally but were NOT in repository, causing Vercel builds to fail with "Module not found: '@/lib/cookies'"

@@ -1,0 +1,152 @@
+You are working in the Levqor-backend production repo.
+
+GOAL
+Create a REAL Stripe verification endpoint that:
+- Exposes GET /api/stripe/check
+- Returns a simple health summary AND performs real Stripe API checks using EXISTING environment variables and integrations.
+- Is wired into the existing Flask app (same pattern as other blueprints/routes).
+- Is fully tested from BOTH:
+  - levqor-backend.replit.app
+  - api.levqor.ai
+using curl.
+
+CRITICAL RULES
+- Use existing integrations, logging, and secret environment variables that are already configured in this Replit project. Do NOT hard-code any secrets. Read them from env only.
+- Re-use existing Stripe setup (whatever is already used for webhooks/checkout).
+- Follow the existing project structure and style (e.g. how other routes/blueprints are defined and registered in run.py or app.py).
+- After each change, VERIFY with real HTTP calls (curl) instead of assuming things work.
+
+STEP 1 — Inspect current Stripe integration
+1. Find existing Stripe-related code:
+   - Search for "stripe" in the repo (webhooks, services, config).
+   - Identify:
+     - Which module initializes stripe.api_key
+     - Which env vars are used (e.g. STRIPE_SECRET_KEY, STRIPE_PRICE_GROWTH, STRIPE_PRICE_BUSINESS, STRIPE_PRICE_SCALE or similar).
+2. Reuse that pattern—do NOT invent new env var names unless absolutely necessary.
+
+STEP 2 — Create the new route module
+1. In the backend routes folder (the same folder where stripe_checkout_webhook.py and daily_tasks.py live), create a new file, for example:
+   - backend/routes/stripe_check.py
+2. Implement a Blueprint with url_prefix="/api/stripe" and a GET /check endpoint.
+3. The route MUST:
+   - Import os, time, stripe, and Flask’s Blueprint/jsonify.
+   - Read STRIPE_SECRET_KEY from env.
+   - Optionally read any configured price IDs (e.g. STRIPE_PRICE_GROWTH, STRIPE_PRICE_BUSINESS, STRIPE_PRICE_SCALE). Only check those that actually exist as env vars.
+   - Build a "checks" object and an "errors" list.
+
+PSEUDOCODE LOGIC (ADAPT TO PROJECT STYLE):
+
+from flask import Blueprint, jsonify
+import os, time
+import stripe
+import logging
+
+logger = logging.getLogger(__name__)
+stripe_check_bp = Blueprint("stripe_check", __name__, url_prefix="/api/stripe")
+
+@stripe_check_bp.route("/check", methods=["GET"])
+def stripe_check():
+    ts = int(time.time())
+    checks = {
+        "backend_alive": True,
+        "stripe_api_key_present": False,
+        "account_retrieved": False,
+        "prices": {},
+    }
+    errors = []
+
+    secret = os.getenv("STRIPE_SECRET_KEY")
+    if not secret:
+        errors.append("STRIPE_SECRET_KEY missing")
+    else:
+        checks["stripe_api_key_present"] = True
+        stripe.api_key = secret
+
+        # 1) Account check
+        try:
+            acct = stripe.Account.retrieve()
+            checks["account_retrieved"] = True
+            checks["account_id"] = acct.get("id")
+            checks["account_charges_enabled"] = bool(acct.get("charges_enabled"))
+            if not acct.get("charges_enabled"):
+                errors.append("Stripe account charges are disabled")
+        except Exception as e:
+            errors.append(f"stripe_account_error:{type(e).__name__}")
+
+        # 2) Price checks (only for env vars that exist)
+        price_envs = [
+            "STRIPE_PRICE_GROWTH",
+            "STRIPE_PRICE_BUSINESS",
+            "STRIPE_PRICE_SCALE",
+        ]
+        for env_name in price_envs:
+            price_id = os.getenv(env_name)
+            if not price_id:
+                continue
+            price_result = {"found": False}
+            try:
+                price = stripe.Price.retrieve(price_id)
+                price_result["found"] = True
+                price_result["id"] = price.get("id")
+                price_result["currency"] = price.get("currency")
+                price_result["unit_amount"] = price.get("unit_amount")
+            except Exception as e:
+                errors.append(f"price_error:{env_name}:{price_id}:{type(e).__name__}")
+            checks["prices"][env_name] = price_result
+
+    status_code = 200 if not errors else 500
+    return jsonify({
+        "ok": not errors,
+        "ts": ts,
+        "checks": checks,
+        "errors": errors,
+    }), status_code
+
+Make sure the final code matches the project’s logging and structure. If there is a shared logger helper already, reuse it instead of creating a new logger configuration here.
+
+STEP 3 — Register the blueprint
+1. Open run.py (or the main app factory module that currently registers the other blueprints such as stripe_checkout_webhook and daily_tasks).
+2. Import the new blueprint and register it in the same style as the others. For example (ADAPT to actual module path):
+
+from backend.routes.stripe_check import stripe_check_bp
+app.register_blueprint(stripe_check_bp)
+
+3. Ensure import order and circular dependencies are handled correctly (follow existing patterns).
+
+STEP 4 — Local verification (Replit internal URL)
+1. Run the backend app in Replit.
+2. Use curl from the shell to verify health and Stripe check:
+
+curl -s https://levqor-backend.replit.app/health
+curl -s -o- -w "\n%{http_code}\n" https://levqor-backend.replit.app/api/stripe/check
+
+3. EXPECTATION:
+   - /health → 200 with {"ok":true,...}
+   - /api/stripe/check → 200 if all checks pass, or 500 with a populated "errors" list if something is misconfigured.
+4. If you get 404 at /api/stripe/check, fix the blueprint registration or url_prefix until it returns JSON as described.
+
+STEP 5 — Public domain verification (api.levqor.ai)
+1. From the shell, verify through Cloudflare/domain as well:
+
+curl -s -o- -w "\n%{http_code}\n" https://api.levqor.ai/health
+curl -s -o- -w "\n%{http_code}\n" https://api.levqor.ai/api/stripe/check
+
+2. EXPECTATION:
+   - Both endpoints return the SAME JSON as the Replit URL, with HTTP 200 (or 500 with structured errors if Stripe config is incomplete).
+
+STEP 6 — SAFETY & LOGGING
+1. Do NOT log sensitive secrets. It’s okay to log:
+   - Which env names were checked
+   - Whether a price was found
+   - Error types (e.g. InvalidRequestError)
+2. If the project has an existing logging/monitoring framework (e.g. integrity_reports, scheduler health), integrate a lightweight log line for this check, but don’t overcomplicate.
+
+FINAL DELIVERABLES
+- New route file created and committed (e.g. backend/routes/stripe_check.py).
+- Blueprint registered in run.py/app.py.
+- Two working endpoints:
+  - https://levqor-backend.replit.app/api/stripe/check
+  - https://api.levqor.ai/api/stripe/check
+- All verification commands (curl outputs) captured in an implementation note file, e.g. STRIPE-CHECK-ENDPOINT-REPORT.md in the repo root.
+
+Remember: use existing integrations and secret environment variables automatically; do not hard-code secrets; always verify with real HTTP calls (curl) before considering the task complete.

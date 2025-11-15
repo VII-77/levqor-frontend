@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://api.levqor.ai';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET() {
   try {
     const response = await fetch(`${API_BASE}/api/intelligence/status`, {

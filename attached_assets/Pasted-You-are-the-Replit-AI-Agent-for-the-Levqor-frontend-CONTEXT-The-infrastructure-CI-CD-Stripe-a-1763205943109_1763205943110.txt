@@ -1,0 +1,217 @@
+You are the Replit AI Agent for the Levqor frontend.
+
+CONTEXT
+- The infrastructure, CI/CD, Stripe, auth, and security are fully operational.
+- The goal is now strictly: REVENUE.
+- The user is a beginner; you must do the heavy lifting.
+- You MUST NOT change core app logic or break the build.
+- You MAY create or update content files (Markdown/MDX/TSX copy blocks) and documentation files.
+
+PRIMARY GOAL
+- Perform a focused MARKETING & REVENUE audit of the current app.
+- Then generate a set of ready-to-use assets:
+  - Sharper pricing/offers copy
+  - A services/DFY page (if needed)
+  - Email flows around Stripe checkout
+  - Short-form video scripts
+  - Reddit/community post drafts
+  - A simple daily execution playbook
+
+HARD RULES
+- Do NOT change any config files (next.config, tsconfig, CI, etc.).
+- Do NOT touch env variables or secrets.
+- Do NOT remove or rename any components.
+- Keep all changes additive or content-only.
+- If you propose code changes, put them into new files OR as commented code snippets, not live changes, unless explicitly stated.
+
+====================================================
+SECTION 1 — DISCOVER CURRENT MARKETING SURFACE
+====================================================
+
+1. Confirm project root:
+   - Run:
+       pwd
+       ls -la
+   - If levqor-frontend exists and we are not inside it:
+       cd levqor-frontend
+       pwd
+       ls -la
+
+2. Find the main marketing/pricing surfaces:
+   - Look for pages/components:
+       ls -la src/app
+       find src -maxdepth 4 -type f \( -name "*pricing*" -o -name "*landing*" -o -name "*hero*" -o -name "*services*" \) | sort
+   - Show relevant key files:
+       sed -n '1,200p' src/app/page.tsx 2>/dev/null || echo "No app root page.tsx"
+       sed -n '1,200p' src/app/pricing/page.tsx 2>/dev/null || echo "No pricing page"
+       sed -n '1,200p' src/app/services/page.tsx 2>/dev/null || echo "No services page"
+
+3. Summarise in your own words:
+   - What Levqor claims to do (value proposition).
+   - How pricing is currently presented.
+   - Whether there is a clear “DFY Automation” service explanation.
+   - Where the Stripe buttons live in the UI.
+
+====================================================
+SECTION 2 — OFFER & FUNNEL AUDIT
+====================================================
+
+1. Based on the pricing page and any copy:
+   - Identify all products and plans (DFY + subscriptions + add-ons).
+   - For each, write:
+       - Who it’s for (ideal customer).
+       - Main outcome promised.
+       - What they get in practical terms.
+       - How they buy it (which button/flow).
+
+2. Evaluate the funnel:
+   - Is it clear what happens AFTER payment?
+   - Is there an obvious next step (intake form / call)?
+   - Are objections answered anywhere (FAQ, guarantees, clarity on timeline)?
+
+3. Write a short “BRUTAL SUMMARY” of weaknesses:
+   - e.g. “Good design but unclear promise”, “Buttons exist but no explanation of outcomes”, etc.
+
+====================================================
+SECTION 3 — CONTENT UPGRADE (COPY ONLY, NO LOGIC)
+====================================================
+
+Goal: Generate better sales messaging for pricing/services.
+
+1. Create or update a documentation file:
+   - Path:
+       marketing/PRICING-COPY-LEVQOR.md
+   - Write:
+       - A clear H1 for the pricing page.
+       - A 2–3 sentence value proposition for Levqor as “your AI automation team”.
+       - For each DFY plan (Starter, Professional, Enterprise), write:
+           - “For who”
+           - 3–5 bullet benefits
+           - What happens week 1 after purchase
+       - For each subscription (Growth Monthly/Yearly), write:
+           - Ongoing value (why keep paying)
+           - What is delivered every month
+           - Why this is cheaper than hiring staff
+
+2. If there is no dedicated services page:
+   - Create:
+       marketing/SERVICES-PAGE-DRAFT.md
+   - Include:
+       - A “Done-For-You Automation Setup” hero section.
+       - A 3-step process: (1) Pay, (2) Intake form, (3) Delivery.
+       - A short FAQ: timelines, tools supported, refunds, support.
+
+Do NOT wire this into routing; this is content only.
+
+====================================================
+SECTION 4 — POST-CHECKOUT EXPERIENCE (EMAILS & FLOW)
+====================================================
+
+Goal: Turn Stripe payments into a tight onboarding flow.
+
+1. Create a file:
+   - marketing/EMAIL-FLOWS.md
+
+2. Inside it, write 4 email templates:
+
+   a) “Payment Confirmation + Next Steps”
+      - Subject line
+      - Body:
+          - Thank them.
+          - Confirm which plan they bought.
+          - Link to intake form (placeholder LINK_INTAKE_FORM).
+          - Explain when they’ll hear back.
+
+   b) “Intake Form Reminder” (if not submitted after 24–48h)
+      - Short, polite nudge.
+
+   c) “Pre-Call Prep” (for DFY plans with a call)
+      - What they should bring (logins, examples, priorities).
+
+   d) “Project Complete + Handover”
+      - Summary of what was built.
+      - Link to documentation / Loom (placeholder).
+      - Upsell to subscription if they bought DFY only.
+
+3. At the end of the file, write a simple flow diagram text:
+   - “Payment → Confirmation Email → Intake Form → Call → Delivery → Handover + Upsell”.
+
+====================================================
+SECTION 5 — TOP-OF-FUNNEL ASSETS (TIKTOK + REDDIT)
+====================================================
+
+Goal: Give the user ready-made scripts they can record/post.
+
+1. Create:
+   - marketing/TIKTOK-SCRIPTS.md
+
+   Include:
+   - 5 short-form video scripts (15–30 seconds) targeting:
+       - Solo founders drowning in admin.
+       - Small agencies doing manual reporting.
+       - Creators manually managing content.
+   Each script must follow:
+       - Hook (pain)
+       - Quick demonstration or example
+       - CTA to visit levqor.ai/pricing and buy DFY Starter.
+
+2. Create:
+   - marketing/REDDIT-POSTS.md
+
+   Include:
+   - 3 long-form value posts for subreddits like r/Entrepreneur, r/smallbusiness, r/automation.
+   - Each post must:
+       - Tell a specific before/after automation story.
+       - Describe time saved.
+       - Invite comments WITHOUT sounding spammy.
+       - Include a soft CTA at the end (“If anyone wants a similar setup, I do DFY builds – DM or see levqor.ai”).
+
+====================================================
+SECTION 6 — DAILY EXECUTION PLAYBOOK
+====================================================
+
+1. Create:
+   - marketing/DAILY-REVENUE-PLAYBOOK.md
+
+2. In that file, write a simple daily routine for the user, including:
+
+   - “Every Morning”:
+       - Check Stripe dashboard for new payments.
+       - Check inbox for new leads/replies.
+       - Respond to any DM or email in under 1 hour.
+
+   - “Content Block (30–60 minutes)”:
+       - Record 1 TikTok using one of the scripts.
+       - Post it on TikTok/Shorts.
+       - Paste 1 Reddit post or reply using the drafts.
+
+   - “Client Delivery Block”:
+       - Work through any DFY automations purchased.
+       - Use a simple checklist (you can define it) to mark a project as “done”.
+
+   - “Evening Review (10–15 minutes)”:
+       - Log what was shipped.
+       - Note which piece of content/offer seems to get interest.
+
+Ensure this file is written in simple, actionable language so a beginner can follow it daily without thinking.
+
+====================================================
+SECTION 7 — FINAL SUMMARY (MANDATORY OUTPUT)
+====================================================
+
+At the end, print a clear summary in the console:
+
+1. List all new/updated files you created, for example:
+   - marketing/PRICING-COPY-LEVQOR.md
+   - marketing/SERVICES-PAGE-DRAFT.md
+   - marketing/EMAIL-FLOWS.md
+   - marketing/TIKTOK-SCRIPTS.md
+   - marketing/REDDIT-POSTS.md
+   - marketing/DAILY-REVENUE-PLAYBOOK.md
+
+2. For each file, 1–2 bullet points describing what it contains and how the user should use it.
+
+3. A single short recommendation:
+   - “Start by updating the pricing page with PRICING-COPY-LEVQOR.md, then use TIKTOK-SCRIPTS.md + REDDIT-POSTS.md this week to drive traffic.”
+
+END OF INSTRUCTIONS.

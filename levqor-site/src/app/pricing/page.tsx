@@ -32,6 +32,13 @@ export default function Pricing() {
 
       const data = await response.json();
 
+      if (response.status === 401) {
+        // User needs to sign in first
+        const checkoutData = encodeURIComponent(JSON.stringify(params));
+        window.location.href = `/signin?checkout=${checkoutData}`;
+        return;
+      }
+
       if (data.ok && data.url) {
         window.location.href = data.url;
       } else {

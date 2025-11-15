@@ -1,12 +1,17 @@
 "use client";
 import { signIn, useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 export default function SignIn() {
   const { data: session } = useSession();
+  const searchParams = useSearchParams();
   const [marketingConsent, setMarketingConsent] = useState(false);
   const [tosAccepted, setTosAccepted] = useState(false);
+  
+  // Get checkout parameter from URL
+  const checkoutData = searchParams.get("checkout");
 
   useEffect(() => {
     if (session?.user?.email && marketingConsent) {
@@ -38,7 +43,13 @@ export default function SignIn() {
     }
     
     await logTosAcceptance(provider);
-    signIn(provider, { callbackUrl: "/workflow" });
+    
+    // If there's checkout data, redirect to checkout completion page
+    const callbackUrl = checkoutData 
+      ? `/checkout/complete?data=${checkoutData}`
+      : "/workflow";
+    
+    signIn(provider, { callbackUrl });
   };
 
   const handleMarketingConsent = async () => {

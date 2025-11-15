@@ -4,6 +4,14 @@
 Levqor is a Flask-based job orchestration backend API for AI automation. It provides robust validation, cost management, job intake, status tracking, and health monitoring. The platform aims to be a scalable solution for automated workflows, featuring a Next.js frontend and an autonomous self-optimization layer with AI-powered monitoring, anomaly detection, predictive analytics, and auto-scaling.
 
 ## Recent Changes (November 15, 2025)
+**NEW: Safe Cleanup - Repository Organization (November 15):**
+- **Executed:** Ultra-conservative cleanup of 43 legacy documentation files
+- **Archived:** Historical reports to `archive/2025-11-15-legacy-docs/` (348KB) and logs to `archive/2025-11-15-legacy-logs/` (4KB)
+- **Impact:** Root directory 37% cleaner (110 → 69 markdown files), zero production impact
+- **Safety:** NO code, config, migrations, or deployment scripts touched - only historical documentation moved
+- **Verification:** Backend health verified passing before and after cleanup
+- **Documentation:** Complete cleanup report in `CLEANUP-SUMMARY-2025-11-15.md`
+
 **NEW: Stripe Verification Endpoint (November 15):**
 - **Created:** `GET /api/stripe/check` endpoint for comprehensive Stripe integration health verification
 - **Implementation:** New blueprint `backend/routes/stripe_check.py` (167 lines) registered in `run.py`

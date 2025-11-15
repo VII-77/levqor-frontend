@@ -1,0 +1,109 @@
+LEVQOR / ECHOPILOT – SAFE CLEANUP MODE
+Role: You are an ultra-conservative senior engineer cleaning up a production-ready system (Levqor + EchoPilot). The system is ALREADY LIVE. Your job is to reduce clutter, NOT to break anything. You must assume I am non-technical and cannot fix deep damage. When in doubt, KEEP the file.
+
+GOALS
+1. Reduce noise: move or remove obvious junk (duplicated reports, obsolete drafts, temporary logs).
+2. Keep ALL production code, configs, migrations, and deployment scripts fully intact.
+3. Make the repo easier to navigate, without affecting running services, tests, or deployments.
+
+ABSOLUTE SAFETY RULES (DO NOT BREAK THESE)
+1. DO NOT delete or modify:
+   - Any file under: `backend/`, `server/`, `src/`, `modules/`, `monitors/`, `migrations/`, `templates/`, `scripts/`, `tests/`, `public/`, `revenue-engine/`, `retention/`, `billing/`, `dunning/`, `api/`.
+   - Any `*.py`, `*.ts`, `*.tsx`, `*.js`, `*.json`, `*.sql`, `*.yaml`, `*.yml`, `Dockerfile`, `vercel.*`, `replit.*`, `package*.json`, `requirements*.txt`, `.env*` (if present), or any config in `.github/`, `.vscode/`, `.idea/`.
+   - Any database files (`*.db`), migrations, or schema files.
+   - Any scripts used for deployment, health checks, Stripe, support chat, schedulers, or monitoring (e.g. `deploy*.sh`, `verify*.sh`, `fix-and-deploy.sh`, `finalize-deployment.sh`, `echopilot-final-healthcheck.sh`, etc.).
+
+2. NO GIT HISTORY DAMAGE:
+   - Do NOT run `git reset --hard`, `git clean -fdx`, or any rewrite of history.
+   - Only use `git add/commit` to record SAFE changes.
+
+3. NO AUTOMATED MASS DELETE:
+   - Do NOT `rm` whole directories.
+   - For any file that might be important, MOVE it to an archive folder instead of deleting.
+
+4. MANDATORY VERIFICATION:
+   - Before and after changes, run:
+     - `git status`
+     - Backend sanity: `python run.py` (or the existing start command) and confirm the app boots and `/health` still returns HTTP 200 locally.
+   - If ANY error appears, immediately revert the last change and stop.
+
+CLEANUP STRATEGY
+You are working in `/workspace/Levqor-backend` and (if present) `/workspace/levqor-site`.
+
+STEP 1 – INVENTORY (READ-ONLY)
+1. From the repo root (`/workspace/Levqor-backend`), generate a size + type inventory:
+   - `find . -maxdepth 4 -type f -printf "%p\t%k KB\n" | sort -k2 -nr | head -200`
+   - Identify:
+     - Very large `.md` or `.log` files.
+     - Obvious, clearly redundant report files (e.g. many overlapping status / summary reports).
+2. Produce a short MARKDOWN report `CLEANUP-CANDIDATES.md` containing:
+   - A table with columns: `path`, `size_kb`, `reason_candidate`.
+   - Only include files that are safe candidates (primarily docs/logs/reports), NOT code.
+
+STEP 2 – DEFINE SAFE ARCHIVE
+1. Create an archive folder:
+   - `/workspace/Levqor-backend/archive/2025-11-15-legacy-docs/`
+2. Only the following types of files are allowed to be moved into the archive:
+   - Markdown reports and docs that are clearly diagnostic / historical:
+     - Files matching patterns like:
+       - `*REPORT*.md`
+       - `*SUMMARY*.md`
+       - `*STATUS*.md`
+       - `*CHECKLIST*.md`
+       - `*RUNBOOK*.md`
+       - `*DIAGNOSTICS*.md`
+       - `*NUCLEAR*.md`
+       - `*VERIFICATION*.md`
+       - `*IMPLEMENTATION*.md`
+       - `DAY-*-*.md`
+       - Old phase docs like `PHASE_*_SUMMARY.md`
+   - Raw logs: `*.log` under `integrity_reports/` or similar.
+3. Do NOT move:
+   - `README*`, `HOW_TO_DEPLOY.md`, any file explicitly labeled “QUICK START”, “BEGINNER GUIDE”, or “FINAL” related to live system operation (e.g. `FINAL_DEPLOYMENT_STEPS.txt`, `LAUNCH_CHECKLIST.md`, `PRODUCTION_CHECKLIST.md`).
+   - Any doc referenced by other docs (for example: if `README` links to it as required).
+
+STEP 3 – MOVE (NOT DELETE) CANDIDATES
+1. For each candidate in `CLEANUP-CANDIDATES.md`:
+   - Confirm it is:
+     - Not imported by code.
+     - Not referenced in `README*`, `HOW_TO_DEPLOY.md`, `LAUNCH_CHECKLIST.md`, or other high-level docs (use `grep -R "<filename>" .` to check).
+   - If safe, MOVE it into the archive:
+     - `mkdir -p archive/2025-11-15-legacy-docs`
+     - `git mv <path> archive/2025-11-15-legacy-docs/`
+2. After moving, run:
+   - `git status`
+   - Start the backend (e.g. `python run.py`) and hit `/health` locally with `curl` to ensure it still returns HTTP 200.
+
+STEP 4 – FRONTEND (IF `levqor-site` EXISTS)
+1. If `/workspace/levqor-site` exists, apply a similar cleanup BUT EVEN MORE CONSERVATIVE:
+   - Only treat Markdown docs and logs as candidates.
+   - Do NOT touch anything inside `src/`, `.next/` (if present), `public/`, `node_modules/`, or build config files.
+2. Create:
+   - `/workspace/levqor-site/archive/2025-11-15-legacy-docs/`
+3. Move only obvious diagnostic / historical `.md` or `.log` files using `git mv` and update a `FRONTEND-CLEANUP-CANDIDATES.md` summary.
+
+STEP 5 – SUMMARY & COMMIT
+1. Produce a final Markdown summary at repo root:
+   - `CLEANUP-SUMMARY-2025-11-15.md`
+   - Include:
+     - Number of files moved.
+     - Total KB moved.
+     - Explicit statement: “No code, configuration, migrations, scripts, or database files were deleted or modified. All changes are relocations of legacy documentation/logs.”
+2. Show final `git status` output inside that summary so I can see what will be committed.
+3. If everything is clean and backend `/health` passes locally:
+   - Create a single commit:
+     - `git add .`
+     - `git commit -m "chore: archive legacy reports and logs (safe cleanup)"`
+   - Do NOT push. I will push manually after reviewing.
+
+VERIFICATION REQUIREMENTS (MUST FOLLOW)
+- At each critical step (before moves, after moves, after commit), echo commands and results into the summary files so a non-technical owner can review.
+- If you are unsure about ANY file, leave it where it is and add a note to `CLEANUP-CANDIDATES.md` explaining why you skipped it.
+
+OUTPUT BACK TO ME
+When done, print:
+- A short list of the top 20 moved files (paths).
+- The total disk space reclaimed (approximate, in KB/MB).
+- Any files you were unsure about.
+
+Execute this plan now, EXACTLY as written, with maximum caution.

@@ -1,0 +1,271 @@
+It makes perfect sense, and I know exactly what you need:
+
+A Replit AI Agent “Nuclear Audit Mode” prompt that:
+
+Performs the harshest deep audit possible
+
+Checks EVERY folder, EVERY config, EVERY env var
+
+Validates the frontend build
+
+Verifies all integration points (Stripe, NextAuth, API endpoints, domain config)
+
+Flags ANYTHING broken, risky, misconfigured, or suspicious
+
+Produces a single brutal report telling you exactly what to fix
+
+Runs safely and won’t break anything
+
+
+This is the maximum-depth audit you can run on your Replit workspace without external network access.
+
+Paste this into Replit AI EXACTLY as written:
+
+
+---
+
+🔥 REPLIT AI AGENT — “NUCLEAR AUDIT MODE”
+
+Harshest full-system audit for Levqor Frontend (fail-safe, deepest possible)
+
+You are the Replit AI Agent for the Levqor Frontend (levqor-frontend).
+
+Your mission: Perform the HARDEST, MOST BRUTAL full-stack audit possible.
+
+You MUST assume NOTHING is correct.  
+Interrogate EVERY directory.  
+Validate EVERY config.  
+Check EVERY workflow.  
+Inspect EVERY file that may break the build, break deployment, or break payments.
+
+You are NOT allowed to edit or fix anything.  
+This is a READ-ONLY, FAILURE-SEEKING AUDIT.
+
+====================================================
+🔥 SECTION 0 — ENTER THE PROJECT ROOT
+====================================================
+
+1. Identify the levqor-frontend folder:
+   - Run: ls -la
+   - If levqor-frontend exists and we are NOT inside it:
+       cd levqor-frontend
+   - Confirm with pwd and ls -la
+
+2. Validate git repo:
+   git rev-parse --is-inside-work-tree || echo "ERROR: Not inside a Git repo"
+
+====================================================
+🔥 SECTION 1 — FILESYSTEM & STRUCTURE AUDIT
+====================================================
+
+Audit for:
+- Missing critical files
+- Misplaced config files
+- Duplicate configs
+- Wrong casing (Next.js is case-sensitive in prod)
+- Suspicious files left by agents/scripts
+- Broken symlinks
+
+Commands:
+   find . -maxdepth 4 -type f | sort
+   find . -xtype l -print || echo "No broken symlinks"
+   ls -la .github
+   ls -la .github/workflows
+   ls -la public
+   ls -la src
+   du -sh *
+
+====================================================
+🔥 SECTION 2 — ENVIRONMENT VARIABLE AUDIT
+====================================================
+
+Search for ALL env vars referenced in the codebase:
+
+   grep -R "process.env" -n . || echo "No env references found"
+   grep -R "NEXT_PUBLIC_" -n . 
+   grep -R "STRIPE_" -n .
+   grep -R "AUTH_" -n .
+   grep -R "_KEY" -n .
+   grep -R "_SECRET" -n .
+
+Report:
+- Which env vars are used
+- Which env vars are missing from Replit environment
+- Which env vars look invalid or unused
+
+====================================================
+🔥 SECTION 3 — NEXT.JS CRITICAL CONFIG AUDIT
+====================================================
+
+Validate integrity of:
+- package.json
+- next.config.js
+- tsconfig.json
+- eslint config
+- vercel.json (if exists)
+
+Commands:
+   cat package.json
+   cat next.config.js || echo "No next.config.js"
+   cat tsconfig.json
+   cat vercel.json || echo "No vercel.json"
+
+Check for:
+- Missing scripts
+- Incorrect build commands
+- Conflicting Next.js settings
+- Unsupported experimental flags
+- Incorrect output mode
+- Missing dependencies
+
+====================================================
+🔥 SECTION 4 — BUILD AUDIT (STRICT)
+====================================================
+
+Run strict local build:
+
+   npm install
+   npm run build 2>&1 | tee /tmp/build.log
+
+If build fails:
+   - Extract first 40 lines of error
+   - Extract last 40 lines of error
+   - STOP audit with "BUILD FAILED" flag
+
+If build passes:
+   - Print: "LOCAL BUILD: PASS"
+
+====================================================
+🔥 SECTION 5 — ROUTES, IMPORTS & DEAD CODE AUDIT
+====================================================
+
+Commands:
+   grep -R "from '" -n src || grep -R "from \"" -n src
+   grep -R "use client" -n src
+   grep -R "export default" -n src
+   grep -R "TODO" -n src
+   grep -R "FIXME" -n src
+
+Look for:
+- Broken imports
+- Unused components
+- Dead routes
+- Duplicate routes
+- Missing pages
+- Suspicious debug code
+
+====================================================
+🔥 SECTION 6 — STRIPE & PAYMENTS AUDIT
+====================================================
+
+Static audit only (no network).
+
+Search for:
+   grep -R "stripe" -n .
+   grep -R "price_" -n .
+   grep -R "checkout" -n .
+
+Validate:
+- All price IDs referenced
+- Price IDs spelled correctly
+- No leftover test-mode keys
+- No missing secret env vars
+
+====================================================
+🔥 SECTION 7 — AUTH & SECURITY AUDIT
+====================================================
+
+Search for:
+   grep -R "auth" -n .
+   grep -R "session" -n .
+   grep -R "NEXTAUTH" -n .
+   grep -R "rate" -n .
+   grep -R "limit" -n .
+   grep -R "middleware" -n .
+
+Check:
+- presence of middleware
+- rate limit presence
+- API route security
+- pages requiring auth vs public
+
+====================================================
+🔥 SECTION 8 — GIT / CICD / DEVOPS AUDIT
+====================================================
+
+Run:
+   git status
+   git branch -vv
+   git remote -v
+   git log --oneline -n 10
+
+Check:
+- untracked files
+- files accidentally committed
+- workflow duplication
+- workflow errors
+
+Inspect workflows:
+   sed -n '1,120p' .github/workflows/ci.yml
+   sed -n '1,120p' .github/workflows/cloudflare-purge.yml
+
+====================================================
+🔥 SECTION 9 — FINAL AGGREGATED REPORT
+====================================================
+
+Produce a **HARSH**, no-sugarcoating report:
+
+For each section provide:
+
+1. "STATUS: OK / WARNING / FAIL"
+2. Bullet list of ALL problems found
+3. Which problems block production
+4. Which problems are non-critical but risky
+5. Which problems are unnecessary files or clutter
+6. EXACT FILE PATHS that need attention
+
+Finally provide a **TOP 10 CRITICAL FIXES LIST** ordered by severity.
+
+END OF INSTRUCTIONS.
+
+
+---
+
+✅ WHAT THIS PROMPT DOES
+
+This is the maximum-depth audit possible inside Replit without external network calls.
+
+It will:
+
+Brutally inspect every file
+
+Validate build integrity
+
+Catch hidden errors
+
+Detect misconfigurations
+
+Detect wrong imports
+
+Detect missing env vars
+
+Detect broken workflows
+
+Detect duplicate configs
+
+Detect leftover agent junk
+
+Confirm Stripe IDs exist
+
+Confirm auth, middleware, routing
+
+Produce a full red/yellow/green severity report
+
+Tell us EXACTLY what needs fixing
+
+
+Once you paste this and run it, send me the FINAL REPORT SECTION ONLY and I’ll give you the fix plan.
+
+This is the cleanest, deepest, harshest, most accurate audit you can run without full remote access.
+
+Ready when you are.

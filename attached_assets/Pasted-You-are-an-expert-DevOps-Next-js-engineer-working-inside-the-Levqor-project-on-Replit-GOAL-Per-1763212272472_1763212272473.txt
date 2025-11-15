@@ -1,0 +1,221 @@
+You are an expert DevOps + Next.js engineer working inside the Levqor project on Replit.
+
+GOAL
+- Perform a **full nuclear cleanup** of the Levqor frontend deployment and git state so that:
+  - `src/lib/cookies.ts` is properly tracked and deployed.
+  - `.gitignore` and `.vercelignore` are not hiding critical source files.
+  - The local repo, GitHub, Vercel, and the live site (https://www.levqor.ai) are all in sync.
+  - Old failing Vercel deployments are cleaned up where possible.
+  - A simple verification script exists so this doesn’t regress.
+
+VERY IMPORTANT GLOBAL RULES
+1. **Always use existing integrations and secrets automatically.**
+   - Use any available environment variables / secrets in this Replit project, for example:
+     - `GITHUB_TOKEN` or similar for GitHub API access.
+     - `VERCEL_TOKEN`, `VERCEL_PROJECT_ID`, `VERCEL_TEAM_ID` for Vercel API.
+     - Any Cloudflare tokens if needed for DNS / cache checks.
+   - Do NOT ask for new credentials; first try to use whatever is already configured.
+
+2. **Hard verification is mandatory.**
+   - After every “fix”, you MUST verify using real commands:
+     - `git status`, `git diff`, `git ls-files`, etc.
+     - `npm run build` locally (or `pnpm/yarn` if appropriate).
+     - `curl` to live URLs and grep for expected content.
+     - For HTML/CSS: `curl -s https://www.levqor.ai | head -n 80` and look for CSS `<link>` tags.
+   - Never say “should work” without showing actual command output.
+   - Treat “build succeeded” messages as **not enough**; double-check with content.
+
+3. **Work only inside the correct repo.**
+   - The frontend repo is the Vercel site project (levqor-site).
+   - Detect the correct git root; do NOT edit random folders.
+
+4. **Be safe and minimal.**
+   - Do NOT delete arbitrary files.
+   - Only touch files clearly related to:
+     - `.gitignore`, `.vercelignore`
+     - `src/lib/cookies.ts`
+     - build / deployment scripts
+   - If you are unsure, log a NOTE in a markdown report instead of changing it.
+
+==================================================
+STEP 1 – FIND THE RIGHT REPO & BASIC INFO
+==================================================
+1. From the Replit shell, determine where the frontend repo lives:
+   - Try: `ls`, `ls -la`, `ls -la levqor-site`, etc.
+   - Confirm the git root with: `cd levqor-site && git rev-parse --show-toplevel`.
+2. Once confirmed, run and capture:
+   - `pwd`
+   - `git status`
+   - `git branch`
+   - `git remote -v`
+3. Append a short summary of this to a report file:
+   - `FRONTEND-NUCLEAR-CLEANUP-REPORT.md` in the repo root.
+
+==================================================
+STEP 2 – FIX .gitignore / .vercelignore AROUND src/lib
+==================================================
+1. In the frontend git root, inspect ignore files:
+   - `.gitignore`
+   - `.vercelignore` (if it exists)
+2. Look specifically for lines that ignore `lib` or `src/lib`, for example:
+   - `lib/`
+   - `src/lib`
+   - `levqor-site/src/lib`
+3. If you find any ignore rules that block `src/lib` or the cookies file:
+   - Remove ONLY the problematic lines.
+   - Keep other legitimate ignores (e.g. `node_modules`, `.next`, `.vercel`, build outputs).
+4. Show a unified diff of the ignore changes:
+   - `git diff .gitignore .vercelignore 2>/dev/null || true`
+5. Document what you changed in `FRONTEND-NUCLEAR-CLEANUP-REPORT.md`.
+
+==================================================
+STEP 3 – ENSURE src/lib/cookies.ts EXISTS AND IS TRACKED
+==================================================
+1. Check if the lib folder and cookies file exist:
+   - `ls -R src/lib || echo "no src/lib"`
+   - `ls src/lib/cookies.* 2>/dev/null || echo "cookies file missing"`
+2. If `src/lib/cookies.ts` exists:
+   - Show it briefly: `sed -n '1,120p' src/lib/cookies.ts`
+   - Confirm it is tracked:
+     - `git ls-files src/lib/cookies.ts || echo "NOT TRACKED"`
+3. If the file does NOT exist:
+   - Search the repo for references to `@/lib/cookies` or `cookies.ts`:
+     - `rg "lib/cookies" -n || grep -R "lib/cookies" -n src || true`
+   - If there is a previous version in git history, restore it:
+     - `git log -p -n 5 -- src/lib/cookies.ts || true`
+     - If found, use `git checkout <good-commit> -- src/lib/cookies.ts`.
+   - If no history exists, create a minimal, correct implementation consistent with how it’s imported in:
+     - `src/hooks/useCookieConsent.ts`
+     - `src/components/cookies/CookieBanner.tsx`
+     - Provide standard helpers for reading/writing a consent cookie for Next.js 14 app router.
+4. Once you are confident the implementation is sane:
+   - Ensure it is saved to `src/lib/cookies.ts`.
+5. Stage it and verify it is tracked:
+   - `git add src/lib/cookies.ts`
+   - `git ls-files src/lib/cookies.ts`
+
+==================================================
+STEP 4 – LOCAL BUILD VERIFICATION
+==================================================
+1. From the frontend repo root, ensure dependencies:
+   - Prefer `npm ci` if `package-lock.json` exists, otherwise `npm install`.
+2. Run a full production build:
+   - `npm run build`
+3. If the build fails:
+   - DO NOT hand-wave.
+   - Capture the error lines and add them to `FRONTEND-NUCLEAR-CLEANUP-REPORT.md`.
+   - Fix only the issues related to:
+     - missing modules
+     - obvious type/import errors caused by the new cookies file or ignore changes
+   - Re-run `npm run build` until it passes.
+4. Once the build passes:
+   - Record success in the report with the command and duration.
+
+==================================================
+STEP 5 – GIT CLEANUP, COMMIT, AND PUSH
+==================================================
+1. Show current status:
+   - `git status`
+2. Stage relevant files:
+   - `.gitignore`, `.vercelignore` (if changed)
+   - `src/lib/cookies.ts`
+   - Any minimal supporting changes you had to make
+3. Commit with a clear message:
+   - `git commit -m "chore: fix cookies lib tracking and frontend build stability" || echo "no changes to commit"`
+4. Push to main:
+   - Default: `git push origin main`
+   - If there is a push error because of auth:
+     - Use the existing GitHub integration / token from environment (`GITHUB_TOKEN` etc.).
+     - Configure the remote URL if needed to use that token.
+5. Confirm the push:
+   - `git status`
+   - Note the latest commit hash in `FRONTEND-NUCLEAR-CLEANUP-REPORT.md`.
+
+==================================================
+STEP 6 – VERIFY GITHUB ACTIONS & VERCEL DEPLOYMENT
+==================================================
+1. After pushing, confirm that GitHub Actions triggered:
+   - If you can, query the GitHub Actions API using the available token.
+   - At minimum, note that a workflow run was triggered for the latest commit.
+2. Using `VERCEL_TOKEN` and `VERCEL_PROJECT_ID` (and `VERCEL_TEAM_ID` if configured):
+   - Call the Vercel API to:
+     - List the most recent deployments for this project.
+     - Identify the **current production / alias** deployment.
+3. Ensure there is a **successful production deployment** associated with the latest commit:
+   - If not, trigger a new deployment via:
+     - A git push (already done)
+     - Or the Vercel API `/v13/deployments` using the existing project/alias.
+4. Record:
+   - Deployment ID
+   - State (`READY`)
+   - URL (e.g. `frontend-*.vercel.app`)
+   - In `FRONTEND-NUCLEAR-CLEANUP-REPORT.md`.
+
+==================================================
+STEP 7 – OPTIONAL CLEANUP OF OLD FAILED DEPLOYMENTS
+==================================================
+1. Using the Vercel API and `VERCEL_TOKEN`:
+   - List deployments for this project.
+   - Identify deployments with state `ERROR` that:
+     - Are not the current production deployment.
+     - Are older than the latest successful deployment.
+2. Where allowed by the API:
+   - Delete those FAILED deployments to reduce clutter.
+   - DO NOT delete the current production deployment.
+3. Summarize how many were deleted in the report.
+   - If you cannot delete due to permissions, log that instead.
+
+==================================================
+STEP 8 – LIVE SITE VERIFICATION (levqor.ai)
+==================================================
+1. Perform a live check against the production domain (through Cloudflare):
+   - `curl -s -D- https://www.levqor.ai | head -n 40`
+2. Verify:
+   - HTTP status is 200.
+   - HTML contains the correct title: `Levqor — Automate work. Ship faster.`
+   - There are `<link rel="stylesheet"` tags pointing to `/_next/static/…`.
+3. Optionally, fetch one CSS file to ensure it is not 404:
+   - Parse one CSS URL from the HTML, then:
+     - `curl -I "<that-css-url>"`
+   - Confirm status 200.
+4. Append a summary of these checks to the report.
+
+==================================================
+STEP 9 – LEAVE BEHIND A SIMPLE VERIFICATION SCRIPT
+==================================================
+1. In the repo root, create `verify_frontend.sh` with:
+   - `set -euo pipefail`
+   - A small routine that:
+     - Runs `npm run lint` (if configured) or `npm run build --dry-run` if available.
+     - Performs `curl` to `https://www.levqor.ai` and greps for:
+       - The main heading “Automate work. Ship faster.”
+       - At least one stylesheet link.
+     - Prints a short PASS/FAIL summary.
+2. Make it executable:
+   - `chmod +x verify_frontend.sh`
+3. Add it to git, commit (if not already committed), and push if needed.
+4. Document usage in the report:
+   - Example: `./verify_frontend.sh`.
+
+==================================================
+STEP 10 – FINAL SUMMARY FOR THE HUMAN
+==================================================
+At the very end, update `FRONTEND-NUCLEAR-CLEANUP-REPORT.md` with a clear, human-readable summary:
+
+- What was wrong (ignores, cookies file, failed deployments).
+- What you changed (exact files and rules).
+- Evidence that it now works:
+  - Local `npm run build` output (PASS).
+  - Latest commit hash and GitHub status.
+  - Vercel deployment ID and state.
+  - Live site curl checks (HTTP 200 + CSS present).
+- Any remaining non-critical warnings (if any) and why they are safe.
+
+Only once all checks pass, print to the Replit console a short final summary:
+
+"NUCLEAR CLEANUP COMPLETE: frontend repo, GitHub, Vercel, and https://www.levqor.ai are now in sync. See FRONTEND-NUCLEAR-CLEANUP-REPORT.md for full details."
+
+Remember:
+- Always use the existing Replit integrations and secret env vars.
+- Always verify with real commands (git, build, curl).
+- Never rely on “should work” – prove that it **does** work.

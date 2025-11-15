@@ -3,7 +3,16 @@
 ## Overview
 Levqor is a Flask-based job orchestration backend API for AI automation. It provides robust validation, cost management, job intake, status tracking, and health monitoring. The platform aims to be a scalable solution for automated workflows, featuring a Next.js frontend and an autonomous self-optimization layer with AI-powered monitoring, anomaly detection, predictive analytics, and auto-scaling.
 
-## Recent Changes (November 14, 2025)
+## Recent Changes (November 15, 2025)
+**CRITICAL FIX - Vercel Deployment (November 15):**
+- **Root Cause Identified:** `.gitignore` line 13 contained `lib/` which blocked `levqor-site/src/lib/` from being tracked in git
+- **Impact:** 3 critical TypeScript files existed locally but were NOT in repository, causing Vercel builds to fail with "Module not found: '@/lib/cookies'"
+- **Fix Applied:** Changed `.gitignore` line 13 from `lib/` to `lib64/` (original intent was to ignore Python lib64 only)
+- **Files Now Tracked:** `cookies.ts`, `security.ts`, `logHighRiskReject.ts` in `levqor-site/src/lib/`
+- **Verification Tools Created:** `verify_frontend.sh` (7 automated tests), comprehensive documentation (501 lines)
+- **Local Build:** Verified successful (113 pages, 12.4s)
+- **Status:** Ready for git commit and push to trigger successful Vercel deployment
+
 **Revenue-Focus Pack (PHASES 1-7 complete) + Sales Automation Engines (RFP 2-4) + Complete Revenue Engine (RFP 5-9):**
 
 **PHASES 1-4 (Website Enhancement):**

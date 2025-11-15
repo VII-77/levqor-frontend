@@ -1,0 +1,15 @@
+[
+  {
+    "id": "aba78da6",
+    "email": "test@example.com",
+    "message": "I need help with my order",
+    "context": {
+      "source": "chat"
+    },
+    "status": "open",
+    "created_at": "2025-11-15T14:39:14.294572",
+    "updated_at": "2025-11-15T14:39:14.294580",
+    "assigned_to": null,
+    "notes": []
+  }
+]

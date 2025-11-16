@@ -1,0 +1,289 @@
+TITLE
+LEVQOR GENESIS v8.0 – PRE-LAUNCH SWEEP (FULL SYSTEM SNAPSHOT)
+
+ROLE
+You are the Levqor Launch Auditor.
+
+Your job is to run a BRUTAL, HONEST, END-TO-END health sweep of the CURRENT production setup and produce ONE clear snapshot report.
+
+You MUST:
+- Use existing integrations and secret environment variables automatically.
+- NOT change any environment variables or secrets.
+- NOT touch Stripe dashboard, Vercel, Cloudflare, or DNS.
+- NOT modify business logic, pricing, or schema.
+- NOT delete or move files.
+
+Your primary deliverable is a **markdown report**, not code changes.
+
+GOAL
+Create or overwrite the following file at repo root:
+
+  LEVQOR-PRE-LAUNCH-SNAPSHOT.md
+
+This file must tell the owner, in plain English:
+
+- Is the system healthy **right now**?
+- Are backend, frontend, Stripe, webhooks, scheduler, and error monitoring behaving?
+- Are there any NEW problems since the last audits?
+- A simple GO / GO WITH CAUTION / NO-GO for taking payments **today**.
+
+You may also append to LAUNCH-GUARD-LOG.md if helpful.
+
+====================================================================
+PHASE 0 – RULES & CONTEXT
+====================================================================
+
+1. Respect these rules:
+   - DO NOT change env vars.
+   - DO NOT modify Stripe prices, products, or webhooks.
+   - DO NOT edit Vercel, Cloudflare, or DNS config.
+   - DO NOT change backend/ frontend code.
+   - Only create or overwrite:
+     - LEVQOR-PRE-LAUNCH-SNAPSHOT.md
+     - Optionally append to LAUNCH-GUARD-LOG.md
+
+2. Assume the following domains:
+   - Backend public API: https://api.levqor.ai
+   - Backend autoscale:   https://levqor-backend.replit.app
+   - Frontend:            https://www.levqor.ai
+
+3. Assume existing endpoints from previous work:
+   - /health
+   - /api/stripe/check
+   - /api/webhooks/stripe/checkout-completed (POST)
+   - /api/errors/log
+   - /api/errors/recent
+   - EchoPilot scheduler jobs already configured.
+
+====================================================================
+PHASE 1 – BACKEND + STRIPE + WEBHOOK CHECKS
+====================================================================
+
+From repo root, run these commands and capture BOTH body and status code:
+
+1) Backend health (public domain)
+   CMD:
+     curl -s -o- -w "\n%{http_code}\n" https://api.levqor.ai/health
+
+   - Record:
+     - Status code
+     - JSON body (or HTML snippet if not JSON)
+   - Interpret:
+     - 200 with {"ok": true, ...} = PASS
+     - 5xx = FAIL
+     - Anything else = WARNING
+
+2) Backend health (direct Replit autoscale)
+   CMD:
+     curl -s -o- -w "\n%{http_code}\n" https://levqor-backend.replit.app/health
+
+   - Same interpretation rules.
+
+3) Stripe integration health
+   CMD:
+     curl -s -o- -w "\n%{http_code}\n" https://api.levqor.ai/api/stripe/check
+
+   - Confirm:
+     - 200 OK
+     - Response mentions:
+       - account_id
+       - charges_enabled
+       - a non-empty list of prices / ids
+   - If 4xx/5xx, mark as FAIL and capture body.
+
+4) Webhook endpoint sanity (GET should NOT be 200)
+   CMD:
+     curl -s -o- -w "\n%{http_code}\n" https://api.levqor.ai/api/webhooks/stripe/checkout-completed
+
+   - Correct behavior:
+     - 405 (Method Not Allowed) or 404 (Not Found) = OK
+       (webhook expects POST from Stripe, not GET)
+     - 500 = FAIL
+   - Record body + status.
+
+====================================================================
+PHASE 2 – ERROR MONITORING SYSTEM
+====================================================================
+
+1) Test error retrieval via internal secret.
+   - First, try using INTERNAL_SECRET if available in env:
+     CMD:
+       curl -s -o- -w "\n%{http_code}\n" "https://api.levqor.ai/api/errors/recent?limit=5" \
+         -H "X-Internal-Secret: ${INTERNAL_SECRET:-test}"
+
+   - Interpret:
+     - 200 with JSON array or object = PASS
+     - 401/403 = WARNING (auth not set correctly for remote calls, but system can still log errors)
+     - 500 = FAIL
+
+2) If 401/403 with INTERNAL_SECRET:
+   - Note it in the report as “owner-only auth mismatch” but **do not treat as payment blocker**.
+
+3) Verify that the **error logging table works**:
+   - If possible from Python shell, import ErrorEvent model and run:
+     - Count recent rows.
+     - Confirm query returns without OperationalError / SSL errors.
+   - If you cannot open a shell, skip and mention the limitation.
+
+====================================================================
+PHASE 3 – SCHEDULER / ECHOPILOT JOBS
+====================================================================
+
+1) Check logs or console output for scheduler initialization.
+   - Search for lines similar to:
+     - "APScheduler initialized with"
+     - "Added job" messages
+   - Use:
+     - rg -n "APScheduler initialized" monitors logs or recent log file paths
+     - or inspect stdout if available.
+
+2) Summarise:
+   - Approximate number of jobs (should be ~21).
+   - Confirm error-monitoring jobs exist:
+     - "Critical error Telegram alerts"
+     - "Daily error email summary"
+
+3) If you cannot access logs directly, note that and base your judgement on the last known scheduler reports in:
+   - ERROR_MONITORING_SYSTEM.md
+   - ECHOPILOT-FINAL-HEALTH-SUMMARY.md
+   - BACKEND-DEPLOYMENT-STATUS.md
+
+====================================================================
+PHASE 4 – FRONTEND BASIC AVAILABILITY
+====================================================================
+
+You cannot see the UI from Replit, but you CAN test availability:
+
+1) Pricing page:
+   CMD:
+     curl -s -I https://www.levqor.ai/pricing
+
+   - Record:
+     - Status code
+     - `server` header (should show Vercel/Cloudflare)
+   - Interpret:
+     - 200 OK = PASS
+     - 3xx = WARNING (redirects; capture Location)
+     - 4xx/5xx = FAIL
+
+2) Homepage:
+   CMD:
+     curl -s -I https://www.levqor.ai/
+
+   - Same interpretation.
+
+====================================================================
+PHASE 5 – RECENT ERRORS + RISK ASSESSMENT
+====================================================================
+
+1) If /api/errors/recent returned 200 and JSON:
+   - Parse the most recent 10 error entries.
+   - Count:
+     - How many “critical”
+     - How many “error”
+     - How many in the last 24h
+   - Look for:
+     - Any Stripe-related critical errors.
+     - Any health or DB critical errors.
+     - Any recurring pattern.
+
+2) Summarise:
+   - “No critical errors in last 24h” → GOOD
+   - “Some critical errors, but not Stripe / DB” → WATCH
+   - “Critical errors for Stripe or DB” → BLOCKER
+
+====================================================================
+PHASE 6 – WRITE LEVQOR-PRE-LAUNCH-SNAPSHOT.md
+====================================================================
+
+Create or overwrite LEVQOR-PRE-LAUNCH-SNAPSHOT.md with this structure:
+
+1) Title + timestamp
+   - `# Levqor Pre-Launch Snapshot`
+   - `Date/Time (UTC): ...`
+
+2) OVERALL DECISION (TOP, BOLD)
+   Choose ONE and justify in 2–3 clear sentences:
+
+   - **OVERALL: GO** – Safe to take real payments now.
+   - **OVERALL: GO WITH CAUTION** – Safe to take a few real payments (1–5) with close monitoring.
+   - **OVERALL: NO-GO** – Do NOT take real payments until issues below are fixed.
+
+   Use plain English. Example:
+   - “The backend is healthy, Stripe is fully configured, and the database is stable. A few non-critical warnings exist, but they do not block payments.”
+   - Or: “The Stripe health check is failing, so you should not take payments.”
+
+3) EXECUTIVE SUMMARY (BULLET POINTS)
+   5–8 bullets in beginner-friendly language. For example:
+   - “The backend API at api.levqor.ai is responding correctly.”
+   - “Stripe is connected and all prices look valid.”
+   - “The webhook endpoint is behaving correctly (rejects GET, expects POST).”
+   - “The pricing page is available on www.levqor.ai.”
+   - “The error monitoring system is logging errors and can be viewed in /owner/errors.”
+   - “There are no recent critical errors related to payments or the database.”
+
+4) CHECKLIST TABLE
+
+   A markdown table with columns:
+
+   | Area                     | Status (PASS/WARNING/FAIL) | Evidence (short)                                | Impact on launch              |
+
+   Include at least:
+   - Backend health (api.levqor.ai/health)
+   - Backend health (levqor-backend.replit.app/health)
+   - Stripe configuration (api/stripe/check)
+   - Webhook endpoint (GET sanity)
+   - Database stability (from earlier DB reports if you can’t re-run)
+   - Scheduler / EchoPilot jobs
+   - Error monitoring API
+   - Frontend reachability (/ and /pricing)
+
+5) WHAT IS SAFE TO DO NOW
+
+   In plain English, e.g.:
+
+   - If GO or GO WITH CAUTION:
+     - “You can safely run a Stripe TEST payment now.”
+     - “You can then try 1 real payment on the cheapest plan.”
+     - “Watch Stripe dashboard and /owner/errors after each payment for the first 1–5 customers.”
+
+   - If NO-GO:
+     - “Do NOT take any real payments yet.”
+     - “Fix the FAILED items in the checklist above first.”
+
+6) WATCHLIST / RISKS
+
+   Bullet list of:
+   - Any WARNING entries from the table.
+   - What to watch.
+   - What to do if they become worse.
+
+7) OWNER ACTIONS (NUMBERED LIST)
+
+   Write this like instructions to a non-technical owner:
+
+   - `1. Visit https://www.levqor.ai and https://www.levqor.ai/pricing in your browser to confirm both pages load.`
+   - `2. In Stripe, confirm the webhook endpoint exists and is not failing.`
+   - `3. When you are ready, make ONE real payment with your own card on the cheapest plan.`
+   - `4. After payment, check Stripe webhook logs and the /owner/errors page.`
+   - `5. If anything looks wrong (failed webhook, many critical errors), stop and ask for help before taking more customers.`
+
+====================================================================
+PHASE 7 – LOGGING
+====================================================================
+
+1. Optionally append a short entry to LAUNCH-GUARD-LOG.md:
+
+   - Timestamp
+   - Commands run
+   - Very short conclusion (1–3 lines)
+
+====================================================================
+FINAL MESSAGE
+====================================================================
+
+At the very end, print EXACTLY this to the console:
+
+  "Pre-launch sweep complete – open LEVQOR-PRE-LAUNCH-SNAPSHOT.md for the current status."
+
+Then stop.

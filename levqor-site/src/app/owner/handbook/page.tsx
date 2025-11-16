@@ -282,6 +282,7 @@ export default function OwnerHandbookPage() {
             <Link href="/" className="text-emerald-400 hover:underline">← Back to Home</Link>
             <Link href="/dashboard" className="text-emerald-400 hover:underline">Dashboard</Link>
             <Link href="/admin/insights" className="text-emerald-400 hover:underline">Admin Insights</Link>
+            <Link href="/owner/errors" className="text-red-400 hover:underline font-semibold">🚨 Error Dashboard</Link>
           </div>
           <p className="text-xs text-slate-500 mt-4">
             Last updated: November 16, 2025 • This page is not linked in public navigation and is for owner/administrator reference only.

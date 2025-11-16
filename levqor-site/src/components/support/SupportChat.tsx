@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { callPublicSupport, callPrivateSupport, escalateSupport, SupportReply } from "@/lib/supportClient";
+import { logClientError } from "@/lib/errorClient";
 
 interface Message {
   id: string;
@@ -87,6 +88,12 @@ export default function SupportChat({ mode, title, showEscalate = false, default
       }
     } catch (err) {
       setError("Failed to get response. Please try again or email support@levqor.ai");
+      logClientError({
+        service: mode === "public" ? "support_chat_public" : "support_chat_private",
+        message: err instanceof Error ? err.message : "Support chat API error",
+        severity: "error",
+        userEmail: mode === "private" ? defaultEmail : undefined,
+      });
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         from: "bot",
@@ -122,6 +129,12 @@ export default function SupportChat({ mode, title, showEscalate = false, default
       setMessages((prev) => [...prev, ticketMessage]);
     } catch (err) {
       setError("Failed to create ticket. Please email support@levqor.ai directly.");
+      logClientError({
+        service: "support_escalation",
+        message: err instanceof Error ? err.message : "Escalation API error",
+        severity: "error",
+        userEmail: email,
+      });
       const errorMessage: Message = {
         id: Date.now().toString(),
         from: "bot",

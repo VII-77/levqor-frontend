@@ -1,0 +1,99 @@
+# PROMPT FOR REPLIT AI AGENT
+
+You are updating Levqor Genesis v8.0 so that ALL visible pricing and ALL Stripe prices are perfectly aligned for launch.
+
+GOAL
+- Make the entire system use ONE consistent price table:
+  - STARTER: £29/month
+  - PRO: £49/month
+  - GROWTH: £79/month
+  - (Keep DFY tiers as currently configured unless explicitly changed.)
+- Ensure that:
+  - Website text = these prices
+  - Stripe Checkout sessions = these prices
+  - Stripe price IDs used by the backend match the new values
+  - No hidden “£19” anywhere.
+
+RULES
+- DO NOT create new Stripe products.
+- Only adjust which Stripe **price IDs** the backend uses (env vars) OR, if already correct, update the marketing copy to match.
+- DO NOT touch webhook logic, database models, or monitoring.
+- Verify every change with REAL checks, NOT assumptions.
+- Use existing secrets and integrations; do not create new secrets.
+
+STEPS
+
+1) DISCOVER CURRENT TRUTH
+- Search the repo for all references to:
+  - STRIPE_PRICE_STARTER
+  - STRIPE_PRICE_PRO
+  - STRIPE_PRICE_GROWTH
+- Open the Stripe health report file (STRIPE-CHECK-ENDPOINT-REPORT.md or similar) and confirm:
+  - The current GBP amounts for each price ID.
+- Summarise in comments:
+  - Which env var maps to which Stripe price ID and amount.
+
+2) SYNC BACKEND TO NEW PRICES
+- If the Stripe prices themselves are already set to 29/49/79:
+  - Leave env vars alone.
+- If they are set to 19/49/79 etc:
+  - DO NOT change code.
+  - Instead:
+    - Note in comments that backend still uses 19 for starter.
+    - We will later update Stripe itself manually via dashboard.
+- Confirm that:
+  - /api/billing/checkout uses these env vars and nothing hard-coded.
+
+3) SYNC FRONTEND TEXT
+- Search the frontend (levqor-site) for “£19”, “19/mo”, “29/mo”, “49/mo”, “79/mo”.
+- Update all visible pricing copy across:
+  - /pricing
+  - /dfy
+  - any other marketing pages that show prices
+- Ensure:
+  - Starter: text shows “£29 / month”
+  - Pro: “£49 / month”
+  - Growth: “£79 / month”
+- Also update any FAQ answers or comparison tables that mention specific numbers.
+
+4) VERIFY CHECKOUT WIRING
+- Find the components that call the checkout endpoint, e.g.:
+  - /pricing CTA buttons
+  - /dfy CTA buttons
+- Confirm that:
+  - Starter button on pricing page → calls /api/billing/checkout with plan=starter
+  - Pro button → plan=pro
+  - Growth button → plan=growth
+- Confirm the backend handler maps these plan values to the correct env vars.
+- DO NOT change the endpoint path or method (must stay POST).
+
+5) RUN REAL CHECKS
+After code changes:
+
+- Restart backend.
+- Run these commands in the shell and paste results into comments:
+
+  curl -s -o /dev/null -w "%{http_code}\n" https://api.levqor.ai/health
+  curl -s -o /dev/null -w "%{http_code}\n" https://api.levqor.ai/api/stripe/check
+  curl -s https://www.levqor.ai/pricing | grep -E "£29|29/mo|29 per month" | head
+  curl -s https://www.levqor.ai/pricing | grep -E "£19|19/mo|19 per month" | head
+
+- Confirm:
+  - Both API endpoints return 200.
+  - Pricing page shows 29, 49, 79.
+  - Pricing page does NOT show 19 anywhere.
+
+6) STRIPE DASHBOARD MANUAL NOTE (for owner)
+- In a short markdown file LEVQOR-PRICING-SYNC-NOTES.md at repo root, write:
+  - Which Stripe price IDs correspond to Starter/Pro/Growth.
+  - For each, the GBP amount.
+  - A note: “If Stripe amounts differ from website copy (29/49/79), update them in Stripe Dashboard → Products → Prices, not in code.”
+
+DO NOT
+- Do not touch webhooks, database schema, or monitoring.
+- Do not change DFY prices unless they are clearly inconsistent in text vs Stripe.
+- Do not add new dependencies.
+
+When done, summarise:
+- Whether backend amounts and frontend text now match.
+- Any place where Stripe Dashboard still needs manual price adjustment.

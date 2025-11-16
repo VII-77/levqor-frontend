@@ -1,0 +1,263 @@
+ROLE
+You are the chief architect and system auditor for the Levqor + EchoPilot project.
+
+The owner wants a BRUTAL, COMPLETE INVENTORY of everything we have built so far, across backend, frontend, EchoPilot engine, docs, reports, and scripts.
+
+Your job is:
+1) To find EVERY relevant asset.
+2) To classify whether it is actively used, owner-only, or legacy/unused.
+3) To produce clear, beginner-friendly markdown reports explaining what exists and what matters.
+
+You MUST respect the following constraints:
+- Do NOT modify or delete any code, configs, or data.
+- Do NOT change environment variables or secrets.
+- Do NOT touch Stripe, Vercel, Cloudflare, or DNS config.
+- Your primary output is documentation in markdown.
+- You may ONLY create/overwrite markdown files and scratch notes.
+- You MUST verify “used vs unused” with real, concrete checks (grep, references, imports, routes, etc.), not guesses.
+
+====================================================================
+CONTEXT (FACTS)
+====================================================================
+
+Project layout (from previous work, do NOT assume exact paths – detect them):
+
+- Backend:
+  - Flask + SQLAlchemy app (run.py, backend/…)
+  - EchoPilot engine (monitors, schedulers, health checks, etc.)
+  - Stripe integration, webhooks, Resend, Telegram, error monitoring.
+  - Knowledge base and reports:
+    - knowledge-base/*.md
+    - integrity_reports/, archive/, etc.
+
+- Frontend:
+  - Next.js 14 App Router in levqor-site/
+  - 26-page marketing site + legal pages + dashboard
+  - Support AI chat components and client
+  - Owner pages: /owner/handbook, /owner/errors
+
+- Docs:
+  - A lot of reports created over time: LAUNCH decisions, audits, nuclear reports, etc.
+
+You must discover the actual paths and filenames by searching the repo.
+
+====================================================================
+GOAL
+====================================================================
+
+Produce, at minimum, the following files at the REPO ROOT (NOT inside levqor-site):
+
+1) ECHOPILOT-ASSET-INVENTORY.md
+   - A COMPLETE list of assets (code, jobs, endpoints, pages, reports, scripts).
+   - Grouped by:
+     - Backend code
+     - EchoPilot engine (jobs, monitors, health scripts)
+     - Frontend (pages, components, lib)
+     - Integrations (Stripe, Resend, Telegram, error monitoring)
+     - Reports & docs
+     - Scripts & utilities
+   - For each asset:
+     - Name/path
+     - Type (endpoint, page, job, script, report, etc.)
+     - Short description
+
+2) ECHOPILOT-USED-VS-UNUSED.md
+   - A classification of each asset into:
+     - ACTIVE (used in live system for customers or core operations)
+     - OWNER-ONLY (used only by you as the owner/admin)
+     - LEGACY/UNUSED (no longer wired anywhere, kept only for history)
+   - Include for each:
+     - Asset path
+     - Category (active / owner-only / legacy)
+     - Evidence of usage (how you checked)
+     - Recommendation:
+       - “Keep – core feature”
+       - “Keep – internal/owner only”
+       - “Consider archive”
+       - “Safe to delete later (after manual backup)”
+
+3) ECHOPILOT-ASSET-SUMMARY.md
+   - A beginner-friendly summary (written for the non-technical owner) including:
+     - Big-picture explanation of what exists.
+     - Bullet list of “What’s actively used today”.
+     - Bullet list of “What is owner-only / reference-only”.
+     - Bullet list of “What is legacy and can be removed later”.
+     - Clear note that NOTHING is silently lost: everything is either used, owner-only, or explicitly marked legacy.
+
+====================================================================
+PHASE 1 – DISCOVER ALL ASSETS (READ-ONLY)
+====================================================================
+
+1. From repo root, scan for key directories and files:
+
+   - List top-level structure:
+     - `ls`
+   - Discover code trees:
+     - `find backend -maxdepth 6 -type f | sort` (if backend/ exists)
+     - `find monitors -maxdepth 6 -type f | sort` (if monitors/ exists)
+     - `find modules -maxdepth 6 -type f | sort` (if modules/ exists)
+     - `find scripts -maxdepth 6 -type f | sort` (if scripts/ exists)
+     - `find levqor-site -maxdepth 6 -type f | sort` (frontend)
+   - Discover docs/reports:
+     - `find . -maxdepth 6 -type f -name '*.md' | sort`
+     - Pay special attention to:
+       - Any *LAUNCH*, *REALITY*, *NUCLEAR*, *HEALTH*, *AUDIT*, *REPORT* files.
+
+2. DO NOT modify files in this phase. Just build an internal list of:
+
+   - Backend routes
+   - EchoPilot jobs, monitors, scripts
+   - Frontend routes (Next.js pages)
+   - Supporting libraries (`src/lib/*.ts`)
+   - Integrations (Stripe, Resend, Telegram, error monitoring)
+   - All markdown docs and reports.
+
+====================================================================
+PHASE 2 – VERIFY USAGE (CODE REFERENCES)
+====================================================================
+
+For each category, verify usage with REAL checks:
+
+1. Backend endpoints:
+   - Use `rg` (ripgrep) to find where each route function or blueprint is registered.
+   - Check import and registration patterns in run.py or equivalent.
+   - Mark an endpoint ACTIVE if:
+     - It is registered on the app AND
+     - It is called by frontend, jobs, Stripe, or external integrations.
+
+2. EchoPilot jobs & monitors:
+   - Inspect monitors/scheduler.py (or equivalent).
+   - List all jobs registered.
+   - For each:
+     - Job function name
+     - Trigger (cron/interval)
+     - Purpose (health check, Stripe, DB, error monitoring, etc.)
+   - Mark ACTIVE if it is currently registered and runs on the live scheduler.
+
+3. Frontend routes:
+   - Enumerate Next.js pages:
+     - `find levqor-site/src/app -maxdepth 6 -name "page.tsx" -o -name "page.jsx"`.
+   - For each page:
+     - Determine URL path from folder structure.
+     - Mark ACTIVE if:
+       - It is part of the 26-page marketing+core list, OR
+       - It is used as part of dashboard or support flows.
+     - Mark OWNER-ONLY if:
+       - It’s under `/owner/` or similar internal paths.
+
+4. Components and libs:
+   - For selected important components (support chat, pricing, etc.), use `rg` to find where they’re imported.
+   - Only classify them as unused if they truly have no import references.
+
+5. Docs & reports:
+   - For markdown files, search references in code or other docs.
+   - Classify:
+     - ACTIVE DOC: linked from owner pages or referenced in other important docs.
+     - OWNER-ONLY: relevant for you but not wired to code.
+     - LEGACY: old nuclear reports, superseded audits, one-off diagnostics.
+
+====================================================================
+PHASE 3 – BUILD ECHOPILOT-ASSET-INVENTORY.md
+====================================================================
+
+Create `ECHOPILOT-ASSET-INVENTORY.md` at repo root with:
+
+1. Title + date.
+2. Sections:
+   - Backend Code
+   - EchoPilot Engine (Schedulers, Monitors, Health Scripts)
+   - Frontend (Pages, Components, Lib)
+   - Integrations (Stripe, Resend, Telegram, Error Monitoring)
+   - Knowledge Base & Marketing Docs
+   - Reports & Audits
+   - Scripts & Utilities
+
+3. In each section, a table with columns:
+   - Asset
+   - Type
+   - Path
+   - Short Description
+
+Be concise but complete: everything relevant must appear at least once.
+
+====================================================================
+PHASE 4 – BUILD ECHOPILOT-USED-VS-UNUSED.md
+====================================================================
+
+Create `ECHOPILOT-USED-VS-UNUSED.md` with:
+
+1. Brief intro explaining the categories:
+
+   - ACTIVE – used in live system for customers or core operations.
+   - OWNER-ONLY – not user-facing, but important for you (monitoring, audits, scripts).
+   - LEGACY/UNUSED – old, not wired in, safe to archive later.
+
+2. For each asset from the inventory, add a row in a table:
+
+   Columns:
+   - Asset
+   - Path
+   - Category (ACTIVE / OWNER-ONLY / LEGACY)
+   - Evidence of usage (1–2 short phrases, e.g. “used by /pricing page”, “registered in scheduler”, “called by Stripe webhook”)
+   - Recommendation (“Keep – core feature”, “Keep – owner-only”, “Consider archive later”, etc.)
+
+3. Pay attention to:
+   - Old folders like levqor-backend/, levqor-fresh/, levqor-frontend/ if they exist:
+     - These are likely LEGACY if not referenced anywhere else now.
+   - Old nuclear reports, old audit logs:
+     - Mark as LEGACY unless explicitly linked.
+
+====================================================================
+PHASE 5 – BUILD ECHOPILOT-ASSET-SUMMARY.md (OWNER-FRIENDLY)
+====================================================================
+
+Create `ECHOPILOT-ASSET-SUMMARY.md` with:
+
+1. A simple title and today’s date.
+2. A plain-English explanation (4–8 sentences) of:
+   - What Levqor + EchoPilot contains (backend, frontend, engine).
+   - What is actually used now.
+   - What exists only for you as the owner.
+   - What is legacy and can be archived later.
+
+3. Three main sections:
+
+   A) “What is actively used today”
+      - Bullet list of:
+        - Core backend pieces (webhooks, health checks, error monitoring).
+        - Core frontend pages (/, /pricing, /dfy, /dashboard, /support, /faq, 26 marketing pages).
+        - Core EchoPilot jobs (health, Stripe, DB, error monitoring).
+        - Support AI flows (even with graceful fallback).
+
+   B) “What is internal / owner-only”
+      - Bullet list of:
+        - Owner pages (/owner/handbook, /owner/errors).
+        - Launch decision reports.
+        - Health & audit reports.
+        - Scripts you might run occasionally (healthcheck, integrity tests).
+
+   C) “What is legacy and can be archived later”
+      - Bullet list of:
+        - Old folders (levqor-backend, levqor-fresh, levqor-frontend) if unreferenced.
+        - Old nuclear reports and one-off diagnostics superseded by newer ones.
+
+4. End with a short clear statement confirming:
+   - Nothing has been silently dropped.
+   - Everything either powers the live system, supports you as owner, or is explicitly marked as legacy.
+
+====================================================================
+PHASE 6 – SANITY CHECK & NO-TOUCH GUARANTEE
+====================================================================
+
+1. Confirm you have NOT:
+   - Modified backend behavior.
+   - Changed any environment variables.
+   - Touched pricing, products, or Stripe config.
+   - Modified Vercel/Cloudflare/DNS.
+
+2. If you needed any scratch notes, keep them under:
+   - `archive/asset-audit-notes-*.md`
+
+3. At the end, print this exact line to the Replit console:
+
+   "EchoPilot asset inventory and used-vs-unused analysis complete – open ECHOPILOT-ASSET-SUMMARY.md first for the big picture."

@@ -498,7 +498,7 @@ View details: https://www.levqor.ai/owner/errors
 def send_daily_error_summary():
     """Daily at 9 AM UTC - Send email summary of errors"""
     import sqlite3
-    from backend.utils.email_helper import send_email_via_resend
+    from backend.utils.resend_sender import send_email_via_resend
     
     log.info("Generating daily error summary...")
     
@@ -617,7 +617,7 @@ def send_daily_error_summary():
         owner_email = os.getenv("OWNER_EMAIL", "support@levqor.ai")
         
         send_email_via_resend(
-            to_email=owner_email,
+            to=owner_email,
             subject=f"📊 Daily Error Summary - {datetime.now().strftime('%b %d, %Y')}",
             html_body=html_body
         )

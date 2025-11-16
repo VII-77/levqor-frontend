@@ -91,6 +91,7 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
 db.init_app(app)
 
 from backend.models.sales_models import Lead, LeadActivity, DFYOrder, DFYActivity, UpsellLog
+from backend.models.error_event import ErrorEvent
 
 with app.app_context():
     db.create_all()
@@ -113,6 +114,7 @@ from backend.routes.followup_endpoints import followup_bp
 from backend.routes.support_chat import support_chat_bp
 from backend.routes.stripe_check import stripe_check_bp
 from backend.routes.stripe_webhook_test import bp as stripe_webhook_test_bp
+from backend.routes.error_logging import error_logging_bp
 app.register_blueprint(dsar_bp)
 app.register_blueprint(dsar_admin_bp)
 app.register_blueprint(gdpr_optout_bp)
@@ -131,6 +133,7 @@ app.register_blueprint(followup_bp)
 app.register_blueprint(support_chat_bp, url_prefix="/api/support")
 app.register_blueprint(stripe_check_bp)
 app.register_blueprint(stripe_webhook_test_bp, url_prefix="/api/stripe")
+app.register_blueprint(error_logging_bp)
 
 _db_connection = None
 

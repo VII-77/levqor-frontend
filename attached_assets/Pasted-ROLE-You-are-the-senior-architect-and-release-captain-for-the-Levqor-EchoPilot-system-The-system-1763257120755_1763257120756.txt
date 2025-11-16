@@ -1,0 +1,253 @@
+ROLE
+You are the senior architect and release captain for the Levqor + EchoPilot system.
+
+The system is already in production with:
+- Backend (Flask + SQLAlchemy + Stripe + Resend + Telegram + schedulers) in this Replit project (Levqor-backend).
+- Frontend Next.js 14 inside levqor-site/, deployed to Vercel at https://www.levqor.ai.
+- EchoPilot engine doing health checks, DB checks, Stripe checks, etc.
+
+CURRENT REQUIREMENT
+Sentry.io is NOT usable (owner cannot access it). We must replace Sentry-style error monitoring with an IN-HOUSE solution that:
+
+- Logs errors from both backend and frontend into our own database.
+- Sends alerts via Telegram and email (Resend) when serious errors occur.
+- Exposes a simple owner-only UI page in the frontend to inspect recent errors.
+- Reuses all existing integrations and secrets (DO NOT create new secrets).
+- Does NOT change business logic, pricing, schemas unrelated to errors, or deployment configs.
+
+ABSOLUTE RULES
+- DO NOT:
+  - Do NOT modify or break any existing backend routes, webhooks, or business logic.
+  - Do NOT change or delete any environment variables or secrets.
+  - Do NOT touch Stripe, Vercel, Cloudflare, or DNS configs.
+  - Do NOT drop tables or run destructive migrations.
+- DO:
+  - Use existing DB, SQLAlchemy setup, Telegram helper, and Resend client.
+  - Keep changes minimal, well-structured, and production-safe.
+  - Verify functionality using real commands and, where possible, test endpoints.
+  - Follow existing project style and patterns.
+
+GOAL
+Implement a complete in-house error monitoring pipeline with:
+
+1) ErrorEvent model + API endpoint in the backend.
+2) Backend logging helper that records important errors.
+3) Frontend error reporting client (in levqor-site).
+4) Owner-only UI page `/owner/errors` in the frontend.
+5) EchoPilot scheduler job to send alerts and daily summaries.
+6) A clear documentation file explaining what was done and how to use it.
+
+====================================================================
+PHASE 1 – BACKEND: ErrorEvent MODEL + API
+====================================================================
+
+1. Locate the backend app and DB setup:
+   - Find where Flask app and SQLAlchemy are configured (likely run.py and a models module).
+   - Identify the existing base model and session pattern.
+
+2. Add a new SQLAlchemy model called ErrorEvent (in the appropriate models file), with fields:
+
+   - id (primary key)
+   - created_at (datetime, default to UTC now)
+   - source (string, e.g. "backend", "frontend", "support", "webhook", "scheduler")
+   - service (string, e.g. "support_ai", "webhook_checkout", "dfy_onboarding", "frontend_app")
+   - path_or_screen (string, nullable)
+   - user_email (string, nullable)
+   - severity (string: "info" | "warning" | "error" | "critical")
+   - message (text)
+   - stack (text, nullable, truncated if very long)
+
+   Follow existing model conventions (Base, metadata, etc). Do NOT break migrations; integrate cleanly with existing schemas.
+
+3. Create or update a backend route module for error logging, e.g. backend/routes/error_logging.py:
+
+   - Blueprint: `error_logging_bp`, prefix `/api/errors`.
+   - Endpoint: POST `/log`
+     - Accepts JSON with keys:
+       - source
+       - service
+       - path_or_screen
+       - user_email
+       - severity
+       - message
+       - stack (optional)
+     - Validate required fields minimally:
+       - severity default to "error" if missing
+       - source default to "backend"
+     - Create an ErrorEvent and commit.
+     - On success: return `{ "ok": true }` with HTTP 200.
+     - On failure: log the error, return `{ "ok": false }` with HTTP 500.
+
+4. Register this blueprint in run.py (or your main app file) in the same pattern as existing blueprints.
+
+5. Run a quick local test:
+   - Start backend (whatever command you normally use, e.g. `python run.py` or `poetry run ...`).
+   - POST a test error event using curl:
+
+     curl -s -X POST http://localhost:8000/api/errors/log \
+       -H "Content-Type: application/json" \
+       -d '{"source":"backend","service":"test_service","severity":"error","message":"Test error from AI agent"}'
+
+   - Confirm HTTP 200 and verify that the ErrorEvent row exists in the DB using the same method used elsewhere in the project to inspect DB data.
+
+====================================================================
+PHASE 2 – BACKEND: LOGGING HELPER + INTEGRATION POINTS
+====================================================================
+
+1. Create a helper function, e.g. in backend/utils/error_logger.py:
+
+   - Function: `log_error_event(source, service, message, severity="error", path_or_screen=None, user_email=None, stack=None)`
+   - It should:
+     - Create an ErrorEvent instance directly and commit via SQLAlchemy.
+     - Wrap commit in try/except to avoid crashing on logging errors.
+     - Use the current UTC time for created_at.
+
+2. Find key places where errors can happen and are important to log:
+
+   - Support AI backend service (support_ai.py, support routes).
+   - Stripe webhook handler (checkout-completed route).
+   - Daily email tasks and scheduler jobs.
+   - Any critical automation flows.
+
+3. WITHOUT changing the business logic, wrap their error paths with calls to `log_error_event(...)` in addition to whatever logging already exists.
+
+   Example (pseudo):
+
+   except Exception as e:
+       log.exception("support_ai_error")
+       log_error_event(
+           source="backend",
+           service="support_ai",
+           severity="error",
+           message=str(e),
+           path_or_screen=request.path,
+           user_email=user_email_if_available,
+           stack=traceback_string_truncated
+       )
+       # existing response continues...
+
+4. Re-run backend (if needed) and perform a small manual failure (e.g. forced error in a support call) to check that ErrorEvent entries are created.
+
+====================================================================
+PHASE 3 – FRONTEND: CLIENT ERROR REPORTING
+====================================================================
+
+Work now inside levqor-site/ (Next.js 14 app router).
+
+1. Create a small client helper in `levqor-site/src/lib/errorClient.ts`:
+
+   - Export a function `logClientError(event: { service: string; message: string; severity?: string; path?: string; userEmail?: string; stack?: string; })`.
+   - It should:
+
+     - Build a POST request to `${process.env.NEXT_PUBLIC_API_URL || "https://api.levqor.ai"}/api/errors/log`.
+     - Send a JSON body with:
+       - source: "frontend"
+       - service: event.service
+       - path_or_screen: event.path || window.location.pathname
+       - user_email: event.userEmail || null
+       - severity: event.severity || "error"
+       - message: event.message
+       - stack: event.stack || null
+     - Best-effort only:
+       - Wrap in try/catch and DO NOT throw if the call fails.
+
+2. Integrate this client where it adds the most value:
+
+   - Support chat components:
+     - `PublicHelpWidget` and `DashboardSupportChat`.
+     - If the support API call fails or returns an error, call `logClientError(...)` with appropriate service ("support_chat_public" / "support_chat_private").
+
+   - Global error boundary or simple window.onerror handler:
+     - Implement a basic `useEffect` somewhere high-level (e.g. in layout) that attaches `window.onerror` and sends a summarized error through `logClientError`.
+     - Avoid spamming; send only a minimal payload.
+
+3. Ensure NO impact on user experience:
+   - Users see only friendly messages (which you already hardened).
+   - Error logging happens silently in the background.
+
+====================================================================
+PHASE 4 – FRONTEND: OWNER UI PAGE /owner/errors
+====================================================================
+
+1. In `levqor-site/src/app/owner/`, create a new route:
+
+   - `levqor-site/src/app/owner/errors/page.tsx`
+
+2. This page should:
+
+   - Reuse existing layout for `/owner/handbook` if there is a shared layout.
+   - Require the same owner/admin authentication as `/owner/handbook` (reuse the same guard/hook).
+   - On the server side (or via API), call the backend to retrieve recent ErrorEvent entries.
+     - Create a small backend endpoint if one does not exist yet, e.g. GET `/api/errors/recent?limit=50`, returning JSON with the most recent events ordered by timestamp.
+     - That endpoint MUST be protected using the same `X-Internal-Secret` or auth mechanism used elsewhere for owner/admin endpoints.
+
+   - Display:
+     - A table listing recent errors with columns: timestamp, source, service, severity, path/screen, message (truncated).
+     - A filter/search UI is optional; a simple list is enough.
+
+3. DO NOT link `/owner/errors` in the public navigation. Only link it from `/owner/handbook` as “View recent errors”.
+
+====================================================================
+PHASE 5 – ECHOPILOT SCHEDULER INTEGRATION
+====================================================================
+
+1. Locate EchoPilot scheduler logic (jobs, scripts, or APScheduler configuration).
+
+2. Add a new scheduled job, e.g. `job_error_monitor`:
+
+   - Runs every 5 or 10 minutes.
+   - Queries ErrorEvent for:
+     - Any events with severity = "critical" in the last 10–15 minutes.
+   - If there are new critical errors:
+     - Use existing Telegram helper to send a brief alert to the admin channel:
+       - “Levqor: X new critical errors in last 10 minutes. Check /owner/errors.”
+
+3. Add a daily summary job (once per 24h):
+
+   - Summarize:
+     - counts of events by severity.
+     - top 5 services by error count.
+   - Use Resend (existing integration) to send a summary email to the owner (use the same admin email used elsewhere, e.g. support@ or a configured OWNER_EMAIL if present).
+   - Keep the email text simple and in plain English.
+
+4. Make sure both jobs are registered with the existing scheduler and appear in any EchoPilot job inventory or health reports if there is such a place.
+
+====================================================================
+PHASE 6 – VERIFICATION & DOCUMENTATION
+====================================================================
+
+1. Backend tests:
+
+   - Call the new POST /api/errors/log endpoint with curl for a test entry.
+   - Call the new GET /api/errors/recent endpoint (with proper auth/secret) and confirm the test entry appears.
+   - Trigger one controlled backend error in support AI or webhook (in a safe test mode, not live money) and confirm an ErrorEvent row is created.
+
+2. Frontend tests:
+
+   - In a local dev environment, force a support chat failure (e.g. point it to a bogus URL temporarily) and confirm:
+     - User sees the friendly fallback message.
+     - ErrorEvent row is created from the frontend logging.
+
+   - Visit `/owner/errors` (in local dev) as an authenticated owner and verify:
+     - Recent errors are listed and readable.
+
+3. Update documentation:
+
+   - Create or update a markdown file at repo root:
+     - `ERROR-MONITORING-WITHOUT-SENTRY.md`
+   - Explain in simple English:
+     - Why Sentry is not used.
+     - How ErrorEvent works.
+     - How `/owner/errors` works.
+     - How Telegram alerts and daily email summaries work.
+     - What the owner should do when they see high error counts.
+
+4. DO NOT change LEVQOR-LAUNCH-DECISION.md. Leave the launch decision as-is, but this new file documents the monitoring approach.
+
+====================================================================
+FINAL MESSAGE
+====================================================================
+
+When you are completely done and everything is tested, print this exact line to the Replit console:
+
+"Levqor in-house error monitoring implemented – see /owner/errors and ERROR-MONITORING-WITHOUT-SENTRY.md for details."

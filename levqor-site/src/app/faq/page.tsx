@@ -13,24 +13,57 @@ export default function FAQPage() {
       questions: [
         {
           q: "What is Levqor?",
-          a: "Levqor is a done-for-you (DFY) automation platform. We build, test, and deliver working automation workflows for your business so you can save 20+ hours per week without technical skills or weeks of learning."
+          a: "Levqor is a done-for-you (DFY) automation platform serving clients worldwide. We build, test, and deliver working automation workflows for your business so you can save 20+ hours per week without technical skills or weeks of learning."
         },
         {
           q: "How is this different from Zapier or Make.com?",
-          a: "Tools like Zapier require you to learn, build, and maintain automations yourself. Levqor provides white-glove service: we handle strategy, design, implementation, testing, and ongoing support. You get working automation delivered in days, not DIY tools dumped in your lap."
+          a: "Tools like Zapier require you to learn, build, and maintain automations yourself. Levqor provides white-glove service globally: we handle strategy, design, implementation, testing, and ongoing support. You get working automation delivered in days, not DIY tools dumped in your lap."
         },
         {
-          q: "How long does it take to get automation live?",
-          a: "Most DFY projects are delivered within 3-7 days. Subscription plans include ongoing workflows delivered on a monthly cadence."
+          q: "How fast can you deliver?",
+          a: "Starter DFY = 48 hours. Professional = 3-4 days. Enterprise = 7 days. We don't rush and deliver broken automations. We build, test, and deliver production-ready workflows that work from day 1."
         }
       ]
     },
     {
-      category: "Pricing & Billing",
+      category: "DFY Process & Delivery",
+      questions: [
+        {
+          q: "What happens after I purchase a DFY plan?",
+          a: "After purchase, you'll receive an instant confirmation email with a link to a 5-minute intake form. We'll gather details about your workflow, tools, and goals, then design and build your automation within 24 hours to 7 days (depending on your tier)."
+        },
+        {
+          q: "What if I don't know which tools to use?",
+          a: "No problem! On our kickoff call, we'll audit your current process and recommend the best tools to connect. Most clients use Gmail, Google Sheets, and a CRM (HubSpot, Pipedrive, etc.). We make it work."
+        },
+        {
+          q: "Do I need to know how to code?",
+          a: "Absolutely not. That's the whole point of Done-For-You. You describe the problem, we build the solution. Zero coding required."
+        },
+        {
+          q: "What happens after the 7-30 day support period?",
+          a: "Your automation keeps running forever (it's yours). If you need updates or new workflows later, you can: (1) Buy another DFY plan for one-off builds, (2) Subscribe to our monthly plans for ongoing automation (£29-£299/month), or (3) Pay for one-off fixes (£49-99 per fix)."
+        },
+        {
+          q: "Can I modify the automation later?",
+          a: "Yes, you own it 100%. We build it in your accounts using your tools. You can modify, duplicate, or delete it anytime. We also provide documentation so you (or your team) can tweak it if needed."
+        },
+        {
+          q: "What if my automation breaks?",
+          a: "During the support period (7-30 days), we fix it for free. After that, you can: (1) Pay for one-off fixes (£49-99), (2) Subscribe for ongoing maintenance (£29+/month), or (3) Fix it yourself using the documentation we provide."
+        },
+        {
+          q: "Do I get revisions?",
+          a: "Yes! Starter includes 1 round of revisions, Professional includes 2 rounds, and Enterprise includes 3 rounds to ensure the automation works exactly as you need it."
+        }
+      ]
+    },
+    {
+      category: "Pricing & ROI",
       questions: [
         {
           q: "What payment methods do you accept?",
-          a: "We accept all major credit cards via Stripe. All payments are secure and GDPR-compliant."
+          a: "We accept all major credit cards via Stripe. All payments are secure and GDPR-compliant. We serve clients globally with support for international payments."
         },
         {
           q: "Can I upgrade or downgrade my plan?",
@@ -38,24 +71,24 @@ export default function FAQPage() {
         },
         {
           q: "Do you offer refunds?",
-          a: "Yes, we offer a 14-day money-back guarantee on all DFY plans. If you're not satisfied, we'll refund your purchase in full. See our refund policy for details."
+          a: "Yes, we offer a 14-day money-back guarantee on all DFY plans. If we deliver your automation and it doesn't work as described, we'll either: (1) Fix it immediately (usually within 24 hours), OR (2) Refund you 100%, no questions asked. We've never had to issue a refund because we test everything before handoff."
+        },
+        {
+          q: "Can I upgrade from DFY to a subscription later?",
+          a: "Absolutely! Many customers start with DFY Starter (£99) to test, then subscribe to Growth (£79/month) to keep building."
+        },
+        {
+          q: "What if I need more than 7 workflows?",
+          a: "Buy DFY Enterprise (7 workflows) + a subscription plan. Example: Buy DFY Enterprise (£599) to automate your top 7 pain points immediately, then subscribe to Growth (£79/month) to build 3 new workflows every month as you scale."
         }
       ]
     },
     {
-      category: "DFY Projects",
+      category: "Tools & Integrations",
       questions: [
         {
-          q: "What happens after I purchase a DFY plan?",
-          a: "After purchase, you'll receive an intake form or scheduling link. We'll gather details about your workflow, tools, and goals, then design and build your automation within 3-7 days."
-        },
-        {
-          q: "Do I get revisions?",
-          a: "Yes! Every DFY plan includes 1 round of revisions to ensure the automation works exactly as you need it."
-        },
-        {
-          q: "What if I need more workflows later?",
-          a: "You can purchase additional DFY builds or upgrade to a subscription plan for unlimited monthly workflows."
+          q: "What tools do you support?",
+          a: "We support 100+ tools globally, including: Email (Gmail, Outlook, SendGrid, Mailchimp), CRM (HubSpot, Pipedrive, Salesforce, Airtable), Spreadsheets (Google Sheets, Excel, Airtable), Messaging (Slack, Discord, WhatsApp, SMS via Twilio), Payment (Stripe, PayPal, Gumroad), and Custom APIs. If you have a custom tool, we can connect it. If you're not sure, just ask!"
         }
       ]
     },
@@ -64,11 +97,15 @@ export default function FAQPage() {
       questions: [
         {
           q: "Is my data secure?",
-          a: "Absolutely. We use EU-based data centers, encrypt all data in transit and at rest, and are fully GDPR-compliant. We never sell or share your data."
+          a: "Absolutely. We use EU-based data centers with global compliance standards, encrypt all data in transit and at rest, and are fully GDPR-compliant. We never sell or share your data. We serve clients worldwide with the same high security standards."
         },
         {
           q: "Do you access my accounts?",
           a: "Only with your explicit permission and only to set up automation. We use OAuth and API keys (never passwords) and follow industry-standard security practices."
+        },
+        {
+          q: "How do I know you won't mess up my data?",
+          a: "We work in test/staging environments first, then move to production. For DFY builds, we: (1) Ask for read-only access where possible, (2) Test with dummy data first, (3) Run 5-10 real examples in a sandbox, (4) Only move to production after you approve the test results. We also use error handling to ensure if something fails, it doesn't corrupt your data—it just alerts you."
         },
         {
           q: "What automations do you NOT support?",
@@ -77,8 +114,12 @@ export default function FAQPage() {
       ]
     },
     {
-      category: "Cancellations & Refunds",
+      category: "Support & Service",
       questions: [
+        {
+          q: "Do you offer support worldwide?",
+          a: "Yes! Levqor provides global support to clients anywhere in the world. Our team operates across time zones to ensure fast response times no matter where you're located."
+        },
         {
           q: "Can I cancel my subscription?",
           a: "Yes, you can cancel anytime. No lock-in contracts. Cancellations take effect at the end of your current billing period."

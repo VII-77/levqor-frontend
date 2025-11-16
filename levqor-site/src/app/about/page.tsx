@@ -20,7 +20,7 @@ export default function AboutPage() {
             We build DFY automation<br />so you can focus on growth
           </h1>
           <p className="text-xl text-slate-400 max-w-3xl mx-auto">
-            Levqor is a done-for-you automation platform that combines white-glove service with AI-powered workflows to help busy founders and teams ship faster.
+            Levqor is a done-for-you automation platform serving clients worldwide. We combine white-glove service with AI-powered workflows to help busy founders and teams ship faster—no matter where you're located.
           </p>
         </div>
 
@@ -32,10 +32,10 @@ export default function AboutPage() {
               Most automation tools require weeks of learning, countless hours of setup, and constant maintenance. We believe there's a better way.
             </p>
             <p className="text-lg text-slate-300 mb-4">
-              Levqor exists to make professional-grade automation accessible to everyone—without the technical complexity, without the time investment, and without the headaches.
+              Levqor exists to make professional-grade automation accessible to everyone, worldwide—without the technical complexity, without the time investment, and without the headaches.
             </p>
             <p className="text-lg text-slate-300">
-              We handle the strategy, design, and implementation. You get working automations that save you 20+ hours per week, delivered in days, not months.
+              We handle the strategy, design, and implementation. You get working automations that save you 20+ hours per week, delivered in days, not months. We serve clients globally with the same high standards and support.
             </p>
           </div>
         </section>
@@ -86,9 +86,9 @@ export default function AboutPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold mb-3 text-white">White-Glove Support</h3>
+              <h3 className="text-xl font-bold mb-3 text-white">Global White-Glove Support</h3>
               <p className="text-slate-300">
-                Real humans, fast response times, and hands-on guidance. We're here to help you succeed every step of the way.
+                Real humans, fast response times across time zones, and hands-on guidance. We serve clients worldwide and we're here to help you succeed every step of the way.
               </p>
             </div>
           </div>

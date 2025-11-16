@@ -16,10 +16,10 @@ export default function SupportPage() {
             Support Center
           </div>
           <h1 className="text-4xl sm:text-5xl font-bold mb-6 text-white">
-            We're here to help
+            We're here to help—worldwide
           </h1>
           <p className="text-xl text-slate-400 max-w-3xl mx-auto">
-            Get fast, friendly support from our team of automation experts.
+            Get fast, friendly support from our global team of automation experts, no matter where you're located.
           </p>
         </div>
 

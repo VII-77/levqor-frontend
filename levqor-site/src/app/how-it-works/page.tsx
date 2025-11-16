@@ -19,7 +19,7 @@ export default function HowItWorksPage() {
             From idea to live automation<br />in 4 simple steps
           </h1>
           <p className="text-xl text-slate-400 max-w-3xl mx-auto">
-            No technical skills needed. No weeks of setup. Just working automation delivered fast.
+            No technical skills needed. No weeks of setup. Just working automation delivered fast, anywhere in the world.
           </p>
         </div>
 

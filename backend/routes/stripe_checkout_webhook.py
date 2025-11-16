@@ -47,11 +47,9 @@ def checkout_completed():
     except ValueError as e:
         log.error(f"stripe_checkout.invalid_payload error={str(e)}")
         return jsonify({"ok": False, "error": "Invalid payload"}), 400
-    except Exception as e:
-        if 'signature' in str(e).lower():
-            log.error(f"stripe_checkout.invalid_signature error={str(e)}")
-            return jsonify({"ok": False, "error": "Invalid signature"}), 400
-        raise
+    except stripe.error.SignatureVerificationError as e:
+        log.error(f"stripe_checkout.invalid_signature error={str(e)}")
+        return jsonify({"ok": False, "error": "Invalid signature"}), 400
     
     # Handle the event
     if event['type'] == 'checkout.session.completed':
@@ -105,23 +103,32 @@ def handle_checkout_session(session):
     
     db = get_db()
     
-    # Create order record
-    order = DFYOrder(
-        customer_id=session.get('customer', ''),
-        customer_email=customer_email,
-        tier=tier,
-        status='NEW',
-        revisions_left=1,
-        checklist_status='PENDING'
-    )
-    
-    db.session.add(order)
-    db.session.commit()
-    
-    log.info(
-        f"stripe_checkout.order_created "
-        f"order_id={order.id} email={customer_email} tier={tier}"
-    )
+    # Create order record with proper error handling and rollback
+    try:
+        order = DFYOrder(
+            customer_id=session.get('customer', ''),
+            customer_email=customer_email,
+            tier=tier,
+            status='NEW',
+            revisions_left=1,
+            checklist_status='PENDING'
+        )
+        
+        db.session.add(order)
+        db.session.commit()
+        
+        log.info(
+            f"stripe_checkout.order_created "
+            f"order_id={order.id} email={customer_email} tier={tier}"
+        )
+    except Exception as e:
+        db.session.rollback()
+        log.error(
+            f"stripe_checkout.database_error "
+            f"email={customer_email} tier={tier} error={str(e)}",
+            exc_info=True
+        )
+        raise
     
     # Trigger onboarding automation
     try:

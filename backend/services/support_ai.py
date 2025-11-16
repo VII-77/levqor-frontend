@@ -11,15 +11,15 @@ logger = logging.getLogger(__name__)
 
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 
-# Check if OpenAI is available
+# Check if OpenAI is available (using new client API v1.x)
 OPENAI_AVAILABLE = False
-openai = None
+openai_client = None
 
 try:
-    import openai as openai_module
-    openai = openai_module
-    openai.api_key = OPENAI_API_KEY
+    from openai import OpenAI
+    openai_client = OpenAI(api_key=OPENAI_API_KEY)
     OPENAI_AVAILABLE = bool(OPENAI_API_KEY)
+    logger.info("support_ai.openai_initialized using client v1.x API")
 except ImportError:
     logger.warning("support_ai.openai_not_installed")
 
@@ -65,10 +65,10 @@ Knowledge Base:
 
 Response format: JSON with keys "reply" (string) and "escalationSuggested" (boolean)"""
 
-        if not openai:
-            raise Exception("OpenAI not available")
+        if not openai_client:
+            raise Exception("OpenAI client not available")
         
-        response = openai.ChatCompletion.create(
+        response = openai_client.chat.completions.create(
             model="gpt-4o-mini",  # Cost-efficient model
             messages=[
                 {"role": "system", "content": system_prompt},
@@ -153,10 +153,10 @@ Policies: {corpus.get('policies', 'N/A')[:500]}
 
 Response format: JSON with keys "reply" (string) and "escalationSuggested" (boolean)"""
 
-        if not openai:
-            raise Exception("OpenAI not available")
+        if not openai_client:
+            raise Exception("OpenAI client not available")
         
-        response = openai.ChatCompletion.create(
+        response = openai_client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": system_prompt},

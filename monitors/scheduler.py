@@ -445,6 +445,188 @@ def run_dsar_cleanup():
     except Exception as e:
         log.error(f"DSAR cleanup error: {e}")
 
+def check_critical_errors():
+    """Every 10 minutes - Check for critical errors and send Telegram alerts"""
+    import sqlite3
+    from backend.utils.telegram_helper import send_telegram_notification
+    
+    log.debug("Checking for critical errors...")
+    
+    try:
+        db_path = os.getenv("DATABASE_PATH", "levqor.db")
+        db = sqlite3.connect(db_path)
+        db.row_factory = sqlite3.Row
+        cursor = db.cursor()
+        
+        cursor.execute("""
+            SELECT id, created_at, source, service, message, user_email, path_or_screen
+            FROM error_events
+            WHERE severity = 'critical'
+            AND datetime(created_at) > datetime('now', '-10 minutes')
+            ORDER BY created_at DESC
+        """)
+        
+        critical_errors = cursor.fetchall()
+        db.close()
+        
+        if critical_errors:
+            log.warning(f"Found {len(critical_errors)} critical error(s) in last 10 minutes")
+            
+            for error in critical_errors:
+                message = f"""
+🚨 <b>CRITICAL ERROR DETECTED</b>
+
+<b>Source:</b> {error['source']}
+<b>Service:</b> {error['service']}
+<b>Time:</b> {error['created_at']}
+
+<b>Message:</b> {error['message'][:200]}
+
+<b>User:</b> {error['user_email'] or 'N/A'}
+<b>Path:</b> {error['path_or_screen'] or 'N/A'}
+
+Error ID: #{error['id']}
+View details: https://www.levqor.ai/owner/errors
+                """.strip()
+                
+                send_telegram_notification(message)
+                log.info(f"Sent Telegram alert for critical error #{error['id']}")
+        
+    except Exception as e:
+        log.error(f"Critical error check failed: {e}")
+
+def send_daily_error_summary():
+    """Daily at 9 AM UTC - Send email summary of errors"""
+    import sqlite3
+    from backend.utils.email_helper import send_email_via_resend
+    
+    log.info("Generating daily error summary...")
+    
+    try:
+        db_path = os.getenv("DATABASE_PATH", "levqor.db")
+        db = sqlite3.connect(db_path)
+        db.row_factory = sqlite3.Row
+        cursor = db.cursor()
+        
+        cursor.execute("""
+            SELECT severity, COUNT(*) as count
+            FROM error_events
+            WHERE datetime(created_at) > datetime('now', '-24 hours')
+            GROUP BY severity
+            ORDER BY 
+                CASE severity
+                    WHEN 'critical' THEN 1
+                    WHEN 'error' THEN 2
+                    WHEN 'warning' THEN 3
+                    WHEN 'info' THEN 4
+                END
+        """)
+        
+        severity_counts = cursor.fetchall()
+        
+        cursor.execute("""
+            SELECT service, COUNT(*) as count
+            FROM error_events
+            WHERE datetime(created_at) > datetime('now', '-24 hours')
+            GROUP BY service
+            ORDER BY count DESC
+            LIMIT 5
+        """)
+        
+        top_services = cursor.fetchall()
+        
+        cursor.execute("""
+            SELECT created_at, source, service, message
+            FROM error_events
+            WHERE severity IN ('critical', 'error')
+            AND datetime(created_at) > datetime('now', '-24 hours')
+            ORDER BY created_at DESC
+            LIMIT 10
+        """)
+        
+        recent_errors = cursor.fetchall()
+        db.close()
+        
+        severity_html = ""
+        total_errors = 0
+        for row in severity_counts:
+            severity = row['severity']
+            count = row['count']
+            total_errors += count
+            
+            color = {
+                'critical': '#EF4444',
+                'error': '#F97316',
+                'warning': '#EAB308',
+                'info': '#3B82F6'
+            }.get(severity, '#6B7280')
+            
+            severity_html += f'<tr><td style="padding: 8px; border-bottom: 1px solid #E5E7EB;"><span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: {color}; margin-right: 8px;"></span>{severity.capitalize()}</td><td style="padding: 8px; border-bottom: 1px solid #E5E7EB; text-align: right; font-weight: bold;">{count}</td></tr>'
+        
+        services_html = ""
+        for row in top_services:
+            services_html += f'<tr><td style="padding: 8px; border-bottom: 1px solid #E5E7EB; font-family: monospace; color: #10B981;">{row["service"]}</td><td style="padding: 8px; border-bottom: 1px solid #E5E7EB; text-align: right;">{row["count"]}</td></tr>'
+        
+        errors_html = ""
+        for row in recent_errors:
+            errors_html += f'<li style="margin-bottom: 12px; padding: 12px; background: #F9FAFB; border-left: 3px solid #EF4444; border-radius: 4px;"><div style="font-size: 12px; color: #6B7280; margin-bottom: 4px;">{row["created_at"]} | {row["source"]} | {row["service"]}</div><div style="color: #1F2937;">{row["message"][:150]}{"..." if len(row["message"]) > 150 else ""}</div></li>'
+        
+        html_body = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #1F2937; max-width: 800px; margin: 0 auto; padding: 20px;">
+    <div style="background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%); padding: 30px; border-radius: 8px 8px 0 0;">
+        <h1 style="color: white; margin: 0; font-size: 24px;">📊 Daily Error Summary</h1>
+        <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0 0; font-size: 14px;">{datetime.now().strftime('%B %d, %Y')}</p>
+    </div>
+    
+    <div style="background: white; padding: 30px; border: 1px solid #E5E7EB; border-top: none; border-radius: 0 0 8px 8px;">
+        <h2 style="color: #1F2937; margin-top: 0;">Summary</h2>
+        <p style="font-size: 16px; color: #4B5563;">Total errors in the last 24 hours: <strong>{total_errors}</strong></p>
+        
+        <h3 style="color: #1F2937; margin-top: 30px;">Errors by Severity</h3>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+            {severity_html}
+        </table>
+        
+        <h3 style="color: #1F2937;">Top Services with Errors</h3>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+            {services_html}
+        </table>
+        
+        <h3 style="color: #1F2937;">Recent Critical & Errors</h3>
+        <ul style="list-style: none; padding: 0;">
+            {errors_html if errors_html else '<li style="color: #10B981; padding: 12px; background: #F0FDF4; border-radius: 4px;">🎉 No critical or error-level issues in the last 24 hours!</li>'}
+        </ul>
+        
+        <div style="margin-top: 30px; padding: 20px; background: #F9FAFB; border-radius: 8px; text-align: center;">
+            <a href="https://www.levqor.ai/owner/errors" style="display: inline-block; background: #667EEA; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 500;">View Full Error Dashboard</a>
+        </div>
+    </div>
+    
+    <div style="text-align: center; margin-top: 20px; color: #9CA3AF; font-size: 12px;">
+        <p>Levqor Error Monitoring System</p>
+    </div>
+</body>
+</html>
+        """
+        
+        owner_email = os.getenv("OWNER_EMAIL", "support@levqor.ai")
+        
+        send_email_via_resend(
+            to_email=owner_email,
+            subject=f"📊 Daily Error Summary - {datetime.now().strftime('%b %d, %Y')}",
+            html_body=html_body
+        )
+        
+        log.info(f"✅ Daily error summary sent to {owner_email}")
+        
+    except Exception as e:
+        log.error(f"Daily error summary failed: {e}")
+
 def init_scheduler():
     """Initialize and start APScheduler"""
     try:
@@ -639,8 +821,26 @@ def init_scheduler():
             replace_existing=True
         )
         
+        # Error Monitoring System (v8.0 - replaces Sentry)
+        scheduler.add_job(
+            check_critical_errors,
+            'interval',
+            minutes=10,
+            id='critical_error_check',
+            name='Critical error Telegram alerts',
+            replace_existing=True
+        )
+        
+        scheduler.add_job(
+            send_daily_error_summary,
+            CronTrigger(hour=9, minute=0, timezone='UTC'),
+            id='daily_error_summary',
+            name='Daily error email summary',
+            replace_existing=True
+        )
+        
         scheduler.start()
-        log.info("✅ APScheduler initialized with 19 jobs (including 5 monitoring jobs for Go/No-Go + DSAR cleanup)")
+        log.info("✅ APScheduler initialized with 21 jobs (including error monitoring, Go/No-Go, DSAR cleanup)")
         return scheduler
         
     except ImportError:

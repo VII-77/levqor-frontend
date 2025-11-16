@@ -37,8 +37,20 @@ if os.environ.get("SENTRY_DSN"):
         log.warning(f"Sentry init failed: {e}")
 
 try:
-    from monitors.scheduler import get_scheduler
-    _scheduler_instance = get_scheduler()
+    import multiprocessing
+    # Only initialize scheduler in one worker to prevent job duplication
+    # Check if we're in the master process or first worker
+    current_process = multiprocessing.current_process()
+    worker_id = os.environ.get('GUNICORN_WORKER_ID', '0')
+    
+    # Initialize scheduler only in worker 0 (or if GUNICORN_WORKER_ID not set, which means single process)
+    if worker_id == '0' or not worker_id:
+        from monitors.scheduler import get_scheduler
+        _scheduler_instance = get_scheduler()
+        log.info(f"✅ Scheduler initialized in worker {worker_id or 'main'}")
+    else:
+        log.info(f"⏭️  Skipping scheduler in worker {worker_id} (preventing duplication)")
+        _scheduler_instance = None
 except Exception as e:
     log.warning(f"Scheduler initialization skipped: {e}")
 

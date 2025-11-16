@@ -17,3 +17,7 @@ stripe==8.0.0
 requests
 flask-sqlalchemy
 openai>=1.0.0,<3.0.0
+google-api-python-client
+google-auth
+google-auth-httplib2
+google-auth-oauthlib

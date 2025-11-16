@@ -103,24 +103,24 @@ export const subscriptionPlans: SubscriptionPlan[] = [
   {
     id: "pro",
     name: "Pro",
-    monthlyGBP: 149,
-    yearlyGBP: 1490,
-    workflowsPerMonth: 7,
+    monthlyGBP: 49,
+    yearlyGBP: 490,
+    workflowsPerMonth: 5,
     monitoring: "Pro monitoring dashboard",
-    support: "Priority + tuning",
+    support: "Priority support",
     features: [
-      "Up to 7 workflows per month",
+      "Up to 5 workflows per month",
       "Pro monitoring dashboard",
-      "Priority support + optimization calls",
+      "Priority support (12-24h response)",
       "Advanced self-healing",
-      "Performance tuning included"
+      "Performance optimization"
     ]
   },
   {
     id: "business",
     name: "Business",
-    monthlyGBP: 299,
-    yearlyGBP: 2990,
+    monthlyGBP: 149,
+    yearlyGBP: 1490,
     workflowsPerMonth: "Unlimited (fair use)",
     monitoring: "Full monitoring dashboard",
     support: "Dedicated success manager",
@@ -181,10 +181,10 @@ Subscription (Monthly / Yearly with 2 months free):
   - Growth:    £79/mo   | £790/yr   (env: STRIPE_PRICE_GROWTH / STRIPE_PRICE_GROWTH_YEAR)
                → 3 workflows/month, advanced monitoring, priority support
   
-  - Pro:       £149/mo  | £1,490/yr (env: STRIPE_PRICE_PRO / STRIPE_PRICE_PRO_YEAR)
-               → 7 workflows/month, pro monitoring, priority + optimization
+  - Pro:       £49/mo   | £490/yr   (env: STRIPE_PRICE_PRO / STRIPE_PRICE_PRO_YEAR)
+               → 5 workflows/month, pro monitoring, priority support
   
-  - Business:  £299/mo  | £2,990/yr (env: STRIPE_PRICE_BUSINESS / STRIPE_PRICE_BUSINESS_YEAR)
+  - Business:  £149/mo  | £1,490/yr (env: STRIPE_PRICE_BUSINESS / STRIPE_PRICE_BUSINESS_YEAR)
                → Unlimited workflows (fair use), enterprise monitoring, dedicated manager
 
 Pricing Logic:
@@ -201,11 +201,13 @@ Plan Keys (must be consistent across pricing.ts, /pricing UI, and /api/checkout)
 */
 
 // DEV NOTE (Replit Agent):
-// - Pricing verified on November 13, 2025
+// - Pricing UPDATED on November 16, 2025 for launch alignment
 // - DFY: 99 / 249 / 599 one-time aligned with 1 / 3 / 7 workflows
-// - Subscription: 29 / 79 / 149 / 299 monthly with 2 months free yearly (290 / 790 / 1,490 / 2,990)
+// - Subscription: 29 / 79 / 49 / 149 monthly with 2 months free yearly (290 / 790 / 490 / 1,490)
+// - NEW PRICING STRUCTURE: Starter £29, Pro £49, Growth £79, Business £149
 // - All plan keys and env var names consistent across pricing.ts, /pricing, and /api/checkout
 // - Checkout API correctly uses mode: "payment" for DFY, mode: "subscription" for recurring
 // - Ready for Stripe price IDs to be configured in Vercel/Replit environment variables
-// - Build: PASSING (38/38 routes), TypeScript: 0 errors
+// - Build: PASSING, TypeScript: 0 errors
 // - Routes verified: /pricing, /success, /cancel, /signin, /api/checkout all working
+// - NOTE: Stripe STARTER price needs manual update from £19 to £29 in dashboard (see LEVQOR-PRICING-SYNC-NOTES.md)

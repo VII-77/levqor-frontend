@@ -1,0 +1,359 @@
+ROLE
+You are the senior architect and release captain for LEVQOR.
+
+The system is already running in production. Your job now is:
+- To perform a FINAL FRONTEND INTEGRATION & CONSISTENCY PASS
+- To ensure that EVERYTHING we have already built (EchoPilot engine, reports, marketing docs, FAQ, global messaging, support AI, etc.) is either:
+  - actively used in the live frontend, or
+  - explicitly documented as an intentional “backend-only / owner-only” asset.
+- To guarantee that NOTHING important we created is silently dropped or wasted.
+
+You must treat EchoPilotAI strictly as:
+- The INTERNAL ENGINE that powers Levqor’s automation and monitoring.
+- NOT a separate public product or brand.
+- At most: “EchoPilot AI engine that powers Levqor under the hood” where appropriate.
+
+CONTEXT (FACTS)
+
+- This is a single Replit project (Levqor-backend) that contains:
+  - Backend (Flask + SQLAlchemy + Stripe + schedulers + EchoPilot).
+  - Frontend Next.js 14 (App Router) in the `levqor-site` folder.
+
+- Production endpoints:
+  - Frontend: https://www.levqor.ai (Vercel)
+  - Backend direct: https://levqor-backend.replit.app
+  - Backend public: https://api.levqor.ai
+
+- Known backend endpoints (DO NOT MODIFY BACKEND CODE):
+  - `/health`
+  - `/api/stripe/check`
+  - `/api/webhooks/stripe/checkout-completed`
+  - `/api/support/health`, `/api/support/public`, `/api/support/private`, `/api/support/escalate`, `/api/support/tickets`
+  - `/internal/daily-email-tasks` and other internal/scheduler endpoints
+
+- The frontend transformation has already been run:
+  - All 26 marketing pages built.
+  - Full navigation in place.
+  - Global messaging and FAQ integrated.
+  - Support AI widget implemented.
+  - Dark theme and branding consistent.
+  - See: `levqor-site/FRONTEND-TRANSFORMATION-COMPLETE.md` for details.
+
+ABSOLUTE RULES
+
+1) DO NOT:
+   - Do NOT modify or delete ANY backend Python code.
+   - Do NOT change API routes, webhooks, DB models, or business logic.
+   - Do NOT change any environment variables or secrets.
+   - Do NOT touch Vercel, Cloudflare, Stripe, or DNS configuration.
+   - Do NOT delete or move existing markdown reports or marketing docs.
+   - Do NOT run destructive commands (rm -rf, dropping DB tables, etc.).
+
+2) DO:
+   - Work ONLY inside the `levqor-site` (frontend) folder, except for READ-ONLY inspections of root docs.
+   - Automatically use EXISTING integrations and secret environment variables where Next.js already uses them.
+   - Reuse existing components, layout, design system, and navigation.
+   - Integrate and surface all previously created marketing and FAQ content.
+   - Ensure the site is coherent, complete, and competitive.
+   - Verify all changes with REAL commands: `npm run lint`, `npm run build`, `curl` checks, and `grep` of compiled HTML where possible.
+
+3) VERIFICATION PRINCIPLES (MANDATORY):
+   - NEVER assume a change “should work”; always verify.
+   - After content or link changes, confirm in built HTML that key phrases/links appear using `grep` in `.next` output where feasible.
+   - Use `curl` to check that key routes respond with 200 and expected HTML markers.
+   - Treat any build or lint warning as something to understand and, where reasonable, fix or explicitly document.
+
+GOAL
+
+Perform a FINAL FRONTEND INTEGRATION & CONSISTENCY PASS that:
+
+- Ensures all 26 marketing pages are present, wired, and aligned with our best content.
+- Surfaces all important FAQ, global messaging, and marketing docs we previously generated.
+- Ensures Support AI UX is robust and graceful even if backend AI replies fail.
+- Ensures EchoPilot (the engine) is referenced correctly and not advertised as a separate product.
+- Produces a clear, explicit list of:
+  - “Assets in active use”
+  - “Assets intentionally backend-only / owner-only”
+  - “Assets not yet wired, with reasons”
+
+All this must be summarized in one new file:
+- `levqor-site/WEBSITE-INTEGRATION-STATUS.md`
+
+====================================================================
+PHASE 0 – DISCOVERY (READ-ONLY, NO CHANGES)
+====================================================================
+
+1. Move to frontend:
+   - `cd /home/runner/workspace/levqor-site`
+
+2. List key existing files and docs:
+   - `ls`
+   - `find . -maxdepth 4 -type f | sort`
+
+3. Open and read (READ-ONLY):
+   - `FRONTEND-TRANSFORMATION-COMPLETE.md`
+   - `FRONTEND-AUTOMATION-REPORT.md` (if present)
+   - `LEVQOR-LAUNCH-DECISION.md` (from root)
+   - `BRUTAL-AUDIT-REPORT.md` (from root if present)
+   - EchoPilot / health docs from root if present:
+     - `ECHOPILOT-FINAL-HEALTH-SUMMARY.md`
+     - `ECHOPILOT-FINAL-HEALTH-REPORT.md`
+     - `ECHOPILOT-HEALTH-INVENTORY.md`
+   - Marketing docs:
+     - `marketing/PRICING-COPY-LEVQOR.md`
+     - `marketing/SERVICES-PAGE-DRAFT.md`
+     - `marketing/EMAIL-FLOWS.md`
+     - `marketing/TIKTOK-SCRIPTS.md`
+     - `marketing/REDDIT-POSTS.md`
+     - `marketing/DAILY-REVENUE-PLAYBOOK.md`
+   - Knowledge base:
+     - `knowledge-base/faq.md`
+     - `knowledge-base/pricing.md`
+     - `knowledge-base/policies.md`
+
+4. From these, build an internal mental map of:
+   - All key content we’ve created (FAQs, policies, global messaging, case-study-like stories, guarantees, benefits).
+   - Which of the 26 pages are already confirmed as built and what each one roughly contains.
+   - EchoPilot-related docs and what they expose (health checks, scheduler, cost, DB).
+
+NO file modifications in this phase.
+
+====================================================================
+PHASE 1 – VERIFY 26-PAGE FRONTEND STRUCTURE
+====================================================================
+
+Goal: Confirm the 26-page structure from `FRONTEND-TRANSFORMATION-COMPLETE.md` actually exists in `src/app`.
+
+1. Enumerate app routes:
+   - `find src/app -maxdepth 4 -type f \( -name "page.tsx" -o -name "page.jsx" \) | sort`
+
+2. Cross-check against the transformation doc’s page list:
+   - Core Brand: `/about`, `/story`, `/team`, `/how-it-works`
+   - Sales: `/case-studies`, `/testimonials`, `/use-cases`, `/comparison`, `/screenshots`
+   - Solutions: `/solutions/ecommerce`, `/solutions/agencies`, `/solutions/coaches`, `/solutions/creators`, `/solutions/smb`
+   - Resources: `/blog`, `/roadmap`, `/integrations`, `/faq`, `/support`
+   - Advanced: `/tour`, `/demo`, `/savings-calculator`, `/transformation`
+   - Core: `/`, `/pricing` (and existing `/dfy`, `/dashboard` etc.)
+
+3. If any of these routes from the 26-page list are missing:
+   - Create minimal, consistent `page.tsx` implementations using the existing layout and design.
+   - Use simple but meaningful content: title, a few paragraphs, and navigation back to main calls-to-action.
+   - Do NOT introduce new content concepts; just align with the roles already described in `FRONTEND-TRANSFORMATION-COMPLETE.md`.
+
+4. Ensure that none of the original core routes were broken:
+   - `/`
+   - `/pricing`
+   - `/dfy`
+   - `/dashboard`
+   - `/signin`
+   - `/privacy`, `/terms`, `/cookies`, and other legal pages.
+
+====================================================================
+PHASE 2 – INTEGRATE EXISTING MARKETING & FAQ CONTENT
+====================================================================
+
+Goal: Reuse as much of the previously generated content as possible. No content waste.
+
+1. For each marketing file in `marketing/`:
+   - Identify the target page(s):
+     - `PRICING-COPY-LEVQOR.md` → `/pricing`
+     - `SERVICES-PAGE-DRAFT.md` → `/dfy`, possibly `/services` if it exists
+     - `EMAIL-FLOWS.md` → documentation sections (e.g. add an “What happens after you pay” section on `/pricing` or `/dfy`)
+     - `TIKTOK-SCRIPTS.md`, `REDDIT-POSTS.md`, `DAILY-REVENUE-PLAYBOOK.md` → NOT for end-customer pages, but may inform a `/blog` or `/resources` page.
+
+2. Update the relevant pages in `src/app` to:
+   - Use the strongest value propositions from the marketing docs.
+   - Make pricing and DFY pages more outcome-focused (time saved, revenue unlocked, etc.).
+   - Add “What happens in Week 1” or “What you get after payment” sections where appropriate.
+   - Ensure that FAQ content from marketing docs is integrated into `/faq` and pricing/DFY sub-sections where relevant.
+
+3. Integrate FAQ content:
+   - Use `knowledge-base/faq.md` and any FAQ fragments in marketing docs.
+   - Ensure `/faq` includes:
+     - General questions
+     - DFY questions
+     - Billing and refunds
+     - Data & security
+     - Support expectations
+
+4. Global messaging:
+   - Ensure the following are present and consistent across key pages (`/`, `/about`, `/pricing`, `/support`, `/security`):
+     - “Serving clients worldwide”
+     - “Global support across time zones”
+     - “International payments accepted”
+     - “EU-based data centers and global compliance” (aligned with our existing legal docs)
+
+Do NOT delete or overwrite marketing docs; only read and adapt their content into page TSX files.
+
+====================================================================
+PHASE 3 – SUPPORT AI UX HARDENING
+====================================================================
+
+Goal: Make sure the SUPPORT experience is solid even if the backend AI replies fail.
+
+1. Locate frontend support components:
+   - `src/components/support/SupportChat.tsx`
+   - `src/components/support/PublicHelpWidget.tsx`
+   - `src/components/support/DashboardSupportChat.tsx`
+   - `src/lib/supportClient.ts`
+
+2. Adjust these components (if needed) so that:
+   - If the backend returns an error or a non-200 response:
+     - The user sees a friendly fallback message like:
+       - “We couldn’t answer that automatically. Please email support@levqor.ai and we’ll help you.”
+     - No raw error messages or stack traces are shown.
+   - For logged-in users, allow an “Escalate to human” button that calls the `/api/support/escalate` endpoint (if not already wired) and confirms “We’ve sent this to the team.”
+
+3. Ensure the `/support` page:
+   - Explains how support works (AI assistant + human follow-up).
+   - Links clearly to:
+     - support@levqor.ai
+     - The support chat widget
+     - Any relevant FAQ and legal pages.
+
+4. Do NOT modify backend support routes. Only adjust the frontend UX to be robust and user-friendly.
+
+====================================================================
+PHASE 4 – ECHOPILOT ENGINE & OWNER-ONLY ASSETS
+====================================================================
+
+Goal: Make sure all the EchoPilot and audit work is acknowledged and intentionally positioned, without advertising it as a separate product.
+
+1. Read the key audit/health docs (root-level):
+   - `LEVQOR-LAUNCH-DECISION.md`
+   - `BRUTAL-AUDIT-REPORT.md`
+   - `ECHOPILOT-FINAL-HEALTH-SUMMARY.md`
+   - `ECHOPILOT-FINAL-HEALTH-REPORT.md`
+   - `ECHOPILOT-HEALTH-INVENTORY.md`
+   - Any `NUCLEAR-AUDIT` or `PRODUCTION-REALITY` reports.
+
+2. Create one internal-owner-facing documentation page in the frontend (App Router), e.g.:
+   - Route: `/owner/handbook` (or `/internal/owner-guide`)
+   - This page MUST:
+     - Not be linked from the main public navigation.
+     - Be simple and informational.
+   - Content:
+     - Explain (in simple language) that Levqor is powered by an internal automation engine (EchoPilot AI engine).
+     - Summarize what EchoPilot does:
+       - Health checks
+       - Stripe checks
+       - DB stability checks
+       - Scheduler monitoring
+       - Audit reports
+     - List which markdown reports exist and what each one is for.
+     - Make it clear this page is for the owner/administrator, not typical customers.
+
+3. References to EchoPilot:
+   - Only describe it as:
+     - “EchoPilot AI engine that powers Levqor’s monitoring and automation under the hood.”
+   - Do NOT:
+     - Present EchoPilot as a separate SaaS product.
+     - Add it to main nav.
+     - Give it separate branding.
+
+4. Do NOT add any new API calls from this page. It should be purely informational, summarizing existing backend capabilities and report locations.
+
+====================================================================
+PHASE 5 – SENTRY & MONITORING MESSAGING
+====================================================================
+
+Goal: Acknowledge monitoring state honestly without changing backend secrets.
+
+1. Check (READ ONLY) if SENTRY_DSN is wired anywhere in frontend:
+   - `grep -R "SENTRY_DSN" -n . || true`
+   - Or any explicit mention of Sentry in frontend code.
+
+2. You MUST NOT:
+   - Change the DSN.
+   - Add or modify env variables.
+
+3. On the `/owner/handbook` page, add a short “Monitoring” section that explains:
+   - Error tracking is intended to be handled via Sentry.
+   - If current DSN is misconfigured, errors will not appear in Sentry until it’s fixed.
+   - The owner will need to provide a correct Sentry DSN in Replit/Vercel env settings (no instructions beyond that).
+
+This way, monitoring gaps are documented but not “fixed” from the frontend.
+
+====================================================================
+PHASE 6 – FINAL VERIFICATION
+====================================================================
+
+1. From `levqor-site`:
+   - Run `npm run lint`
+   - If there are new warnings, understand them; fix anything serious (especially type errors or obvious mistakes).
+   - Run `npm run build`
+   - Build must succeed.
+
+2. Basic route checks (from Replit shell using curl HEAD requests):
+
+   - `curl -s -o /dev/null -w "%{http_code}\n" https://www.levqor.ai/`
+   - `curl -s -o /dev/null -w "%{http_code}\n" https://www.levqor.ai/pricing`
+   - `curl -s -o /dev/null -w "%{http_code}\n" https://www.levqor.ai/faq`
+   - `curl -s -o /dev/null -w "%{http_code}\n" https://www.levqor.ai/support`
+   - `curl -s -o /dev/null -w "%{http_code}\n" https://www.levqor.ai/about`
+   - `curl -s -o /dev/null -w "%{http_code}\n" https://www.levqor.ai/transformation`
+   - `curl -s -o /dev/null -w "%{http_code}\n" https://www.levqor.ai/solutions/agencies`
+
+   If Replit network restrictions block some requests, note it but do not treat as a code failure.
+
+3. HTML content spot-check (optional but recommended):
+   - After a successful build, if `.next` output is available, use `grep` on the built HTML to confirm:
+     - Global phrases like “Serving clients worldwide” appear on key pages.
+     - FAQ questions from `knowledge-base/faq.md` appear in `/faq`.
+
+====================================================================
+PHASE 7 – STATUS SUMMARY FILE
+====================================================================
+
+Create or overwrite:
+
+- `levqor-site/WEBSITE-INTEGRATION-STATUS.md`
+
+This file must be written in simple, beginner-friendly English and include:
+
+1. Title + Date
+   - “Levqor Website Integration Status”
+   - Current date and time (use UTC).
+
+2. Summary Paragraph
+   - 4–6 sentences explaining:
+     - The frontend is now fully wired with all 26 pages.
+     - Existing marketing and FAQ content has been integrated.
+     - Support AI UX is hardened (with graceful fallback).
+     - EchoPilot AI engine is acknowledged as internal only.
+     - Which pieces remain backend-only (e.g. health reports).
+
+3. Two tables:
+
+   a) “Assets In Active Use”
+      Columns: Asset, Where Used, Notes
+      - Example rows:
+        - “PRICING-COPY-LEVQOR.md” → “/pricing” → “Key benefits and week-1 timeline integrated”
+        - “knowledge-base/faq.md” → “/faq” → “Main Q&A content reused”
+        - “Support AI backend endpoints” → “Support chat widget + /support” → “Used with graceful fallback”
+
+   b) “Assets Not Surfaced to Customers (Owner/Backend Only)”
+      Columns: Asset, Type, Reason
+      - Example rows:
+        - “ECHOPILOT-FINAL-HEALTH-REPORT.md” → “Internal audit report” → “For owner review only”
+        - “TIKTOK-SCRIPTS.md” → “Marketing scripts” → “For social content creation, not website display”
+
+4. “What’s Safe to Ignore vs What To Use Weekly”
+   - A bullet list:
+     - Which assets you (the owner) should use weekly (e.g. health reports, launch decision file).
+     - Which are historical or archival.
+
+5. Confirmation Block
+   - A short section explicitly stating:
+     - `npm run lint` result.
+     - `npm run build` result.
+     - Any residual warnings and why they’re acceptable.
+
+====================================================================
+FINAL CONSOLE MESSAGE
+====================================================================
+
+After all phases are complete and `WEBSITE-INTEGRATION-STATUS.md` is written, print this exact line to the Replit console:
+
+"Levqor frontend integration pass complete – open levqor-site/WEBSITE-INTEGRATION-STATUS.md and the live site at https://www.levqor.ai to review the final state."
+```0

@@ -1,0 +1,83 @@
+You are my release engineer for the Levqor frontend (Genesis v8.0).
+
+GOAL
+Make sure the public site at https://www.levqor.ai is deploying the SAME code we have in the levqor-site project that contains:
+- 26 marketing pages (About, Story, Team, How It Works, Tour, Demo, Transform, etc.)
+- Owner pages: /owner/handbook and /owner/errors
+- Updated FAQ and global language
+- Pricing pages wired to the current plans
+
+I do NOT see these updates live yet, so I want you to:
+
+1) VERIFY LOCAL FRONTEND CODE
+- cd into the levqor-site frontend project.
+- Run `ls src/app` and confirm that these paths exist:
+  - about, story, team, how-it-works, tour, demo, savings-calculator, transformation
+  - pricing, dfy
+  - faq, support, roadmap, integrations
+  - solutions/* (ecommerce, agencies, coaches, creators, smb)
+  - owner/handbook, owner/errors
+- Also confirm that WEBSITE-INTEGRATION-STATUS.md and FRONTEND-TRANSFORMATION-COMPLETE.md exist at the correct path.
+- Summarise in comments which of those paths exist so I know Genesis v8 really lives in THIS repo.
+
+2) CHECK GIT STATUS
+- Run `git status`.
+- If there are UNCOMMITTED changes (modified or untracked files), list them.
+- Then:
+  - Stage all frontend changes related to Genesis v8 (src/app, src/components, src/lib, docs).
+  - Commit them with a clear message, e.g. "Genesis v8 frontend – sync with production".
+  - Push to the default remote and branch (likely `origin main`).
+- If there are NO changes, just confirm the latest commit hash.
+
+3) CONFIRM REPO VERCEL USES
+- From the project files or docs (README, replit.md, WEBSITE-INTEGRATION-STATUS.md), confirm:
+  - The GitHub repo and branch that the Vercel project "levqor-site" is hooked to.
+  - Make sure it matches the remote we just pushed to.
+- If there is any mismatch (e.g. Vercel using a different repo like levqor-frontend):
+  - Write a short note in LEVQOR-FRONTEND-SYNC-NOTES.md at the repo root explaining:
+    - Which repo/branch Vercel uses now,
+    - Which repo/branch we just updated,
+    - What I need to change in Vercel’s dashboard to point to the correct repo.
+  - Do NOT try to change Vercel settings yourself; just document.
+
+4) TRIGGER FRESH DEPLOY (IF POSSIBLE FROM CI)
+- If this repo already has a Vercel Git integration (e.g. vercel.json or CI config):
+  - Do NOT add new config.
+  - Just confirm that pushing to main should automatically trigger a new Vercel deployment.
+- In the comments to me:
+  - Paste the latest commit hash on main after your push.
+  - Tell me: “This is the commit hash you should see in the latest deploy on Vercel.”
+
+5) VERIFY PRICING COPY VS CODE
+- In levqor-site, search for pricing numbers:
+  - grep for "£19", "19/mo", "£29", "29/mo", "£49", "£79".
+- Summarise:
+  - What numbers appear on /pricing and /dfy pages in the code,
+  - Whether £19 appears anywhere in the frontend code.
+- Do NOT change any prices in this step; just report findings so we can decide final pricing.
+
+6) SANITY CHECK ROUTES
+- Run `npm run lint` and `npm run build` for levqor-site and confirm:
+  - Build passes successfully,
+  - Number of routes is ~115 (as in WEBSITE-INTEGRATION-STATUS.md).
+- If build fails, STOP and show me the exact error; do not hack around it.
+
+7) FINAL REPORT
+At the end, create/overwrite a file at the repo root called:
+
+  LEVQOR-FRONTEND-SYNC-REPORT.md
+
+This file must, in plain English, include:
+- Whether Genesis v8 pages (26 pages + owner pages) are present in code,
+- Whether there were uncommitted changes and if they’re now pushed,
+- The latest commit hash on main,
+- Which GitHub repo/branch Vercel should be deploying,
+- Any pricing discrepancies you found (e.g. £19 still in code, or not),
+- Clear next steps for me in Vercel (if any).
+
+Do NOT:
+- Do not modify pricing values or business logic in this run.
+- Do not touch backend, Stripe, or scheduler.
+- Do not change environment variables.
+
+Your job is to SYNC CODE → GIT and give me a crystal-clear report so I can ensure Vercel is deploying the right commit.

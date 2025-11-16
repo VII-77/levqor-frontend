@@ -37,20 +37,39 @@ if os.environ.get("SENTRY_DSN"):
         log.warning(f"Sentry init failed: {e}")
 
 try:
-    import multiprocessing
-    # Only initialize scheduler in one worker to prevent job duplication
-    # Check if we're in the master process or first worker
-    current_process = multiprocessing.current_process()
-    worker_id = os.environ.get('GUNICORN_WORKER_ID', '0')
+    import fcntl
+    import atexit
     
-    # Initialize scheduler only in worker 0 (or if GUNICORN_WORKER_ID not set, which means single process)
-    if worker_id == '0' or not worker_id:
+    # Use file lock to ensure only one worker runs the scheduler (prevents duplication in multi-worker Gunicorn)
+    SCHEDULER_LOCK_FILE = "/tmp/levqor_scheduler.lock"
+    scheduler_lock_fd = None
+    
+    try:
+        scheduler_lock_fd = open(SCHEDULER_LOCK_FILE, 'w')
+        fcntl.flock(scheduler_lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        
+        # Successfully acquired lock - this worker will run the scheduler
         from monitors.scheduler import get_scheduler
         _scheduler_instance = get_scheduler()
-        log.info(f"✅ Scheduler initialized in worker {worker_id or 'main'}")
-    else:
-        log.info(f"⏭️  Skipping scheduler in worker {worker_id} (preventing duplication)")
+        log.info(f"✅ Scheduler initialized in worker {os.getpid()} (acquired lock)")
+        
+        # Register cleanup to release lock on exit
+        def release_lock():
+            if scheduler_lock_fd:
+                try:
+                    fcntl.flock(scheduler_lock_fd, fcntl.LOCK_UN)
+                    scheduler_lock_fd.close()
+                except:
+                    pass
+        atexit.register(release_lock)
+        
+    except (IOError, OSError):
+        # Another worker already has the lock
+        log.info(f"⏭️  Skipping scheduler in worker {os.getpid()} (another worker running it)")
         _scheduler_instance = None
+        if scheduler_lock_fd:
+            scheduler_lock_fd.close()
+            
 except Exception as e:
     log.warning(f"Scheduler initialization skipped: {e}")
 

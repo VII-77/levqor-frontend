@@ -6,6 +6,7 @@ OpenAI-powered support chatbot with public and private modes
 import os
 import logging
 import json
+from backend.utils.error_logger import log_exception
 
 logger = logging.getLogger(__name__)
 
@@ -100,6 +101,13 @@ Response format: JSON with keys "reply" (string) and "escalationSuggested" (bool
         
     except Exception as e:
         logger.error(f"support_ai.public_error error={str(e)}", exc_info=True)
+        log_exception(
+            source="backend",
+            service="support_ai_public",
+            exc=e,
+            severity="error",
+            path_or_screen="/api/support/public"
+        )
         return {
             "reply": "I'm having trouble right now. Please email support@levqor.ai",
             "escalationSuggested": True,
@@ -203,6 +211,14 @@ Response format: JSON with keys "reply" (string) and "escalationSuggested" (bool
         
     except Exception as e:
         logger.error(f"support_ai.private_error error={str(e)}", exc_info=True)
+        log_exception(
+            source="backend",
+            service="support_ai_private",
+            exc=e,
+            severity="error",
+            user_email=user_context.get("email") if user_context else None,
+            path_or_screen="/api/support/private"
+        )
         return {
             "reply": "I'm having trouble accessing your account info. Please email support@levqor.ai",
             "escalationSuggested": True,

@@ -8,6 +8,7 @@ import logging
 import os
 import stripe
 from datetime import datetime
+from backend.utils.error_logger import log_exception
 
 log = logging.getLogger("levqor.stripe_checkout")
 
@@ -59,6 +60,13 @@ def checkout_completed():
             return handle_checkout_session(session)
         except Exception as e:
             log.error(f"stripe_checkout.processing_error error={str(e)}", exc_info=True)
+            log_exception(
+                source="backend",
+                service="stripe_webhook_checkout",
+                exc=e,
+                severity="critical",
+                path_or_screen="/api/webhooks/stripe/checkout-completed"
+            )
             return jsonify({"ok": False, "error": "Internal server error"}), 500
     
     # Return success for other event types
@@ -128,6 +136,14 @@ def handle_checkout_session(session):
             f"email={customer_email} tier={tier} error={str(e)}",
             exc_info=True
         )
+        log_exception(
+            source="backend",
+            service="stripe_webhook_order_creation",
+            exc=e,
+            severity="critical",
+            user_email=customer_email,
+            path_or_screen="/api/webhooks/stripe/checkout-completed"
+        )
         raise
     
     # Trigger onboarding automation
@@ -144,6 +160,14 @@ def handle_checkout_session(session):
             f"stripe_checkout.automation_failed "
             f"order_id={order.id} error={str(e)}", 
             exc_info=True
+        )
+        log_exception(
+            source="backend",
+            service="stripe_webhook_automation",
+            exc=e,
+            severity="warning",
+            user_email=customer_email,
+            path_or_screen="/api/webhooks/stripe/checkout-completed"
         )
         # Don't fail the webhook if automation fails
     

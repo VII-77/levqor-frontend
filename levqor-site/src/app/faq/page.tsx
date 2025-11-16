@@ -42,7 +42,7 @@ export default function FAQPage() {
         },
         {
           q: "What happens after the 7-30 day support period?",
-          a: "Your automation keeps running forever (it's yours). If you need updates or new workflows later, you can: (1) Buy another DFY plan for one-off builds, (2) Subscribe to our monthly plans for ongoing automation (£29-£299/month), or (3) Pay for one-off fixes (£49-99 per fix)."
+          a: "Your automation keeps running forever (it's yours). If you need updates or new workflows later, you can: (1) Buy another DFY plan for one-off builds, (2) Subscribe to our monthly plans for ongoing automation (£29-£149/month), or (3) Pay for one-off fixes (£49-99 per fix)."
         },
         {
           q: "Can I modify the automation later?",

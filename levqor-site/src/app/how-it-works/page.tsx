@@ -62,8 +62,8 @@ export default function HowItWorksPage() {
               <div className="bg-slate-950 border border-slate-700 rounded-lg p-6 mb-4">
                 <div className="text-sm text-emerald-400 font-semibold mb-2">MOST POPULAR</div>
                 <div className="text-2xl font-bold text-white mb-2">Professional DFY</div>
-                <div className="text-3xl font-bold text-white mb-4">£299 <span className="text-lg text-slate-400 font-normal">one-time</span></div>
-                <div className="text-slate-300">3 workflows • 7-day delivery</div>
+                <div className="text-3xl font-bold text-white mb-4">£249 <span className="text-lg text-slate-400 font-normal">one-time</span></div>
+                <div className="text-slate-300">3 workflows • 3-4 days delivery</div>
               </div>
               <div className="text-sm text-center text-slate-400">
                 <Link href="/pricing" className="text-emerald-400 hover:underline">View all pricing →</Link>
